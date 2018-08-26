@@ -29,9 +29,12 @@
     <property name="tabletTracking">
      <bool>false</bool>
     </property>
-    <widget class="QWidget" name="subwindow">
+    <widget class="QWidget" name="PlottingWindow">
      <property name="windowTitle">
       <string>Subwindow</string>
+     </property>
+     <property name="accessibleName">
+      <string>Data</string>
      </property>
     </widget>
     <widget class="QWidget" name="subwindow_2">
@@ -62,7 +65,14 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <addaction name="actionShow_Info_Dock"/>
+    <widget class="QMenu" name="menuShow_Info_Dock">
+     <property name="title">
+      <string>Show</string>
+     </property>
+     <addaction name="actionInfo_Dock"/>
+     <addaction name="actionData"/>
+    </widget>
+    <addaction name="menuShow_Info_Dock"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
@@ -370,18 +380,40 @@
     <string>Save As</string>
    </property>
   </action>
-  <action name="actionShow_Info_Dock">
+  <action name="actionInfo_Dock">
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked">
+   <property name="text">
+    <string>Info Dock</string>
+   </property>
+  </action>
+  <action name="actionData">
+   <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show Info Dock</string>
+    <string>Data</string>
    </property>
   </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>menubar</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>Main_dock_infobox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>97</x>
+     <y>11</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>110</x>
+     <y>647</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
