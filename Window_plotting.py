@@ -10,6 +10,10 @@ import random
 class Window_plotting(QtWidgets.QDialog):
     def __init__(self, data, label_x, label_y, title, parent=None):
         super().__init__()
+        self.data = data
+        self.label_x = label_x
+        self.label_y = label_y
+        self.title = title
 
         # a figure instance to plot on
         self.figure = Figure()
@@ -36,7 +40,7 @@ class Window_plotting(QtWidgets.QDialog):
     def plot(self):
         ''' plot some random stuff '''
         # random data
-        data = [random.random() for i in range(10)]
+        data = self.data # [random.random() for i in range(10)]
 
         # create an axis
         ax = self.figure.add_subplot(111)
@@ -46,14 +50,22 @@ class Window_plotting(QtWidgets.QDialog):
 
         # plot data
         ax.plot(data, '*-')
+        ax.set_title(self.title)
+        ax.set_xlabel(self.label_x)
+        ax.set_ylabel(self.label_y)
 
         # refresh canvas
         self.canvas.draw()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    info = dict(data = [random.random() for i in range(10)], 
+                title = 'random data', 
+                label_x = 'x-axis', 
+                label_y='y-axis') 
 
-    main = Window()
+
+    main = Window_plotting(**info)
     main.show()
 
     sys.exit(app.exec_())
