@@ -45,7 +45,6 @@ class ips120():
         self._visa_resource.read_termination = '\r'
         self.setDisplay('tesla')
 
-
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the IPS 120-10
 
@@ -64,7 +63,6 @@ class ips120():
 
         self._visa_resource.write("$C{}".format(state))
 
-
     def readField(self):
         """Read the current magnetic field in Tesla
 
@@ -76,7 +74,6 @@ class ips120():
         value_str = self._visa_resource.read()
 
         return float(value_str.strip('R+'))
-
 
     def readFieldSetpoint(self):
         """Read the current set point for the magnetic field in Tesla
@@ -90,7 +87,6 @@ class ips120():
 
         return float(value_str.strip('R+'))
 
-
     def readFieldSweepRate(self):
         """Read the current magnetic field sweep rate in Tesla/min
 
@@ -102,7 +98,6 @@ class ips120():
         value_str = self._visa_resource.read()
 
         return float(value_str.strip('R+'))
-
 
     def setActivity(self, state=1):
         """Set the field activation method
@@ -123,7 +118,6 @@ class ips120():
 
         self._visa_resource.write("$A{}".format(state))
 
-
     def setHeater(self, state=1):
         """Set the switch heater activation state
 
@@ -142,7 +136,6 @@ class ips120():
 
         # TODO: add timer to account for time it takes for switch to activate
 
-
     def setFieldSetpoint(self, field):
         """Set the magnetic field set point, in Tesla
 
@@ -155,7 +148,6 @@ class ips120():
 
         self._visa_resource.write("$J{}".format(field))
 
-
     def setFieldSweepRate(self, rate):
         """Set the magnetic field sweep rate, in Tesla/min
 
@@ -163,7 +155,6 @@ class ips120():
             rate(float): the magnetic field sweep rate, in Tesla/min
         """
         self._visa_resource.write("$T{}".format(rate))
-
 
     def setDisplay(self, display):
         """Set the display to show amps or tesla
@@ -179,7 +170,6 @@ class ips120():
                     }
 
         self._visa_resource.write("$M{}".format(mode_dict[display]))
-
 
     def waitForField(self, timeout=600, error_margin=0.01):
         """Wait for the field to reach the set point
