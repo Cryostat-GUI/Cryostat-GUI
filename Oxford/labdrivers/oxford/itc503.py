@@ -76,7 +76,7 @@ class itc503():
                 Default: 0.010 K (10 mK) for default no heating
                 above base temperature for any system.
         """
-        if type(temperature) not in [int, float]:
+        if not isinstance(temperature, (int, float)):
             raise AssertionError('argument must be a number')
         
         command = '$T' + str(int(1000*temperature))
@@ -98,9 +98,9 @@ class itc503():
         Args:
             variable: Index of variable to read.
         """
-        if type(state) != int: 
+        if not isinstance(state, int):
             raise AssertionError('argument must be integer')
-        if variable not in range(0,11): 
+        if variable not in range(0,11):
             raise AssertionError('Argument is not a valid number.')
         
         self._visa_resource.write('R{}'.format(variable))
@@ -148,7 +148,7 @@ class itc503():
                     the heater on the front panel.
         """
         
-        if sensor not in [1,2,3]: 
+        if sensor not in [1,2,3]:
             raise AssertionError('Heater not on list.')
         
         self._visa_resource.write('$H{}'.format(sensor))

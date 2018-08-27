@@ -57,9 +57,9 @@ class ips120():
         Args:
             state(int): the state in which to place the IPS 120-10
         """
-        if type(state) != int: 
+        if not isinstance(state, int):
             raise AssertionError('argument must be integer')
-        if state not in [0,1,2,3]: 
+        if state not in [0,1,2,3]:
             raise AssertionError('argument must be one of [0,1,2,3]')
 
         self._visa_resource.write("$C{}".format(state))
@@ -116,9 +116,9 @@ class ips120():
             state(int): the field activation method
         """
 
-        if type(state) != int: 
+        if not isinstance(state, int):
             raise AssertionError('argument must be integer')
-        if state not in [0,1,2,3]: 
+        if state not in [0,1,2,3]:
             raise AssertionError('argument must be one of [0,1,2,3]')
 
         self._visa_resource.write("$A{}".format(state))
@@ -134,8 +134,10 @@ class ips120():
         Args:
             state(int): the switch heater activation state
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2], 'argument must be one of [0,1,2]'
+        if not isinstance(state, int):
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2]:
+            raise AssertionError('argument must be one of [0,1,2]')
         self._visa_resource.write("$H{}".format(state))
 
         # TODO: add timer to account for time it takes for switch to activate
@@ -148,7 +150,8 @@ class ips120():
             field(float): the magnetic field set point, in Tesla
         """
         MAX_FIELD = 8
-        assert abs(field) < MAX_FIELD, 'field must be less than {}'.format(MAX_FIELD)
+        if not abs(field) < MAX_FIELD: 
+            raise AssertionError('field must be less than {}'.format(MAX_FIELD))
 
         self._visa_resource.write("$J{}".format(field))
 
@@ -168,7 +171,8 @@ class ips120():
         Args:
             display(str): One of ['amps','tesla']
         """
-        assert display in ['amps','tesla'], "argument must be one of ['amps','tesla']"
+        if display not in ['amps','tesla']: 
+            raise AssertionError("argument must be one of ['amps','tesla']")
 
         mode_dict = {'amps':8,
                      'tesla':9
