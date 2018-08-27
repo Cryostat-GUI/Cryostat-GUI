@@ -1,5 +1,4 @@
 
-
 import sys
 import time
 
@@ -8,21 +7,26 @@ from labdrivers.oxford.itc503 import itc503
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
-import needle_ui 
+
+ITC = itc503()
 
 
-ITC = itc503('COM6')
-ITC.setControl(unlocked=1, remote=1)
-time.sleep(1)
+class ITC_Updater(QObject):
 
+	"""This is the worker thread, which updates all instrument data of the ITC 503. 
 
-class Needle_Updater(QObject):
-
-	sig_step = pyqtSignal(int)
+		for each itc503 function, we need a wrapping method, 
+		which we can call by a signal, from the main thread
+	"""
+	sig_Needle = pyqtSignal(int)
 
 	def __init__(self, ITC):
 		QThread.__init__(self)
-		self.ITC = ITC
+
+		# here the class instance of the ITC should be handed
+		self.ITC = ITC 
+		
+		self.__abort = False
 
 	@pyqtSlot() # int
 	def run(self):
@@ -30,8 +34,16 @@ class Needle_Updater(QObject):
 		while True:
 			# time.sleep(1)
 			Needle_value = self.ITC.getValue(7)
-			self.sig_step.emit(Needle_value)	
+			self.sig_Needle.emit(Needle_value)	
 			time.sleep(2)
+
+	def setNeedle(self, value):
+		if (0 <= value <= 100): 
+			ITC.setGasOutput(value)
+
+	
+	def setControl(self, unlocked=1, remote=1):
+		ITC.setControl(unlocked=unlocked, remote=remote)
 
 
 
@@ -43,7 +55,7 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 
 		self.ITC = ITC
 		self.liste = []
-		getNeedle = Needle_Updater(ITC)
+		getNeedle = ITC_Updater(ITC)
 		thread = QThread()
 		self.liste.append((getNeedle, thread))
 		getNeedle.moveToThread(thread)
@@ -65,8 +77,7 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 
 
 
-if __name__ == '__main__':
-	app = QtWidgets.QApplication(sys.argv)
-	form = NeedleValve_Window(ITC)
-	form.show()
-	sys.exit(app.exec_())
+
+
+
+

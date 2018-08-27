@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>929</width>
-    <height>780</height>
+    <width>1051</width>
+    <height>824</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QMdiArea" name="mdiArea">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>40</x>
       <y>0</y>
       <width>811</width>
       <height>591</height>
@@ -49,7 +49,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>929</width>
+     <width>1051</width>
      <height>21</height>
     </rect>
    </property>
@@ -74,8 +74,20 @@
     </widget>
     <addaction name="menuShow_Info_Dock"/>
    </widget>
+   <widget class="QMenu" name="menuSystems_Online">
+    <property name="title">
+     <string>Systems Online</string>
+    </property>
+    <addaction name="actionOxford_Cryostat"/>
+    <addaction name="separator"/>
+    <addaction name="actionLakeshore_350"/>
+    <addaction name="separator"/>
+    <addaction name="actionKeithley_Nanovolts"/>
+    <addaction name="actionKeithley_Current_Source"/>
+   </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
+   <addaction name="menuSystems_Online"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -87,8 +99,8 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
-       <width>881</width>
+       <y>10</y>
+       <width>1041</width>
        <height>94</height>
       </rect>
      </property>
@@ -191,61 +203,6 @@
          <widget class="QLabel" name="MainDock_Brate">
           <property name="text">
            <string>Field rate</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="Line" name="line_9">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="MainDock_Sequence">
-        <item>
-         <widget class="QLabel" name="MainDock_Seqnow">
-          <property name="text">
-           <string>Sequence now</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_6">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="MainDock_Seqstate">
-          <property name="text">
-           <string>Sequence state</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Line" name="line_7">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="MainDock_Seq2">
-          <property name="text">
-           <string>Sequence misc</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -361,6 +318,61 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="Line" name="line_9">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="MainDock_Sequence">
+        <item>
+         <widget class="QLabel" name="MainDock_Seqnow">
+          <property name="text">
+           <string>Sequence now</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="MainDock_Seqstate">
+          <property name="text">
+           <string>Sequence state</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="MainDock_Seq2">
+          <property name="text">
+           <string>Sequence misc</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </widget>
@@ -394,6 +406,38 @@
    </property>
    <property name="text">
     <string>Data</string>
+   </property>
+  </action>
+  <action name="actionOxford_Cryostat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Oxford Cryostat</string>
+   </property>
+  </action>
+  <action name="actionLakeshore_350">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lakeshore 350</string>
+   </property>
+  </action>
+  <action name="actionKeithley_Nanovolts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Keithley Nanovolts</string>
+   </property>
+  </action>
+  <action name="actionKeithley_Current_Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Keithley Current Source</string>
    </property>
   </action>
  </widget>

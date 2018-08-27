@@ -40,7 +40,7 @@ except OSError:
 
 class itc503():
     
-    def __init__(self, adress='COM3'):
+    def __init__(self, adress='COM6'):
         """Connect to an ITC 503 S at the specified GPIB address
 
         Args:
@@ -106,6 +106,8 @@ class itc503():
         # self._visa_resource.wait_for_srq()
         value = self._visa_resource.read()
         
+        if value[0] == '?': 
+            return float(-1234)
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):
