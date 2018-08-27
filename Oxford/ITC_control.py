@@ -69,7 +69,7 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 		self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
 	
 	def setNeedle(self, value):
-		if (0 <= value <= 100): 
+		if (0 <= value <= 100):
 			ITC.setGasOutput(value)
 
 	@pyqtSlot(int)

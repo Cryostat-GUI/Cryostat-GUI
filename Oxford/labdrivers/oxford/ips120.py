@@ -57,8 +57,10 @@ class ips120():
         Args:
             state(int): the state in which to place the IPS 120-10
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2,3], 'argument must be one of [0,1,2,3]'
+        if type(state) != int: 
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2,3]: 
+            raise AssertionError('argument must be one of [0,1,2,3]')
 
         self._visa_resource.write("$C{}".format(state))
 
@@ -105,16 +107,20 @@ class ips120():
     def setActivity(self, state=1):
         """Set the field activation method
 
-        0 - Hold  
-        1 - To Set Point  
+        0 - Hold
+        1 - To Set Point
         2 - To Zero
         3 - Clamp (clamp the power supply output)
 
         Args:
             state(int): the field activation method
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2,3], 'argument must be one of [0,1,2,3]'
+
+        if type(state) != int: 
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2,3]: 
+            raise AssertionError('argument must be one of [0,1,2,3]')
+
         self._visa_resource.write("$A{}".format(state))
 
 
