@@ -15,22 +15,31 @@ class ITC_Updater(QObject):
 
 	"""This is the worker thread, which updates all instrument data of the ITC 503.
 
-		for each itc503 function, we need a wrapping method,
-		which we can call by a signal, from the main thread
+		For each itc503 function (except collecting data), there is a wrapping method,
+		which we can call by a signal, from the main thread. This wrapper sends
+		the corresponding value to the device. 
+
+		There is a second method for all wrappers, which accepts
+		the corresponding value, and stores it, so it can be sent upon acknowledgment 
+
+		The information from the device is collected in regular intervals (method "work"),
+		and subsequently sent to the main thread. It is packed in a dict,
+		the keys of which are displayed in the "sensors" dict in this class. 
 	"""
-	sig_Infodata = pyqtSignal(int)
+
+	sig_Infodata = pyqtSignal(dict)
 	sensors = dict(
-			SET_TEMPERATURE = 0,
-	        SENSOR_1_TEMPERATURE = 1,
-	        SENSOR_2_TEMPERATURE = 2,
-	        SENSOR_3_TEMPERATURE = 3,
-	        TEMPERATURE = 4,
-	        HEATER_output_as_percent = 5,
-	        HEATER_output_as_voltage = 6,
-			GAS_FLOW_output = 7,
-			PROPORTIONAL_BAND = 8,
-			INTEGRAL_ACTION_TIME = 9,
-			DERIVATIVE_ACTION_TIME = 10)
+			set_temperature = 0,
+	        sensor_1_temperature = 1,
+	        sensor_2_temperature = 2,
+	        sensor_3_temperature = 3,
+	        temperature = 4,
+	        heater_output_as_percent = 5,
+	        heater_output_as_voltage = 6,
+			gas_flow_output = 7,
+			proportional_band = 8,
+			integral_action_time = 9,
+			derivative_action_time = 10)
 
 	def __init__(self, ITC):
 		QThread.__init__(self)
@@ -217,6 +226,7 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 	
 		self.Something_temperature.valueChanged['int'].connect(self.send_data)
 
+	# this is meant as an example, which should be tested, and then possibly followed! 
 	def send_data(self, data:int):
 		self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
 		self.sig_arbitrary.emit(data)
@@ -230,13 +240,5 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 	# @pyqtSlot(int)
 	# def setNeedleIndicator(self, value):
 	# 	self.NeedleValve_bar.setValue(value)
-
-
-	# move these methods
-
-
-
-
-
 
 
