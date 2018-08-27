@@ -106,7 +106,7 @@ class itc503():
         # self._visa_resource.wait_for_srq()
         value = self._visa_resource.read()
         
-        if value[0] == '?': 
+        if value[0] == '?':
             return float(-1234)
         return float(value.strip('R+'))
         

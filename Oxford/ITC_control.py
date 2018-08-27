@@ -13,9 +13,9 @@ ITC = itc503()
 
 class ITC_Updater(QObject):
 
-	"""This is the worker thread, which updates all instrument data of the ITC 503. 
+	"""This is the worker thread, which updates all instrument data of the ITC 503.
 
-		for each itc503 function, we need a wrapping method, 
+		for each itc503 function, we need a wrapping method,
 		which we can call by a signal, from the main thread
 	"""
 	sig_Needle = pyqtSignal(int)
@@ -24,8 +24,8 @@ class ITC_Updater(QObject):
 		QThread.__init__(self)
 
 		# here the class instance of the ITC should be handed
-		self.ITC = ITC 
-		
+		self.ITC = ITC
+
 		self.__abort = False
 
 	@pyqtSlot() # int
@@ -34,17 +34,18 @@ class ITC_Updater(QObject):
 		while True:
 			# time.sleep(1)
 			Needle_value = self.ITC.getValue(7)
-			self.sig_Needle.emit(Needle_value)	
+			self.sig_Needle.emit(Needle_value)
 			time.sleep(2)
 
-	def setNeedle(self, value):
-		if (0 <= value <= 100): 
+	def setNeedle(value):
+		if (0 <= value <= 100):
 			ITC.setGasOutput(value)
 
-	
-	def setControl(self, unlocked=1, remote=1):
+	def setControl(unlocked=1, remote=1):
 		ITC.setControl(unlocked=unlocked, remote=remote)
 
+	def setTemperature(temperature):
+		ITC.setTemperature(temperature)
 
 
 

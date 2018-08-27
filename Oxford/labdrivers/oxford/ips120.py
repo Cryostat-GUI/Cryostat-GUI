@@ -107,7 +107,7 @@ class ips120():
 
         0 - Hold  
         1 - To Set Point  
-        2 - To Zero  
+        2 - To Zero
         3 - Clamp (clamp the power supply output)
 
         Args:
