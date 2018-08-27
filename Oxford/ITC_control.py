@@ -62,62 +62,76 @@ class ITC_Updater(QObject):
 			# 	pass 
 
 
+	# make all of those setting methods failsafe, for assertion and Timeout errors! 
+	# (assertion is more important, since the setting functions do not listen for a reply)
+	# assertion is not catched by a mother method/function, like in the reading method
 
 	def setNeedle(self):
 		"""class method to be called to set Needle
-			this is necessary, so it can be invoked by a signal"""
+			this is necessary, so it can be invoked by a signal
+		"""
 		value = self.set_GasOutput
 		if (0 <= value <= 100):
 			ITC.setGasOutput(value)
 
 	def setControl(self):
 		"""class method to be called to set Control
-			this is necessary, so it can be invoked by a signal"""
+			this is necessary, so it can be invoked by a signal
+		"""
 		ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
 
 	def setTemperature(self):
 		"""class method to be called to set Temperature
-			this is necessary, so it can be invoked by a signal"""
+			this is necessary, so it can be invoked by a signal
+		"""
 		ITC.setTemperature(self.set_temperature)
 
 	def setProportional(self):
 		"""class method to be called to set Proportional
-			this is necessary, so it can be invoked by a signal"""
+			this is necessary, so it can be invoked by a signal
+		"""
 		ITC.setProportional(self.set_prop)
 
     def setIntegral(self):
-    	"""class method to be called to set Integral
-	    	this is necessary, so it can be invoked by a signal"""
-	    ITC.setIntegral(self.set_integral)
+		"""class method to be called to set Integral
+			this is necessary, so it can be invoked by a signal
+		"""
+		ITC.setIntegral(self.set_integral)
 
     def setDerivative(self):
     	"""class method to be called to set Derivative
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setDerivative(self.set_derivative)
 
     def setHeaterSensor(self):
     	"""class method to be called to set HeaterSensor
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setHeaterSensor(self.set_sensor)
 
     def setHeaterOutput(self):
     	"""class method to be called to set HeaterOutput
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setHeaterOutput(self.set_heater_output)
 
     def setGasOutput(self):
     	"""class method to be called to set GasOutput
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setGasOutput(self.set_gas_output)
 
     def setAutoControl(self):
     	"""class method to be called to set AutoControl
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setAutoControl(self.set_auto_manual)
 
     def setSweeps(self):
     	"""class method to be called to set Sweeps
-	    	this is necessary, so it can be invoked by a signal"""
+	    	this is necessary, so it can be invoked by a signal
+	    """
 	    ITC.setSweeps(self.sweep_parameters)
 
 
@@ -128,19 +142,19 @@ class ITC_Updater(QObject):
 		self.set_temperature = value
 
 	def gettoset_Proportional(self, value):
-		"""class method to receive and store the value to set the prop
+		"""class method to receive and store the value to set the proportional (PID)
 			later on, when the command to enforce the value is sent
 		"""
 		self.set_prop = value
 
 	def gettoset_Integral(self, value):
-		"""class method to receive and store the value to set the integral
+		"""class method to receive and store the value to set the integral (PID)
 			later on, when the command to enforce the value is sent
 		"""
 		self.set_integral = value
 
 	def gettoset_Derivative(self, value):
-		"""class method to receive and store the value to set the derivative
+		"""class method to receive and store the value to set the derivative (PID)
 			later on, when the command to enforce the value is sent
 		"""
 		self.set_derivative = value
