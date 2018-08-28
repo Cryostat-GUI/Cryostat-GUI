@@ -143,7 +143,7 @@ class ips120():
             field(float): the magnetic field set point, in Tesla
         """
         MAX_FIELD = 8
-        if not abs(field) < MAX_FIELD: 
+        if not abs(field) < MAX_FIELD:
             raise AssertionError('field must be less than {}'.format(MAX_FIELD))
 
         self._visa_resource.write("$J{}".format(field))

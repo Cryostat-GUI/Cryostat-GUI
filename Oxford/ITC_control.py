@@ -7,6 +7,7 @@ from labdrivers.oxford.itc503 import itc503
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
+from pyvisa.errors import VisaIOError
 
 ITC = itc503()
 
@@ -28,6 +29,11 @@ class ITC_Updater(QObject):
     """
 
     sig_Infodata = pyqtSignal(dict)
+    sig_assertion = pyqtSignal(str)
+    sig_visaerror = pyqtSignal(str)
+    sig_visatimeout = pyqtSignal()
+    timeouterror = VisaIOError(-1073807339)
+
     sensors = dict(
             set_temperature = 0,
             sensor_1_temperature = 1,
@@ -52,6 +58,9 @@ class ITC_Updater(QObject):
 
     @pyqtSlot() # int
     def work(self):
+        """class method which is working all the time while the thread is running
+            
+        """
         app.processEvents()
         while True:
             # time.sleep(1)
@@ -64,84 +73,172 @@ class ITC_Updater(QObject):
                     time.sleep(0.1)
                 self.sig_Infodata.emit(data)
                 time.sleep(1)
-            except AssertionError as assertion:
-                pass
 
-            # except Timeout error from visa as timeout: - check the error!  
-            #   pass 
+            except VisaIOError as e_vsia:   
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                    self.sig_visatimeout.emit()
+                else: 
+                    self.sig_visaerror.emit(e.args[0])
 
 
-    # make all of those setting methods failsafe, for assertion and Timeout errors! 
-    # (assertion is more important, since the setting functions do not listen for a reply)
-    # assertion is not catched by a mother method/function, like in the reading method
 
     def setNeedle(self):
         """class method to be called to set Needle
             this is necessary, so it can be invoked by a signal
         """
         value = self.set_GasOutput
-        if (0 <= value <= 100):
-            ITC.setGasOutput(value)
+        try:
+            if (0 <= value <= 100):
+                ITC.setGasOutput(value)
+            else:
+                raise AssertionError('Gas output setting must be between 0 and 100%!')
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setControl(self):
         """class method to be called to set Control
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
+        try:
+            ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setTemperature(self):
         """class method to be called to set Temperature
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setTemperature(self.set_temperature)
+        try:
+            ITC.setTemperature(self.set_temperature)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setProportional(self):
         """class method to be called to set Proportional
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setProportional(self.set_prop)
+        try:
+            ITC.setProportional(self.set_prop)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setIntegral(self):
         """class method to be called to set Integral
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setIntegral(self.set_integral)
+        try:
+            ITC.setIntegral(self.set_integral)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setDerivative(self):
         """class method to be called to set Derivative
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setDerivative(self.set_derivative)
+        try:
+            ITC.setDerivative(self.set_derivative)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setHeaterSensor(self):
         """class method to be called to set HeaterSensor
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setHeaterSensor(self.set_sensor)
+        try:
+            ITC.setHeaterSensor(self.set_sensor)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setHeaterOutput(self):
         """class method to be called to set HeaterOutput
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setHeaterOutput(self.set_heater_output)
+        try:
+            ITC.setHeaterOutput(self.set_heater_output)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setGasOutput(self):
         """class method to be called to set GasOutput
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setGasOutput(self.set_gas_output)
+        try:
+            ITC.setGasOutput(self.set_gas_output)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setAutoControl(self):
         """class method to be called to set AutoControl
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setAutoControl(self.set_auto_manual)
+        try:
+            ITC.setAutoControl(self.set_auto_manual)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def setSweeps(self):
         """class method to be called to set Sweeps
             this is necessary, so it can be invoked by a signal
         """
-        ITC.setSweeps(self.sweep_parameters)
+        try:
+            ITC.setSweeps(self.sweep_parameters)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
 
     def gettoset_Temperature(self, value):
