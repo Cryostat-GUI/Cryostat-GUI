@@ -56,6 +56,21 @@ class ITC_Updater(QObject):
 
         # TODO need initialisation for all the parameters! 
 
+        self.control_unlocked = 1
+        self.control_remote = 1
+        self.set_temperature = 250
+        self.set_prop = 0
+        self.set_integral = 0
+        self.set_derivative = 0
+        self.set_sensor = 1
+        self.set_heater_output = 0
+        self.set_gas_output = 0
+        self.set_auto_manual = 0
+        self.sweep_parameters = None
+
+
+
+
     @pyqtSlot() # int
     def work(self):
         """class method which is working all the time while the thread is running
@@ -131,6 +146,8 @@ class ITC_Updater(QObject):
     def setProportional(self):
         """class method to be called to set Proportional
             this is necessary, so it can be invoked by a signal
+
+            prop: Proportional band, in steps of 0.0001K.
         """
         try:
             ITC.setProportional(self.set_prop)
@@ -145,6 +162,9 @@ class ITC_Updater(QObject):
     def setIntegral(self):
         """class method to be called to set Integral
             this is necessary, so it can be invoked by a signal
+
+            integral: Integral action time, in steps of 0.1 minute.
+                        Ranges from 0 to 140 minutes.
         """
         try:
             ITC.setIntegral(self.set_integral)
@@ -159,6 +179,9 @@ class ITC_Updater(QObject):
     def setDerivative(self):
         """class method to be called to set Derivative
             this is necessary, so it can be invoked by a signal
+            
+            derivative: Derivative action time.
+            Ranges from 0 to 273 minutes.
         """
         try:
             ITC.setDerivative(self.set_derivative)
@@ -173,6 +196,9 @@ class ITC_Updater(QObject):
     def setHeaterSensor(self):
         """class method to be called to set HeaterSensor
             this is necessary, so it can be invoked by a signal
+
+            sensor: Should be 1, 2, or 3, corresponding to
+            the heater on the front panel.
         """
         try:
             ITC.setHeaterSensor(self.set_sensor)
@@ -187,6 +213,10 @@ class ITC_Updater(QObject):
     def setHeaterOutput(self):
         """class method to be called to set HeaterOutput
             this is necessary, so it can be invoked by a signal
+
+            heater_output: Sets the percent of the maximum
+                        heater output in units of 0.1%.
+                        Min: 0. Max: 999.
         """
         try:
             ITC.setHeaterOutput(self.set_heater_output)
@@ -201,6 +231,10 @@ class ITC_Updater(QObject):
     def setGasOutput(self):
         """class method to be called to set GasOutput
             this is necessary, so it can be invoked by a signal
+
+            gas_output: Sets the percent of the maximum gas
+                    output in units of 1%.
+                    Min: 0. Max: 99.            
         """
         try:
             ITC.setGasOutput(self.set_gas_output)
@@ -215,6 +249,13 @@ class ITC_Updater(QObject):
     def setAutoControl(self):
         """class method to be called to set AutoControl
             this is necessary, so it can be invoked by a signal
+
+        Value:Status map
+            0: heater manual, gas manual
+            1: heater auto  , gas manual
+            2: heater manual, gas auto
+            3: heater auto  , gas auto
+      
         """
         try:
             ITC.setAutoControl(self.set_auto_manual)
@@ -294,9 +335,6 @@ class ITC_Updater(QObject):
             to set them later on, when the command to enforce the value is sent
         """
         self.sweep_parameters = value
-
-
-
 
 
 class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
