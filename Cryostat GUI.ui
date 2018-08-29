@@ -37,7 +37,7 @@
       <string>Data</string>
      </property>
     </widget>
-    <widget class="QWidget" name="subwindow">
+    <widget class="QWidget" name="ITC_window">
      <property name="windowTitle">
       <string>Subwindow</string>
      </property>
@@ -514,7 +514,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>647</y>
+     <y>691</y>
     </hint>
    </hints>
   </connection>

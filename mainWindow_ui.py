@@ -21,8 +21,8 @@ class Ui_Cryostat_Main(object):
         self.mdiArea.setObjectName("mdiArea")
         self.PlottingWindow = QtWidgets.QWidget()
         self.PlottingWindow.setObjectName("PlottingWindow")
-        self.subwindow_2 = QtWidgets.QWidget()
-        self.subwindow_2.setObjectName("subwindow_2")
+        self.ITC_window = QtWidgets.QWidget()
+        self.ITC_window.setObjectName("ITC_window")
         Cryostat_Main.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(Cryostat_Main)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1051, 21))
@@ -253,7 +253,6 @@ class Ui_Cryostat_Main(object):
 
         self.retranslateUi(Cryostat_Main)
         self.menubar.triggered['QAction*'].connect(self.Main_dock_infobox.show)
-        self.action_run_ITC.triggered['bool'].connect(Cryostat_Main.close)
         QtCore.QMetaObject.connectSlotsByName(Cryostat_Main)
 
     def retranslateUi(self, Cryostat_Main):
@@ -261,7 +260,7 @@ class Ui_Cryostat_Main(object):
         Cryostat_Main.setWindowTitle(_translate("Cryostat_Main", "Cryostat GUI"))
         self.PlottingWindow.setWindowTitle(_translate("Cryostat_Main", "Subwindow"))
         self.PlottingWindow.setAccessibleName(_translate("Cryostat_Main", "Data"))
-        self.subwindow_2.setWindowTitle(_translate("Cryostat_Main", "Subwindow"))
+        self.ITC_window.setWindowTitle(_translate("Cryostat_Main", "Subwindow"))
         self.menuControl.setTitle(_translate("Cryostat_Main", "Sequence"))
         self.menuOptions.setTitle(_translate("Cryostat_Main", "Options"))
         self.menuShow_Info_Dock.setTitle(_translate("Cryostat_Main", "Show"))

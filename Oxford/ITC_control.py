@@ -18,9 +18,9 @@ import ITCcontrol_ui
 
 class ITC_Updater(QObject):
 
-    """This is the worker thread, which updates all instrument data of the ITC 503.
+    """This is the worker thread, which updates all instrument data of the self.ITC 503.
 
-        For each itc503 function (except collecting data), there is a wrapping method,
+        For each self.ITC503 function (except collecting data), there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
         the corresponding value to the device. 
 
@@ -72,40 +72,45 @@ class ITC_Updater(QObject):
         self.set_auto_manual = 0
         self.sweep_parameters = None
 
+        self.delay1 = 1
+        self.delay2 = 0.1
+        self.setControl()
+
 
     @pyqtSlot() # int
     def work(self):
         """class method which is working all the time while the thread is running
             
         """
-        app.processEvents()
+        # app.processEvents()
         while True:
             # time.sleep(1)
             try: 
                 data = dict()
                 # get key-value pairs of the sensors dict, 
                 # so I can then transmit one single dict
-                for key, idx_sensor in sensors.items(): 
+                for key, idx_sensor in self.sensors.items(): 
                     data[key] = self.ITC.getValue(idx_sensor)
-                    time.sleep(0.1)
+                    time.sleep(self.delay2)
                 self.sig_Infodata.emit(data)
-                time.sleep(1)
+                time.sleep(self.delay1)
 
-            except VisaIOError as e_vsia:   
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            except VisaIOError as e_visa:   
+                if False: # type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
                     self.sig_visatimeout.emit()
                 else: 
-                    self.sig_visaerror.emit(e.args[0])
+                    self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot()
     def setNeedle(self):
         """class method to be called to set Needle
             this is necessary, so it can be invoked by a signal
         """
         value = self.set_GasOutput
         try:
-            if (0 <= value <= 100):
-                ITC.setGasOutput(value)
+            if 0 <= value <= 100:
+                self.ITC.setGasOutput(value)
             else:
                 raise AssertionError('Gas output setting must be between 0 and 100%!')
         except AssertionError as e_ass:
@@ -116,12 +121,13 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setControl(self):
         """class method to be called to set Control
             this is necessary, so it can be invoked by a signal
         """
         try:
-            ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
+            self.ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -130,12 +136,13 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setTemperature(self):
         """class method to be called to set Temperature
             this is necessary, so it can be invoked by a signal
         """
         try:
-            ITC.setTemperature(self.set_temperature)
+            self.ITC.setTemperature(self.set_temperature)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -144,6 +151,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setProportional(self):
         """class method to be called to set Proportional
             this is necessary, so it can be invoked by a signal
@@ -151,7 +159,7 @@ class ITC_Updater(QObject):
             prop: Proportional band, in steps of 0.0001K.
         """
         try:
-            ITC.setProportional(self.set_prop)
+            self.ITC.setProportional(self.set_prop)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -160,6 +168,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setIntegral(self):
         """class method to be called to set Integral
             this is necessary, so it can be invoked by a signal
@@ -168,7 +177,7 @@ class ITC_Updater(QObject):
                         Ranges from 0 to 140 minutes.
         """
         try:
-            ITC.setIntegral(self.set_integral)
+            self.ITC.setIntegral(self.set_integral)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -177,6 +186,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setDerivative(self):
         """class method to be called to set Derivative
             this is necessary, so it can be invoked by a signal
@@ -185,7 +195,7 @@ class ITC_Updater(QObject):
             Ranges from 0 to 273 minutes.
         """
         try:
-            ITC.setDerivative(self.set_derivative)
+            self.ITC.setDerivative(self.set_derivative)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -194,6 +204,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setHeaterSensor(self):
         """class method to be called to set HeaterSensor
             this is necessary, so it can be invoked by a signal
@@ -202,7 +213,7 @@ class ITC_Updater(QObject):
             the heater on the front panel.
         """
         try:
-            ITC.setHeaterSensor(self.set_sensor)
+            self.ITC.setHeaterSensor(self.set_sensor)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -211,6 +222,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setHeaterOutput(self):
         """class method to be called to set HeaterOutput
             this is necessary, so it can be invoked by a signal
@@ -220,7 +232,7 @@ class ITC_Updater(QObject):
                         Min: 0. Max: 999.
         """
         try:
-            ITC.setHeaterOutput(self.set_heater_output)
+            self.ITC.setHeaterOutput(self.set_heater_output)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -229,6 +241,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setGasOutput(self):
         """class method to be called to set GasOutput
             this is necessary, so it can be invoked by a signal
@@ -238,7 +251,7 @@ class ITC_Updater(QObject):
                     Min: 0. Max: 99.            
         """
         try:
-            ITC.setGasOutput(self.set_gas_output)
+            self.ITC.setGasOutput(self.set_gas_output)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -247,6 +260,7 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setAutoControl(self):
         """class method to be called to set AutoControl
             this is necessary, so it can be invoked by a signal
@@ -259,7 +273,7 @@ class ITC_Updater(QObject):
 
         """
         try:
-            ITC.setAutoControl(self.set_auto_manual)
+            self.ITC.setAutoControl(self.set_auto_manual)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -268,12 +282,13 @@ class ITC_Updater(QObject):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setSweeps(self):
         """class method to be called to set Sweeps
             this is necessary, so it can be invoked by a signal
         """
         try:
-            ITC.setSweeps(self.sweep_parameters)
+            self.ITC.setSweeps(self.sweep_parameters)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -283,54 +298,63 @@ class ITC_Updater(QObject):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot()
     def gettoset_Temperature(self, value):
         """class method to receive and store the value to set the temperature
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
 
+    @pyqtSlot()
     def gettoset_Proportional(self, value):
         """class method to receive and store the value to set the proportional (PID)
             later on, when the command to enforce the value is sent
         """
         self.set_prop = value
 
+    @pyqtSlot()
     def gettoset_Integral(self, value):
         """class method to receive and store the value to set the integral (PID)
             later on, when the command to enforce the value is sent
         """
         self.set_integral = value
 
+    @pyqtSlot()
     def gettoset_Derivative(self, value):
         """class method to receive and store the value to set the derivative (PID)
             later on, when the command to enforce the value is sent
         """
         self.set_derivative = value
 
+    @pyqtSlot()
     def gettoset_HeaterSensor(self, value):
         """class method to receive and store the value to set the sensor
             later on, when the command to enforce the value is sent
         """
         self.set_sensor = value
 
+    @pyqtSlot()
     def gettoset_HeaterOutput(self, value):
         """class method to receive and store the value to set the heater_output
             later on, when the command to enforce the value is sent
         """
         self.set_heater_output = value
 
+    @pyqtSlot()
     def gettoset_GasOutput(self, value):
         """class method to receive and store the value to set the gas_output
             later on, when the command to enforce the value is sent
         """
         self.set_gas_output = value
 
+    @pyqtSlot()
     def gettoset_AutoControl(self, value):
         """class method to receive and store the value to set the auto_manual
             later on, when the command to enforce the value is sent
         """
         self.set_auto_manual = value
 
+    @pyqtSlot()
     def gettoset_Sweeps(self, value):
         """class method to receive and store the value to for the sweep_parameters
             to set them later on, when the command to enforce the value is sent
@@ -338,7 +362,7 @@ class ITC_Updater(QObject):
         self.sweep_parameters = value
 
 
-class NeedleValve_Window(QtWidgets.QMainWindow): # , ITCcontrol_ui.Ui_ITCcontrol):
+class NeedleValve_Window(QtWidgets.QMainWindow): # , self.ITCcontrol_ui.Ui_ITCcontrol):
     
     sig_arbitrary = pyqtSignal()
 
@@ -349,11 +373,11 @@ class NeedleValve_Window(QtWidgets.QMainWindow): # , ITCcontrol_ui.Ui_ITCcontrol
         loadUi('ITC_control.ui')
 
 
-        
 
-        # self.ITC = itc503()
+
+        # self.ITC = self.ITC503()
         # self.liste = []
-        # self.getInfodata = ITC_Updater(ITC)
+        # self.getInfodata = self.ITC_Updater(ITC)
         # self.thread = QThread()
         # self.liste.append((self.getInfodata, self.thread))
         # self.getInfodata.moveToThread(self.thread)
@@ -376,7 +400,7 @@ class NeedleValve_Window(QtWidgets.QMainWindow): # , ITCcontrol_ui.Ui_ITCcontrol
 
     # def setNeedle(self, value):
     #   if (0 <= value <= 100):
-    #       ITC.setGasOutput(value)
+    #       self.ITC.setGasOutput(value)
 
     # @pyqtSlot(int)
     # def setNeedleIndicator(self, value):

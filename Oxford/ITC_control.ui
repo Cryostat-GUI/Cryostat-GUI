@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>535</width>
-    <height>391</height>
+    <width>529</width>
+    <height>398</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,57 +34,60 @@
          <property name="spacing">
           <number>6</number>
          </property>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Int</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="spinBox"/>
          </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Set Temp</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Prop</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox_2"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="spinBox_3"/>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="spinBox_6"/>
-         </item>
-         <item row="3" column="1">
-          <widget class="QSpinBox" name="spinBox_4"/>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Derivative</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Heater Output</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
           <widget class="QLabel" name="label_6">
            <property name="text">
             <string>Heater Sensor</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="1" column="1">
+          <widget class="QComboBox" name="comboBox">
+           <item>
+            <property name="text">
+             <string>Sensor 1</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 2</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 3</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Heater Output</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="spinBox_6"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Autocontrol</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
           <widget class="QComboBox" name="comboBox_2">
            <item>
             <property name="text">
@@ -108,38 +111,35 @@
            </item>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QComboBox" name="comboBox">
-           <item>
-            <property name="text">
-             <string>Sensor 1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 3</string>
-            </property>
-           </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Prop</string>
+           </property>
           </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="spinBox_2"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Int</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinBox_3"/>
          </item>
          <item row="6" column="0">
-          <widget class="QLabel" name="label_7">
+          <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>Autocontrol</string>
+            <string>Derivative</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Set Temp</string>
-           </property>
-          </widget>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="spinBox_4"/>
          </item>
         </layout>
        </item>
@@ -267,7 +267,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLCDNumber" name="lcdNumber"/>
+        <widget class="QLCDNumber" name="lcdTemp"/>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_12">
@@ -349,7 +349,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>535</width>
+     <width>529</width>
      <height>21</height>
     </rect>
    </property>
@@ -357,22 +357,5 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>Enable_NeedleValve</sender>
-   <signal>clicked()</signal>
-   <receiver>Slider_Needle</receiver>
-   <slot>deleteLater()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>87</x>
-     <y>116</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>85</x>
-     <y>93</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
