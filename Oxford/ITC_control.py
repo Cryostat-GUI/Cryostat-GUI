@@ -6,6 +6,7 @@ import time
 from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5.uic import loadUi
 
 from pyvisa.errors import VisaIOError
 
@@ -337,34 +338,39 @@ class ITC_Updater(QObject):
         self.sweep_parameters = value
 
 
-# class NeedleValve_Window(QtWidgets.QMainWindow, ITCcontrol_ui.Ui_ITCcontrol):
+class NeedleValve_Window(QtWidgets.QMainWindow): # , ITCcontrol_ui.Ui_ITCcontrol):
     
-#     sig_arbitrary = pyqtSignal()
+    sig_arbitrary = pyqtSignal()
 
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.setupUi(self)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        QThread.__init__(self)
+        # self.setupUi(self)
+        loadUi('ITC_control.ui')
 
-#         self.ITC = itc503()
-#         self.liste = []
-#         self.getInfodata = ITC_Updater(ITC)
-#         self.thread = QThread()
-#         self.liste.append((self.getInfodata, self.thread))
-#         self.getInfodata.moveToThread(self.thread)
 
-#         self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
+        
 
-#         self.thread.started.connect(self.getInfodata.work)
-#         self.thread.start()
+        # self.ITC = itc503()
+        # self.liste = []
+        # self.getInfodata = ITC_Updater(ITC)
+        # self.thread = QThread()
+        # self.liste.append((self.getInfodata, self.thread))
+        # self.getInfodata.moveToThread(self.thread)
 
-#         self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
+        # self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
+
+        # self.thread.started.connect(self.getInfodata.work)
+        # self.thread.start()
+
+        # self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
     
-#         self.Something_temperature.valueChanged['int'].connect(self.send_data)
+        # self.Something_temperature.valueChanged['int'].connect(self.send_data)
 
-#     # this is meant as an example, which should be tested, and then possibly followed! 
-#     def send_data(self, data:int):
-#         self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
-#         self.sig_arbitrary.emit(data)
+    # this is meant as an example, which should be tested, and then possibly followed! 
+    def send_data(self, data:int):
+        self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
+        self.sig_arbitrary.emit(data)
 
         
 

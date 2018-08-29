@@ -37,7 +37,7 @@
       <string>Data</string>
      </property>
     </widget>
-    <widget class="QWidget" name="subwindow_2">
+    <widget class="QWidget" name="subwindow">
      <property name="windowTitle">
       <string>Subwindow</string>
      </property>
