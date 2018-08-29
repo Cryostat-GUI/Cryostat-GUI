@@ -9,7 +9,10 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
 from pyvisa.errors import VisaIOError
 
-ITC = itc503()
+import ITCcontrol_ui 
+
+
+
 
 
 class ITC_Updater(QObject):
@@ -39,7 +42,7 @@ class ITC_Updater(QObject):
             sensor_1_temperature = 1,
             sensor_2_temperature = 2,
             sensor_3_temperature = 3,
-            temperature = 4,
+            temperature_error = 4,
             heater_output_as_percent = 5,
             heater_output_as_voltage = 6,
             gas_flow_output = 7,
@@ -69,8 +72,6 @@ class ITC_Updater(QObject):
         self.sweep_parameters = None
 
 
-
-
     @pyqtSlot() # int
     def work(self):
         """class method which is working all the time while the thread is running
@@ -94,7 +95,6 @@ class ITC_Updater(QObject):
                     self.sig_visatimeout.emit()
                 else: 
                     self.sig_visaerror.emit(e.args[0])
-
 
 
     def setNeedle(self):
@@ -255,7 +255,7 @@ class ITC_Updater(QObject):
             1: heater auto  , gas manual
             2: heater manual, gas auto
             3: heater auto  , gas auto
-      
+
         """
         try:
             ITC.setAutoControl(self.set_auto_manual)
@@ -337,34 +337,34 @@ class ITC_Updater(QObject):
         self.sweep_parameters = value
 
 
-class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
+# class NeedleValve_Window(QtWidgets.QMainWindow, ITCcontrol_ui.Ui_ITCcontrol):
     
-    sig_arbitrary = pyqtSignal()
+#     sig_arbitrary = pyqtSignal()
 
-    def __init__(self, ITC, **kwargs):
-        super().__init__(**kwargs)
-        self.setupUi(self)
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.setupUi(self)
 
-        self.ITC = ITC
-        self.liste = []
-        self.getInfodata = ITC_Updater(ITC)
-        self.thread = QThread()
-        self.liste.append((self.getInfodata, self.thread))
-        self.getInfodata.moveToThread(self.thread)
+#         self.ITC = itc503()
+#         self.liste = []
+#         self.getInfodata = ITC_Updater(ITC)
+#         self.thread = QThread()
+#         self.liste.append((self.getInfodata, self.thread))
+#         self.getInfodata.moveToThread(self.thread)
 
-        self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
+#         self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
 
-        self.thread.started.connect(self.getInfodata.work)
-        self.thread.start()
+#         self.thread.started.connect(self.getInfodata.work)
+#         self.thread.start()
 
-        self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
+#         self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
     
-        self.Something_temperature.valueChanged['int'].connect(self.send_data)
+#         self.Something_temperature.valueChanged['int'].connect(self.send_data)
 
-    # this is meant as an example, which should be tested, and then possibly followed! 
-    def send_data(self, data:int):
-        self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
-        self.sig_arbitrary.emit(data)
+#     # this is meant as an example, which should be tested, and then possibly followed! 
+#     def send_data(self, data:int):
+#         self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
+#         self.sig_arbitrary.emit(data)
 
         
 
@@ -377,3 +377,9 @@ class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
     #   self.NeedleValve_bar.setValue(value)
 
 
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    form = NeedleValve_Window()
+    form.show()
+    sys.exit(app.exec_())

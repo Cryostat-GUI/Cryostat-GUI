@@ -69,8 +69,10 @@
      <property name="title">
       <string>Show</string>
      </property>
-     <addaction name="actionInfo_Dock"/>
-     <addaction name="actionData"/>
+     <addaction name="action_show_Info_Dock"/>
+     <addaction name="action_show_Data"/>
+     <addaction name="separator"/>
+     <addaction name="action_show_ITC"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
    </widget>
@@ -78,12 +80,26 @@
     <property name="title">
      <string>Systems Online</string>
     </property>
-    <addaction name="actionOxford_Cryostat"/>
+    <widget class="QMenu" name="menuOxford_Cryostat">
+     <property name="title">
+      <string>Oxford Cryostat</string>
+     </property>
+     <addaction name="action_run_ITC"/>
+     <addaction name="action_run_ILM"/>
+     <addaction name="action_run_PS"/>
+    </widget>
+    <widget class="QMenu" name="menuKeithley">
+     <property name="title">
+      <string>Keithley</string>
+     </property>
+     <addaction name="action_run_Nanovolts"/>
+     <addaction name="action_run_Current_sources"/>
+    </widget>
+    <addaction name="menuOxford_Cryostat"/>
     <addaction name="separator"/>
-    <addaction name="actionLakeshore_350"/>
+    <addaction name="action_run_Lakeshore_350"/>
     <addaction name="separator"/>
-    <addaction name="actionKeithley_Nanovolts"/>
-    <addaction name="actionKeithley_Current_Source"/>
+    <addaction name="menuKeithley"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
@@ -91,6 +107,18 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
+   <property name="minimumSize">
+    <size>
+     <width>1051</width>
+     <height>128</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>5000</width>
+     <height>128</height>
+    </size>
+   </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
@@ -100,14 +128,11 @@
       <rect>
        <x>0</x>
        <y>10</y>
-       <width>1041</width>
+       <width>761</width>
        <height>94</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="MainDockInfoboxLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
       <item>
        <layout class="QVBoxLayout" name="MainDock_Temps">
         <item>
@@ -392,7 +417,7 @@
     <string>Save As</string>
    </property>
   </action>
-  <action name="actionInfo_Dock">
+  <action name="action_show_Info_Dock">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -400,7 +425,7 @@
     <string>Info Dock</string>
    </property>
   </action>
-  <action name="actionData">
+  <action name="action_show_Data">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -408,15 +433,7 @@
     <string>Data</string>
    </property>
   </action>
-  <action name="actionOxford_Cryostat">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Oxford Cryostat</string>
-   </property>
-  </action>
-  <action name="actionLakeshore_350">
+  <action name="action_run_Lakeshore_350">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -432,12 +449,54 @@
     <string>Keithley Nanovolts</string>
    </property>
   </action>
-  <action name="actionKeithley_Current_Source">
+  <action name="action_4">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>Keithley Current Source</string>
+   </property>
+  </action>
+  <action name="action_show_ITC">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>ITC 503 </string>
+   </property>
+  </action>
+  <action name="action_run_ITC">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Temperature controller</string>
+   </property>
+  </action>
+  <action name="action_run_ILM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Level Meter</string>
+   </property>
+  </action>
+  <action name="action_run_PS">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Powersupply</string>
+   </property>
+  </action>
+  <action name="action_run_Nanovolts">
+   <property name="text">
+    <string>Nanovoltmeters</string>
+   </property>
+  </action>
+  <action name="action_run_Current_sources">
+   <property name="text">
+    <string>Current sources</string>
    </property>
   </action>
  </widget>
