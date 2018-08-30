@@ -30,13 +30,10 @@
         <number>6</number>
        </property>
        <item>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="gridSetPoints">
          <property name="spacing">
           <number>6</number>
          </property>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="spinBox"/>
-         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label">
            <property name="text">
@@ -52,7 +49,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="combosetHeatersens">
            <item>
             <property name="text">
              <string>Sensor 1</string>
@@ -78,7 +75,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QSpinBox" name="spinBox_6"/>
+          <widget class="QSpinBox" name="spinsetHeaterPercent"/>
          </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_7">
@@ -88,7 +85,7 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QComboBox" name="comboBox_2">
+          <widget class="QComboBox" name="combosetsetAutocontrol">
            <item>
             <property name="text">
              <string>heater man, gas man</string>
@@ -119,7 +116,7 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QSpinBox" name="spinBox_2"/>
+          <widget class="QSpinBox" name="spinsetProportioinalID"/>
          </item>
          <item row="5" column="0">
           <widget class="QLabel" name="label_3">
@@ -129,7 +126,7 @@
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QSpinBox" name="spinBox_3"/>
+          <widget class="QSpinBox" name="spinsetPIntegrationD"/>
          </item>
          <item row="6" column="0">
           <widget class="QLabel" name="label_4">
@@ -139,7 +136,17 @@
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QSpinBox" name="spinBox_4"/>
+          <widget class="QSpinBox" name="spinsetPIDerivative"/>
+         </item>
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLCDNumber" name="lcdTemp_set"/>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spin_setTemp"/>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -180,7 +187,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QProgressBar" name="NeedleValve_bar">
+          <widget class="QProgressBar" name="progressNeedleValve">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -241,7 +248,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QGridLayout" name="gridLayout_2">
+      <layout class="QGridLayout" name="gridReadings">
        <property name="horizontalSpacing">
         <number>6</number>
        </property>
@@ -267,7 +274,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLCDNumber" name="lcdTemp"/>
+        <widget class="QLCDNumber" name="lcdTemp_sens1"/>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_12">
@@ -277,14 +284,14 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QProgressBar" name="progressBar">
+        <widget class="QProgressBar" name="progressHeaterPercent">
          <property name="value">
           <number>24</number>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_2"/>
+        <widget class="QLCDNumber" name="lcdTemp_sens2"/>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_10">
@@ -294,10 +301,10 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_3"/>
+        <widget class="QLCDNumber" name="lcdTemp_sens3"/>
        </item>
        <item row="4" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_4"/>
+        <widget class="QLCDNumber" name="lcdTemp_err"/>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_9">
@@ -314,10 +321,10 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_5"/>
+        <widget class="QLCDNumber" name="lcdHeaterVoltage"/>
        </item>
        <item row="7" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_8"/>
+        <widget class="QLCDNumber" name="lcdProportionalID"/>
        </item>
        <item row="8" column="0">
         <widget class="QLabel" name="label_15">
@@ -334,25 +341,15 @@
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_6"/>
+        <widget class="QLCDNumber" name="lcdPIDerivative"/>
        </item>
        <item row="8" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_7"/>
+        <widget class="QLCDNumber" name="lcdPIntegrationD"/>
        </item>
       </layout>
      </item>
     </layout>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>529</width>
-     <height>21</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

@@ -89,17 +89,26 @@ class ITC_Updater(QObject):
                 data = dict()
                 # get key-value pairs of the sensors dict, 
                 # so I can then transmit one single dict
-                for key, idx_sensor in self.sensors.items(): 
+                for key, idx_sensor in self.sensors.items():
                     data[key] = self.ITC.getValue(idx_sensor)
                     time.sleep(self.delay2)
                 self.sig_Infodata.emit(data)
                 time.sleep(self.delay1)
 
-            except VisaIOError as e_visa:   
-                if False: # type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            except VisaIOError as e_visa:
+                if False: # type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                 else: 
                     self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot(int)
+    def set_delay_sending(self, delay):
+        self.delay1 = delay
+
+    @pyqtSlot(int)
+    def set_delay_measuring(self, delay):
+        self.delay2 = delay
+
 
 
     @pyqtSlot()

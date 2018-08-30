@@ -81,7 +81,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 thread = QThread()
                 self.threads['control_ITC'] = (getInfodata, thread)
                 getInfodata.moveToThread(thread)
-                if 'ITC' in self.data: 
+                if 'ITC' in self.data:
                     pass
                 else: 
                     self.data['ITC'] = list()
@@ -105,12 +105,32 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     def store_data_itc(self, data):
         """method to store ITC data in a central place"""
-        self.data['ITC'].append(data.update(dict(time=convert_time(time.time()))))
-        # self.ITC_ui.lcdTemp.display(self.data['ITC'][-1]['sensor_1_temperature'])
+        data['date'] = convert_time(time.time())
+        self.data['ITC'].append(data)
+        self.ITC_ui.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
+        self.ITC_ui.lcdTemp_sens2.display(self.data['ITC'][-1]['sensor_2_temperature'])
+        self.ITC_ui.lcdTemp_sens3.display(self.data['ITC'][-1]['sensor_3_temperature'])
+        self.ITC_ui.lcdTemp_set.display(self.data['ITC'][-1]['set_temperature'])
+        self.ITC_ui.lcdTemp_err.display(self.data['ITC'][-1]['temperature_error'])
+        self.ITC_ui.progressHeaterPercent.setValue(self.data['ITC'][-1]['heater_output_as_percent'])
+        self.ITC_ui.lcdHeaterVoltage.display(self.data['ITC'][-1]['heater_output_as_voltage'])
+        self.ITC_ui.progressNeedleValve.setValue(self.data['ITC'][-1]['gas_flow_output'])
+        self.ITC_ui.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
+        self.ITC_ui.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
+        self.ITC_ui.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
+
+
+            
+            
+            
+            
+            
+           
+           
 
 
     # def test(self):
-    #     while True: 
+    #     while True:
     #         time.sleep(1)
     #         if 'ITC' in self.data: print(self.data['ITC'])
 
