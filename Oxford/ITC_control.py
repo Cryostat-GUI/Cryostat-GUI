@@ -3,7 +3,7 @@ import sys
 import time
 
 
-from labdrivers.oxford.itc503 import itc503 
+# from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
@@ -58,11 +58,11 @@ class ITC_Updater(QObject):
         self.ITC = ITC
         self.__abort = False
 
-        # TODO need initialisation for all the parameters! 
+        # TODO need initialisation for all the parameters!
 
         self.control_unlocked = 1
         self.control_remote = 1
-        self.set_temperature = 250
+        self.set_temperature = 0
         self.set_prop = 0
         self.set_integral = 0
         self.set_derivative = 0
@@ -73,8 +73,9 @@ class ITC_Updater(QObject):
         self.sweep_parameters = None
 
         self.delay1 = 1
-        self.delay2 = 0.1
+        self.delay2 = 0.2
         self.setControl()
+        self.__isRunning = True
 
 
     @pyqtSlot() # int
@@ -83,7 +84,7 @@ class ITC_Updater(QObject):
             
         """
         # app.processEvents()
-        while True:
+        while self.__isRunning:
             # time.sleep(1)
             try: 
                 data = dict()
@@ -93,13 +94,20 @@ class ITC_Updater(QObject):
                     data[key] = self.ITC.getValue(idx_sensor)
                     time.sleep(self.delay2)
                 self.sig_Infodata.emit(data)
-                time.sleep(self.delay1)
+                # time.sleep(self.delay1)
+                # print(self.set_temperature)
 
             except VisaIOError as e_visa:
-                if False: # type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                 else: 
                     self.sig_visaerror.emit(e_visa.args[0])
+            except AssertionError as assertion: 
+                self.sig_assertion.emit(assertion.args[0])
+
+    @pyqtSlot()
+    def stop(self):
+        self.__isRunning = False
 
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
@@ -214,13 +222,14 @@ class ITC_Updater(QObject):
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
-    def setHeaterSensor(self):
+    def setHeaterSensor(self, value):
         """class method to be called to set HeaterSensor
             this is necessary, so it can be invoked by a signal
 
             sensor: Should be 1, 2, or 3, corresponding to
             the heater on the front panel.
         """
+        self.set_sensor = value
         try:
             self.ITC.setHeaterSensor(self.set_sensor)
         except AssertionError as e_ass:
@@ -270,7 +279,7 @@ class ITC_Updater(QObject):
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
-    def setAutoControl(self):
+    def setAutoControl(self, value):
         """class method to be called to set AutoControl
             this is necessary, so it can be invoked by a signal
 
@@ -281,6 +290,7 @@ class ITC_Updater(QObject):
             3: heater auto  , gas auto
 
         """
+        self.set_auto_manual = value
         try:
             self.ITC.setAutoControl(self.set_auto_manual)
         except AssertionError as e_ass:
@@ -307,12 +317,13 @@ class ITC_Updater(QObject):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Temperature(self, value):
         """class method to receive and store the value to set the temperature
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
+        # print('got it')
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):
@@ -335,12 +346,12 @@ class ITC_Updater(QObject):
         """
         self.set_derivative = value
 
-    @pyqtSlot()
-    def gettoset_HeaterSensor(self, value):
-        """class method to receive and store the value to set the sensor
-            later on, when the command to enforce the value is sent
-        """
-        self.set_sensor = value
+    # @pyqtSlot()
+    # def gettoset_HeaterSensor(self, value):
+    #     """class method to receive and store the value to set the sensor
+    #         later on, when the command to enforce the value is sent
+    #     """
+    #     self.set_sensor = value
 
     @pyqtSlot()
     def gettoset_HeaterOutput(self, value):
@@ -356,12 +367,12 @@ class ITC_Updater(QObject):
         """
         self.set_gas_output = value
 
-    @pyqtSlot()
-    def gettoset_AutoControl(self, value):
-        """class method to receive and store the value to set the auto_manual
-            later on, when the command to enforce the value is sent
-        """
-        self.set_auto_manual = value
+    # @pyqtSlot()
+    # def gettoset_AutoControl(self, value):
+    #     """class method to receive and store the value to set the auto_manual
+    #         later on, when the command to enforce the value is sent
+    #     """
+    #     self.set_auto_manual = value
 
     @pyqtSlot()
     def gettoset_Sweeps(self, value):

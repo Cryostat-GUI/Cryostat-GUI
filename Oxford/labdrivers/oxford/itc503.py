@@ -79,7 +79,7 @@ class itc503():
         if not isinstance(temperature, (int, float)):
             raise AssertionError('argument must be a number')
         
-        command = '$T' + str(int(1000*temperature))
+        command = '$T{}'.format(temperature)# + str(int(1000*temperature))
         self._visa_resource.write(command)
 
     def getValue(self, variable=0):
@@ -98,17 +98,16 @@ class itc503():
         Args:
             variable: Index of variable to read.
         """
-        if not isinstance(state, int):
+        if not isinstance(variable, int):
             raise AssertionError('argument must be integer')
         if variable not in range(0,11):
             raise AssertionError('Argument is not a valid number.')
         
-        self._visa_resource.write('R{}'.format(variable))
-        # self._visa_resource.wait_for_srq()
-        value = self._visa_resource.read()
+        value = self._visa_resource.query('R{}'.format(variable))
+        # value = self._visa_resource.read()
         
-        if value[0] == '?':
-            return float(-1234)
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):

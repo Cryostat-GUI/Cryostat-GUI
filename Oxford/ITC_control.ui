@@ -6,12 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>529</width>
-    <height>398</height>
+    <width>566</width>
+    <height>357</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>ITC Control</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="horizontalLayoutWidget">
@@ -19,36 +25,55 @@
      <rect>
       <x>30</x>
       <y>20</y>
-      <width>491</width>
-      <height>331</height>
+      <width>511</width>
+      <height>311</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>8</number>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
-        <number>6</number>
+        <number>8</number>
        </property>
        <item>
         <layout class="QGridLayout" name="gridSetPoints">
          <property name="spacing">
           <number>6</number>
          </property>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Integration</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Set Temp</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_6">
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>Heater Sensor</string>
+            <string>Derivative</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinsetProportionalID"/>
+         </item>
+         <item row="2" column="1">
           <widget class="QComboBox" name="combosetHeatersens">
            <item>
             <property name="text">
@@ -67,25 +92,14 @@
            </item>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Heater Output</string>
-           </property>
-          </widget>
+         <item row="7" column="1">
+          <widget class="QSpinBox" name="spinsetPIDerivative"/>
          </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="spinsetHeaterPercent"/>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="spinsetPIntegrationD"/>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Autocontrol</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="combosetsetAutocontrol">
+         <item row="4" column="1">
+          <widget class="QComboBox" name="combosetAutocontrol">
            <item>
             <property name="text">
              <string>heater man, gas man</string>
@@ -108,133 +122,76 @@
            </item>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_2">
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Prop</string>
+            <string>Heater Output</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="spinsetProportioinalID"/>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Heater Sensor</string>
+           </property>
+          </widget>
          </item>
          <item row="5" column="0">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Int</string>
+            <string>Proportional</string>
            </property>
           </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="spinsetPIntegrationD"/>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Derivative</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QSpinBox" name="spinsetPIDerivative"/>
          </item>
          <item row="0" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
            <item>
-            <widget class="QLCDNumber" name="lcdTemp_set"/>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="spin_setTemp"/>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="Needle">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QLabel" name="label_NeedleValve">
-             <property name="text">
-              <string>Gas Output</string>
+            <widget class="QLCDNumber" name="lcdTemp_set">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="Force_Needle_enable">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Needle on manual</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="QProgressBar" name="progressNeedleValve">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="value">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="Needle_slider">
-           <item>
-            <widget class="QSlider" name="Slider_Needle">
-             <property name="enabled">
-              <bool>true</bool>
+            <widget class="QDoubleSpinBox" name="spinsetTemp">
+             <property name="decimals">
+              <number>2</number>
              </property>
              <property name="maximum">
-              <number>100</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <double>400.000000000000000</double>
              </property>
             </widget>
            </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>31</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
           </layout>
          </item>
-         <item>
-          <widget class="QPushButton" name="Enable_NeedleValve">
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetHeaterPercent"/>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>Force Needle Manual</string>
+            <string>Autocontrol</string>
            </property>
           </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Gas Output</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetGasOutput"/>
          </item>
         </layout>
        </item>
@@ -252,21 +209,50 @@
        <property name="horizontalSpacing">
         <number>6</number>
        </property>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_8">
+       <item row="9" column="1">
+        <widget class="QLCDNumber" name="lcdPIntegrationD"/>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>Temperature 1</string>
+          <string>Derivative action time</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_11">
+       <item row="10" column="1">
+        <widget class="QLCDNumber" name="lcdPIDerivative"/>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLCDNumber" name="lcdProportionalID"/>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLCDNumber" name="lcdHeaterVoltage"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Temperature error</string>
+          <string>Proportional band</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="9" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Integration action time</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLCDNumber" name="lcdTemp_err"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Temperature 2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Heater Output [V]</string>
@@ -276,17 +262,24 @@
        <item row="1" column="1">
         <widget class="QLCDNumber" name="lcdTemp_sens1"/>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <widget class="QLabel" name="label_12">
          <property name="text">
           <string>Heater Output [%]</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="6" column="1">
         <widget class="QProgressBar" name="progressHeaterPercent">
          <property name="value">
           <number>24</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Temperature error</string>
          </property>
         </widget>
        </item>
@@ -303,55 +296,35 @@
        <item row="3" column="1">
         <widget class="QLCDNumber" name="lcdTemp_sens3"/>
        </item>
-       <item row="4" column="1">
-        <widget class="QLCDNumber" name="lcdTemp_err"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_9">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_8">
          <property name="text">
-          <string>Temperature 2</string>
+          <string>Temperature 1</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_14">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_NeedleValve">
          <property name="text">
-          <string>Proportional band</string>
+          <string>Gas Output</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
-        <widget class="QLCDNumber" name="lcdHeaterVoltage"/>
-       </item>
-       <item row="7" column="1">
-        <widget class="QLCDNumber" name="lcdProportionalID"/>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>Integration action time</string>
+       <item row="5" column="1">
+        <widget class="QProgressBar" name="progressNeedleValve">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="value">
+          <number>0</number>
          </property>
         </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>Derivative action time</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QLCDNumber" name="lcdPIDerivative"/>
-       </item>
-       <item row="8" column="1">
-        <widget class="QLCDNumber" name="lcdPIntegrationD"/>
        </item>
       </layout>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

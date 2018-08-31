@@ -12,7 +12,7 @@ import mainWindow_ui
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater as cls_itc
 
-from labdrivers.oxford.itc503 import itc503
+from Oxford.labdrivers.oxford.itc503 import itc503
 
 from pyvisa.errors import VisaIOError
 
@@ -76,8 +76,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             try:
-                ITC = itc503('COM6')
-                getInfodata = cls_itc(ITC)
+                self.ITC = itc503('COM6')
+                getInfodata = cls_itc(self.ITC)
                 thread = QThread()
                 self.threads['control_ITC'] = (getInfodata, thread)
                 getInfodata.moveToThread(thread)
@@ -88,6 +88,32 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+
+
+                self.ITC_ui.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
+                self.ITC_ui.spinsetTemp.editingFinished.connect(lambda: self.threads['control_ITC'][0].setTemperature())
+
+                self.ITC_ui.spinsetGasOutput.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
+                self.ITC_ui.spinsetGasOutput.editingFinished.connect(lambda : self.threads['control_ITC'][0].setGasOutput())
+
+                self.ITC_ui.spinsetHeaterPercent.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
+                self.ITC_ui.spinsetHeaterPercent.editingFinished.connect(lambda : self.threads['control_ITC'][0].setHeaterOutput())
+
+                self.ITC_ui.spinsetProportionalID.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Proportional(value))
+                self.ITC_ui.spinsetProportionalID.editingFinished.connect(lambda : self.threads['control_ITC'][0].setProportional())
+
+                self.ITC_ui.spinsetPIntegrationD.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Integral(value))
+                self.ITC_ui.spinsetPIntegrationD.editingFinished.connect(lambda : self.threads['control_ITC'][0].setIntegral())
+
+                self.ITC_ui.spinsetPIDerivative.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Derivative(value))
+                self.ITC_ui.spinsetPIDerivative.editingFinished.connect(lambda : self.threads['control_ITC'][0].setDerivative())
+
+                self.ITC_ui.combosetHeatersens.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
+                
+                self.ITC_ui.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
+
 
                 thread.started.connect(getInfodata.work)
                 thread.start()
@@ -99,6 +125,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             self.action_run_ITC.setChecked(False)
             # possibly implement putting the instrument back to local operation
+            self.threads['control_ITC'][0].stop()
             self.threads['control_ITC'][1].quit()
             self.threads['control_ITC'][1].wait()
 
@@ -118,14 +145,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_ui.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
         self.ITC_ui.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
         self.ITC_ui.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
+        
 
 
-            
-            
-            
-            
-            
-           
+
+
            
 
 
