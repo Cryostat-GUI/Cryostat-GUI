@@ -16,30 +16,7 @@ from Oxford.labdrivers.oxford.itc503 import itc503
 
 from pyvisa.errors import VisaIOError
 
-
-class main_Worker(QObject):
-
-    """This is a worker thread
-    """
-
-    sig_dict = pyqtSignal(dict)
-    sig_str = pyqtSignal(str)
-    sig_str = pyqtSignal(str)
-    sig_ = pyqtSignal()
-
-
-    def __init__(self):
-        QThread.__init__(self)
-
-    @pyqtSlot()
-    def work(self):
-        app.processEvents()
-
-    def printing(self,b):
-        """arbitrary exmple function"""
-        print('a', b)
-        time.sleep(2)
-        print('b', b)
+from logger import main_Logger
 
 
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
@@ -53,17 +30,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         # self.setupUi(self)
         self.threads = dict()
         self.data = dict()
+        self.logging_bools = dict()
 
         # initialize ITC Window
         self.ITC_ui = Ui_ITCcontrol()
         self.ITC_ui.setupUi(self.ITC_window)
 
-        # worker = main_Worker()
-        # thread = QThread()
-        # self.threads['mainworker'] = (worker, thread)
-        # worker.moveToThread(thread)
-        # thread.started.connect(worker.work)
-        # thread.start()
+        self.run_logger(True)
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
@@ -92,6 +65,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
 
 
+                # setting ITC values by GUI ITC window
                 self.ITC_ui.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
                 self.ITC_ui.spinsetTemp.editingFinished.connect(lambda: self.threads['control_ITC'][0].setTemperature())
 
@@ -111,7 +85,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.ITC_ui.spinsetPIDerivative.editingFinished.connect(lambda : self.threads['control_ITC'][0].setDerivative())
 
                 self.ITC_ui.combosetHeatersens.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
-                
+
                 self.ITC_ui.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
 
 
@@ -120,7 +94,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.action_run_ITC.setChecked(True)
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
-                print(e) # open window displaying the error message
+                print(e) # TODO: open window displaying the error message
 
         else:
             self.action_run_ITC.setChecked(False)
@@ -128,8 +102,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.threads['control_ITC'][0].stop()
             self.threads['control_ITC'][1].quit()
             self.threads['control_ITC'][1].wait()
+            del self.threads['control_ITC']
 
-
+    @pyqtSlot(dict)
     def store_data_itc(self, data):
         """method to store ITC data in a central place"""
         data['date'] = convert_time(time.time())
@@ -146,37 +121,45 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_ui.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
         self.ITC_ui.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
         
-
-
-
-
-           
-
-
-    # def test(self):
-    #     while True:
-    #         time.sleep(1)
-    #         if 'ITC' in self.data: print(self.data['ITC'])
-
     def show_ITC(self, boolean):
-        """method which will eventually display the ITC window, one way or another
-            (e.g. through a subwindow, or in a separate thread...)
-
-        """
-
+        """method which will display the ITC window"""
         if boolean:
             self.ITC_window.show()
-            self.ITC_showing = True
-            # self.threads['control_ITC'][0].sig_Infodata.connect()
+            # self.ITC_showing = True
         else:
             self.ITC_window.close()
-            self.ITC_showing = False
+            # self.ITC_showing = False
 
     def printing(self,b):
         """arbitrary exmple function"""
         print(b)
 
+    @pyqtSlot(bool)
+    def run_logger(self, boolean):
+        """method to start/stop the logging thread"""
 
+        # read the last configuration of what shall be logged from a respective file
+        conf = self.read_logging_configuration()
+
+        if boolean: 
+            worker = main_Logger(self)
+            thread = QThread()
+            self.threads['logger'] = (worker, thread)
+            worker.moveToThread(thread)
+            thread.started.connect(worker.work)
+            thread.start()
+
+        else: 
+            self.threads['logger'][0].stop()
+            self.threads['logger'][1].quit()
+            self.threads['logger'][1].wait()
+            del self.threads['logger']
+           
+    def read_logging_configuration(self):
+        """method to read the last configuration of 
+            what shall be logged from a respective file
+        """
+        pass
 
 
 def convert_time(ts):

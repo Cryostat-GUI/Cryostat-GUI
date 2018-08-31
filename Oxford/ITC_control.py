@@ -141,7 +141,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setControl(self):
         """class method to be called to set Control
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
         """
         try:
             self.ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
@@ -156,7 +156,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setTemperature(self):
         """class method to be called to set Temperature
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
         """
         try:
             self.ITC.setTemperature(self.set_temperature)
@@ -171,7 +171,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setProportional(self):
         """class method to be called to set Proportional
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
             prop: Proportional band, in steps of 0.0001K.
         """
@@ -188,7 +188,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setIntegral(self):
         """class method to be called to set Integral
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
             integral: Integral action time, in steps of 0.1 minute.
                         Ranges from 0 to 140 minutes.
@@ -206,7 +206,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setDerivative(self):
         """class method to be called to set Derivative
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
             
             derivative: Derivative action time.
             Ranges from 0 to 273 minutes.
@@ -224,7 +224,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setHeaterSensor(self, value):
         """class method to be called to set HeaterSensor
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
             sensor: Should be 1, 2, or 3, corresponding to
             the heater on the front panel.
@@ -243,7 +243,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setHeaterOutput(self):
         """class method to be called to set HeaterOutput
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
             heater_output: Sets the percent of the maximum
                         heater output in units of 0.1%.
@@ -262,7 +262,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setGasOutput(self):
         """class method to be called to set GasOutput
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
             gas_output: Sets the percent of the maximum gas
                     output in units of 1%.
@@ -281,7 +281,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setAutoControl(self, value):
         """class method to be called to set AutoControl
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
 
         Value:Status map
             0: heater manual, gas manual
@@ -304,7 +304,7 @@ class ITC_Updater(QObject):
     @pyqtSlot()
     def setSweeps(self):
         """class method to be called to set Sweeps
-            this is necessary, so it can be invoked by a signal
+            this is to be invoked by a signal
         """
         try:
             self.ITC.setSweeps(self.sweep_parameters)
@@ -346,13 +346,6 @@ class ITC_Updater(QObject):
         """
         self.set_derivative = value
 
-    # @pyqtSlot()
-    # def gettoset_HeaterSensor(self, value):
-    #     """class method to receive and store the value to set the sensor
-    #         later on, when the command to enforce the value is sent
-    #     """
-    #     self.set_sensor = value
-
     @pyqtSlot()
     def gettoset_HeaterOutput(self, value):
         """class method to receive and store the value to set the heater_output
@@ -367,13 +360,6 @@ class ITC_Updater(QObject):
         """
         self.set_gas_output = value
 
-    # @pyqtSlot()
-    # def gettoset_AutoControl(self, value):
-    #     """class method to receive and store the value to set the auto_manual
-    #         later on, when the command to enforce the value is sent
-    #     """
-    #     self.set_auto_manual = value
-
     @pyqtSlot()
     def gettoset_Sweeps(self, value):
         """class method to receive and store the value to for the sweep_parameters
@@ -382,54 +368,68 @@ class ITC_Updater(QObject):
         self.sweep_parameters = value
 
 
-class NeedleValve_Window(QtWidgets.QMainWindow): # , self.ITCcontrol_ui.Ui_ITCcontrol):
+    # @pyqtSlot()
+    # def gettoset_HeaterSensor(self, value):
+    #     """class method to receive and store the value to set the sensor
+    #         later on, when the command to enforce the value is sent
+    #     """
+    #     self.set_sensor = value
+
+    # @pyqtSlot()
+    # def gettoset_AutoControl(self, value):
+    #     """class method to receive and store the value to set the auto_manual
+    #         later on, when the command to enforce the value is sent
+    #     """
+    #     self.set_auto_manual = value
+
+# class NeedleValve_Window(QtWidgets.QMainWindow): # , self.ITCcontrol_ui.Ui_ITCcontrol):
     
-    sig_arbitrary = pyqtSignal()
+#     sig_arbitrary = pyqtSignal()
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        QThread.__init__(self)
-        # self.setupUi(self)
-        loadUi('ITC_control.ui')
-
-
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         QThread.__init__(self)
+#         # self.setupUi(self)
+#         loadUi('ITC_control.ui')
 
 
-        # self.ITC = self.ITC503()
-        # self.liste = []
-        # self.getInfodata = self.ITC_Updater(ITC)
-        # self.thread = QThread()
-        # self.liste.append((self.getInfodata, self.thread))
-        # self.getInfodata.moveToThread(self.thread)
 
-        # self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
 
-        # self.thread.started.connect(self.getInfodata.work)
-        # self.thread.start()
+#         # self.ITC = self.ITC503()
+#         # self.liste = []
+#         # self.getInfodata = self.ITC_Updater(ITC)
+#         # self.thread = QThread()
+#         # self.liste.append((self.getInfodata, self.thread))
+#         # self.getInfodata.moveToThread(self.thread)
 
-        # self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
+#         # self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
+
+#         # self.thread.started.connect(self.getInfodata.work)
+#         # self.thread.start()
+
+#         # self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
     
-        # self.Something_temperature.valueChanged['int'].connect(self.send_data)
+#         # self.Something_temperature.valueChanged['int'].connect(self.send_data)
 
-    # this is meant as an example, which should be tested, and then possibly followed! 
-    def send_data(self, data:int):
-        self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
-        self.sig_arbitrary.emit(data)
+#     # this is meant as an example, which should be tested, and then possibly followed! 
+#     def send_data(self, data:int):
+#         self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
+#         self.sig_arbitrary.emit(data)
 
         
 
-    # def setNeedle(self, value):
-    #   if (0 <= value <= 100):
-    #       self.ITC.setGasOutput(value)
+#     # def setNeedle(self, value):
+#     #   if (0 <= value <= 100):
+#     #       self.ITC.setGasOutput(value)
 
-    # @pyqtSlot(int)
-    # def setNeedleIndicator(self, value):
-    #   self.NeedleValve_bar.setValue(value)
+#     # @pyqtSlot(int)
+#     # def setNeedleIndicator(self, value):
+#     #   self.NeedleValve_bar.setValue(value)
 
 
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    form = NeedleValve_Window()
-    form.show()
-    sys.exit(app.exec_())
+# if __name__ == '__main__':
+#     app = QtWidgets.QApplication(sys.argv)
+#     form = NeedleValve_Window()
+#     form.show()
+#     sys.exit(app.exec_())

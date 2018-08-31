@@ -35,13 +35,13 @@ except OSError:
 
 class ips120():
     
-    def __init__(self, GPIBaddr):
-        """Connect to an IPS 120-10 at the specified GPIB address
+    def __init__(self, adress):
+        """Connect to an IPS 120-10 at the specified RS232 address
 
         Args:
-            GPIBaddr(int): GPIB address of the IPS 120-10
+            adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
-        self._visa_resource = resource_manager.open_resource("GPIB::%d" % GPIBaddr)
+        self._visa_resource = resource_manager.open_resource(adress)
         self._visa_resource.read_termination = '\r'
         self.setDisplay('tesla')
 
@@ -69,10 +69,12 @@ class ips120():
         Returns:
             field(float): current magnetic field in Tesla
         """
-        self._visa_resource.write('R 7')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R7')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
 
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
         return float(value_str.strip('R+'))
 
     def readFieldSetpoint(self):
@@ -81,9 +83,12 @@ class ips120():
         Returns:
             setpoint(float): current set point for the magnetic field in Tesla
         """
-        self._visa_resource.write('R 8')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R8')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
+
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
 
@@ -93,9 +98,12 @@ class ips120():
         Returns:
             sweep_rate(float): current magnetic field sweep rate in Tesla/min
         """
-        self._visa_resource.write('R 9')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R9')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
+
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
 
