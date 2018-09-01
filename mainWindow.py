@@ -36,7 +36,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_ui = Ui_ITCcontrol()
         self.ITC_ui.setupUi(self.ITC_window)
 
-        self.run_logger(True)
+        # self.run_logger(True)
+
+        self.action_Logging.triggered['bool'].connect(self.run_logger)
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)

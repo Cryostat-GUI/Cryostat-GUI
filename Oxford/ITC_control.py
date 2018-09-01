@@ -109,9 +109,9 @@ class ITC_Updater(QObject):
     def stop(self):
         self.__isRunning = False
 
-    @pyqtSlot(int)
-    def set_delay_sending(self, delay):
-        self.delay1 = delay
+    # @pyqtSlot(int)
+    # def set_delay_sending(self, delay):
+    #     self.delay1 = delay
 
     @pyqtSlot(int)
     def set_delay_measuring(self, delay):

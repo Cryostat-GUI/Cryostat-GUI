@@ -25,7 +25,7 @@ class main_Logger(QObject):
 
         self.interval = 2 # 60s interval for logging as initialisation
 
-
+        self.mainthread.sig_saving.connect(self.store_data)
 
     @pyqtSlot()
     def work(self):
@@ -49,3 +49,6 @@ class main_Logger(QObject):
     @pyqtSlot(int)
     def set_Interval(self, interval):
         self.interval = interval
+
+    def store_data(self):
+        pass

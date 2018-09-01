@@ -100,6 +100,7 @@
     <addaction name="action_run_Lakeshore_350"/>
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
+    <addaction name="action_Logging"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
@@ -497,6 +498,14 @@
   <action name="action_run_Current_sources">
    <property name="text">
     <string>Current sources</string>
+   </property>
+  </action>
+  <action name="action_Logging">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logging</string>
    </property>
   </action>
  </widget>
