@@ -35,16 +35,15 @@ except OSError:
 
 class ips120():
     
-    def __init__(self, GPIBaddr):
-        """Connect to an IPS 120-10 at the specified GPIB address
+    def __init__(self, adress):
+        """Connect to an IPS 120-10 at the specified RS232 address
 
         Args:
-            GPIBaddr(int): GPIB address of the IPS 120-10
+            adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
-        self._visa_resource = resource_manager.open_resource("GPIB::%d" % GPIBaddr)
+        self._visa_resource = resource_manager.open_resource(adress)
         self._visa_resource.read_termination = '\r'
         self.setDisplay('tesla')
-
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the IPS 120-10
@@ -57,11 +56,12 @@ class ips120():
         Args:
             state(int): the state in which to place the IPS 120-10
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2,3], 'argument must be one of [0,1,2,3]'
+        if not isinstance(state, int):
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2,3]:
+            raise AssertionError('argument must be one of [0,1,2,3]')
 
         self._visa_resource.write("$C{}".format(state))
-
 
     def readField(self):
         """Read the current magnetic field in Tesla
@@ -69,12 +69,13 @@ class ips120():
         Returns:
             field(float): current magnetic field in Tesla
         """
-        self._visa_resource.write('R 7')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R7')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
 
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
         return float(value_str.strip('R+'))
-
 
     def readFieldSetpoint(self):
         """Read the current set point for the magnetic field in Tesla
@@ -82,12 +83,14 @@ class ips120():
         Returns:
             setpoint(float): current set point for the magnetic field in Tesla
         """
-        self._visa_resource.write('R 8')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R8')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
+
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
-
 
     def readFieldSweepRate(self):
         """Read the current magnetic field sweep rate in Tesla/min
@@ -95,28 +98,33 @@ class ips120():
         Returns:
             sweep_rate(float): current magnetic field sweep rate in Tesla/min
         """
-        self._visa_resource.write('R 9')
-        self._visa_resource.wait_for_srq()
-        value_str = self._visa_resource.read()
+        value_str = self._visa_resource.query('R9')
+        # self._visa_resource.wait_for_srq()
+        # value_str = self._visa_resource.read()
+
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
-
 
     def setActivity(self, state=1):
         """Set the field activation method
 
-        0 - Hold  
-        1 - To Set Point  
-        2 - To Zero  
+        0 - Hold
+        1 - To Set Point
+        2 - To Zero
         3 - Clamp (clamp the power supply output)
 
         Args:
             state(int): the field activation method
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2,3], 'argument must be one of [0,1,2,3]'
-        self._visa_resource.write("$A{}".format(state))
 
+        if not isinstance(state, int):
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2,3]:
+            raise AssertionError('argument must be one of [0,1,2,3]')
+
+        self._visa_resource.write("$A{}".format(state))
 
     def setHeater(self, state=1):
         """Set the switch heater activation state
@@ -128,12 +136,13 @@ class ips120():
         Args:
             state(int): the switch heater activation state
         """
-        assert type(state) == int, 'argument must be integer'
-        assert state in [0,1,2], 'argument must be one of [0,1,2]'
+        if not isinstance(state, int):
+            raise AssertionError('argument must be integer')
+        if state not in [0,1,2]:
+            raise AssertionError('argument must be one of [0,1,2]')
         self._visa_resource.write("$H{}".format(state))
 
         # TODO: add timer to account for time it takes for switch to activate
-
 
     def setFieldSetpoint(self, field):
         """Set the magnetic field set point, in Tesla
@@ -142,10 +151,10 @@ class ips120():
             field(float): the magnetic field set point, in Tesla
         """
         MAX_FIELD = 8
-        assert abs(field) < MAX_FIELD, 'field must be less than {}'.format(MAX_FIELD)
+        if not abs(field) < MAX_FIELD:
+            raise AssertionError('field must be less than {}'.format(MAX_FIELD))
 
         self._visa_resource.write("$J{}".format(field))
-
 
     def setFieldSweepRate(self, rate):
         """Set the magnetic field sweep rate, in Tesla/min
@@ -155,21 +164,20 @@ class ips120():
         """
         self._visa_resource.write("$T{}".format(rate))
 
-
     def setDisplay(self, display):
         """Set the display to show amps or tesla
 
         Args:
             display(str): One of ['amps','tesla']
         """
-        assert display in ['amps','tesla'], "argument must be one of ['amps','tesla']"
+        if display not in ['amps','tesla']: 
+            raise AssertionError("argument must be one of ['amps','tesla']")
 
         mode_dict = {'amps':8,
                      'tesla':9
                     }
 
         self._visa_resource.write("$M{}".format(mode_dict[display]))
-
 
     def waitForField(self, timeout=600, error_margin=0.01):
         """Wait for the field to reach the set point

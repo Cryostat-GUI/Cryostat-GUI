@@ -1,7 +1,6 @@
 
 
 import sys
-# for x in sys.path: print(x)
 import time
 
 
@@ -25,7 +24,6 @@ class Needle_Updater(QObject):
 		QThread.__init__(self)
 		self.ITC = ITC
 
-
 	@pyqtSlot() # int
 	def run(self):
 		app.processEvents()
@@ -38,11 +36,11 @@ class Needle_Updater(QObject):
 
 
 
-class Needle(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
+class NeedleValve_Window(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 	def __init__(self, ITC, **kwargs):
 		super().__init__(**kwargs)
 		self.setupUi(self)
-		# self.show()
+
 		self.ITC = ITC
 		self.liste = []
 		getNeedle = Needle_Updater(ITC)
@@ -53,12 +51,9 @@ class Needle(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 		getNeedle.sig_step.connect(self.setNeedleIndicator)
 
 		thread.started.connect(getNeedle.run)
-
 		thread.start()
 
 		self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
-
-
 	
 	def setNeedle(self, value):
 		if (0 <= value <= 100): 
@@ -72,6 +67,6 @@ class Needle(QtWidgets.QMainWindow, needle_ui.Ui_NeedleControl):
 
 if __name__ == '__main__':
 	app = QtWidgets.QApplication(sys.argv)
-	form = Needle(ITC)
+	form = NeedleValve_Window(ITC)
 	form.show()
 	sys.exit(app.exec_())

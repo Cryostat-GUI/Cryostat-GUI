@@ -19,7 +19,6 @@ Classes:
     itc503: a class for interfacing with a ITC 503 temperature controller
 
 """
-import datetime as dt
 import time
 import logging
 
@@ -40,13 +39,12 @@ except OSError:
 
 class itc503():
     
-    def __init__(self, adress='COM3'):
+    def __init__(self, adress='COM6'):
         """Connect to an ITC 503 S at the specified GPIB address
 
         Args:
-            GPIBaddr(int): GPIB address of the ITC 503 
+            GPIBaddr(int): GPIB address of the ITC 503
         """
-        # self._visa_resource = resource_manager.open_resource("GPIB::%d" % GPIBaddr)
         self._visa_resource = resource_manager.open_resource(adress)
         self._visa_resource.read_termination = '\r'
 
@@ -78,9 +76,10 @@ class itc503():
                 Default: 0.010 K (10 mK) for default no heating
                 above base temperature for any system.
         """
-        assert type(temperature) in [int, float], 'argument must be a number'
+        if not isinstance(temperature, (int, float)):
+            raise AssertionError('argument must be a number')
         
-        command = '$T' + str(int(1000*temperature))
+        command = '$T{}'.format(temperature)# + str(int(1000*temperature))
         self._visa_resource.write(command)
 
     def getValue(self, variable=0):
@@ -99,13 +98,16 @@ class itc503():
         Args:
             variable: Index of variable to read.
         """
-        assert type(variable) == int, 'Argument must be an integer.'
-        assert variable in range(0,11), 'Argument is not a valid number.'
+        if not isinstance(variable, int):
+            raise AssertionError('argument must be integer')
+        if variable not in range(0,11):
+            raise AssertionError('Argument is not a valid number.')
         
-        self._visa_resource.write('R{}'.format(variable))
-        # self._visa_resource.wait_for_srq()
-        value = self._visa_resource.read()
+        value = self._visa_resource.query('R{}'.format(variable))
+        # value = self._visa_resource.read()
         
+        if value[0] != 'R' or value == '':
+            raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):
@@ -145,7 +147,8 @@ class itc503():
                     the heater on the front panel.
         """
         
-        assert sensor in [1,2,3], 'Heater not on list.'
+        if sensor not in [1,2,3]:
+            raise AssertionError('Heater not on list.')
         
         self._visa_resource.write('$H{}'.format(sensor))
         return None
@@ -171,7 +174,7 @@ class itc503():
                     Min: 0. Max: 999.
         """
         self._visa_resource.write('$G{}'.format(gas_output))
-        return None      
+        return None
         
     def setAutoControl(self, auto_manual=0):
         """Sets automatic control for heater/gas(needle valve).
