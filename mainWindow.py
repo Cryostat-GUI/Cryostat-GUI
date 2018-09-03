@@ -12,7 +12,7 @@ import mainWindow_ui
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater as cls_itc
 
-from Oxford.labdrivers.oxford.itc503 import itc503
+
 
 from pyvisa.errors import VisaIOError
 
@@ -52,14 +52,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if boolean:
             try:
                 self.ITC = itc503('COM6')
-                getInfodata = cls_itc(self.ITC)
-                thread = QThread()
-                self.threads['control_ITC'] = (getInfodata, thread)
-                getInfodata.moveToThread(thread)
-                if 'ITC' in self.data:
-                    pass
-                else: 
-                    self.data['ITC'] = list()
+                # getInfodata = cls_itc(self.ITC)
+                getInfodata = running_thread(cls_itc, 'ITC', 'control_ITC', 'COM6')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 getInfodata.sig_visaerror.connect(self.printing)
@@ -101,10 +95,28 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             self.action_run_ITC.setChecked(False)
             # possibly implement putting the instrument back to local operation
-            self.threads['control_ITC'][0].stop()
-            self.threads['control_ITC'][1].quit()
-            self.threads['control_ITC'][1].wait()
-            del self.threads['control_ITC']
+            stopping_thread('control_ITC')
+
+
+
+    def running_thread(self, Threadclass, dataname, threadname, InstrumentAdress=None):
+
+        worker = Threadclass() if InstrumentAdress == None else Threadclass(InstrumentAdress)
+        thread = QThread()
+        self.threads[threadname] = (worker, thread)
+        worker.moveToThread(thread)
+        if dataname in self.data:
+            pass
+        else: 
+            self.data[dataname] = list()
+        return worker
+
+    def stopping_thread(self, threadname):
+        self.threads[threadname][0].stop()
+        self.threads[threadname][1].quit()
+        self.threads[threadname][1].wait()
+        del self.threads[threadname]
+
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):

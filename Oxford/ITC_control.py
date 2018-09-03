@@ -8,6 +8,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
+from Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
 import ITCcontrol_ui 
@@ -51,11 +52,11 @@ class ITC_Updater(QObject):
             integral_action_time = 9,
             derivative_action_time = 10)
 
-    def __init__(self, ITC):
+    def __init__(self, InstrumentAdress):
         QThread.__init__(self)
 
         # here the class instance of the ITC should be handed
-        self.ITC = ITC
+        self.ITC = itc503(InstrumentAdress)
         self.__abort = False
 
         # TODO need initialisation for all the parameters!
