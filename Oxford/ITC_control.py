@@ -8,8 +8,10 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
-from Drivers.itc503 import itc503
+from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
+
+from util import AbstractThread
 
 import ITCcontrol_ui 
 
@@ -17,7 +19,7 @@ import ITCcontrol_ui
 
 
 
-class ITC_Updater(QObject):
+class ITC_Updater(AbstractThread):
 
     """This is the worker thread, which updates all instrument data of the self.ITC 503.
 
@@ -34,7 +36,7 @@ class ITC_Updater(QObject):
     """
 
     sig_Infodata = pyqtSignal(dict)
-    sig_assertion = pyqtSignal(str)
+    # sig_assertion = pyqtSignal(str)
     sig_visaerror = pyqtSignal(str)
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
@@ -53,16 +55,15 @@ class ITC_Updater(QObject):
             derivative_action_time = 10)
 
     def __init__(self, InstrumentAdress):
+        super().__init__()
         QThread.__init__(self)
 
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAdress)
-        self.__abort = False
 
         # TODO need initialisation for all the parameters!
 
-        self.control_unlocked = 1
-        self.control_remote = 1
+        self.control_state = 3
         self.set_temperature = 0
         self.set_prop = 0
         self.set_integral = 0
@@ -74,41 +75,62 @@ class ITC_Updater(QObject):
         self.sweep_parameters = None
 
         self.delay1 = 1
-        self.delay2 = 0.2
+        self.delay2 = 0.4
         self.setControl()
-        self.__isRunning = True
+        # self.__isRunning = True
 
 
-    @pyqtSlot() # int
-    def work(self):
-        """class method which is working all the time while the thread is running
+    # @pyqtSlot() # int
+    # def work(self):
+    #     """class method which is working all the time while the thread is running
             
-        """
-        # app.processEvents()
-        while self.__isRunning:
-            # time.sleep(1)
-            try: 
-                data = dict()
-                # get key-value pairs of the sensors dict, 
-                # so I can then transmit one single dict
-                for key, idx_sensor in self.sensors.items():
-                    data[key] = self.ITC.getValue(idx_sensor)
-                    time.sleep(self.delay2)
-                self.sig_Infodata.emit(data)
-                # time.sleep(self.delay1)
-                # print(self.set_temperature)
+    #     """
+    #     # app.processEvents()
+    #     while self.__isRunning:
+    #         # time.sleep(1)
+    #         try: 
+    #             data = dict()
+    #             # get key-value pairs of the sensors dict, 
+    #             # so I can then transmit one single dict
+    #             for key, idx_sensor in self.sensors.items():
+    #                 data[key] = self.ITC.getValue(idx_sensor)
+    #                 time.sleep(self.delay2)
+    #             self.sig_Infodata.emit(data)
+    #             # time.sleep(self.delay1)
+    #             # print(self.set_temperature)
 
-            except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                    self.sig_visatimeout.emit()
-                else: 
-                    self.sig_visaerror.emit(e_visa.args[0])
-            except AssertionError as assertion: 
-                self.sig_assertion.emit(assertion.args[0])
+    #         except VisaIOError as e_visa:
+    #             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+    #                 self.sig_visatimeout.emit()
+    #             else: 
+    #                 self.sig_visaerror.emit(e_visa.args[0])
+    #         except AssertionError as assertion: 
+    #             self.sig_assertion.emit(assertion.args[0])
 
-    @pyqtSlot()
-    def stop(self):
-        self.__isRunning = False
+    # @pyqtSlot()
+    # def stop(self):
+    #     self.__isRunning = False
+
+
+
+    def running(self):
+        try: 
+            data = dict()
+            # get key-value pairs of the sensors dict, 
+            # so I can then transmit one single dict
+            for key, idx_sensor in self.sensors.items():
+                data[key] = self.ITC.getValue(idx_sensor)
+                time.sleep(self.delay2)
+            self.sig_Infodata.emit(data)
+            # time.sleep(self.delay1)
+            # print(self.set_temperature)
+
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
+
 
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
@@ -145,7 +167,7 @@ class ITC_Updater(QObject):
             this is to be invoked by a signal
         """
         try:
-            self.ITC.setControl(unlocked=self.control_unlocked, remote=self.control_remote)
+            self.ITC.setControl(self.control_state)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

@@ -49,7 +49,7 @@ class itc503():
         self._visa_resource.read_termination = '\r'
 
 
-    def setControl(self, unlocked=1, remote=1):
+    def setControl(self, state):
         """Set the LOCAL / REMOTE control state of the ITC 503
 
         0 - Local & Locked (default state)
@@ -63,8 +63,8 @@ class itc503():
         Args:
             state(int): the state in which to place the ITC 503
         """
-        state_bit = str(remote) + str(unlocked)
-        state = int(state_bit, 2)
+        # state_bit = str(remote) + str(unlocked)
+        # state = int(state_bit, 2)
 
         self._visa_resource.write("$C{}".format(state))
 
@@ -106,8 +106,8 @@ class itc503():
         value = self._visa_resource.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
-        if value[0] != 'R' or value == '':
-            raise AssertionError('bad reply: {}'.format(value))
+        if value == "" or None: raise AssertionError('bad reply: empty string')
+        if value[0] != 'R': raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):

@@ -23,6 +23,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window"""
     
     sig_arbitrary = pyqtSignal()
+    sig_saving = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -51,9 +52,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             try:
-                self.ITC = itc503('COM6')
+                # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = running_thread(cls_itc, 'ITC', 'control_ITC', 'COM6')
+                getInfodata = self.running_thread(cls_itc('COM6'), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 getInfodata.sig_visaerror.connect(self.printing)
@@ -85,8 +86,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.ITC_ui.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
 
 
-                thread.started.connect(getInfodata.work)
-                thread.start()
+                # thread.started.connect(getInfodata.work)
+                # thread.start()
                 self.action_run_ITC.setChecked(True)
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
@@ -95,20 +96,23 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             self.action_run_ITC.setChecked(False)
             # possibly implement putting the instrument back to local operation
-            stopping_thread('control_ITC')
+            self.stopping_thread('control_ITC')
 
 
 
-    def running_thread(self, Threadclass, dataname, threadname, InstrumentAdress=None):
+    def running_thread(self, worker, dataname, threadname, **kwargs):
 
-        worker = Threadclass() if InstrumentAdress == None else Threadclass(InstrumentAdress)
         thread = QThread()
         self.threads[threadname] = (worker, thread)
         worker.moveToThread(thread)
-        if dataname in self.data:
+
+        if dataname in self.data or dataname == None:
             pass
         else: 
             self.data[dataname] = list()
+
+        thread.started.connect(worker.work)
+        thread.start()
         return worker
 
     def stopping_thread(self, threadname):
@@ -156,18 +160,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         conf = self.read_logging_configuration()
 
         if boolean: 
-            worker = main_Logger(self)
-            thread = QThread()
-            self.threads['logger'] = (worker, thread)
-            worker.moveToThread(thread)
-            thread.started.connect(worker.work)
-            thread.start()
+            self.running_thread(main_Logger(self), None, 'logger')
+            # worker = main_Logger(self)
+            # thread = QThread()
+            # self.threads['logger'] = (worker, thread)
+            # worker.moveToThread(thread)
+            # thread.started.connect(worker.work)
+            # thread.start()
 
         else: 
-            self.threads['logger'][0].stop()
-            self.threads['logger'][1].quit()
-            self.threads['logger'][1].wait()
-            del self.threads['logger']
+            self.stopping_thread('logger')
+            # self.threads['logger'][0].stop()
+            # self.threads['logger'][1].quit()
+            # self.threads['logger'][1].wait()
+            # del self.threads['logger']
            
     def read_logging_configuration(self):
         """method to read the last configuration of 
