@@ -45,7 +45,7 @@ class main_Logger(AbstractEventhandlingThread):
     @pyqtSlot()
     def store_data(self, data):
         """storing logging data
-            into database or logfile - to be decided! 
+            into database or logfile - to be decided!
 
         """
         pass

@@ -57,7 +57,7 @@ class itc503():
         1 - Remote & Locked
         2 - Local & Unlocked
         3 - Remote & Unlocked
-        
+
         Locked = Front panel is disabled
         Unlocked = Front panel usable
 
@@ -107,9 +107,9 @@ class itc503():
         value = self._visa_resource.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
-        if value == "" or None: 
+        if value == "" or None:
             raise AssertionError('bad reply: empty string')
-        if value[0] != 'R': 
+        if value[0] != 'R':
             raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
         

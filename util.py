@@ -2,13 +2,13 @@
 Utility module for the Cryostat GUI
 
 
-Classes: 
+Classes:
     AbstractThread: a class which sets up QT's QThread instance, as well as the assertion signal
 
-    AbstractLoopThread: a thread-class, inheriting from AbstractThread, 
+    AbstractLoopThread: a thread-class, inheriting from AbstractThread,
         which implements Thread-Loop behaviour, continuously running the class method self.running
 
-    AbstractEventhandlingThread: a thread class, inheriting from AbstractThread, 
+    AbstractEventhandlingThread: a thread class, inheriting from AbstractThread,
         which is designed to be used for handling signal-events, not continuous loops
 
 """
@@ -18,14 +18,13 @@ Classes:
 
 
 
-# from PyQt5 import QtWidgets,  
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
 
 
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
-    
+
     sig_assertion = pyqtSignal(str)
 
     def __init__(self):
@@ -52,10 +51,10 @@ class AbstractLoopThread(AbstractThread):
     def work(self):
         """class method which is working all the time while the thread is running. """
         while self.__isRunning:
-            try: 
+            try:
                 self.running()
-            except AssertionError as assertion: 
-                self.sig_assertion.emit(assertion.args[0])          
+            except AssertionError as assertion:
+                self.sig_assertion.emit(assertion.args[0])      
 
 
     def running(self):

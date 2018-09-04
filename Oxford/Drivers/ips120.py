@@ -190,7 +190,6 @@ class ips120():
         Returns:
             (bool): whether the field set point was reached
         """
-        
 
         start_time = datetime.now()
         stop_time = start_time + datetime.timedelta(seconds=timeout)

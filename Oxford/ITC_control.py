@@ -5,7 +5,7 @@ import time
 
 # from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
 from .Drivers.itc503 import itc503
@@ -83,7 +83,7 @@ class ITC_Updater(AbstractLoopThread):
 
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
-            self.delay2 should be at at least 0.4 to ensure relatively error-free communication 
+            self.delay2 should be at at least 0.4 to ensure relatively error-free communication
             with ITC over serial RS-232 connection.
 
         """

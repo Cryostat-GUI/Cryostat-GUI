@@ -103,16 +103,16 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def running_thread(self, worker, dataname, threadname, **kwargs):
         """Set up a new Thread, and insert the worker class, which runs in the new thread
             
-            Args: 
+            Args:
                 worker - the class (as a class instance) which should run inside
                 dataname - the name for which a dict entry should be made in the self.data dict,
-                        in case the Thread is passing data (e.g. sensors, instrument status...) 
+                        in case the Thread is passing data (e.g. sensors, instrument status...)
                 threadname - the name as which the thread will be listed in self.threads,
                         to be used for e.g. signals
                         listing the thread in self.threads is also important to protect it
-                        from garbage collection! 
+                        from garbage collection!
 
-            Returns: 
+            Returns:
                 the worker class instance, useful for connecting signals directly
         """
 
