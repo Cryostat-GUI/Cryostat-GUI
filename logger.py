@@ -10,51 +10,39 @@ import sys
 import time
 import datetime
 
+from util import AbstractEventhandlingThread
 
-class main_Logger(QObject):
+class main_Logger(AbstractEventhandlingThread):
 
     """This is a worker thread
     """
 
     sig_dict = pyqtSignal(dict)
     sig_str = pyqtSignal(str)
-    sig_str = pyqtSignal(str)
-    sig_ = pyqtSignal()
+    sig_log = pyqtSignal()
 
 
     def __init__(self, mainthread):
-        QThread.__init__(self)
-        self.mainthread = mainthread
-        self.__isRunning = True
+        super().__init__()
+        # QThread.__init__(self)
 
         self.interval = 2 # 60s interval for logging as initialisation
 
-        self.mainthread.sig_saving.connect(self.store_data)
+        self.mainthread.sig_logging.connect(self.store_data)
 
-    def f():
+    def running(self):
         try:
             # Do things
-            pass
+            self.sig_log.emit('log')
         finally:
-            QTimer.singleShot(self.interval*1e3, f)
+            QTimer.singleShot(self.interval*1e3, self.running)
 
 
-    @pyqtSlot()
-    def work(self):
-        # app.processEvents()
-        pass
-
-        # while self.__isRunning:
-        #     pass
-        #     print(self.mainthread.data)
-        #     time.sleep(self.interval)
-        #     # log all meaningful arguments of the mainthread
-
-    def printing(self,b):
-        """arbitrary exmple function"""
-        print('a', b)
-        time.sleep(2)
-        print('b', b)
+    # def printing(self,b):
+    #     """arbitrary exmple function"""
+    #     print('a', b)
+    #     time.sleep(2)
+    #     print('b', b)
 
     @pyqtSlot()
     def stop(self):
@@ -65,5 +53,7 @@ class main_Logger(QObject):
         """set the interval between logging events in seconds"""
         self.interval = interval
 
-    def store_data(self):
+    @pyqtSlot()
+    def store_data(self, data):
         pass
+        # saving data

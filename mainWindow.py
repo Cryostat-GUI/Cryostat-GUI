@@ -23,7 +23,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window"""
     
     sig_arbitrary = pyqtSignal()
-    sig_saving = pyqtSignal(dict)
+    sig_logging = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -161,6 +161,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             self.running_thread(main_Logger(self), None, 'logger')
+            self.threads['logger'][0].sig_log.connect(lambda: self.sig_logging.emit(self.data))
             # worker = main_Logger(self)
             # thread = QThread()
             # self.threads['logger'] = (worker, thread)
@@ -175,11 +176,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # self.threads['logger'][1].wait()
             # del self.threads['logger']
            
-    def read_logging_configuration(self):
+    def logging_read_configuration(self):
         """method to read the last configuration of 
             what shall be logged from a respective file
         """
         pass
+
+    # def logging_sending_data(self):
+    #     pass
 
 
 def convert_time(ts):

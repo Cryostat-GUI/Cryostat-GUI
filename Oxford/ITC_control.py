@@ -11,7 +11,9 @@ from PyQt5.uic import loadUi
 from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
-from util import AbstractThread
+# from util import AbstractThread
+from util import AbstractLoopThread
+# from util import AbstractEventhandlingThread
 
 import ITCcontrol_ui 
 
@@ -19,7 +21,7 @@ import ITCcontrol_ui
 
 
 
-class ITC_Updater(AbstractThread):
+class ITC_Updater(AbstractLoopThread):
 
     """This is the worker thread, which updates all instrument data of the self.ITC 503.
 
@@ -56,7 +58,7 @@ class ITC_Updater(AbstractThread):
 
     def __init__(self, InstrumentAdress):
         super().__init__()
-        QThread.__init__(self)
+        # QThread.__init__(self)
 
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAdress)
