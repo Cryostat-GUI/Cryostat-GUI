@@ -21,6 +21,7 @@ class main_Logger(AbstractEventhandlingThread):
 
     def __init__(self, mainthread):
         super().__init__()
+        self.mainthread = mainthread
 
         self.interval = 2 # 60s interval for logging as initialisation
 
@@ -29,7 +30,7 @@ class main_Logger(AbstractEventhandlingThread):
     def running(self):
         try:
             # Do things
-            self.sig_log.emit('log')
+            self.sig_log.emit()
         finally:
             QTimer.singleShot(self.interval*1e3, self.running)
 
@@ -42,7 +43,7 @@ class main_Logger(AbstractEventhandlingThread):
         """set the interval between logging events in seconds"""
         self.interval = interval
 
-    @pyqtSlot()
+    @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
             into database or logfile - to be decided!

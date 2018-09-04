@@ -54,7 +54,7 @@ class AbstractLoopThread(AbstractThread):
             try:
                 self.running()
             except AssertionError as assertion:
-                self.sig_assertion.emit(assertion.args[0])      
+                self.sig_assertion.emit(assertion.args[0])
 
 
     def running(self):

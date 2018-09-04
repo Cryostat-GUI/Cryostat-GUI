@@ -173,11 +173,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """method to start/stop the logging thread"""
 
         # read the last configuration of what shall be logged from a respective file
-        conf = self.read_logging_configuration()
+        conf = self.logging_read_configuration()
 
         if boolean: 
             self.running_thread(main_Logger(self), None, 'logger')
-            self.threads['logger'][0].sig_log.connect(lambda: self.sig_logging.emit(self.data))
+            self.threads['logger'][0].sig_dict.connect(lambda : self.sig_logging.emit(self.data))
             # worker = main_Logger(self)
             # thread = QThread()
             # self.threads['logger'] = (worker, thread)
