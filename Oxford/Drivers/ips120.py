@@ -19,7 +19,7 @@ import time
 import logging
 
 import visa
-from pyvisa.errors import VisaIOError
+# from pyvisa.errors import VisaIOError
 
 # create a logger object for this module
 logger = logging.getLogger(__name__)
@@ -34,7 +34,8 @@ except OSError:
 
 
 class ips120():
-    
+    """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments. """
+
     def __init__(self, adress):
         """Connect to an IPS 120-10 at the specified RS232 address
 
@@ -170,7 +171,7 @@ class ips120():
         Args:
             display(str): One of ['amps','tesla']
         """
-        if display not in ['amps','tesla']: 
+        if display not in ['amps','tesla']:
             raise AssertionError("argument must be one of ['amps','tesla']")
 
         mode_dict = {'amps':8,

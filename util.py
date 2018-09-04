@@ -1,12 +1,31 @@
+"""
+Utility module for the Cryostat GUI
 
 
-from PyQt5 import QtWidgets, QtGui
+Classes: 
+    AbstractThread: a class which sets up QT's QThread instance, as well as the assertion signal
+
+    AbstractLoopThread: a thread-class, inheriting from AbstractThread, 
+        which implements Thread-Loop behaviour, continuously running the class method self.running
+
+    AbstractEventhandlingThread: a thread class, inheriting from AbstractThread, 
+        which is designed to be used for handling signal-events, not continuous loops
+
+"""
+
+
+
+
+
+
+# from PyQt5 import QtWidgets,  
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
 
 
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
+    
     sig_assertion = pyqtSignal(str)
 
     def __init__(self):
@@ -14,19 +33,16 @@ class AbstractThread(QObject):
 
     @pyqtSlot()
     def work(self):
-        """class method which is working all the time while the thread is running
-            
-        """
+        """class method which is usually started when starting the thread. """
         raise NotImplementedError
 
     def running(self):
-        """class method to be implemented """
+        """class method to be overriden """
         raise NotImplementedError
 
 
 class AbstractLoopThread(AbstractThread):
     """Abstract thread class to be used with instruments """
-    sig_assertion = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -34,9 +50,7 @@ class AbstractLoopThread(AbstractThread):
 
     @pyqtSlot() # int
     def work(self):
-        """class method which is working all the time while the thread is running
-            
-        """
+        """class method which is working all the time while the thread is running. """
         while self.__isRunning:
             try: 
                 self.running()
@@ -45,17 +59,17 @@ class AbstractLoopThread(AbstractThread):
 
 
     def running(self):
-        """class method to be implemented """
+        """class method to be overriden """
         raise NotImplementedError
 
     @pyqtSlot()
     def stop(self):
+        """stop the loop execution, sets self.__isRunning to False"""
         self.__isRunning = False
 
 
 class AbstractEventhandlingThread(AbstractThread):
     """Abstract thread class to be used with instruments """
-    sig_assertion = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -66,14 +80,14 @@ class AbstractEventhandlingThread(AbstractThread):
         """class method which is here so something runs, and starting behaviour is not broken
         """
         # while self.__isRunning:
-        try: 
+        try:
             self.running()
-        except AssertionError as assertion: 
-            self.sig_assertion.emit(assertion.args[0])          
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
 
 
     def running(self):
-        """class method to be implemented """
+        """class method to be overrriden """
         raise NotImplementedError
 
     @pyqtSlot()

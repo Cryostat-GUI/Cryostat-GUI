@@ -19,11 +19,10 @@ Classes:
     itc503: a class for interfacing with a ITC 503 temperature controller
 
 """
-import time
 import logging
 
 import visa
-from pyvisa.errors import VisaIOError
+# from pyvisa.errors import VisaIOError
 
 # create a logger object for this module
 logger = logging.getLogger(__name__)
@@ -38,7 +37,9 @@ except OSError:
 
 
 class itc503():
-    
+    """class for interfacing with a ITC 503 temperature controller"""
+
+
     def __init__(self, adress='COM6'):
         """Connect to an ITC 503 S at the specified GPIB address
 
@@ -106,8 +107,10 @@ class itc503():
         value = self._visa_resource.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
-        if value == "" or None: raise AssertionError('bad reply: empty string')
-        if value[0] != 'R': raise AssertionError('bad reply: {}'.format(value))
+        if value == "" or None: 
+            raise AssertionError('bad reply: empty string')
+        if value[0] != 'R': 
+            raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):

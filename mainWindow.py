@@ -101,6 +101,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
     def running_thread(self, worker, dataname, threadname, **kwargs):
+        """Set up a new Thread, and insert the worker class, which runs in the new thread
+            
+            Args: 
+                worker - the class (as a class instance) which should run inside
+                dataname - the name for which a dict entry should be made in the self.data dict,
+                        in case the Thread is passing data (e.g. sensors, instrument status...) 
+                threadname - the name as which the thread will be listed in self.threads,
+                        to be used for e.g. signals
+                        listing the thread in self.threads is also important to protect it
+                        from garbage collection! 
+
+            Returns: 
+                the worker class instance, useful for connecting signals directly
+        """
 
         thread = QThread()
         self.threads[threadname] = (worker, thread)
@@ -116,6 +130,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         return worker
 
     def stopping_thread(self, threadname):
+        """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
+
         self.threads[threadname][0].stop()
         self.threads[threadname][1].quit()
         self.threads[threadname][1].wait()

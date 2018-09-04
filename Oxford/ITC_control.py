@@ -5,7 +5,7 @@ import time
 
 # from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
 from .Drivers.itc503 import itc503
@@ -58,7 +58,6 @@ class ITC_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAdress):
         super().__init__()
-        # QThread.__init__(self)
 
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAdress)
@@ -82,50 +81,21 @@ class ITC_Updater(AbstractLoopThread):
         # self.__isRunning = True
 
 
-    # @pyqtSlot() # int
-    # def work(self):
-    #     """class method which is working all the time while the thread is running
-            
-    #     """
-    #     # app.processEvents()
-    #     while self.__isRunning:
-    #         # time.sleep(1)
-    #         try: 
-    #             data = dict()
-    #             # get key-value pairs of the sensors dict, 
-    #             # so I can then transmit one single dict
-    #             for key, idx_sensor in self.sensors.items():
-    #                 data[key] = self.ITC.getValue(idx_sensor)
-    #                 time.sleep(self.delay2)
-    #             self.sig_Infodata.emit(data)
-    #             # time.sleep(self.delay1)
-    #             # print(self.set_temperature)
-
-    #         except VisaIOError as e_visa:
-    #             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-    #                 self.sig_visatimeout.emit()
-    #             else: 
-    #                 self.sig_visaerror.emit(e_visa.args[0])
-    #         except AssertionError as assertion: 
-    #             self.sig_assertion.emit(assertion.args[0])
-
-    # @pyqtSlot()
-    # def stop(self):
-    #     self.__isRunning = False
-
-
-
     def running(self):
+        """Try to extract all current data from the ITC, and emit signal, sending the data
+            self.delay2 should be at at least 0.4 to ensure relatively error-free communication 
+            with ITC over serial RS-232 connection.
+
+        """
         try: 
             data = dict()
-            # get key-value pairs of the sensors dict, 
+            # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
                 data[key] = self.ITC.getValue(idx_sensor)
                 time.sleep(self.delay2)
             self.sig_Infodata.emit(data)
             # time.sleep(self.delay1)
-            # print(self.set_temperature)
 
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
@@ -141,7 +111,6 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot(int)
     def set_delay_measuring(self, delay):
         self.delay2 = delay
-
 
 
     @pyqtSlot()
@@ -407,54 +376,3 @@ class ITC_Updater(AbstractLoopThread):
     #     """
     #     self.set_auto_manual = value
 
-# class NeedleValve_Window(QtWidgets.QMainWindow): # , self.ITCcontrol_ui.Ui_ITCcontrol):
-    
-#     sig_arbitrary = pyqtSignal()
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         QThread.__init__(self)
-#         # self.setupUi(self)
-#         loadUi('ITC_control.ui')
-
-
-
-
-#         # self.ITC = self.ITC503()
-#         # self.liste = []
-#         # self.getInfodata = self.ITC_Updater(ITC)
-#         # self.thread = QThread()
-#         # self.liste.append((self.getInfodata, self.thread))
-#         # self.getInfodata.moveToThread(self.thread)
-
-#         # self.getInfodata.sig_GasOutput.connect(self.setNeedleIndicator)
-
-#         # self.thread.started.connect(self.getInfodata.work)
-#         # self.thread.start()
-
-#         # self.Slider_Needle.valueChanged['int'].connect(self.setNeedle)
-    
-#         # self.Something_temperature.valueChanged['int'].connect(self.send_data)
-
-#     # this is meant as an example, which should be tested, and then possibly followed! 
-#     def send_data(self, data:int):
-#         self.sig_arbitrary.connect(self.getInfodata.gettoset_Temperature)
-#         self.sig_arbitrary.emit(data)
-
-        
-
-#     # def setNeedle(self, value):
-#     #   if (0 <= value <= 100):
-#     #       self.ITC.setGasOutput(value)
-
-#     # @pyqtSlot(int)
-#     # def setNeedleIndicator(self, value):
-#     #   self.NeedleValve_bar.setValue(value)
-
-
-
-# if __name__ == '__main__':
-#     app = QtWidgets.QApplication(sys.argv)
-#     form = NeedleValve_Window()
-#     form.show()
-#     sys.exit(app.exec_())
