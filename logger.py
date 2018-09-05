@@ -35,7 +35,7 @@ class Logger_configuration(Window_ui):
         self.general_threads_PS.toggled.connect(lambda: self.PS_thread_running.setChecked)
         self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
         self.general_threads_Lakeshore350.toggled.connect(lambda: self.Lakeshore350_thread_running.setChecked)
-        
+
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda: self.Current1_thread_running.setChecked)
         # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
@@ -53,6 +53,9 @@ class Logger_configuration(Window_ui):
         self.buttonBox_finish.rejected.connect(self.close)
         # print(self.conf)
         # self.show()
+        # MAINTHREAD crashes when showing this window! 
+        # FIND THE BUG
+        TODO: FIND THE BUG!
 
 
     def close_and_safe(self):
