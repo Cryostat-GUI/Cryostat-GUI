@@ -97,7 +97,9 @@ class AbstractEventhandlingThread(AbstractThread):
 
     @pyqtSlot()
     def stop(self):
-        """just here so stopping the thread can be done as with all others"""
+        """just here so stopping the thread can be done as with all others
+            can be overriden for "last second actions"
+        """
         pass
 
 

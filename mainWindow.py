@@ -20,7 +20,7 @@ from Oxford.ITC_control import ITC_Updater as cls_itc
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger
-from logger import Logger_configuration
+from logger import Log_config_windowthread #Logger_configuration
 from util import Window_ui
 
 
@@ -40,14 +40,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        loadUi('Cryostat GUI.ui', self)
+        loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
         self.threads = dict()
         self.data = dict()
         self.logging_bools = dict()
 
         # initialize ITC Window
-        self.ITC_window = Window_ui(ui_file='./Oxford/ITC_control.ui')
+        self.ITC_window = Window_ui(ui_file='.\\Oxford\\ITC_control.ui')
         self.ITC_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
@@ -56,12 +56,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_ITC = False
         self.logging_running_logger = False
 
+
         # initialize Logger configuration window
-        self.logger_conf = Logger_configuration(ui_file='Logger_conf.ui')
-        self.logger_conf.sig_closing.connect(lambda: self.action_Logging_configuration.setChecked(False))
-        self.action_Logging_configuration.triggered['bool'].connect(self.show_logging_configuration)
-        self.logger_conf.sig_send_conf.connect(lambda conf: self.sig_logging_newconf.emit(conf))
+        
+        
+
+        self.action_Logging_configuration.triggered['bool'].connect(self.run_logging_configuration)
+
+        
+
         self.action_Logging.triggered['bool'].connect(self.run_logger)
+
 
 
 
@@ -154,6 +159,21 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         else:
             # possibly implement putting the instrument back to local operation
+            self.ITC_window.spinsetTemp.valueChanged.disconnect()
+            self.ITC_window.spinsetTemp.editingFinished.disconnect()
+            self.ITC_window.spinsetGasOutput.valueChanged.disconnect()
+            self.ITC_window.spinsetGasOutput.editingFinished.disconnect()
+            self.ITC_window.spinsetHeaterPercent.valueChanged.disconnect()
+            self.ITC_window.spinsetHeaterPercent.editingFinished.disconnect()
+            self.ITC_window.spinsetProportionalID.valueChanged.disconnect()
+            self.ITC_window.spinsetProportionalID.editingFinished.disconnect()
+            self.ITC_window.spinsetPIntegrationD.valueChanged.disconnect()
+            self.ITC_window.spinsetPIntegrationD.editingFinished.disconnect()
+            self.ITC_window.spinsetPIDerivative.valueChanged.disconnect()
+            self.ITC_window.spinsetPIDerivative.editingFinished.disconnect()
+            self.ITC_window.combosetHeatersens.activated['int'].disconnect()
+            self.ITC_window.combosetAutocontrol.activated['int'].disconnect()
+                
             self.stopping_thread('control_ITC')
             self.action_run_ITC.setChecked(False)
             self.logging_running_ITC = False
@@ -198,6 +218,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if boolean: 
             logger = self.running_thread(main_Logger(self), None, 'logger')
             logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            logger.sig_configuring.connect(self.run_logging_configuration)
             self.logging_running_logger = True
 
         else: 
@@ -205,12 +226,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.logging_running_logger = False
 
 
-    def show_logging_configuration(self, boolean):
+    def run_logging_configuration(self, boolean):
         """display/close the logging configuration window"""
-        if boolean:
-            self.logger_conf.show()
-        else:
-            self.logger_conf.close()
+        if boolean: 
+            logger_conf = self.running_thread(Log_config_windowthread(self), None, 'logger_confwindow')
+            # logger_conf.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+
+        else: 
+            self.stopping_thread('logger_confwindow')
+        # if boolean:
+        #     self.logger_conf.show()
+        # else:
+        #     self.logger_conf.close()
 
 
 
