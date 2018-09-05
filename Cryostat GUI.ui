@@ -70,6 +70,7 @@
      <addaction name="action_show_ITC"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
+    <addaction name="action_Logging_configuration"/>
    </widget>
    <widget class="QMenu" name="menuSystems_Online">
     <property name="title">
@@ -501,6 +502,14 @@
    </property>
    <property name="text">
     <string>Logging</string>
+   </property>
+  </action>
+  <action name="action_Logging_configuration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logging configuration</string>
    </property>
   </action>
  </widget>

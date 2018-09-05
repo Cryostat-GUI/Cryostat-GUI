@@ -49,8 +49,8 @@ class AbstractThread(QObject):
 class AbstractLoopThread(AbstractThread):
     """Abstract thread class to be used with instruments """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.__isRunning = True
 
     @pyqtSlot() # int
@@ -76,8 +76,8 @@ class AbstractLoopThread(AbstractThread):
 class AbstractEventhandlingThread(AbstractThread):
     """Abstract thread class to be used with instruments """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
     @pyqtSlot() # int
@@ -108,8 +108,8 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file):
-        super().__init__()
+    def __init__(self, ui_file=None, **kwargs):
+        super().__init__(**kwargs)
         loadUi(ui_file, self)
 
     def closeEvent(self, event):

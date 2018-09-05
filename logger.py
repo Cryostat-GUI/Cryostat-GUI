@@ -8,6 +8,52 @@ import sys
 import datetime
 
 from util import AbstractEventhandlingThread
+from util import Window_ui
+
+
+class Logger_configuration(Window_ui):
+    """docstring for Logger_configuration"""
+
+    sig_send_conf = pyqtSignal(dict)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.conf = dict()
+        self.conf['ITC'] = dict()
+        self.conf['ILM'] = dict()
+        self.conf['PS'] = dict()
+        self.conf['Lakeshore350'] = dict()
+
+        self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
+        self.general_threads_ITC.toggled.connect(lambda: self.ITC_thread_running.setChecked)
+        # self.general_threads_ILM.toggled.connect(lambda value: self.conf['ILM']['thread'] = value)
+        self.general_threads_ILM.toggled.connect(lambda: self.ILM_thread_running.setChecked)
+        # self.general_threads_PS.toggled.connect(lambda value: self.conf['PS']['thread'] = value)
+        self.general_threads_PS.toggled.connect(lambda: self.PS_thread_running.setChecked)
+        # self.general_threads_Lakeshore350.toggled.connect(lambda value: self.conf['Lakeshore350']['thread'] = value)
+        self.general_threads_Lakeshore350.toggled.connect(lambda: self.Lakeshore350_thread_running.setChecked)
+        # self.general_threads_Current1.toggled.connect(lambda value: self.conf['Current1']['thread'] = value)
+        # self.general_threads_Current1.toggled.connect(lambda: self.Current1_thread_running.setChecked)
+        # self.general_threads_Current2.toggled.connect(lambda value: self.conf['Current2']['thread'] = value)
+        # self.general_threads_Current2.toggled.connect(lambda: self.Current2_thread_running.setChecked)
+        # self.general_threads_Nano1.toggled.connect(lambda value: self.conf['Nano1']['thread'] = value)
+        # self.general_threads_Nano1.toggled.connect(lambda: self.Nano1_thread_running.setChecked)
+        # self.general_threads_Nano2.toggled.connect(lambda value: self.conf['Nano2']['thread'] = value)
+        # self.general_threads_Nano2.toggled.connect(lambda: self.Nano2_thread_running.setChecked)
+        # self.general_threads_Nano3.toggled.connect(lambda value: self.conf['Nano3']['thread'] = value)
+        # self.general_threads_Nano3.toggled.connect(lambda: self.Nano3_thread_running.setChecked)
+        
+
+        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(self.conf))
+        self.buttonBox_finish.accepted.connect(self.close)
+        self.buttonBox_finish.rejected.connect(self.close)
+
+
+    def setValue(self, instrument, value, bools):
+        self.conf[instrument][value] = bools
+
+
 
 class main_Logger(AbstractEventhandlingThread):
 
@@ -26,6 +72,10 @@ class main_Logger(AbstractEventhandlingThread):
         self.interval = 2 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
+        self.mainthread.sig_logging_newconf.connect(self.update_conf)
+
+        conf = self.logging_read_configuration()
+
 
     def running(self):
         try:
@@ -41,6 +91,9 @@ class main_Logger(AbstractEventhandlingThread):
     # def stop(self):
     #     self.__isRunning = False
 
+    def update_conf(self):
+        print('updated conf for logging')
+
     @pyqtSlot(int)
     def set_Interval(self, interval):
         """set the interval between logging events in seconds"""
@@ -55,3 +108,11 @@ class main_Logger(AbstractEventhandlingThread):
         print(data)
         
         # saving data
+
+    def logging_read_configuration(self):
+        """method to read the last configuration of 
+            what shall be logged from a respective file
+
+            Return: dictionary holding bools
+        """
+        pass        

@@ -6,42 +6,39 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
+from .Drivers.ips120 import ips120
 from pyvisa.errors import VisaIOError
 
 
-class PS_Updater(QObject):
+class PS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
     sig_Infodata = pyqtSignal(dict)
-    sig_assertion = pyqtSignal(str)
+    # sig_assertion = pyqtSignal(str)
     sig_visaerror = pyqtSignal(str)
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
 
-    def __init__(self, PS):
+    def __init__(self, InstrumentAddress):
         super().__init__()
-        QThread.__init__(self)
+        # QThread.__init__(self)
 
-        self.PS = PS
+        self.PS = ips120(InstrumentAddress)
 
 
     @pyqtSlot()
-    def work(self):
+    def running(self):
         """worker method of the power supply controlling thread"""
         try:
             pass
-
-
-
 
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
-        except AssertionError as assertion: 
-            self.sig_assertion.emit(assertion.args[0])
+
 
 
 
@@ -57,9 +54,7 @@ class PS_Updater(QObject):
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
                 self.sig_visatimeout.emit()
             else: 
-                self.sig_visaerror.emit(e_visa.args[0])
-        
-
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
     def readField(self): 

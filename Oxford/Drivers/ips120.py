@@ -52,7 +52,7 @@ class ips120():
         0 - Local & Locked (default state)
         1 - Remote & Locked
         2 - Local & Unlocked
-        3 - Remote & Locked
+        3 - Remote & Unlocked
 
         Args:
             state(int): the state in which to place the IPS 120-10

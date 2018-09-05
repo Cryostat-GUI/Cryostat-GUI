@@ -56,11 +56,11 @@ class ITC_Updater(AbstractLoopThread):
             integral_action_time = 9,
             derivative_action_time = 10)
 
-    def __init__(self, InstrumentAdress):
+    def __init__(self, InstrumentAddress):
         super().__init__()
 
         # here the class instance of the ITC should be handed
-        self.ITC = itc503(InstrumentAdress)
+        self.ITC = itc503(InstrumentAddress)
 
         # TODO need initialisation for all the parameters!
 
