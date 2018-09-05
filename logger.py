@@ -31,12 +31,15 @@ class main_Logger(AbstractEventhandlingThread):
         try:
             # Do things
             self.sig_log.emit()
+            print('emitted signal')
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])            
         finally:
             QTimer.singleShot(self.interval*1e3, self.running)
 
-    @pyqtSlot()
-    def stop(self):
-        self.__isRunning = False
+    # @pyqtSlot()
+    # def stop(self):
+    #     self.__isRunning = False
 
     @pyqtSlot(int)
     def set_Interval(self, interval):
@@ -49,5 +52,6 @@ class main_Logger(AbstractEventhandlingThread):
             into database or logfile - to be decided!
 
         """
-        pass
+        print(data)
+        
         # saving data

@@ -37,14 +37,50 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_ui = Ui_ITCcontrol()
         self.ITC_ui.setupUi(self.ITC_window)
 
-        # self.run_logger(True)
 
         self.action_Logging.triggered['bool'].connect(self.run_logger)
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
 
-        # self.action_run_ITC.triggered['bool'].connect(self.threads['mainworker'][0].printing)
+
+    def running_thread(self, worker, dataname, threadname, **kwargs):
+        """Set up a new Thread, and insert the worker class, which runs in the new thread
+            
+            Args:
+                worker - the class (as a class instance) which should run inside
+                dataname - the name for which a dict entry should be made in the self.data dict,
+                        in case the Thread is passing data (e.g. sensors, instrument status...)
+                threadname - the name as which the thread will be listed in self.threads,
+                        to be used for e.g. signals
+                        listing the thread in self.threads is also important to protect it
+                        from garbage collection!
+
+            Returns:
+                the worker class instance, useful for connecting signals directly
+        """
+
+        thread = QThread()
+        self.threads[threadname] = (worker, thread)
+        worker.moveToThread(thread)
+
+        if dataname in self.data or dataname == None:
+            pass
+        else: 
+            self.data[dataname] = list()
+
+        thread.started.connect(worker.work)
+        thread.start()
+        return worker
+
+    def stopping_thread(self, threadname):
+        """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
+
+        self.threads[threadname][0].stop()
+        self.threads[threadname][1].quit()
+        self.threads[threadname][1].wait()
+        del self.threads[threadname]
+
 
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
@@ -98,49 +134,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # possibly implement putting the instrument back to local operation
             self.stopping_thread('control_ITC')
 
-
-
-    def running_thread(self, worker, dataname, threadname, **kwargs):
-        """Set up a new Thread, and insert the worker class, which runs in the new thread
-            
-            Args:
-                worker - the class (as a class instance) which should run inside
-                dataname - the name for which a dict entry should be made in the self.data dict,
-                        in case the Thread is passing data (e.g. sensors, instrument status...)
-                threadname - the name as which the thread will be listed in self.threads,
-                        to be used for e.g. signals
-                        listing the thread in self.threads is also important to protect it
-                        from garbage collection!
-
-            Returns:
-                the worker class instance, useful for connecting signals directly
-        """
-
-        thread = QThread()
-        self.threads[threadname] = (worker, thread)
-        worker.moveToThread(thread)
-
-        if dataname in self.data or dataname == None:
-            pass
-        else: 
-            self.data[dataname] = list()
-
-        thread.started.connect(worker.work)
-        thread.start()
-        return worker
-
-    def stopping_thread(self, threadname):
-        """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
-
-        self.threads[threadname][0].stop()
-        self.threads[threadname][1].quit()
-        self.threads[threadname][1].wait()
-        del self.threads[threadname]
-
+    @pyqtSlot(bool)
+    def show_ITC(self, boolean):
+        """method which will display the ITC window"""
+        if boolean:
+            self.ITC_window.show()
+        else:
+            self.ITC_window.close()
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
-        """method to store ITC data in a central place"""
+        """Store ITC data in self.data['ITC'], update ITC_ui"""
         data['date'] = convert_time(time.time())
         self.data['ITC'].append(data)
         self.ITC_ui.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
@@ -155,51 +159,31 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_ui.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
         self.ITC_ui.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
         
-    def show_ITC(self, boolean):
-        """method which will display the ITC window"""
-        if boolean:
-            self.ITC_window.show()
-            # self.ITC_showing = True
-        else:
-            self.ITC_window.close()
-            # self.ITC_showing = False
 
     def printing(self,b):
         """arbitrary exmple function"""
         print(b)
 
+
     @pyqtSlot(bool)
     def run_logger(self, boolean):
-        """method to start/stop the logging thread"""
+        """start/stop the logging thread"""
 
         # read the last configuration of what shall be logged from a respective file
         conf = self.logging_read_configuration()
 
         if boolean: 
-            self.running_thread(main_Logger(self), None, 'logger')
-            self.threads['logger'][0].sig_dict.connect(lambda : self.sig_logging.emit(self.data))
-            # worker = main_Logger(self)
-            # thread = QThread()
-            # self.threads['logger'] = (worker, thread)
-            # worker.moveToThread(thread)
-            # thread.started.connect(worker.work)
-            # thread.start()
+            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
 
         else: 
             self.stopping_thread('logger')
-            # self.threads['logger'][0].stop()
-            # self.threads['logger'][1].quit()
-            # self.threads['logger'][1].wait()
-            # del self.threads['logger']
-           
+         
     def logging_read_configuration(self):
         """method to read the last configuration of 
             what shall be logged from a respective file
         """
         pass
-
-    # def logging_sending_data(self):
-    #     pass
 
 
 def convert_time(ts):
