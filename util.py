@@ -11,6 +11,8 @@ Classes:
     AbstractEventhandlingThread: a thread class, inheriting from AbstractThread,
         which is designed to be used for handling signal-events, not continuous loops
 
+    Window_ui: a window class, which loads the UI definitions from a spcified .ui file, 
+        emits a signal upon closing
 """
 
 
@@ -18,8 +20,12 @@ Classes:
 
 
 
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
-
+from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QThread
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtWidgets
+from PyQt5.uic import loadUi
 
 
 class AbstractThread(QObject):
@@ -93,3 +99,21 @@ class AbstractEventhandlingThread(AbstractThread):
     def stop(self):
         """just here so stopping the thread can be done as with all others"""
         pass
+
+
+class Window_ui(QtWidgets.QWidget):
+    """Class for a small window, the UI of which is loaded from the .ui file
+        emits a signal when being closed
+    """
+
+    sig_closing = pyqtSignal()
+
+    def __init__(self, ui_file):
+        super().__init__()
+        loadUi(ui_file, self)
+
+    def closeEvent(self, event):
+        # do stuff
+        self.sig_closing.emit()
+        event.accept() # let the window close
+

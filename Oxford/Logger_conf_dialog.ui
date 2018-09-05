@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_General">
     <attribute name="title">
@@ -40,21 +40,21 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_14">
+       <widget class="QCheckBox" name="general_threads_ITC">
         <property name="text">
          <string>ITC - Oxford Temperature</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_9">
+       <widget class="QCheckBox" name="general_threads_ILM">
         <property name="text">
          <string>ILM - Oxford Cryogen Levels</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QCheckBox" name="checkBox_12">
+       <widget class="QCheckBox" name="general_threads_PS">
         <property name="text">
          <string>PS - Oxford Power supply </string>
         </property>
@@ -68,7 +68,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QCheckBox" name="checkBox_15">
+       <widget class="QCheckBox" name="general_threads_Lakeshore">
         <property name="text">
          <string>Lakeshore350 Temperature</string>
         </property>
@@ -82,105 +82,105 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="general_setps_ITC_Temp">
         <property name="text">
          <string>Set Temp ITC</string>
         </property>
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QCheckBox" name="checkBox_20">
+       <widget class="QCheckBox" name="general_threas_Logging">
         <property name="text">
          <string>Logging Thread</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_10">
+       <widget class="QCheckBox" name="general_setps_PS_Field">
         <property name="text">
          <string>Set Field PS</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QCheckBox" name="checkBox_8">
+       <widget class="QCheckBox" name="general_setps_Current1_Exc">
         <property name="text">
          <string>Excitation 1</string>
         </property>
        </widget>
       </item>
       <item row="6" column="1">
-       <widget class="QCheckBox" name="checkBox_18">
+       <widget class="QCheckBox" name="general_setps_Current2_Exc">
         <property name="text">
          <string>Excitation 2</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QCheckBox" name="checkBox_3">
+       <widget class="QCheckBox" name="general_setps_Lakeshore_Temp">
         <property name="text">
          <string>Set Temp Lakeshore</string>
         </property>
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QCheckBox" name="checkBox_11">
+       <widget class="QCheckBox" name="general_threads_current1">
         <property name="text">
          <string>Keithley - Current Source 1</string>
         </property>
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_5">
+       <widget class="QCheckBox" name="general_threads_current2">
         <property name="text">
          <string>Keithley - Current Source 2</string>
         </property>
        </widget>
       </item>
       <item row="9" column="0">
-       <widget class="QCheckBox" name="checkBox_17">
+       <widget class="QCheckBox" name="general_threads_nano3">
         <property name="text">
          <string>Keithley - Nanovoltmeter 3</string>
         </property>
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_25">
+       <widget class="QCheckBox" name="general_threads_Nano1">
         <property name="text">
          <string>Keithley - Nanovoltmeter 1</string>
         </property>
        </widget>
       </item>
       <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_6">
+       <widget class="QCheckBox" name="general_threads_nano2">
         <property name="text">
          <string>Keithley - Nanovoltmeter 2</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QCheckBox" name="checkBox_2">
+       <widget class="QCheckBox" name="general_readValues_ITC_Temp">
         <property name="text">
          <string>Temp ITC</string>
         </property>
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QCheckBox" name="checkBox_4">
+       <widget class="QCheckBox" name="general_readValues_Lakeshore_Temp">
         <property name="text">
          <string>Temp Sample Lakeshore</string>
         </property>
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="QCheckBox" name="checkBox_22">
+       <widget class="QCheckBox" name="general_readValues_PS_Field">
         <property name="text">
          <string>Magnet Field</string>
         </property>
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="QCheckBox" name="checkBox_13">
+       <widget class="QCheckBox" name="general_readValues_ILM_Levels">
         <property name="text">
          <string>Cryogen Levels</string>
         </property>
@@ -204,91 +204,91 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="1">
-       <widget class="QCheckBox" name="checkBox_46">
+       <widget class="QCheckBox" name="ITC_setps_PIntD">
         <property name="text">
          <string>Integration action time</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_47">
+       <widget class="QCheckBox" name="ITC_setps_Temp">
         <property name="text">
          <string>T Setpoint</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_48">
+       <widget class="QCheckBox" name="ITC_readValues_Temp_Sens1">
         <property name="text">
          <string>T Sensor 1 [K]</string>
         </property>
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QCheckBox" name="checkBox_32">
+       <widget class="QCheckBox" name="ITC_readValues_GasOutput">
         <property name="text">
          <string>Gas Output [%]</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_33">
+       <widget class="QCheckBox" name="ITC_readValues_Temp_Sens2">
         <property name="text">
          <string>T Sensor 2 [K]</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QCheckBox" name="checkBox_34">
+       <widget class="QCheckBox" name="ITC_readValues_Temp_Sens3">
         <property name="text">
          <string>T Sensor 3 [K]</string>
         </property>
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QCheckBox" name="checkBox_35">
+       <widget class="QCheckBox" name="ITC_readValues_HeaterOutput_percent">
         <property name="text">
          <string>Heater Output [%]</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QCheckBox" name="checkBox_30">
+       <widget class="QCheckBox" name="ITC_setps_PIDeriv">
         <property name="text">
          <string>Derivative action time</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QCheckBox" name="checkBox_40">
+       <widget class="QCheckBox" name="ITC_setps_PropID">
         <property name="text">
          <string>Proportional band</string>
         </property>
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_44">
+       <widget class="QCheckBox" name="ITC_readValues_AutoControlState">
         <property name="text">
          <string>Autocontrol State</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_36">
+       <widget class="QCheckBox" name="ITC_readValues_Error_Temp">
         <property name="text">
          <string>Temperature error</string>
         </property>
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_43">
+       <widget class="QCheckBox" name="ITC_readValues_HeaterOutput_voltage">
         <property name="text">
          <string>Heater Output [V]</string>
         </property>
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QCheckBox" name="checkBox_28">
+       <widget class="QCheckBox" name="ITC_thread_running">
         <property name="text">
          <string>ITC Thread running</string>
         </property>

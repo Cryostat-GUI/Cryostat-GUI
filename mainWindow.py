@@ -20,6 +20,7 @@ from Oxford.ITC_control import ITC_Updater as cls_itc
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger
+from util import Window_ui
 
 
 
@@ -29,22 +30,22 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
-class ITC_ui(QtWidgets.QWidget):
-    """docstring for ITC_ui"""
+# class ITC_ui(QtWidgets.QWidget):
+#     """docstring for ITC_ui"""
 
-    sig_closing = pyqtSignal()
+#     sig_closing = pyqtSignal()
 
-    def __init__(self):
-        super().__init__()
-        loadUi('./Oxford/ITC_control.ui', self)
+#     def __init__(self):
+#         super().__init__()
+#         loadUi('./Oxford/ITC_control.ui', self)
 
-    def closeEvent(self, event):
-        # do stuff
-        self.sig_closing.emit()
-        if True:
-            event.accept() # let the window close
-        else:
-            event.ignore()
+#     def closeEvent(self, event):
+#         # do stuff
+#         self.sig_closing.emit()
+#         if True:
+#             event.accept() # let the window close
+#         else:
+#             event.ignore()
 
 
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
@@ -67,7 +68,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         # loadUi('./Oxford/ITC_control.ui', self.ITC_window)
         # monkeypatching ITC window closeEvent
         # self.ITC_window.closeEvent = self.closeEvent_ITC_window
-        self.ITC_window = ITC_ui()
+        self.ITC_window = Window_ui('./Oxford/ITC_control.ui')
         self.ITC_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
 
 
