@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_General">
     <attribute name="title">
@@ -39,192 +39,150 @@
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="checkBox_12">
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_14">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QCheckBox" name="checkBox_16">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="checkBox_15">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="checkBox_13">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>ITC - Oxford Temperature</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_10">
+       <widget class="QCheckBox" name="checkBox_9">
         <property name="text">
-         <string>CheckBox</string>
+         <string>ILM - Oxford Cryogen Levels</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QCheckBox" name="checkBox_9">
+       <widget class="QCheckBox" name="checkBox_12">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="checkBox_14">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_11">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QCheckBox" name="checkBox_18">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="checkBox_2">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QCheckBox" name="checkBox_5">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QCheckBox" name="checkBox_8">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_7">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_6">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_17">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="checkBox_4">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>PS - Oxford Power supply </string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Threads running: </string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_3">
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="checkBox_15">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Lakeshore350 Temperature</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Setpoints: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="checkBox">
+        <property name="text">
+         <string>Set Temp ITC</string>
         </property>
        </widget>
       </item>
       <item row="0" column="2">
        <widget class="QCheckBox" name="checkBox_20">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Logging Thread</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="checkBox_10">
+        <property name="text">
+         <string>Set Field PS</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QCheckBox" name="checkBox_8">
+        <property name="text">
+         <string>Excitation 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QCheckBox" name="checkBox_18">
+        <property name="text">
+         <string>Excitation 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="checkBox_3">
+        <property name="text">
+         <string>Set Temp Lakeshore</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="checkBox_11">
+        <property name="text">
+         <string>Keithley - Current Source 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QCheckBox" name="checkBox_5">
+        <property name="text">
+         <string>Keithley - Current Source 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QCheckBox" name="checkBox_17">
+        <property name="text">
+         <string>Keithley - Nanovoltmeter 3</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="checkBox_25">
+        <property name="text">
+         <string>Keithley - Nanovoltmeter 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="checkBox_6">
+        <property name="text">
+         <string>Keithley - Nanovoltmeter 2</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QCheckBox" name="checkBox_21">
+       <widget class="QCheckBox" name="checkBox_2">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QCheckBox" name="checkBox_22">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QCheckBox" name="checkBox_23">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>Temp ITC</string>
         </property>
        </widget>
       </item>
       <item row="4" column="2">
-       <widget class="QCheckBox" name="checkBox_24">
+       <widget class="QCheckBox" name="checkBox_4">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Temp Sample Lakeshore</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
-       <widget class="QCheckBox" name="checkBox_19">
+      <item row="3" column="2">
+       <widget class="QCheckBox" name="checkBox_22">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Magnet Field</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="2">
-       <widget class="QCheckBox" name="checkBox_25">
+      <item row="2" column="2">
+       <widget class="QCheckBox" name="checkBox_13">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QCheckBox" name="checkBox_26">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QCheckBox" name="checkBox_27">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>Cryogen Levels</string>
         </property>
        </widget>
       </item>
@@ -245,31 +203,24 @@
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="3">
-       <widget class="QCheckBox" name="checkBox_28">
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="checkBox_46">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Integration action time</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="checkBox_29">
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_47">
         <property name="text">
-         <string>CheckBox</string>
+         <string>T Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QCheckBox" name="checkBox_30">
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_48">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="checkBox_31">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>T Sensor 1 [K]</string>
         </property>
        </widget>
       </item>
@@ -301,59 +252,17 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_36">
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="checkBox_30">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QCheckBox" name="checkBox_37">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <widget class="QCheckBox" name="checkBox_38">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QCheckBox" name="checkBox_39">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>Derivative action time</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="checkBox_40">
         <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QCheckBox" name="checkBox_41">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QCheckBox" name="checkBox_42">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="checkBox_43">
-        <property name="text">
-         <string>Heater Output [V]</string>
+         <string>Proportional band</string>
         </property>
        </widget>
       </item>
@@ -364,73 +273,24 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="checkBox_45">
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="checkBox_36">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Temperature error</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="checkBox_46">
+      <item row="6" column="0">
+       <widget class="QCheckBox" name="checkBox_43">
         <property name="text">
-         <string>CheckBox</string>
+         <string>Heater Output [V]</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_47">
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="checkBox_28">
         <property name="text">
-         <string>T Setpoint</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_48">
-        <property name="text">
-         <string>T Sensor 1 [K]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QCheckBox" name="checkBox_49">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3">
-       <widget class="QCheckBox" name="checkBox_50">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QCheckBox" name="checkBox_51">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="3">
-       <widget class="QCheckBox" name="checkBox_52">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="3">
-       <widget class="QCheckBox" name="checkBox_53">
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="3">
-       <widget class="QCheckBox" name="checkBox_54">
-        <property name="text">
-         <string>CheckBox</string>
+         <string>ITC Thread running</string>
         </property>
        </widget>
       </item>
@@ -1691,7 +1551,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>400</y>
+     <y>420</y>
      <width>401</width>
      <height>41</height>
     </rect>
@@ -1708,6 +1568,19 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>400</y>
+     <width>181</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Logfile location: </string>
+   </property>
   </widget>
  </widget>
  <resources/>

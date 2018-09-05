@@ -1,6 +1,9 @@
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QThread
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.uic import loadUi
 
 import sys
@@ -19,6 +22,31 @@ from pyvisa.errors import VisaIOError
 from logger import main_Logger
 
 
+
+
+def convert_time(ts):
+    """converts timestamps from time.time() into reasonable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+
+class ITC_ui(QtWidgets.QWidget):
+    """docstring for ITC_ui"""
+
+    sig_closing = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+        loadUi('./Oxford/ITC_control.ui', self)
+
+    def closeEvent(self, event):
+        # do stuff
+        self.sig_closing.emit()
+        if True:
+            event.accept() # let the window close
+        else:
+            event.ignore()
+
+
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window"""
     
@@ -34,8 +62,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_bools = dict()
 
         # initialize ITC Window
-        self.ITC_ui = Ui_ITCcontrol()
-        self.ITC_ui.setupUi(self.ITC_window)
+        # self.ITC_ui = Ui_ITCcontrol()
+        # self.ITC_ui.setupUi(self.ITC_window)
+        # loadUi('./Oxford/ITC_control.ui', self.ITC_window)
+        # monkeypatching ITC window closeEvent
+        # self.ITC_window.closeEvent = self.closeEvent_ITC_window
+        self.ITC_window = ITC_ui()
+        self.ITC_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
+
+
+        self.logging_running_ITC = False
+        self.logging_running_logger = False
 
 
         self.action_Logging.triggered['bool'].connect(self.run_logger)
@@ -44,7 +81,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
 
 
-    def running_thread(self, worker, dataname, threadname, **kwargs):
+    def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
         """Set up a new Thread, and insert the worker class, which runs in the new thread
             
             Args:
@@ -99,44 +136,46 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
                 # setting ITC values by GUI ITC window
-                self.ITC_ui.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
-                self.ITC_ui.spinsetTemp.editingFinished.connect(lambda: self.threads['control_ITC'][0].setTemperature())
+                self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
+                self.ITC_window.spinsetTemp.editingFinished.connect(lambda: self.threads['control_ITC'][0].setTemperature())
 
-                self.ITC_ui.spinsetGasOutput.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
-                self.ITC_ui.spinsetGasOutput.editingFinished.connect(lambda : self.threads['control_ITC'][0].setGasOutput())
+                self.ITC_window.spinsetGasOutput.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
+                self.ITC_window.spinsetGasOutput.editingFinished.connect(lambda : self.threads['control_ITC'][0].setGasOutput())
 
-                self.ITC_ui.spinsetHeaterPercent.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
-                self.ITC_ui.spinsetHeaterPercent.editingFinished.connect(lambda : self.threads['control_ITC'][0].setHeaterOutput())
+                self.ITC_window.spinsetHeaterPercent.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
+                self.ITC_window.spinsetHeaterPercent.editingFinished.connect(lambda : self.threads['control_ITC'][0].setHeaterOutput())
 
-                self.ITC_ui.spinsetProportionalID.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Proportional(value))
-                self.ITC_ui.spinsetProportionalID.editingFinished.connect(lambda : self.threads['control_ITC'][0].setProportional())
+                self.ITC_window.spinsetProportionalID.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Proportional(value))
+                self.ITC_window.spinsetProportionalID.editingFinished.connect(lambda : self.threads['control_ITC'][0].setProportional())
 
-                self.ITC_ui.spinsetPIntegrationD.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Integral(value))
-                self.ITC_ui.spinsetPIntegrationD.editingFinished.connect(lambda : self.threads['control_ITC'][0].setIntegral())
+                self.ITC_window.spinsetPIntegrationD.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Integral(value))
+                self.ITC_window.spinsetPIntegrationD.editingFinished.connect(lambda : self.threads['control_ITC'][0].setIntegral())
 
-                self.ITC_ui.spinsetPIDerivative.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Derivative(value))
-                self.ITC_ui.spinsetPIDerivative.editingFinished.connect(lambda : self.threads['control_ITC'][0].setDerivative())
+                self.ITC_window.spinsetPIDerivative.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Derivative(value))
+                self.ITC_window.spinsetPIDerivative.editingFinished.connect(lambda : self.threads['control_ITC'][0].setDerivative())
 
-                self.ITC_ui.combosetHeatersens.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
+                self.ITC_window.combosetHeatersens.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
 
-                self.ITC_ui.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
+                self.ITC_window.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
 
 
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
                 self.action_run_ITC.setChecked(True)
+                self.logging_running_ITC = True
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
                 print(e) # TODO: open window displaying the error message
 
         else:
-            self.action_run_ITC.setChecked(False)
             # possibly implement putting the instrument back to local operation
             self.stopping_thread('control_ITC')
+            self.action_run_ITC.setChecked(False)
+            self.logging_running_ITC = False
 
     @pyqtSlot(bool)
     def show_ITC(self, boolean):
-        """method which will display the ITC window"""
+        """display/close the ITC data & control window"""
         if boolean:
             self.ITC_window.show()
         else:
@@ -144,20 +183,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
-        """Store ITC data in self.data['ITC'], update ITC_ui"""
+        """Store ITC data in self.data['ITC'], update ITC_window"""
         data['date'] = convert_time(time.time())
         self.data['ITC'].append(data)
-        self.ITC_ui.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
-        self.ITC_ui.lcdTemp_sens2.display(self.data['ITC'][-1]['sensor_2_temperature'])
-        self.ITC_ui.lcdTemp_sens3.display(self.data['ITC'][-1]['sensor_3_temperature'])
-        self.ITC_ui.lcdTemp_set.display(self.data['ITC'][-1]['set_temperature'])
-        self.ITC_ui.lcdTemp_err.display(self.data['ITC'][-1]['temperature_error'])
-        self.ITC_ui.progressHeaterPercent.setValue(self.data['ITC'][-1]['heater_output_as_percent'])
-        self.ITC_ui.lcdHeaterVoltage.display(self.data['ITC'][-1]['heater_output_as_voltage'])
-        self.ITC_ui.progressNeedleValve.setValue(self.data['ITC'][-1]['gas_flow_output'])
-        self.ITC_ui.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
-        self.ITC_ui.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
-        self.ITC_ui.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
+        self.ITC_window.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
+        self.ITC_window.lcdTemp_sens2.display(self.data['ITC'][-1]['sensor_2_temperature'])
+        self.ITC_window.lcdTemp_sens3.display(self.data['ITC'][-1]['sensor_3_temperature'])
+        self.ITC_window.lcdTemp_set.display(self.data['ITC'][-1]['set_temperature'])
+        self.ITC_window.lcdTemp_err.display(self.data['ITC'][-1]['temperature_error'])
+        self.ITC_window.progressHeaterPercent.setValue(self.data['ITC'][-1]['heater_output_as_percent'])
+        self.ITC_window.lcdHeaterVoltage.display(self.data['ITC'][-1]['heater_output_as_voltage'])
+        self.ITC_window.progressNeedleValve.setValue(self.data['ITC'][-1]['gas_flow_output'])
+        self.ITC_window.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
+        self.ITC_window.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
+        self.ITC_window.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
         
 
     def printing(self,b):
@@ -173,22 +212,19 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         conf = self.logging_read_configuration()
 
         if boolean: 
-            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger = self.running_thread(main_Logger(self), None, 'logger', info = conf)
             logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            self.logging_running_logger = True
 
         else: 
             self.stopping_thread('logger')
+            self.logging_running_logger = False
          
     def logging_read_configuration(self):
         """method to read the last configuration of 
             what shall be logged from a respective file
         """
         pass
-
-
-def convert_time(ts):
-    """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
 if __name__ == '__main__':

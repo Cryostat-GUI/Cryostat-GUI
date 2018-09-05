@@ -37,11 +37,6 @@
       <string>Data</string>
      </property>
     </widget>
-    <widget class="QWidget" name="ITC_window">
-     <property name="windowTitle">
-      <string>Subwindow</string>
-     </property>
-    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -273,7 +268,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QProgressBar" name="MainDock_P_HeLevel">
+           <widget class="QProgressBar" name="MainDock_HeLevel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -301,7 +296,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QProgressBar" name="MainDock_P_N2Level">
+           <widget class="QProgressBar" name="MainDock_N2Level">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
