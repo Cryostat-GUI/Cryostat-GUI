@@ -20,12 +20,9 @@ class Logger_configuration(Window_ui):
     sig_send_conf = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(Logger_configuration, self).__init__(**kwargs)
 
-        
         self.read_configuration()
-
-
 
         self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
         self.general_threads_ITC.toggled.connect(lambda: self.ITC_thread_running.setChecked)
@@ -54,8 +51,8 @@ class Logger_configuration(Window_ui):
         # print(self.conf)
         # self.show()
         # MAINTHREAD crashes when showing this window! 
-        # FIND THE BUG
-        TODO: FIND THE BUG!
+        # TODO: FIND THE BUG!
+        print('bug')
 
 
     def close_and_safe(self):
@@ -106,7 +103,7 @@ class Log_config_windowthread(AbstractEventhandlingThread):
     """
 
     def __init__(self, mainthread, **kwargs):
-        super().__init__(**kwargs)
+        super(Log_config_windowthread, self).__init__(**kwargs)
         self.mainthread = mainthread 
 
 
@@ -115,7 +112,9 @@ class Log_config_windowthread(AbstractEventhandlingThread):
             connect its signals, so configurations are sent properly
         """
         self.logger_conf = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
+        # if window is closed, uncheck the menu-bar option in "show"
         self.logger_conf.sig_closing.connect(lambda: self.mainthread.action_Logging_configuration.setChecked(False))
+        # if the button to accept configuration is pressed, emit signal with dict, sending it to the logger thread
         self.logger_conf.sig_send_conf.connect(lambda conf: self.mainthread.sig_logging_newconf.emit(conf))
         # self.logger_conf.show()
         # print('run log config thread')
@@ -146,12 +145,13 @@ class main_Logger(AbstractEventhandlingThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
-        self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
+        # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
 
 
     def running(self):
         try:
             # Do things
+            print('logging running')
             if self.configuration_done: 
                 self.sig_log.emit()
                 if not self.conf_done_layer2: 
