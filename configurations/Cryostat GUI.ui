@@ -513,14 +513,6 @@
     <string>Logging configuration</string>
    </property>
   </action>
-  <action name="action_showtest">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>test</string>
-   </property>
-  </action>
  </widget>
  <resources/>
  <connections>
