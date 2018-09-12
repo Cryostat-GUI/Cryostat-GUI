@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1051</width>
-    <height>824</height>
+    <height>771</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -510,6 +510,11 @@
    </property>
    <property name="text">
     <string>Logging configuration</string>
+   </property>
+  </action>
+  <action name="action_showtest">
+   <property name="text">
+    <string>test</string>
    </property>
   </action>
  </widget>
