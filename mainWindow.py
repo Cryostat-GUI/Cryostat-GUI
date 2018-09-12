@@ -13,7 +13,7 @@ import datetime
 import mainWindow_ui
 
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-from Oxford.ITC_control import ITC_Updater as cls_itc
+from Oxford.ITC_control import ITC_Updater 
 
 
 
@@ -117,7 +117,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = self.running_thread(cls_itc('COM6'), 'ITC', 'control_ITC')
+                getInfodata = self.running_thread(ITC_Updater('COM6'), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 getInfodata.sig_visaerror.connect(self.printing)
