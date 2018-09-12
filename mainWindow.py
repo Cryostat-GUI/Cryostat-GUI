@@ -13,7 +13,7 @@ import datetime
 import mainWindow_ui
 
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-from Oxford.ITC_control import ITC_Updater as cls_itc
+from Oxford.ITC_control import ITC_Updater 
 
 
 
@@ -55,6 +55,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         self.logging_running_ITC = False
         self.logging_running_logger = False
+
+        self.action_showTest.triggered['bool'].connect(self.run_test)
 
 
         # initialize Logger configuration window
@@ -117,7 +119,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = self.running_thread(cls_itc('COM6'), 'ITC', 'control_ITC')
+                getInfodata = self.running_thread(ITC_Updater('COM6'), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 getInfodata.sig_visaerror.connect(self.printing)
@@ -238,6 +240,24 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         #     self.logger_conf.show()
         # else:
         #     self.logger_conf.close()
+
+
+    @pyqtSlot(bool)
+    def run_test(self, boolean):
+        """start/stop the logging thread"""
+
+        # read the last configuration of what shall be logged from a respective file
+
+        if boolean: 
+            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            logger.sig_configuring.connect(self.run_logging_configuration)
+            self.logging_running_logger = True
+
+        else: 
+            self.stopping_thread('logger')
+            self.logging_running_logger = False
+
 
 
 

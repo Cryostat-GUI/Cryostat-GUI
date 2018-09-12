@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1051</width>
-    <height>824</height>
+    <height>771</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -71,6 +71,7 @@
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
+    <addaction name="action_showtest"/>
    </widget>
    <widget class="QMenu" name="menuSystems_Online">
     <property name="title">
@@ -510,6 +511,11 @@
    </property>
    <property name="text">
     <string>Logging configuration</string>
+   </property>
+  </action>
+  <action name="action_showtest">
+   <property name="text">
+    <string>test</string>
    </property>
   </action>
  </widget>
