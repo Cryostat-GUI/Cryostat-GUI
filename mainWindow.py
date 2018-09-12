@@ -13,7 +13,7 @@ import datetime
 import mainWindow_ui
 
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-from Oxford.ITC_control import ITC_Updater 
+from Oxford.ITC_control import ITC_Updater
 
 
 
