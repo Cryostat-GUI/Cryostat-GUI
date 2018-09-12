@@ -14,10 +14,25 @@ from util import Window_ui
 
 
 
+
+
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
     sig_send_conf = pyqtSignal(dict)
+
+    ITC_sensors = dict(
+        set_temperature = False,
+        sensor_1_temperature = False,
+        sensor_2_temperature = False,
+        sensor_3_temperature = False,
+        temperature_error = False,
+        heater_output_as_percent = False,
+        heater_output_as_voltage = False,
+        gas_flow_output = False,
+        proportional_band = False,
+        integral_action_time = False,
+        derivative_action_time = False)
 
     def __init__(self, **kwargs):
         super(Logger_configuration, self).__init__(**kwargs)
@@ -25,34 +40,29 @@ class Logger_configuration(Window_ui):
         self.read_configuration()
 
         self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(lambda: self.ITC_thread_running.setChecked)
+        self.general_threads_ITC.toggled.connect(lambda b: self.ITC_thread_running.setChecked(b))
         self.general_threads_ILM.toggled.connect(lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(lambda: self.ILM_thread_running.setChecked)
+        self.general_threads_ILM.toggled.connect(lambda b: self.ILM_thread_running.setChecked(b))
         self.general_threads_PS.toggled.connect(lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(lambda: self.PS_thread_running.setChecked)
+        self.general_threads_PS.toggled.connect(lambda b: self.PS_thread_running.setChecked(b))
         self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(lambda: self.Lakeshore350_thread_running.setChecked)
+        self.general_threads_Lakeshore350.toggled.connect(lambda b: self.Lakeshore350_thread_running.setChecked(b))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
-        # self.general_threads_Current1.toggled.connect(lambda: self.Current1_thread_running.setChecked)
+        # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
         # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
-        # self.general_threads_Current2.toggled.connect(lambda: self.Current2_thread_running.setChecked)
+        # self.general_threads_Current2.toggled.connect(lambda b: self.Current2_thread_running.setChecked(b))
         # self.general_threads_Nano1.toggled.connect(lambda value: self.setValue('Nano1', 'thread', value))
-        # self.general_threads_Nano1.toggled.connect(lambda: self.Nano1_thread_running.setChecked)
+        # self.general_threads_Nano1.toggled.connect(lambda b: self.Nano1_thread_running.setChecked(b))
         # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
-        # self.general_threads_Nano2.toggled.connect(lambda: self.Nano2_thread_running.setChecked)
+        # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
-        # self.general_threads_Nano3.toggled.connect(lambda: self.Nano3_thread_running.setChecked)
+        # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
         
 
         self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(self.conf))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
         self.buttonBox_finish.rejected.connect(self.close)
-        # print(self.conf)
-        # self.show()
-        # MAINTHREAD crashes when showing this window! 
-        # TODO: FIND THE BUG!
-        print('bug')
 
 
     def close_and_safe(self):
@@ -70,7 +80,7 @@ class Logger_configuration(Window_ui):
             return the empty conf dict
         """
         conf = dict()
-        conf['ITC'] = dict()
+        conf['ITC'] = self.ITC_sensors
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
@@ -88,12 +98,12 @@ class Logger_configuration(Window_ui):
             self.conf = self.initialise_dicts()
 
 
-class test(Window_ui):
-    """docstring for test"""
-    def __init__(self, **kwargs):
-        super(test, self).__init__(**kwargs)
-        # self.arg = arg
-        self.show()
+# class test(Window_ui):
+#     """docstring for test"""
+#     def __init__(self, **kwargs):
+#         super(test, self).__init__(**kwargs)
+#         # self.arg = arg
+#         self.show()
         
 
 class Log_config_windowthread(AbstractEventhandlingThread):
@@ -193,7 +203,7 @@ class main_Logger(AbstractEventhandlingThread):
             what data should be logged is set in self.conf
 
         """
-        print(data)
+        print(self.conf)
         # saving data
 
     # def logging_read_configuration(self):
