@@ -11,7 +11,8 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - Keithley DMM 7510 7 1/2
 - Keithley MM 2700
 
-## low-level functions: 
+## Implementations: 
+### low-level functions: 
 - [x] Oxford ITC 503
 - [ ] Oxford ILM 211
 - [ ] Oxford PS120 10
@@ -21,7 +22,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [ ] Keithley DMM 7510 7 1/2
 - [ ] Keithley MM 2700
 
-## controlling thread: 
+### controlling thread: 
 - [x] Oxford ITC 503
 - [ ] Oxford ILM 211
 - [ ] Oxford PS120 10
@@ -31,7 +32,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [ ] Keithley DMM 7510 7 
 - [ ] Keithley MM 2700
 
-## specific window:
+### specific window:
 - [x] Oxford ITC 503
 - [ ] Oxford ILM 211
 - [ ] Oxford PS120 10
@@ -40,3 +41,6 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [ ] Keithley 6221
 - [ ] Keithley DMM 7510 7 
 - [ ] Keithley MM 2700
+
+## GUI 
+- [] make a nice GUI
