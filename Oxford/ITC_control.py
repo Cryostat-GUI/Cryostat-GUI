@@ -13,6 +13,8 @@ from pyvisa.errors import VisaIOError
 
 # from util import AbstractThread
 from util import AbstractLoopThread
+from util import Window_ui
+
 # from util import AbstractEventhandlingThread
 
 import ITCcontrol_ui 
@@ -376,3 +378,21 @@ class ITC_Updater(AbstractLoopThread):
     #     """
     #     self.set_auto_manual = value
 
+
+
+class ITC_Window(Window_ui):
+    """docstring for ITC_Window"""
+    def __init__(self, **kwargs):
+        super(ITC_Window, self).__init__(**kwargs)
+        
+
+class ITC_windowthread(AbstractEventhandlingThread):
+    """docstring for ITC_windowthread"""
+
+    sig_closed = pyqtSignal()
+    def __init__(self, **kwargs):
+        super(ITC_windowthread, self).__init__(**kwargs)
+
+    def running(self):
+        self.window = ITC_Window(ui_file='.\\ITC_control.ui')
+            

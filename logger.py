@@ -96,7 +96,6 @@ class test(Window_ui):
         self.show()
         
 
-
 class Log_config_windowthread(AbstractEventhandlingThread):
     """class to handle the logging configuration window.
 
@@ -119,8 +118,6 @@ class Log_config_windowthread(AbstractEventhandlingThread):
         # self.logger_conf.show()
         # print('run log config thread')
         # print(self.mainthread.threads['logger_confwindow'])
-
-
 
 
 class main_Logger(AbstractEventhandlingThread):
