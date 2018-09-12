@@ -43,4 +43,4 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [ ] Keithley MM 2700
 
 ## GUI 
-- [] make a nice GUI
+- [ ] make a nice GUI
