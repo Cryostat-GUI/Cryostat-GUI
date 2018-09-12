@@ -32,7 +32,7 @@ def convert_time(ts):
 
 
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
-    """This is the main GUI Window"""
+    """This is the main GUI Window, where other windows will be spawned from"""
     
     sig_arbitrary = pyqtSignal()
     sig_logging = pyqtSignal(dict)
@@ -100,6 +100,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
+        # self.mdiArea.addSubWindow(self.ITC_window)
 
     @pyqtSlot(bool)
     def run_ITC(self, boolean):

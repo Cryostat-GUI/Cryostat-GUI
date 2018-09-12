@@ -40,9 +40,6 @@ class PS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
-
-
-
     @pyqtSlot(int)
     def setControl(self, control_state):
         """method to set the control for local/remote"""

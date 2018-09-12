@@ -82,8 +82,11 @@ class ITC_Updater(AbstractLoopThread):
 
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
+        
             self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection.
+            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
+            with any other PC, so errors which come back are "caught", or communication is set up 
+            in a way no errors occur)
 
         """
         try: 

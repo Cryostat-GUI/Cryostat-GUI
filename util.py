@@ -118,4 +118,3 @@ class Window_ui(QtWidgets.QWidget):
         # do stuff
         self.sig_closing.emit()
         event.accept() # let the window close
-

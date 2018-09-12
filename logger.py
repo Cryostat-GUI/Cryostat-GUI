@@ -14,8 +14,6 @@ from util import Window_ui
 
 
 
-
-
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
@@ -98,37 +96,6 @@ class Logger_configuration(Window_ui):
             self.conf = self.initialise_dicts()
 
 
-# class test(Window_ui):
-#     """docstring for test"""
-#     def __init__(self, **kwargs):
-#         super(test, self).__init__(**kwargs)
-#         # self.arg = arg
-#         self.show()
-        
-
-class Log_config_windowthread(AbstractEventhandlingThread):
-    """class to handle the logging configuration window.
-
-    """
-
-    def __init__(self, mainthread, **kwargs):
-        super(Log_config_windowthread, self).__init__(**kwargs)
-        self.mainthread = mainthread 
-
-
-    def running(self):
-        """instantiate the Logger configuration window-class, 
-            connect its signals, so configurations are sent properly
-        """
-        self.logger_conf = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
-        # if window is closed, uncheck the menu-bar option in "show"
-        self.logger_conf.sig_closing.connect(lambda: self.mainthread.action_Logging_configuration.setChecked(False))
-        # if the button to accept configuration is pressed, emit signal with dict, sending it to the logger thread
-        self.logger_conf.sig_send_conf.connect(lambda conf: self.mainthread.sig_logging_newconf.emit(conf))
-        # self.logger_conf.show()
-        # print('run log config thread')
-        # print(self.mainthread.threads['logger_confwindow'])
-
 
 class main_Logger(AbstractEventhandlingThread):
 
@@ -152,8 +119,6 @@ class main_Logger(AbstractEventhandlingThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
-        # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
-
 
     def running(self):
         try:
@@ -172,10 +137,6 @@ class main_Logger(AbstractEventhandlingThread):
         finally:
             QTimer.singleShot(self.interval*1e3, self.running)
 
-    # @pyqtSlot()
-    # def stop(self):
-    #     self.__isRunning = False
-
     def update_conf(self, conf):
         """
             - update the configuration with one being sent.
@@ -185,7 +146,7 @@ class main_Logger(AbstractEventhandlingThread):
                 so that the configuring thread will be quit.
 
         """
-        print('updated conf for logging')
+        # print('updated conf for logging')
         self.conf = conf
         self.configuration_done = True
         self.conf_done_layer2 = False
@@ -205,13 +166,3 @@ class main_Logger(AbstractEventhandlingThread):
         """
         print(self.conf)
         # saving data
-
-    # def logging_read_configuration(self):
-    #     """method to establish the configuration of 
-    #         what shall be logged from a respective file
-
-    #         open window to let the user choose. 
-
-    #         Return: dictionary holding bools
-    #     """
-    #     return None

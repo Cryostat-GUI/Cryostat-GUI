@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1051</width>
-    <height>771</height>
+    <width>1058</width>
+    <height>911</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>40</x>
       <y>0</y>
-      <width>811</width>
-      <height>591</height>
+      <width>961</width>
+      <height>721</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -44,7 +44,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1051</width>
+     <width>1058</width>
      <height>21</height>
     </rect>
    </property>
@@ -71,7 +71,6 @@
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
-    <addaction name="action_showtest"/>
    </widget>
    <widget class="QMenu" name="menuSystems_Online">
     <property name="title">
