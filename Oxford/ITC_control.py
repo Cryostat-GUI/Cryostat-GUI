@@ -13,7 +13,6 @@ from pyvisa.errors import VisaIOError
 
 # from util import AbstractThread
 from util import AbstractLoopThread
-# from util import AbstractEventhandlingThread
 
 import ITCcontrol_ui 
 
@@ -375,4 +374,5 @@ class ITC_Updater(AbstractLoopThread):
     #         later on, when the command to enforce the value is sent
     #     """
     #     self.set_auto_manual = value
+
 

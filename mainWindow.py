@@ -13,14 +13,14 @@ import datetime
 import mainWindow_ui
 
 from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-from Oxford.ITC_control import ITC_Updater 
+from Oxford.ITC_control import ITC_Updater
 
 
 
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger
-from logger import Log_config_windowthread #Logger_configuration
+from logger import Logger_configuration #Logger_configuration
 from util import Window_ui
 
 
@@ -46,26 +46,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.data = dict()
         self.logging_bools = dict()
 
-        # initialize ITC Window
-        self.ITC_window = Window_ui(ui_file='.\\Oxford\\ITC_control.ui')
-        self.ITC_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
-
-        self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
-        self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
-
         self.logging_running_ITC = False
         self.logging_running_logger = False
 
-
-        # initialize Logger configuration window
-        
-        
-
-        self.action_Logging_configuration.triggered['bool'].connect(self.run_logging_configuration)
-
-        
-
-        self.action_Logging.triggered['bool'].connect(self.run_logger)
+        self.initialize_window_ITC()
+        self.initialize_window_Log_conf()
 
 
 
@@ -108,6 +93,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.threads[threadname][1].wait()
         del self.threads[threadname]
 
+    def initialize_window_ITC(self):
+        """initialize ITC Window"""
+        self.ITC_window = Window_ui(ui_file='.\\Oxford\\ITC_control.ui')
+        self.ITC_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
+
+        self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
+        self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
 
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
@@ -208,6 +200,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """arbitrary exmple function"""
         print(b)
 
+    def initialize_window_Log_conf(self):
+        """initialize Logging configuration window"""
+        self.Log_conf_window = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
+        self.Log_conf_window.sig_closing.connect(lambda: self.action_Logging_configuration.setChecked(False))
+        self.Log_conf_window.sig_send_conf.connect(lambda conf: self.sig_logging_newconf.emit(conf))
+
+        self.action_Logging.triggered['bool'].connect(self.run_logger)
+        self.action_Logging_configuration.triggered['bool'].connect(self.show_logging_configuration)
 
     @pyqtSlot(bool)
     def run_logger(self, boolean):
@@ -218,26 +218,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if boolean: 
             logger = self.running_thread(main_Logger(self), None, 'logger')
             logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
-            logger.sig_configuring.connect(self.run_logging_configuration)
+            logger.sig_configuring.connect(self.show_logging_configuration)
             self.logging_running_logger = True
 
         else: 
             self.stopping_thread('logger')
             self.logging_running_logger = False
 
-
-    def run_logging_configuration(self, boolean):
+    @pyqtSlot(bool)
+    def show_logging_configuration(self, boolean):
         """display/close the logging configuration window"""
         if boolean: 
-            logger_conf = self.running_thread(Log_config_windowthread(self), None, 'logger_confwindow')
-            # logger_conf.sig_log.connect(lambda : self.sig_logging.emit(self.data))
-
+            self.Log_conf_window.show()
         else: 
-            self.stopping_thread('logger_confwindow')
-        # if boolean:
-        #     self.logger_conf.show()
-        # else:
-        #     self.logger_conf.close()
+            self.Log_conf_window.close()
 
 
 
