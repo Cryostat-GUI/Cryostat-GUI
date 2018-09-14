@@ -78,12 +78,13 @@ class Logger_configuration(Window_ui):
             return the empty conf dict
         """
         conf = dict()
-        conf['ITC'] = self.ITC_sensors
+        conf['ITC'] = self.ITC_sensors.update(dict(thread=False))
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
         conf['Keithley Current']  = dict()
         conf['Keithley Volt']   = dict()
+        conf['general'] = dict(logfile_location='')
         return conf
 
     def read_configuration(self):

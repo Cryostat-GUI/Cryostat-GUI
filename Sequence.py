@@ -6,6 +6,7 @@ import sys
 import datetime
 import pickle
 import os
+import re
 
 from util import AbstractEventhandlingThread
 

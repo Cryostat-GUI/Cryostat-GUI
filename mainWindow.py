@@ -24,6 +24,7 @@ from logger import Logger_configuration #Logger_configuration
 from util import Window_ui
 
 
+ITC_Instrumentadress = 'COM6'
 
 
 def convert_time(ts):

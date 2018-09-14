@@ -20,6 +20,7 @@ Classes:
 
 """
 import logging
+import threading
 
 import visa
 # from pyvisa.errors import VisaIOError
@@ -48,7 +49,26 @@ class itc503():
         """
         self._visa_resource = resource_manager.open_resource(adress)
         self._visa_resource.read_termination = '\r'
+        self.ComLock = threading.Lock()
 
+    def write(self, command):
+        """
+            low-level communication wrapper for visa.write with Communication Lock, 
+            to prevent multiple writes to serial adapter
+        """
+        self.ComLock.acquire()
+        self._visa_resource.write(command)
+        self.ComLock.release()
+
+    def query(self, command):
+        """
+            low-level communication wrapper for visa.query with Communication Lock, 
+            to prevent multiple writes to serial adapter
+        """
+        self.ComLock.acquire()
+        answer = self._visa_resource.write(command)
+        self.ComLock.release()
+        return answer
 
     def setControl(self, state):
         """Set the LOCAL / REMOTE control state of the ITC 503
@@ -67,7 +87,7 @@ class itc503():
         # state_bit = str(remote) + str(unlocked)
         # state = int(state_bit, 2)
 
-        self._visa_resource.write("$C{}".format(state))
+        self.write("$C{}".format(state))
 
     def setTemperature(self, temperature=0.010):
         """Change the temperature set point.
@@ -79,9 +99,9 @@ class itc503():
         """
         if not isinstance(temperature, (int, float)):
             raise AssertionError('argument must be a number')
-        
+
         command = '$T{}'.format(temperature)# + str(int(1000*temperature))
-        self._visa_resource.write(command)
+        self.write(command)
 
     def getValue(self, variable=0):
         """Read the variable defined by the index.
@@ -119,7 +139,7 @@ class itc503():
         Args:
             prop: Proportional band, in steps of 0.0001K.
         """
-        self._visa_resource.write('$P{}'.format(prop))
+        self.write('$P{}'.format(prop))
         return None
         
     def setIntegral(self, integral=0):
@@ -129,7 +149,7 @@ class itc503():
             integral: Integral action time, in steps of 0.1 minute.
                         Ranges from 0 to 140 minutes.
         """
-        self._visa_resource.write('$I{}'.format(integral))
+        self.write('$I{}'.format(integral))
         return None
         
     def setDerivative(self, derivative=0):
@@ -139,7 +159,7 @@ class itc503():
             derivative: Derivative action time.
                         Ranges from 0 to 273 minutes.
         """
-        self._visa_resource.write('$D{}'.format(derivative))
+        self.write('$D{}'.format(derivative))
         return None
         
     def setHeaterSensor(self, sensor=1):
@@ -153,7 +173,7 @@ class itc503():
         if sensor not in [1,2,3]:
             raise AssertionError('Heater not on list.')
         
-        self._visa_resource.write('$H{}'.format(sensor))
+        self.write('$H{}'.format(sensor))
         return None
         
     def setHeaterOutput(self, heater_output=0):
@@ -165,7 +185,7 @@ class itc503():
                         Min: 0. Max: 999.
         """
         
-        self._visa_resource.write('$O{}'.format(heater_output))
+        self.write('$O{}'.format(heater_output))
         return None
 
     def setGasOutput(self, gas_output=0):
@@ -176,7 +196,7 @@ class itc503():
                     output in units of 0.1%.
                     Min: 0. Max: 999.
         """
-        self._visa_resource.write('$G{}'.format(gas_output))
+        self.write('$G{}'.format(gas_output))
         return None
         
     def setAutoControl(self, auto_manual=0):
@@ -191,7 +211,7 @@ class itc503():
         Args:
             auto_manual: Index for gas/manual.
         """
-        self._visa_resource.write('$A{}'.format(auto_manual))
+        self.write('$A{}'.format(auto_manual))
 
     def setSweeps(self, sweep_parameters):
         """Sets the parameters for all sweeps.
@@ -232,6 +252,7 @@ class itc503():
             sweep_table: A dictionary of parameters describing the
                 sweep. Keys: set_point, sweep_time, hold_time.
         """
+        self.ComLock.acquire()
         step_setting = '$x{}'.format(sweep_step)
         self._visa_resource.write(step_setting)
 
@@ -252,6 +273,7 @@ class itc503():
         self._visa_resource.write(holdtime_setting)
 
         self._resetSweepTablePointers()
+        self.ComLock.release()
 
     def _resetSweepTablePointers(self):
         """Resets the table pointers to x=0 and y=0 to prevent
