@@ -124,7 +124,7 @@ class itc503():
         if variable not in range(0,11):
             raise AssertionError('Argument is not a valid number.')
         
-        value = self._visa_resource.query('R{}'.format(variable))
+        value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
