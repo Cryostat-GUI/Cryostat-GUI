@@ -10,10 +10,11 @@ import sys
 import time
 import datetime
 
-import mainWindow_ui
+# import mainWindow_ui
 
-from Oxford.ITCcontrol_ui import Ui_ITCcontrol
+# from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater
+from Oxford.ILM_control import ILM_Updater
 
 
 
@@ -51,6 +52,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_logger = False
 
         self.initialize_window_ITC()
+        self.initialize_window_ILM()
         self.initialize_window_Log_conf()
 
 
@@ -237,6 +239,60 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
 
+    def initialize_window_ILM(self):
+        """initialize ILM Window"""
+        self.ILM_window = Window_ui(ui_file='.\\Oxford\\ILM_control.ui')
+        self.ILM_window.sig_closing.connect(lambda: self.action_show_ILM.setChecked(False))
+
+        self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
+        self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
+
+
+    @pyqtSlot(bool)
+    def run_ILM(self, boolean):
+        """start/stop the logging thread"""
+
+        # read the last configuration of what shall be logged from a respective file
+
+        if boolean: 
+            try: 
+                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM7'), None, 'ILM')
+
+                getInfodata.sig_Infodata.connect(self.store_data_ilm)
+                getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+
+                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['ILM'].setProbingSpeed(value, 1))
+                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['ILM'].setProbingSpeed(value, 2))
+
+                self.action_run_ILM.setChecked(True)
+            
+            except VisaIOError as e:
+                self.action_run_ILM.setChecked(False)
+                print(e) # TODO: open window displaying the error message
+        else: 
+            self.action_run_ILM.setChecked(False)
+            self.stopping_thread('ILM')
+
+
+    @pyqtSlot(bool)
+    def show_ILM(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.ILM_window.show()
+        else:
+            self.ILM_window.close()
+
+    @pyqtSlot(dict)
+    def store_data_ilm(self, data):
+        """Store ILM data in self.data['ILM'], update ILM_window"""
+        data['date'] = convert_time(time.time())
+        self.data['ILM'].append(data)
+        self.MainDock_HeLevel.setValue(self.data['ILM'][-1]['channel_1_level'])
+        self.MainDock_N2Level.setValue(self.data['ILM'][-1]['channel_2_level'])
+
+        
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

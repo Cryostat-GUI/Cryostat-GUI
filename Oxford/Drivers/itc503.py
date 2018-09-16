@@ -22,6 +22,7 @@ Classes:
 import logging
 import threading
 
+from Oxford.Drivers.driver import AbstractSerialDeviceDriver
 import visa
 # from pyvisa.errors import VisaIOError
 
@@ -37,7 +38,7 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
-class itc503():
+class itc503(object):
     """class for interfacing with a ITC 503 temperature controller"""
 
 
@@ -70,7 +71,7 @@ class itc503():
         self.ComLock.release()
         return answer
 
-    def setControl(self, state):
+    def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the ITC 503
 
         0 - Local & Locked (default state)

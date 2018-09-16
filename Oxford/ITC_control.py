@@ -1,7 +1,5 @@
 
-import sys
 import time
-
 
 # from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
@@ -31,7 +29,7 @@ class ITC_Updater(AbstractLoopThread):
         There is a second method for all wrappers, which accepts
         the corresponding value, and stores it, so it can be sent upon acknowledgment 
 
-        The information from the device is collected in regular intervals (method "work"),
+        The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
         the keys of which are displayed in the "sensors" dict in this class. 
     """
@@ -313,13 +311,19 @@ class ITC_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot(int)
+    def gettoset_Control(self, value):
+        """class method to receive and store the value to set the Control status
+            later on, when the command to enforce the value is sent
+        """
+        self.control_state = value
+
     @pyqtSlot(float)
     def gettoset_Temperature(self, value):
         """class method to receive and store the value to set the temperature
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
-        # print('got it')
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):

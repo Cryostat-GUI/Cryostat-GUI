@@ -77,8 +77,10 @@ class Logger_configuration(Window_ui):
         """initialise the conf dict, in case it was not handed down
             return the empty conf dict
         """
+
+        self.ITC_sensors.update(dict(thread=False))
         conf = dict()
-        conf['ITC'] = self.ITC_sensors.update(dict(thread=False))
+        conf['ITC'] = self.ITC_sensors
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
@@ -111,7 +113,7 @@ class main_Logger(AbstractEventhandlingThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 2 # 60s interval for logging as initialisation
+        self.interval = 3 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)

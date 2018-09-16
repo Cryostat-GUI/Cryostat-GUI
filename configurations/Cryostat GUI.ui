@@ -68,6 +68,7 @@
      <addaction name="action_show_Data"/>
      <addaction name="separator"/>
      <addaction name="action_show_ITC"/>
+     <addaction name="action_show_ILM"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
@@ -510,6 +511,14 @@
    </property>
    <property name="text">
     <string>Logging configuration</string>
+   </property>
+  </action>
+  <action name="action_show_ILM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>ILM 211</string>
    </property>
   </action>
  </widget>
