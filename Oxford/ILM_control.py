@@ -64,7 +64,7 @@ class ILM_Updater(AbstractLoopThread):
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
-                data[key] = self.ITC.getValue(idx_sensor)
+                data[key] = self.ILM.getValue(idx_sensor)
                 # time.sleep(self.delay2)
             status = self.ILM.getStatus()
             data.update(dict(   cryogen_channel_1=status[0],
@@ -96,7 +96,7 @@ class ILM_Updater(AbstractLoopThread):
             this is to be invoked by a signal
         """
         try:
-            self.ITC.setControl(self.control_state)
+            self.ILM.setControl(self.control_state)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
