@@ -49,8 +49,6 @@ class AbstractThread(QObject):
 class AbstractLoopThread(AbstractThread):
     """Abstract thread class to be used with instruments """
 
-    sig_assertion = pyqtSignal()
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__isRunning = True
