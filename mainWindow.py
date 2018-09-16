@@ -256,15 +256,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM7'), None, 'ILM')
+                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'), None, 'ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 getInfodata.sig_visaerror.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
 
-                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['ILM'].setProbingSpeed(value, 1))
-                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['ILM'].setProbingSpeed(value, 2))
+                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['ILM'][0].setProbingSpeed(value, 1))
+                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['ILM'][0].setProbingSpeed(value, 2))
 
                 self.action_run_ILM.setChecked(True)
             
