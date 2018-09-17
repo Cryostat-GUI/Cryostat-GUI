@@ -27,9 +27,8 @@ class AbstractSerialDeviceDriver(object):
             low-level communication wrapper for visa.write with Communication Lock, 
             to prevent multiple writes to serial adapter
         """
-        self.ComLock.acquire()
-        self._visa_resource.write(command)
-        self.ComLock.release()
+        with self.ComLock: 
+            self._visa_resource.write(command)
 
 
     def query(self, command):
@@ -37,7 +36,6 @@ class AbstractSerialDeviceDriver(object):
             low-level communication wrapper for visa.query with Communication Lock, 
             to prevent multiple writes to serial adapter
         """
-        self.ComLock.acquire()
-        answer = self._visa_resource.query(command)
-        self.ComLock.release()
+        with self.ComLock: 
+            answer = self._visa_resource.query(command)
         return answer

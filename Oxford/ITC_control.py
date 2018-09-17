@@ -12,11 +12,6 @@ from pyvisa.errors import VisaIOError
 # from util import AbstractThread
 from util import AbstractLoopThread
 
-import ITCcontrol_ui 
-
-
-
-
 
 class ITC_Updater(AbstractLoopThread):
 
