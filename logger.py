@@ -208,26 +208,28 @@ class main_Logger(AbstractEventhandlingThread):
             "Current" :"20",
             "Temperature":"0",
             "Testcol1":10,
-            "Testcol2":5
+            "Testcol2":100,
+            "testcol3":3.1415
         }
 
+        
         timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S")} #it was the only way i could implement date and time and still select them
-        #merging the old dict with a new key value pair for time
         testdict={**timedict,**testdict}
-
-
-
+        
+        #Creating the readable time value and then appending it to the dictionary:
+        timestr=str(testdict.get("CurrentTime"))
+        ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
+        testdict['ReadableTime']=ReadableTime
+        
         def connectdb(dbname):
             try:
                 global conn 
                 conn= sqlite3.connect(dbname)
-                conn.commit()
             except sqlite3.connect.Error as err:
                 print("Couldn't establish connection {}".format(err))
 
 
-            #cursor setup:
-
+        #cursor setup:
         connectdb(dbname)
         mycursor = conn.cursor()
 
@@ -238,25 +240,51 @@ class main_Logger(AbstractEventhandlingThread):
 
         def createtable(tablename,dictname):
             
-            mycursor.execute("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY,{} INTEGER,{} REAL,{} REAL,{} TEXT,{} REAL,{} REAL)".format(tablename,*list(dictname.keys())))
-            conn.commit()
+            def typeof(dictkey):
+                if isinstance(dictkey,float):
+                    return "REAL"
+                elif isinstance(dictkey,int):
+                    return "INTEGER"
+                else:
+                    return "TEXT"
+
+
+            sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
+            mycursor.execute(sql)
+
+            #We should find a nicer a solution without try and except
+            try:
+                for i in dictname.keys():
+                    sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
+                    mycursor.execute(sql)
+            except sqlite3.OperationalError as err:
+                print("prabably the column already exists, no problem. ({})".format(err))
+            
 
         createtable(tablename,testdict)
-
+        
         #inserting in the measured values:
-
+        
         def updatetable(tablename,dictname):
-            
-            sql="INSERT INTO {} ({},{},{},{},{},{}) VALUES ({},{},{},{},{},{})" .format(tablename,*list(dictname.keys()),*list(dictname.values()))
+                        
+            sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,list(dictname.keys())[0],list(dictname.values())[0])
             mycursor.execute(sql)
+            
+            for i in range(len(dictname)):
+                sql="UPDATE {} SET {}={} WHERE {}={}".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],list(dictname.keys())[0],list(dictname.values())[0])
+                mycursor.execute(sql)
+                                
             conn.commit()
 
-        updatetable("measured_data",testdict)
+        updatetable(tablename,testdict)
 
 
         def printtable(tablename,dictname,date1,date2):
             
-            print("{},{},{},{},{},{},{})".format('id',*list(dictname.keys())))
+            for colnames in dictname.keys():
+                print(colnames, end=',', flush=True)
+            print('\n')
+
             sql="SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}".format(tablename,date1,date2)
             mycursor.execute(sql)
             
@@ -264,15 +292,13 @@ class main_Logger(AbstractEventhandlingThread):
             for row in data:
                 print(row)
 
-        printtable(tablename,testdict,20180915155243,20190915155242)
+        printtable(tablename,testdict,20180917132531,20190917132610)
 
-
-
+        
 
 
         def exportdatatoarr (tablename,colnamelist):
 
-            
             array=[]
 
             sql="SELECT {},{},{} from {} ".format(*colnamelist,tablename)
@@ -281,15 +307,12 @@ class main_Logger(AbstractEventhandlingThread):
                 
             for row in data:
                 array.append(list(row))
-                print(row)
-            
+                
             nparray=np.asarray(array)    
             print("the numpy array:")
             print(nparray)
 
         exportdatatoarr(tablename,colnamelist)
-        
-        print(data)
        
     store_data(0,0)
     # def logging_read_configuration(self):
