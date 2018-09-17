@@ -236,7 +236,7 @@ class main_Logger(AbstractEventhandlingThread):
         #Optional command to delete a table, must be commented out
         #mycursor.execute("DROP TABLE measured_data")
 
-        #initializing a table with primary key as first column:
+        #initializing a table with a primary key as first column:
 
         def createtable(tablename,dictname):
             
@@ -252,13 +252,14 @@ class main_Logger(AbstractEventhandlingThread):
             sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
             mycursor.execute(sql)
 
-            #We should find a nicer a solution without try and except
-            try:
-                for i in dictname.keys():
+            #We should try to find a nicer a solution without try and except
+            #try:
+            for i in dictname.keys():
+                try:
                     sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
                     mycursor.execute(sql)
-            except sqlite3.OperationalError as err:
-                print("prabably the column already exists, no problem. ({})".format(err))
+                except sqlite3.OperationalError as err:
+                    print("prabably the column already exists, no problem. ({})".format(err))
             
 
         createtable(tablename,testdict)
