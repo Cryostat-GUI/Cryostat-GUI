@@ -38,6 +38,6 @@ class AbstractSerialDeviceDriver(object):
             to prevent multiple writes to serial adapter
         """
         self.ComLock.acquire()
-        answer = self._visa_resource.write(command)
+        answer = self._visa_resource.query(command)
         self.ComLock.release()
         return answer

@@ -59,7 +59,7 @@ class ilm211(AbstractSerialDeviceDriver):
             raise AssertionError('bad reply: {}'.format(value))
         return float(value.strip('R+'))
 
-    def _converting_status_channel(i):
+    def _converting_status_channel(self, i):
         i = int(i)
         if i == 0: 
             return 'not in use'

@@ -36,10 +36,10 @@ class ILM_Updater(AbstractLoopThread):
     sensors = dict(        
         channel_1_level=1,
         channel_2_level=2,
-        channel_3_level=3,
-        channel_1_wire_current=6,
-        channel_2_wire_current=7,
-        needle_valve_position=10)
+        channel_3_level=3)
+        # channel_1_wire_current=6,
+        # channel_2_wire_current=7,
+        # needle_valve_position=10)
 
 
     def __init__(self, InstrumentAddress='COM7'):
@@ -64,17 +64,17 @@ class ILM_Updater(AbstractLoopThread):
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
-                data[key] = self.ILM.getValue(idx_sensor)
+                data[key] = self.ILM.getValue(idx_sensor)*0.1
                 # time.sleep(self.delay2)
-            status = self.ILM.getStatus()
-            data.update(dict(   cryogen_channel_1=status[0],
-                                cryogen_channel_2=status[1],
-                                status_channel_1=status[2],
-                                status_channel_2=status[3],
-                                status_channel_3=status[4]))
+            # status = self.ILM.getStatus()
+            # data.update(dict(   cryogen_channel_1=status[0],
+            #                     cryogen_channel_2=status[1],
+            #                     status_channel_1=status[2],
+            #                     status_channel_2=status[3],
+            #                     status_channel_3=status[4]))
             self.sig_Infodata.emit(data)
-            # time.sleep(self.delay1)
-
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()

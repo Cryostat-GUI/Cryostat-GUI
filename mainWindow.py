@@ -91,7 +91,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def stopping_thread(self, threadname):
         """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
 
-        self.threads[threadname][0].stop()
+        # self.threads[threadname][0].stop()
         self.threads[threadname][1].quit()
         self.threads[threadname][1].wait()
         del self.threads[threadname]
@@ -238,7 +238,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.Log_conf_window.close()
 
 
-
     def initialize_window_ILM(self):
         """initialize ILM Window"""
         self.ILM_window = Window_ui(ui_file='.\\Oxford\\ILM_control.ui')
@@ -246,7 +245,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
         self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
-
 
     @pyqtSlot(bool)
     def run_ILM(self, boolean):
@@ -256,15 +254,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'), None, 'ILM')
+                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'),'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 getInfodata.sig_visaerror.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
 
-                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['ILM'][0].setProbingSpeed(value, 1))
-                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['ILM'][0].setProbingSpeed(value, 2))
+                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
+                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
 
                 self.action_run_ILM.setChecked(True)
             
@@ -273,7 +271,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 print(e) # TODO: open window displaying the error message
         else: 
             self.action_run_ILM.setChecked(False)
-            self.stopping_thread('ILM')
+            self.stopping_thread('control_ILM')
 
 
     @pyqtSlot(bool)
@@ -291,6 +289,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.data['ILM'].append(data)
         self.MainDock_HeLevel.setValue(self.data['ILM'][-1]['channel_1_level'])
         self.MainDock_N2Level.setValue(self.data['ILM'][-1]['channel_2_level'])
+        print(self.data['ILM'][-1]['channel_1_level'], self.data['ILM'][-1]['channel_2_level'])
 
         
 

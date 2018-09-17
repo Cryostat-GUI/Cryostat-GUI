@@ -38,38 +38,37 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
-class itc503(object):
+class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
 
 
-    def __init__(self, adress='COM6'):
-        """Connect to an ITC 503 S at the specified GPIB address
+    def __init__(self, **kwargs):
+        super(itc503, self).__init__(**kwargs)
+        """Connect to an ITC 503 at the specified serial address
 
-        Args:
-            GPIBaddr(int): GPIB address of the ITC 503
         """
-        self._visa_resource = resource_manager.open_resource(adress)
-        self._visa_resource.read_termination = '\r'
-        self.ComLock = threading.Lock()
+    #     self._visa_resource = resource_manager.open_resource(adress)
+    #     self._visa_resource.read_termination = '\r'
+    #     self.ComLock = threading.Lock()
 
-    def write(self, command):
-        """
-            low-level communication wrapper for visa.write with Communication Lock, 
-            to prevent multiple writes to serial adapter
-        """
-        self.ComLock.acquire()
-        self._visa_resource.write(command)
-        self.ComLock.release()
+    # def write(self, command):
+    #     """
+    #         low-level communication wrapper for visa.write with Communication Lock, 
+    #         to prevent multiple writes to serial adapter
+    #     """
+    #     self.ComLock.acquire()
+    #     self._visa_resource.write(command)
+    #     self.ComLock.release()
 
-    def query(self, command):
-        """
-            low-level communication wrapper for visa.query with Communication Lock, 
-            to prevent multiple writes to serial adapter
-        """
-        self.ComLock.acquire()
-        answer = self._visa_resource.write(command)
-        self.ComLock.release()
-        return answer
+    # def query(self, command):
+    #     """
+    #         low-level communication wrapper for visa.query with Communication Lock, 
+    #         to prevent multiple writes to serial adapter
+    #     """
+    #     self.ComLock.acquire()
+    #     answer = self._visa_resource.query(command)
+    #     self.ComLock.release()
+    #     return answer
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the ITC 503

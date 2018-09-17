@@ -53,11 +53,11 @@ class ITC_Updater(AbstractLoopThread):
             integral_action_time = 9,
             derivative_action_time = 10)
 
-    def __init__(self, InstrumentAddress):
-        super().__init__()
+    def __init__(self, InstrumentAddress='', **kwargs):
+        super().__init__(**kwargs)
 
         # here the class instance of the ITC should be handed
-        self.ITC = itc503(InstrumentAddress)
+        self.ITC = itc503(InstrumentAddress=InstrumentAddress)
 
         # TODO need initialisation for all the parameters!
 
@@ -96,7 +96,8 @@ class ITC_Updater(AbstractLoopThread):
                 time.sleep(self.delay2)
             self.sig_Infodata.emit(data)
             # time.sleep(self.delay1)
-
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
