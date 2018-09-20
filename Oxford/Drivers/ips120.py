@@ -18,7 +18,11 @@ from datetime import datetime
 import time
 import logging
 
-import visa
+
+
+from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+
+# import visa
 # from pyvisa.errors import VisaIOError
 
 # create a logger object for this module
@@ -26,25 +30,26 @@ logger = logging.getLogger(__name__)
 # added so that log messages show up in Jupyter notebooks
 logger.addHandler(logging.StreamHandler())
 
-try:
-    # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager()
-except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+# try:
+#     # the pyvisa manager we'll use to connect to the GPIB resources
+#     resource_manager = visa.ResourceManager()
+# except OSError:
+#     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
-class ips120():
+class ips120(AbstractSerialDeviceDriver):
     """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments. """
 
-    def __init__(self, adress):
+    def __init__(self, adress, **kwargs):
         """Connect to an IPS 120-10 at the specified RS232 address
 
         Args:
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
-        self._visa_resource = resource_manager.open_resource(adress)
-        self._visa_resource.read_termination = '\r'
-        self.setDisplay('tesla')
+        super(ips120, self).__init__(**kwargs)
+        # self._visa_resource = resource_manager.open_resource(adress)
+        # self._visa_resource.read_termination = '\r'
+        # self.setDisplay('tesla')
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the IPS 120-10
@@ -52,7 +57,7 @@ class ips120():
         0 - Local & Locked (default state)
         1 - Remote & Locked
         2 - Local & Unlocked
-        3 - Remote & Locked
+        3 - Remote & Unlocked
 
         Args:
             state(int): the state in which to place the IPS 120-10
@@ -62,7 +67,7 @@ class ips120():
         if state not in [0,1,2,3]:
             raise AssertionError('argument must be one of [0,1,2,3]')
 
-        self._visa_resource.write("$C{}".format(state))
+        self.write("$C{}".format(state))
 
     def readField(self):
         """Read the current magnetic field in Tesla
@@ -70,7 +75,7 @@ class ips120():
         Returns:
             field(float): current magnetic field in Tesla
         """
-        value_str = self._visa_resource.query('R7')
+        value_str = self.query('R7')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
 
@@ -84,7 +89,7 @@ class ips120():
         Returns:
             setpoint(float): current set point for the magnetic field in Tesla
         """
-        value_str = self._visa_resource.query('R8')
+        value_str = self.query('R8')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
 
@@ -99,7 +104,7 @@ class ips120():
         Returns:
             sweep_rate(float): current magnetic field sweep rate in Tesla/min
         """
-        value_str = self._visa_resource.query('R9')
+        value_str = self.query('R9')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
 
@@ -125,7 +130,7 @@ class ips120():
         if state not in [0,1,2,3]:
             raise AssertionError('argument must be one of [0,1,2,3]')
 
-        self._visa_resource.write("$A{}".format(state))
+        self.write("$A{}".format(state))
 
     def setHeater(self, state=1):
         """Set the switch heater activation state
@@ -141,7 +146,7 @@ class ips120():
             raise AssertionError('argument must be integer')
         if state not in [0,1,2]:
             raise AssertionError('argument must be one of [0,1,2]')
-        self._visa_resource.write("$H{}".format(state))
+        self.write("$H{}".format(state))
 
         # TODO: add timer to account for time it takes for switch to activate
 
@@ -155,7 +160,7 @@ class ips120():
         if not abs(field) < MAX_FIELD:
             raise AssertionError('field must be less than {}'.format(MAX_FIELD))
 
-        self._visa_resource.write("$J{}".format(field))
+        self.write("$J{}".format(field))
 
     def setFieldSweepRate(self, rate):
         """Set the magnetic field sweep rate, in Tesla/min
@@ -163,7 +168,7 @@ class ips120():
         Args:
             rate(float): the magnetic field sweep rate, in Tesla/min
         """
-        self._visa_resource.write("$T{}".format(rate))
+        self.write("$T{}".format(rate))
 
     def setDisplay(self, display):
         """Set the display to show amps or tesla
@@ -178,7 +183,7 @@ class ips120():
                      'tesla':9
                     }
 
-        self._visa_resource.write("$M{}".format(mode_dict[display]))
+        self.write("$M{}".format(mode_dict[display]))
 
     def waitForField(self, timeout=600, error_margin=0.01):
         """Wait for the field to reach the set point

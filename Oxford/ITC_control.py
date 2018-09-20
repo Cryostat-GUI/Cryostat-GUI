@@ -1,7 +1,5 @@
 
-import sys
 import time
-
 
 # from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
@@ -11,14 +9,10 @@ from PyQt5.uic import loadUi
 from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
+from copy import deepcopy
+
 # from util import AbstractThread
 from util import AbstractLoopThread
-# from util import AbstractEventhandlingThread
-
-import ITCcontrol_ui 
-
-
-
 
 
 class ITC_Updater(AbstractLoopThread):
@@ -32,7 +26,7 @@ class ITC_Updater(AbstractLoopThread):
         There is a second method for all wrappers, which accepts
         the corresponding value, and stores it, so it can be sent upon acknowledgment 
 
-        The information from the device is collected in regular intervals (method "work"),
+        The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
         the keys of which are displayed in the "sensors" dict in this class. 
     """
@@ -56,11 +50,11 @@ class ITC_Updater(AbstractLoopThread):
             integral_action_time = 9,
             derivative_action_time = 10)
 
-    def __init__(self, InstrumentAdress):
-        super().__init__()
+    def __init__(self, InstrumentAddress='', **kwargs):
+        super().__init__(**kwargs)
 
         # here the class instance of the ITC should be handed
-        self.ITC = itc503(InstrumentAdress)
+        self.ITC = itc503(InstrumentAddress=InstrumentAddress)
 
         # TODO need initialisation for all the parameters!
 
@@ -83,8 +77,11 @@ class ITC_Updater(AbstractLoopThread):
 
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
+        
             self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection.
+            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
+            with any other PC, so errors which come back are "caught", or communication is set up 
+            in a way no errors occur)
 
         """
         try: 
@@ -94,9 +91,10 @@ class ITC_Updater(AbstractLoopThread):
             for key, idx_sensor in self.sensors.items():
                 data[key] = self.ITC.getValue(idx_sensor)
                 time.sleep(self.delay2)
-            self.sig_Infodata.emit(data)
+            self.sig_Infodata.emit(deepcopy(data))
             # time.sleep(self.delay1)
-
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
@@ -311,13 +309,19 @@ class ITC_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot(int)
+    def gettoset_Control(self, value):
+        """class method to receive and store the value to set the Control status
+            later on, when the command to enforce the value is sent
+        """
+        self.control_state = value
+
     @pyqtSlot(float)
     def gettoset_Temperature(self, value):
         """class method to receive and store the value to set the temperature
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
-        # print('got it')
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):
@@ -375,4 +379,5 @@ class ITC_Updater(AbstractLoopThread):
     #         later on, when the command to enforce the value is sent
     #     """
     #     self.set_auto_manual = value
+
 
