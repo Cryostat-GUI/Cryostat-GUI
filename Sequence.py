@@ -14,9 +14,10 @@ from util import AbstractEventhandlingThread
 
 class Sequence_Thread(AbstractEventhandlingThread):
 	"""docstring for Sequence_Thread"""
-	def __init__(self):
+	def __init__(self, sequence):
 		super(Sequence_Thread, self).__init__()
 		self.__isRunning = True
+		self.sequence = sequence
 
 	def running(self):
 		pass

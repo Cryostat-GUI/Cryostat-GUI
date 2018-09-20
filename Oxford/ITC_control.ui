@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
-    <height>357</height>
+    <width>476</width>
+    <height>302</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,16 +19,8 @@
   <property name="windowTitle">
    <string>ITC Control</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>20</y>
-      <width>511</width>
-      <height>311</height>
-     </rect>
-    </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>8</number>
@@ -43,10 +35,30 @@
          <property name="spacing">
           <number>6</number>
          </property>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Gas Output</string>
+           </property>
+          </widget>
+         </item>
          <item row="6" column="0">
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>Integration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinsetProportionalID"/>
+         </item>
+         <item row="7" column="1">
+          <widget class="QSpinBox" name="spinsetPIDerivative"/>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Derivative</string>
            </property>
           </widget>
          </item>
@@ -62,16 +74,6 @@
             <string>Set Temp</string>
            </property>
           </widget>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Derivative</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="spinsetProportionalID"/>
          </item>
          <item row="2" column="1">
           <widget class="QComboBox" name="combosetHeatersens">
@@ -92,11 +94,22 @@
            </item>
           </widget>
          </item>
-         <item row="7" column="1">
-          <widget class="QSpinBox" name="spinsetPIDerivative"/>
-         </item>
          <item row="6" column="1">
           <widget class="QSpinBox" name="spinsetPIntegrationD"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Heater Output</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Heater Sensor</string>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1">
           <widget class="QComboBox" name="combosetAutocontrol">
@@ -122,24 +135,13 @@
            </item>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Heater Output</string>
-           </property>
-          </widget>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetHeaterPercent"/>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_6">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>Heater Sensor</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Proportional</string>
+            <string>Autocontrol</string>
            </property>
           </widget>
          </item>
@@ -173,20 +175,10 @@
            </item>
           </layout>
          </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="spinsetHeaterPercent"/>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_7">
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Autocontrol</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>Gas Output</string>
+            <string>Proportional</string>
            </property>
           </widget>
          </item>
@@ -323,8 +315,8 @@
       </layout>
      </item>
     </layout>
-   </widget>
-  </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

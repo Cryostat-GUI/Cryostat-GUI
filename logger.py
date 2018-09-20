@@ -8,8 +8,9 @@ import sys
 import datetime
 import pickle
 import os
+from copy import deepcopy
 
-from util import AbstractEventhandlingThread
+from util import AbstractLoopThread
 from util import Window_ui
 
 
@@ -32,8 +33,8 @@ class Logger_configuration(Window_ui):
         integral_action_time = False,
         derivative_action_time = False)
 
-    def __init__(self, **kwargs):
-        super(Logger_configuration, self).__init__(**kwargs)
+    def __init__(self, parent=None, **kwargs):
+        super(Logger_configuration, self).__init__(ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
 
@@ -58,7 +59,7 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
         
 
-        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(self.conf))
+        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
         self.buttonBox_finish.rejected.connect(self.close)
 
@@ -71,6 +72,7 @@ class Logger_configuration(Window_ui):
 
 
     def setValue(self, instrument, value, bools):
+        """set a bool value according to the instrument and specific"""
         self.conf[instrument][value] = bools
 
     def initialise_dicts(self):
@@ -100,7 +102,7 @@ class Logger_configuration(Window_ui):
 
 
 
-class main_Logger(AbstractEventhandlingThread):
+class main_Logger(AbstractLoopThread):
 
     """This is a worker thread
     """
@@ -124,21 +126,21 @@ class main_Logger(AbstractEventhandlingThread):
 
 
     def running(self):
-        try:
-            # Do things
-            print('logging running')
-            if self.configuration_done: 
-                self.sig_log.emit()
-                if not self.conf_done_layer2: 
-                    self.sig_configuring.emit(False)
-                    self.conf_done_layer2 = True
-                print('emitted signal')
+        # try:
+        # Do things
+        print('logging running')
+        if self.configuration_done: 
+            self.sig_log.emit()
+            if not self.conf_done_layer2: 
+                self.sig_configuring.emit(False)
+                self.conf_done_layer2 = True
+            print('emitted signal')
 
 
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])            
-        finally:
-            QTimer.singleShot(self.interval*1e3, self.running)
+        # except AssertionError as assertion:
+        #     self.sig_assertion.emit(assertion.args[0])            
+        # finally:
+        #     QTimer.singleShot(self.interval*1e3, self.running)
 
     def update_conf(self, conf):
         """

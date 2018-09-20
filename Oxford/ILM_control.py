@@ -8,6 +8,7 @@ from PyQt5.uic import loadUi
 from .Drivers.ilm200 import ilm211
 from pyvisa.errors import VisaIOError
 
+from copy import deepcopy
 # from util import AbstractThread
 from util import AbstractLoopThread
 
@@ -72,7 +73,7 @@ class ILM_Updater(AbstractLoopThread):
             #                     status_channel_1=status[2],
             #                     status_channel_2=status[3],
             #                     status_channel_3=status[4]))
-            self.sig_Infodata.emit(data)
+            self.sig_Infodata.emit(deepcopy(data))
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

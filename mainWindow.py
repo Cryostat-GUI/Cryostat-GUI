@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QTimer
 from PyQt5.uic import loadUi
 
 import sys
@@ -51,12 +52,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_ITC = False
         self.logging_running_logger = False
 
+        QTimer.singleShot(0, self.initialize_all_windows)
+
+
+    def initialize_all_windows(self):
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_Log_conf()
-
-
-
+        
 
 
     def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
@@ -206,7 +209,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     def initialize_window_Log_conf(self):
         """initialize Logging configuration window"""
-        self.Log_conf_window = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
+        self.Log_conf_window = Logger_configuration()
         self.Log_conf_window.sig_closing.connect(lambda: self.action_Logging_configuration.setChecked(False))
         self.Log_conf_window.sig_send_conf.connect(lambda conf: self.sig_logging_newconf.emit(conf))
 
@@ -295,7 +298,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    a = time.time()
     form = mainWindow()
     form.show()
+    print(time.time()-a)
     sys.exit(app.exec_())
 

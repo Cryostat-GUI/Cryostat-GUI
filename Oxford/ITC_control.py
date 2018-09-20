@@ -9,6 +9,8 @@ from PyQt5.uic import loadUi
 from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
+from copy import deepcopy
+
 # from util import AbstractThread
 from util import AbstractLoopThread
 
@@ -89,7 +91,7 @@ class ITC_Updater(AbstractLoopThread):
             for key, idx_sensor in self.sensors.items():
                 data[key] = self.ITC.getValue(idx_sensor)
                 time.sleep(self.delay2)
-            self.sig_Infodata.emit(data)
+            self.sig_Infodata.emit(deepcopy(data))
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])

@@ -20,6 +20,7 @@ Classes:
 
 
 
+
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
@@ -114,7 +115,7 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file=None, **kwargs):
+    def __init__(self, ui_file=None, parent=None,**kwargs):
         super().__init__(**kwargs)
         loadUi(ui_file, self)
 
@@ -122,3 +123,16 @@ class Window_ui(QtWidgets.QWidget):
         # do stuff
         self.sig_closing.emit()
         event.accept() # let the window close
+
+
+
+class sequence_listwidget(QtWidgets.QListWidget):
+    """docstring for Sequence_ListWidget"""
+    sig_dropped = pyqtSignal()
+    def __init__(self, **kwargs):
+        super(Sequence_ListWidget, self).__init__(**kwargs)
+
+    def dropEvent(self, event):
+        self.sig_dropped.emit(event)
+        event.accept()
+        
