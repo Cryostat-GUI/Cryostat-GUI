@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1051</width>
-    <height>824</height>
+    <height>905</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>0</y>
-      <width>811</width>
-      <height>591</height>
+      <y>10</y>
+      <width>961</width>
+      <height>721</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -35,11 +35,6 @@
      </property>
      <property name="accessibleName">
       <string>Data</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="ITC_window">
-     <property name="windowTitle">
-      <string>Subwindow</string>
      </property>
     </widget>
    </widget>
@@ -73,8 +68,10 @@
      <addaction name="action_show_Data"/>
      <addaction name="separator"/>
      <addaction name="action_show_ITC"/>
+     <addaction name="action_show_ILM"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
+    <addaction name="action_Logging_configuration"/>
    </widget>
    <widget class="QMenu" name="menuSystems_Online">
     <property name="title">
@@ -273,7 +270,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QProgressBar" name="MainDock_P_HeLevel">
+           <widget class="QProgressBar" name="MainDock_HeLevel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -301,7 +298,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QProgressBar" name="MainDock_P_N2Level">
+           <widget class="QProgressBar" name="MainDock_N2Level">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -508,6 +505,22 @@
     <string>Logging</string>
    </property>
   </action>
+  <action name="action_Logging_configuration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logging configuration</string>
+   </property>
+  </action>
+  <action name="action_show_ILM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>ILM 211</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -523,7 +536,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>691</y>
+     <y>884</y>
     </hint>
    </hints>
   </connection>
