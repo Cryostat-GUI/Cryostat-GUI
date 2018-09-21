@@ -63,8 +63,10 @@ class Sequence_builder(Window_ui):
 
         # self.listSequence.sig_dropped.connect(lambda value: self.dropreact(value))
         self.data = []
+        self.sequence_file = sequence_file
 
         QTimer.singleShot(0, self.initialize_all_windows)
+        QTimer.singleShot(0, lambda: self.initialize_sequence(self.sequence_file))
 
         self.model = SequenceListModel()
         self.listSequence.setModel(self.model)
@@ -73,7 +75,10 @@ class Sequence_builder(Window_ui):
         self.pushSaving.clicked.connect(lambda: self.model.pass_data)
         self.model.sig_send.connect(lambda value: self.printing(value))
         # self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.listSequence.repaint())
-        
+        self.show()
+
+
+    def initialize_sequence(self, sequence_file):
         if sequence_file: 
             def construct_pattern(expressions):
                 pat = ''
@@ -86,8 +91,9 @@ class Sequence_builder(Window_ui):
 
             sequence = self.read_sequence(sequence_file)       
             for command in sequence: 
-                print(command)
+                # print(command)
                 self.model.addItem(command)
+
 
     def addItem_toSequence(self, text):
         if text.text(0) == 'Wait': 
@@ -205,8 +211,8 @@ class Sequence_builder(Window_ui):
 
 
             commands.append(dic)
-        for x in commands: 
-            print(x)
+        # for x in commands: 
+        #     print(x)
         return commands
 
 
