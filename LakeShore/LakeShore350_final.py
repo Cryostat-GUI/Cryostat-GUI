@@ -1,9 +1,7 @@
 # coding=utf-8
 # Commands for dealing with the LakeShore 350
 
-import time, socket, threading, visa
-import os, string
-import numpy as np
+import threading, visa
 
 #from console_out import *
 
@@ -21,7 +19,7 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
-class lakeshore350:
+class lakeshore350(object):
     def __init__(self, address):
 
 
@@ -278,7 +276,7 @@ class lakeshore350:
         elif check_state == 1:
             self.go('ALARM ' + '{0:1},{1:1d},{2:4.2f},{3:4.2f},{4:4.2f},{5:1d},{6:1d},{7:1d}'.format(input_value, check_state, set_high, set_low, deadband, latch_enable, audible, visible))
 
-     def InputAlarmParameterQuery(self, input_value):
+    def InputAlarmParameterQuery(self, input_value):
         """Refer to input_valueAlarmParameterCommand for description.
         
         :param input_value: Specifies which input_value to read: A - D (D1 - D5 for 3062 option).
