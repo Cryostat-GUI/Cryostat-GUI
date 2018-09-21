@@ -21,7 +21,7 @@
       <file leaf-file-name="LakeShore350.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
+            <state relative-caret-position="240">
               <caret line="22" column="30" lean-forward="false" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
               <folding>
                 <element signature="e#47#83#0" expanded="true" />
@@ -33,8 +33,8 @@
       <file leaf-file-name="LakeShore350_final.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350_final.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="654">
-              <caret line="1554" column="12" lean-forward="true" selection-start-line="1554" selection-start-column="12" selection-end-line="1554" selection-end-column="12" />
+            <state relative-caret-position="2141">
+              <caret line="1643" column="24" lean-forward="false" selection-start-line="1643" selection-start-column="24" selection-end-line="1643" selection-end-column="24" />
               <folding>
                 <element signature="e#62#98#0" expanded="true" />
                 <element signature="e#913#992#0" expanded="false" />
@@ -46,8 +46,8 @@
       <file leaf-file-name="itc503.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Oxford/Drivers/itc503.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-583">
-              <caret line="51" column="0" lean-forward="true" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+            <state relative-caret-position="735">
+              <caret line="51" column="0" lean-forward="false" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
               <folding>
                 <element signature="e#742#756#0" expanded="true" />
               </folding>
@@ -98,12 +98,22 @@
       <find>: int</find>
       <find>#</find>
       <find>&quot;)</find>
+      <find>input</find>
+      <find>input_value_alarm</find>
+      <find>input_value</find>
+      <find>def input_value</find>
+      <find>kelvin</find>
+      <find>input_value parameter</find>
+      <find>##</find>
     </findStrings>
     <replaceStrings>
       <replace>: int</replace>
       <replace>: float</replace>
       <replace>parameter</replace>
       <replace>.&quot;)</replace>
+      <replace>input_alarm</replace>
+      <replace>def Input</replace>
+      <replace>Input_Value Parameter</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -374,20 +384,20 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
+    <frame x="0" y="0" width="1680" height="1050" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3360825" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24948454" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -723,7 +733,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
+        <state relative-caret-position="240">
           <caret line="22" column="30" lean-forward="false" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
           <folding>
             <element signature="e#47#83#0" expanded="true" />
@@ -733,8 +743,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Oxford/Drivers/itc503.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-583">
-          <caret line="51" column="0" lean-forward="true" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+        <state relative-caret-position="735">
+          <caret line="51" column="0" lean-forward="false" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
           <folding>
             <element signature="e#742#756#0" expanded="true" />
           </folding>
@@ -751,8 +761,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350_final.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="654">
-          <caret line="1554" column="12" lean-forward="true" selection-start-line="1554" selection-start-column="12" selection-end-line="1554" selection-end-column="12" />
+        <state relative-caret-position="2141">
+          <caret line="1643" column="24" lean-forward="false" selection-start-line="1643" selection-start-column="24" selection-end-line="1643" selection-end-column="24" />
           <folding>
             <element signature="e#62#98#0" expanded="true" />
             <element signature="e#913#992#0" expanded="false" />
