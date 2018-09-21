@@ -16,6 +16,10 @@ import re
 
 from util import Window_ui
 
+
+from qlistmodel import SequenceListModel
+from qlistmodel import ScanListModel
+
 dropstring = re.compile(r'([a-zA-Z0-9])')
 
 
@@ -39,9 +43,9 @@ class Window_waiting(QtWidgets.QDialog):
 
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
-        if not self.conf['Temp'] and not self.conf['Field']: 
-            self.reject()
-            return
+        # if not self.conf['Temp'] and not self.conf['Field']: 
+        #     self.reject()
+        #     return
         self.sig_accept.emit(deepcopy(self.conf))
         self.accept()
 
@@ -53,8 +57,96 @@ class Window_waiting(QtWidgets.QDialog):
     #     self.sig_accept.emit(self.conf)
 
 
+class Window_Tscan(QtWidgets.QDialog):
+    """docstring for Window_Tscan"""
 
-from qlistmodel import SequenceListModel
+    sig_accept = pyqtSignal(dict)
+    sig_reject = pyqtSignal()
+
+    def __init__(self, ui_file='.\\configurations\\sequence_scan_temperature.ui', **kwargs):
+        super(Window_Tscan, self).__init__(**kwargs)
+        loadUi(ui_file, self)
+
+        QTimer.singleShot(0, self.initialisations)
+
+    def initialisations(self):
+        
+        self.conf = dict(typ='scan_T')
+        self.__scanconf = dict(
+                                start = 0,
+                                end = 0,
+                                Nsteps = None, 
+                                SizeSteps = None)
+        self.putin_start = False
+        self.putin_end = False
+        self.putin_N = False
+        self.putin_Size = False
+        self.model = ScanListModel(0, 0, 0, 0)
+        self.listTemperatures.setModel(self.model)
+
+        self.buttonOK.clicked.connect(self.acc)
+        self.buttonCANCEL.clicked.connect(self.close)
+
+        self.spinSetTstart.valueChanged.connect(self.setTstart)
+        self.spinSetTstart.editingFinished.connect(lambda: self.update_list(None, None))
+
+        self.spinSetTend.valueChanged.connect(self.setTend)
+        self.spinSetTend.editingFinished.connect(lambda: self.update_list(None, None))
+
+        self.spinSetNsteps.valueChanged.connect(self.setN)
+        self.spinSetNsteps.editingFinished.connect(lambda: self.update_list(0, None))
+        self.model.sig_Nsteps.connect(lambda value: self.lcdNsteps.display(value))
+
+        self.spinSetSizeSteps.valueChanged.connect(self.setSizeSteps)
+        self.spinSetSizeSteps.editingFinished.connect(lambda: self.update_list(None, 0))
+        self.model.sig_stepsize.connect(lambda value: self.lcdStepsize.display(value))
+
+    def update_list(self, Nsteps, SizeSteps):
+        if not (self.putin_start and self.putin_end): 
+            return
+        # if not (self.putin_Size or self.putin_N): 
+        #     return
+        if Nsteps:
+            # self.__scanconf['Nsteps'] = Nsteps
+            self.__scanconf['SizeSteps'] = None
+
+        if SizeSteps: 
+            self.__scanconf['Nsteps'] = None
+            # self.__scanconf['SizeSteps'] = None            
+        self.model = ScanListModel(**self.__scanconf)
+        self.listTemperatures.setModel(self.model)
+        self.listTemperatures.repaint()
+        
+    def setTstart(self, Tstart):
+        self.__scanconf['start'] = Tstart
+        self.putin_start = True
+        self.conf.update(self.__scanconf)
+
+    def setTend(self, Tend):
+        self.__scanconf['end'] = Tend
+        self.putin_end = True
+        self.conf.update(self.__scanconf)
+
+    def setN(self, N):
+        self.__scanconf['Nsteps'] = N
+        self.putin_N = True 
+        self.conf.update(self.__scanconf)
+
+    def setSizeSteps(self, stepsize):
+        self.__scanconf['SizeSteps'] = stepsize
+        self.putin_Size = True 
+        self.conf.update(self.__scanconf)
+
+
+    def acc(self):
+        """if not rejected, emit signal with configuration and accept"""
+
+        self.conf['sequence'] = self.model.pass_data()
+
+        self.sig_accept.emit(deepcopy(self.conf))
+        self.accept()
+
+
 
 class Sequence_builder(Window_ui):
     """docstring for sequence_builder"""
@@ -94,7 +186,6 @@ class Sequence_builder(Window_ui):
                 # print(command)
                 self.model.addItem(command)
 
-
     def addItem_toSequence(self, text):
         if text.text(0) == 'Wait': 
             # self.window_waiting.show()
@@ -108,11 +199,10 @@ class Sequence_builder(Window_ui):
             raise NotImplementedError
 
         if text.text(0) == 'Resistivity vs Temperature': 
-            raise NotImplementedError
+            self.window_Tscan.exec_()
 
         if text.text(0) == 'Resistivity vs Field': 
             raise NotImplementedError
-
 
     def parse_waiting(self, data):
         string = 'Wait for '
@@ -128,6 +218,8 @@ class Sequence_builder(Window_ui):
         string += ' & {} seconds more'.format(data['Delay'])
         return string
 
+    def parse_Tscan(self, data):
+        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SizeSteps}K/step'.format(**data)
 
     def parse_set_temp(self, data):
         return 'Set Temperature to {Temp} at {rate}K/min (rate is only a wish...)'.format(**data)
@@ -141,19 +233,29 @@ class Sequence_builder(Window_ui):
         # self.listSequence.addItem(string)
         self.model.addItem(data)
         QTimer.singleShot(1, lambda: self.listSequence.repaint())
-
-
-
         # QTimer.singleShot(10, self.model.)
+
+    def addTscan(self, data):
+        string = self.parse_Tscan(data)
+        data.update(dict(DisplayText=string))
+        self.model.addItem(data)
+        QTimer.singleShot(1, lambda: self.listSequence.repaint())
+
+
     def printing(self, data):
         print(data)
 
     def initialize_all_windows(self):
         self.initialise_window_waiting()
+        self.initialise_window_Tscan()
 
     def initialise_window_waiting(self):
         self.window_waiting = Window_waiting()
         self.window_waiting.sig_accept.connect(lambda value: self.addWaiting(value))
+
+    def initialise_window_Tscan(self):
+        self.window_Tscan = Window_Tscan()
+        self.window_Tscan.sig_accept.connect(lambda value: self.addTscan(value))
         # self.window_waiting.sig_accept.connect(lambda value: self.addWaiting(value))
 
 
@@ -237,6 +339,7 @@ if __name__ == '__main__':
 
     file = 'Hg1201_UD88_17Aug2018_dn.seq'
     file = 'SEQ_20180914_Tscans.seq'
+    file = None
 
     app = QtWidgets.QApplication(sys.argv)
     form = Sequence_builder(file)

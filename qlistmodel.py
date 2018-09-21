@@ -3,6 +3,7 @@ import sys
 from copy import deepcopy
 from pickle import dumps, load, loads
 from PyQt5.QtCore import QTimer
+import math
 
 class PyMimeData(QtCore.QMimeData):
     """ The PyMimeData wraps a Python instance as MIME data.
@@ -93,7 +94,7 @@ class PyMimeData(QtCore.QMimeData):
 
 class SequenceListModel(QtCore.QAbstractListModel):
 
-    sig_send = QtCore.pyqtSignal()
+    sig_send = QtCore.pyqtSignal(list)
     
     def __init__(self, sequence = [], parent = None):
         QtCore.QAbstractListModel.__init__(self, parent)
@@ -166,7 +167,8 @@ class SequenceListModel(QtCore.QAbstractListModel):
 
     def pass_data(self):
         print(self.__sequence)
-        self.sig_send.emit(self.__sequence)
+        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
+        return deepcopy(self.__sequence)
 
 
 
@@ -242,6 +244,100 @@ class SequenceListModel(QtCore.QAbstractListModel):
     # def nodeFromIndex(self, index):
     #     return index.internalPointer() if index.isValid() else self.root
 
+
+
+
+class ScanListModel(QtCore.QAbstractListModel):
+
+    sig_send = QtCore.pyqtSignal(list)
+    sig_stepsize = QtCore.pyqtSignal(float)
+    sig_Nsteps = QtCore.pyqtSignal(int)
+    
+    def __init__(self, start=None, end=None, Nsteps=None, SizeSteps=None, **kwargs):
+        super(ScanListModel, self).__init__(**kwargs)
+
+        self.__sequence = []
+        if Nsteps: 
+            self.__sequence = self.Build_Scan_N(start, end, Nsteps)
+        elif SizeSteps: 
+            self.__sequence = self.Build_Scan_Size(start, end, SizeSteps)
+
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.countinserted = 0
+        # self.root = Node(dict(DisplayText='specialnode', arbdata='weha'))
+        self.debug_running()
+
+    def debug_running(self):
+        try: 
+            print(self.__sequence)
+        finally: 
+            QTimer.singleShot(2*1e3,self.debug_running)
+
+
+
+    def data(self, index, role):
+        row = index.row()
+        if role == QtCore.Qt.EditRole:
+            return self.__sequence[row]
+        if role == QtCore.Qt.ToolTipRole:
+            return row
+        if role == QtCore.Qt.DisplayRole:
+            value = self.__sequence[row]
+            return value
+        
+    def setData(self, index, value, role = QtCore.Qt.EditRole):
+        if role == QtCore.Qt.EditRole:
+            row = index.row()
+            self.__sequence[row] = value
+            self.dataChanged.emit(index, index)
+            return True
+        return False
+
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.__sequence)
+
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | \
+                QtCore.Qt.ItemIsEditable
+               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
+
+    def Build_Scan_N(self, start, end, N):
+        stepsize = abs(end-start)/(N-1)
+        stepsize = abs(stepsize) if start < end else -abs(stepsize)
+        seq = []
+        for __ in range(int(N)): 
+            seq.append(start)
+            start += stepsize
+        self.sig_Nsteps.emit(N)
+        self.sig_stepsize.emit(stepsize)
+        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return seq
+
+    def Build_Scan_Size(self, start, end, parameter):
+        stepsize = abs(parameter) if start < end else -abs(parameter)
+        seq = []
+        if start < end: 
+            while start < end: 
+                seq.append(start)
+                start += stepsize
+        else: 
+           while start > end: 
+                seq.append(start)
+                start += stepsize 
+        N = len(seq)
+        self.sig_Nsteps.emit(N)
+        self.sig_stepsize.emit(stepsize)
+        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return seq
+
+    def pass_data(self):
+        print(self.__sequence)
+        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
+        return deepcopy(self.__sequence)
 
 
 
