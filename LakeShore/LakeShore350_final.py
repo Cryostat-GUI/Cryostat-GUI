@@ -14,13 +14,12 @@ logger.addHandler(logging.StreamHandler())
 
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager()
+    resource_manager = visa.ResourceManager('C:\\Windows\\System32\\agvisa32.dll')
 except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
-
 class lakeshore350(object):
-    def __init__(self, address):
+    def __init__(self, address = 'GPIB0::12::INSTR'):
 
 
 
@@ -307,7 +306,7 @@ class lakeshore350(object):
         """
         self.go('ALMRST')
 
-    def MonitorOutParameterCommand(self, output, input_value, units = 1, high_value, low_value, polarity):
+    def MonitorOutParameterCommand(self, output, input_value, high_value, low_value, polarity, units = 1):
         """Use the OUTMODE command to set the output mode to Monitor Out. The <input_value> parameter in the ANALOG
         command is the same as the <input_value> parameter in the OUTMODE command. It is included in the ANALOG command
         for backward compatibility with previous Lake Shore temperature monitors and controllers. The ANALOG com-
@@ -451,7 +450,7 @@ class lakeshore350(object):
         if input_value in ['A','B','C','D']:
             return self.go('CRDG? ' + '{0:1}'.format(input_value))
 
-        elif: input_value == 0:
+        elif input_value == 0:
             return self.go('CRDG? ' + '{0:1d}'.format(input_value)).split(',')
 
 
@@ -469,7 +468,7 @@ class lakeshore350(object):
 
         self.go('CRVDEL ' + '{0:2d}'.format(curve))
 
-    def CurveHeaderCommand(self, curve, name, sn, format, limit_value = 375, coefficient):
+    def CurveHeaderCommand(self, curve, name, sn, format, coefficient, limit_value = 375):
         """Configures the user curve header. The coefficient parameter will be calculated auto-
         matically based on the first 2 curve datapoints. It is included as a parameter for com-
         patability with the CRVHDR? query.
@@ -1165,7 +1164,7 @@ class lakeshore350(object):
             raise AssertionError("DHCP parameter must be an integer in [0,1].")
 
         if not isinstance(auto_ip, int) or auto_ip not in [0,1]:
-            raise AssertionError("Auto_IP parameter must be an integer in [0,1]".)
+            raise AssertionError("Auto_IP parameter must be an integer in [0,1].")
 
         ### ADD assertion errors for ip variables
 
