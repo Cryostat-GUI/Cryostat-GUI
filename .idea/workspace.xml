@@ -32,11 +32,11 @@
       <file leaf-file-name="LakeShore350_final.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350_final.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-62">
-              <caret line="470" column="88" lean-forward="false" selection-start-line="470" selection-start-column="88" selection-end-line="470" selection-end-column="88" />
+            <state relative-caret-position="516">
+              <caret line="95" column="81" lean-forward="false" selection-start-line="95" selection-start-column="81" selection-end-line="95" selection-end-column="81" />
               <folding>
                 <element signature="e#62#84#0" expanded="true" />
-                <element signature="e#927#1006#0" expanded="false" />
+                <element signature="e#928#1007#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -126,6 +126,8 @@
       <replace>def Input</replace>
       <replace>Input_Value Parameter</replace>
       <replace />
+      <replace>)</replace>
+      <replace>)</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -834,11 +836,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LakeShore/LakeShore350_final.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-62">
-          <caret line="470" column="88" lean-forward="false" selection-start-line="470" selection-start-column="88" selection-end-line="470" selection-end-column="88" />
+        <state relative-caret-position="516">
+          <caret line="95" column="81" lean-forward="false" selection-start-line="95" selection-start-column="81" selection-end-line="95" selection-end-column="81" />
           <folding>
             <element signature="e#62#84#0" expanded="true" />
-            <element signature="e#927#1006#0" expanded="false" />
+            <element signature="e#928#1007#0" expanded="false" />
           </folding>
         </state>
       </provider>

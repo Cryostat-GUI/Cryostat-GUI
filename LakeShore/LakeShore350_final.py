@@ -26,7 +26,7 @@ class lakeshore350(object):
         self._visa_resource = resource_manager.open_resource(address)
         self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
-        self.text = Text()
+#        self.text = Text()
         self.device = self._visa_resource
 
 
@@ -89,11 +89,12 @@ class lakeshore350(object):
         :return: answer from the device
         """
         self.CommunicationLock.acquire()
-        self.device.write(command)
-        received = self.device.read(100).split('\r\n')[0]
+#        self.device.write(command)
+        received = self.device.query(command)
+#        received = self.device.read(100).split('\r\n')[0]
         self.CommunicationLock.release()
-        self.text.show(command + '    ' + received[:10].strip() + '...', 'blue')
-        return received.strip()
+#        self.text.show(command + '    ' + received[:10].strip() + '...', 'blue')
+        return received.strip().split(',')
 
 
     def ClearInterfaceCommand(self):
@@ -147,7 +148,7 @@ class lakeshore350(object):
             <option card serial>    str[7]  Option card serial number
             <firmware version>      n.n     Instrument firmware version
         """
-        return self.go('*IDN?').split(',')
+        return self.go('*IDN?')
 
     def OperationCompleteCommand(self):
         """Generates an Operation Complete event in the Event Status Register upon
@@ -286,7 +287,7 @@ class lakeshore350(object):
         if input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('ALARM? ' + '{0:1}'.format(input_value)).split(',')
+        return self.go('ALARM? ' + '{0:1}'.format(input_value))
 
     def InputAlarmStatusQuery(self, input_value):
         """Returns alarm status whereas 0 = Off and 1 = On.
@@ -299,7 +300,7 @@ class lakeshore350(object):
         if input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('ALARMST? ' + '{0:1}'.format(input_value)).split(',')
+        return self.go('ALARMST? ' + '{0:1}'.format(input_value))
 
     def ResetAlarmStatusCommand(self):
         """RClears both the high and low status of all alarms, including latching items.
@@ -381,7 +382,7 @@ class lakeshore350(object):
         if output not in [3,4]:
             raise AssertionError("Output parameter must be an integer in [3,4].")
 
-        return self.go('ANALOG? ' + '{0:1d}'.format(output)).split(',')
+        return self.go('ANALOG? ' + '{0:1d}'.format(output))
 
     def AnalogOutputDataQuery(self, output):
         """Returns the output percentage of the unpowered analog output.
@@ -451,7 +452,7 @@ class lakeshore350(object):
             return self.go('CRDG? ' + '{0:1}'.format(input_value))
 
         elif input_value == 0:
-            return self.go('CRDG? ' + '{0:1d}'.format(input_value)).split(',')
+            return self.go('CRDG? ' + '{0:1d}'.format(input_value))
 
 
 
@@ -522,7 +523,7 @@ class lakeshore350(object):
         if not isinstance(curve, int) or 1 > curve > 59:
             raise AssertionError("Curve parameter must be an integer in between 1 - 59.")
 
-        return self.go('CRVHDR?' + '{0:2d}'.format(curve)).split(',')
+        return self.go('CRVHDR?' + '{0:2d}'.format(curve))
 
     def CurveDataPointCommand(self, curve, index, units_value, temp_value):
         """Configures a user curve data point.
@@ -575,7 +576,7 @@ class lakeshore350(object):
         if not isinstance(index, int) or 1 > index > 200:
             raise AssertionError("Curve parameter must be an integer in between 1 - 200.")
 
-        return self.go('CRVPT? ' + '{0:2d},{1:3d}'.format(curve, index)).split(',')
+        return self.go('CRVPT? ' + '{0:2d},{1:3d}'.format(curve, index))
 
     def FactoryDefaultsCommand(self):
         """Sets all configuration values to factory defaults and resets the instrument.
@@ -643,7 +644,7 @@ class lakeshore350(object):
         if not isinstance(field, int) or 1 <= field < 9:
             raise AssertionError("Field parameter must be an integer in between 1 - 9.")
 
-        self.go('DISPFLD? ' + '{0:1d}'.format(field)).split(',')
+        self.go('DISPFLD? ' + '{0:1d}'.format(field))
 
     def DisplaySetupCommand(self, mode, num_fields, output_source):
         """The <num fields> and <displayed output> commands are ignored in all display modes except for Custom.
@@ -678,7 +679,7 @@ class lakeshore350(object):
         
         :return: ['<mode>','<num fields>','<output source>']
         """
-        return self.go('DISPLAY?').split(',')
+        return self.go('DISPLAY?')
 
     def InputFilterParameterCommand(self, input_value, check_state, points, window):
         """
@@ -719,7 +720,7 @@ class lakeshore350(object):
         if not isinstance(input_value, str) or input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('FILTER?' + '{0:1}'.format(input_value)).split(',')
+        return self.go('FILTER?' + '{0:1}'.format(input_value))
 
     def HeaterOutputQuery(self, output):
         """HTR? is for the Heater Outputs, 1 and 2, only. Use AOUT? for Outputs 3 and 4.
@@ -987,7 +988,7 @@ class lakeshore350(object):
         if not isinstance(input_value, str) or input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('INTYPE? ' + '{0:1}'.format(input_value)).split(',')
+        return self.go('INTYPE? ' + '{0:1}'.format(input_value))
 
     def KelvinReadingQuery(self, input_value):
         """Returns the Kelvin reading for a single input_value or all input_values. <input_value> specifies which input_value(s) to query. 0 = all input_values.
@@ -1003,7 +1004,7 @@ class lakeshore350(object):
         if not isinstance(input_value, str) or input_value not in [0, 'A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        self.go('KRDG? ' + '{0:1}'.format(input_value)).split(',') ## implement if-else for A,B,C,D or 0
+        self.go('KRDG? ' + '{0:1}'.format(input_value)) ## implement if-else for A,B,C,D or 0
 
     def FrontPanelLEDSCommand(self, check_state):
         """If set to 0, front panel LEDs will not be functional. Function can be used when display brightness is a problem.
@@ -1050,7 +1051,7 @@ class lakeshore350(object):
         
         :return: ['<state>','<code>']
         """
-        return self.go('LOCK?').split(',')
+        return self.go('LOCK?')
 
     def MinimumMaximumDataQuery(self, input_value):
         """Returns the minimum and maximum input_value data. Also see the RDGST? command.
@@ -1063,7 +1064,7 @@ class lakeshore350(object):
         if not isinstance(input_value, str) or input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('MDAT? ' + '{0:1}'.format(input_value)).split(',')
+        return self.go('MDAT? ' + '{0:1}'.format(input_value))
 
     def MinimumandMaximumFunctionResetCommand(self):
         """Resets the minimum and maximum data for all input_values.
@@ -1185,7 +1186,7 @@ class lakeshore350(object):
         :return: ['<DHCP>','<AUTO IP>','<IP>','<Sub Mask>','<Gateway>','<Pri DNS>','<Sec DNS>','<Pref Host>','<Pref Domain>','<Description>']
 
         """
-        return self.go('NET?').split(',')
+        return self.go('NET?')
 
     def NetworkConfigurationQuery(self):
         """This query returns the configured Ethernet parameters. If the Ethernet interface is not configured then IP,
@@ -1212,7 +1213,7 @@ class lakeshore350(object):
             <actual domain>         Assigned domain
             <mac addr>              Module MAC address.            
         """
-        return self.go('NETID?').split(',')
+        return self.go('NETID?')
 
     def OperationalStatusQuery(self):
         """The integer returned represents the sum of the bit weighting of the operational status bits.
@@ -1308,7 +1309,7 @@ class lakeshore350(object):
         if 1 > output > 4: ## is this faster than not in?
             raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
 
-        return self.go('OUTMODE? ' + '{0:1}'.format(output)).split(',')
+        return self.go('OUTMODE? ' + '{0:1}'.format(output))
 
     def ControlLoopPIDValuesCommand(self, output, p_value, i_value, d_value):
         """Control settings, (P, I, D, and Setpoint) are assigned to outputs, which results in the settings being
@@ -1351,7 +1352,7 @@ class lakeshore350(object):
         if 1 > output > 4: ## is this faster than not in?
             raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
 
-        return self.go('PID? ' + '{0:1}'.format(output)).split(',')
+        return self.go('PID? ' + '{0:1}'.format(output))
 
     def ControlSetpointRampParameterCommand(self, output, check_state, rate_value):
         """Control loop settings are assigned to outputs, which results in the settings being applied to
@@ -1402,7 +1403,7 @@ class lakeshore350(object):
         if 1 > output > 4: ## is this faster than not in?
             raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
 
-        return self.go('RAMP? ' + '{0:1}'.format(output)).split(',')
+        return self.go('RAMP? ' + '{0:1}'.format(output))
 
     def ControlSetpointRampStatusQuery(self, output):
         """
@@ -1526,7 +1527,7 @@ class lakeshore350(object):
         if not isinstance(relay_number, int) or 1 > relay_number > 2:
             raise AssertionError("Relay_Number parameter must be an integer in [1,2].")
 
-        return self.go('RELAY? ' + '{0:1}'.format(relay_number)).split(',')
+        return self.go('RELAY? ' + '{0:1}'.format(relay_number))
 
     def RelayStatusQuery(self, relay_number):
         """
