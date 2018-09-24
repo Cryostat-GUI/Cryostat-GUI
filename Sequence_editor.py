@@ -13,6 +13,7 @@ import sys
 # import pickle
 # import os
 import re
+import threading
 
 from util import Window_ui
 
@@ -62,15 +63,19 @@ class Window_Tscan(QtWidgets.QDialog):
 
     sig_accept = pyqtSignal(dict)
     sig_reject = pyqtSignal()
+    sig_updateScanListModel = pyqtSignal(dict)
 
     def __init__(self, ui_file='.\\configurations\\sequence_scan_temperature.ui', **kwargs):
         super(Window_Tscan, self).__init__(**kwargs)
         loadUi(ui_file, self)
 
         QTimer.singleShot(0, self.initialisations)
+        self.dictlock = threading.Lock()
 
     def initialisations(self):
         
+        # BUGS BUGS BUGS
+
         self.conf = dict(typ='scan_T')
         self.__scanconf = dict(
                                 start = 0,
@@ -81,8 +86,12 @@ class Window_Tscan(QtWidgets.QDialog):
         self.putin_end = False
         self.putin_N = False
         self.putin_Size = False
-        self.model = ScanListModel(0, 0, 0, 0)
+        self.model = ScanListModel(self, 0, 0, 0, 0)
         self.listTemperatures.setModel(self.model)
+
+        self._LCD_stepsize = 0
+        self._LCD_Nsteps = 0
+        self.update_lcds()
 
         self.buttonOK.clicked.connect(self.acc)
         self.buttonCANCEL.clicked.connect(self.close)
@@ -93,13 +102,26 @@ class Window_Tscan(QtWidgets.QDialog):
         self.spinSetTend.valueChanged.connect(self.setTend)
         self.spinSetTend.editingFinished.connect(lambda: self.update_list(None, None))
 
+        self.spinSetNsteps.valueChanged.connect(lambda value: self.printing('spinSetNsteps: valueChanged: {}'.format(value)))
+        self.spinSetNsteps.editingFinished.connect(lambda: self.printing('spinSetNsteps: editingFinished'))
+        self.model.sig_Nsteps.connect(lambda value: self.printing('model: sig_Nsteps: {}'.format(value)))
+
         self.spinSetNsteps.valueChanged.connect(self.setN)
+        self.spinSetNsteps.editingFinished.connect(lambda: self.setLCDNsteps(self.__scanconf['Nsteps']))
         self.spinSetNsteps.editingFinished.connect(lambda: self.update_list(0, None))
-        self.model.sig_Nsteps.connect(lambda value: self.lcdNsteps.display(value))
+        self.model.sig_Nsteps.connect(lambda value: self.setLCDNsteps(value))
+        # self.model.sig_Nsteps.connect(self.spinSetNsteps.setValue)
+
+
+        self.spinSetSizeSteps.valueChanged.connect(lambda value: self.printing('spinSetSizeSteps: valueChanged: {}'.format(value)))
+        self.model.sig_stepsize.connect(lambda value: self.printing('model: sig_stepsize: {}'.format(value)))
+        self.spinSetSizeSteps.editingFinished.connect(lambda: self.printing('spinSetSizeSteps: editingFinished'))
 
         self.spinSetSizeSteps.valueChanged.connect(self.setSizeSteps)
+        self.spinSetSizeSteps.editingFinished.connect(lambda: self.setLCDstepsize(self.__scanconf['SizeSteps']))
         self.spinSetSizeSteps.editingFinished.connect(lambda: self.update_list(None, 0))
-        self.model.sig_stepsize.connect(lambda value: self.lcdStepsize.display(value))
+        self.model.sig_stepsize.connect(lambda value: self.setLCDstepsize(value))
+        # self.model.sig_stepsize.connect(self.spinSetSizeSteps.setValue)
 
     def update_list(self, Nsteps, SizeSteps):
         if not (self.putin_start and self.putin_end): 
@@ -108,35 +130,55 @@ class Window_Tscan(QtWidgets.QDialog):
         #     return
         if Nsteps:
             # self.__scanconf['Nsteps'] = Nsteps
-            self.__scanconf['SizeSteps'] = None
+            with self.dictlock: 
+                self.__scanconf['SizeSteps'] = None
 
         if SizeSteps: 
-            self.__scanconf['Nsteps'] = None
+            with self.dictlock: 
+                self.__scanconf['Nsteps'] = None
             # self.__scanconf['SizeSteps'] = None            
-        self.model = ScanListModel(**self.__scanconf)
-        self.listTemperatures.setModel(self.model)
-        self.listTemperatures.repaint()
+        self.sig_updateScanListModel.emit(deepcopy(self.__scanconf))
         
     def setTstart(self, Tstart):
-        self.__scanconf['start'] = Tstart
+        with self.dictlock: 
+            self.__scanconf['start'] = Tstart
         self.putin_start = True
         self.conf.update(self.__scanconf)
 
     def setTend(self, Tend):
-        self.__scanconf['end'] = Tend
+        with self.dictlock: 
+            self.__scanconf['end'] = Tend
         self.putin_end = True
         self.conf.update(self.__scanconf)
 
     def setN(self, N):
-        self.__scanconf['Nsteps'] = N
+        with self.dictlock: 
+            self.__scanconf['Nsteps'] = N
         self.putin_N = True 
         self.conf.update(self.__scanconf)
 
     def setSizeSteps(self, stepsize):
-        self.__scanconf['SizeSteps'] = stepsize
+        with self.dictlock: 
+            self.__scanconf['SizeSteps'] = stepsize
         self.putin_Size = True 
         self.conf.update(self.__scanconf)
 
+    def setLCDstepsize(self, value):
+        self._LCD_stepsize = value
+
+    def setLCDNsteps(self, value):
+        self._LCD_Nsteps = value
+
+    def printing(self, message):
+        print(message)
+
+    def update_lcds(self):
+        try: 
+            self.lcdStepsize.display(self._LCD_stepsize)
+            self.lcdNsteps.display(self._LCD_Nsteps)
+            # self.listTemperatures.repaint()
+        finally: 
+            QTimer.singleShot(0, self.update_lcds)
 
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""

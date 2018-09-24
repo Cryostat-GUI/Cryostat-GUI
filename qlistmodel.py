@@ -253,27 +253,71 @@ class ScanListModel(QtCore.QAbstractListModel):
     sig_stepsize = QtCore.pyqtSignal(float)
     sig_Nsteps = QtCore.pyqtSignal(int)
     
-    def __init__(self, start=None, end=None, Nsteps=None, SizeSteps=None, **kwargs):
+    def __init__(self, signalreceiver, start=None, end=None, Nsteps=None, SizeSteps=None, **kwargs):
         super(ScanListModel, self).__init__(**kwargs)
 
+        self.signalreceiver = signalreceiver
         self.__sequence = []
-        if Nsteps: 
-            self.__sequence = self.Build_Scan_N(start, end, Nsteps)
-        elif SizeSteps: 
-            self.__sequence = self.Build_Scan_Size(start, end, SizeSteps)
+        self.dic = dict(start=start, end=end, Nsteps=Nsteps, SizeSteps=SizeSteps)
+        self.updateData(self.dic)
+        self.signalreceiver.sig_updateScanListModel.connect(self.updateData)
 
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         # self.countinserted = 0
         # self.root = Node(dict(DisplayText='specialnode', arbdata='weha'))
+        # self.debug_running()
+
+    def updateData(self, dic):
+        if dic['SizeSteps']:
+            self.__sequence = self.Build_Scan_Size(dic['start'], dic['end'], dic['SizeSteps'])
+        elif dic['Nsteps']:
+            self.__sequence = self.Build_Scan_N(dic['start'], dic['end'], dic['Nsteps'])
         self.debug_running()
+
+
+    def Build_Scan_N(self, start, end, N):
+        N += 1
+        stepsize = abs(end-start)/(N-1)
+        stepsize = abs(stepsize) if start < end else -abs(stepsize)
+        seq = []
+        for __ in range(int(N)): 
+            seq.append(start)
+            start += stepsize
+        # self.sig_Nsteps.emit(N-1)
+        self.sig_stepsize.emit(deepcopy(stepsize))
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return seq
+
+    def Build_Scan_Size(self, start, end, parameter):
+        stepsize = abs(parameter) if start < end else -abs(parameter)
+        seq = []
+        if start < end: 
+            while start < end: 
+                seq.append(start)
+                start += stepsize
+        else: 
+           while start > end: 
+                seq.append(start)
+                start += stepsize 
+        N = len(seq)
+        self.sig_Nsteps.emit(deepcopy(N)) 
+        # self.sig_stepsize.emit(stepsize)
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return seq
+
+    def pass_data(self):
+        print(self.__sequence)
+        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
+        return deepcopy(self.__sequence)
+
+
 
     def debug_running(self):
         try: 
             print(self.__sequence)
         finally: 
-            QTimer.singleShot(2*1e3,self.debug_running)
-
-
+            pass
+        #     QTimer.singleShot(2*1e3,self.debug_running)
 
     def data(self, index, role):
         row = index.row()
@@ -293,51 +337,16 @@ class ScanListModel(QtCore.QAbstractListModel):
             return True
         return False
 
-
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.__sequence)
-
 
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | \
-                QtCore.Qt.ItemIsEditable
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#  | \
+                # QtCore.Qt.ItemIsEditable
                # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
 
-    def Build_Scan_N(self, start, end, N):
-        stepsize = abs(end-start)/(N-1)
-        stepsize = abs(stepsize) if start < end else -abs(stepsize)
-        seq = []
-        for __ in range(int(N)): 
-            seq.append(start)
-            start += stepsize
-        self.sig_Nsteps.emit(N)
-        self.sig_stepsize.emit(stepsize)
-        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        return seq
-
-    def Build_Scan_Size(self, start, end, parameter):
-        stepsize = abs(parameter) if start < end else -abs(parameter)
-        seq = []
-        if start < end: 
-            while start < end: 
-                seq.append(start)
-                start += stepsize
-        else: 
-           while start > end: 
-                seq.append(start)
-                start += stepsize 
-        N = len(seq)
-        self.sig_Nsteps.emit(N)
-        self.sig_stepsize.emit(stepsize)
-        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        return seq
-
-    def pass_data(self):
-        print(self.__sequence)
-        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
-        return deepcopy(self.__sequence)
 
 
 

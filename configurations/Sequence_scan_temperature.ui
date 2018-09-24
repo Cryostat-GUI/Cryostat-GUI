@@ -38,66 +38,22 @@
        <height>231</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0">
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Temperature  end</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Temperature start</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Stepsize</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Number of Steps</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
+     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0">
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QSpinBox" name="spinSetNsteps">
+         <widget class="QDoubleSpinBox" name="spinSetTend">
           <property name="keyboardTracking">
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>5000</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLCDNumber" name="lcdNsteps">
-          <property name="maximumSize">
-           <size>
-            <width>71</width>
-            <height>31</height>
-           </size>
+           <double>400.000000000000000</double>
           </property>
          </widget>
         </item>
        </layout>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>0</number>
@@ -111,7 +67,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <double>50.000000000000000</double>
+           <double>200.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -141,15 +97,59 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Temperature  end</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Temperature start</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Stepsize</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Number of Steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMaximumSize</enum>
+        </property>
         <item>
-         <widget class="QDoubleSpinBox" name="spinSetTend">
+         <widget class="QSpinBox" name="spinSetNsteps">
           <property name="keyboardTracking">
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <double>400.000000000000000</double>
+           <number>5000</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="lcdNsteps">
+          <property name="maximumSize">
+           <size>
+            <width>71</width>
+            <height>31</height>
+           </size>
           </property>
          </widget>
         </item>
