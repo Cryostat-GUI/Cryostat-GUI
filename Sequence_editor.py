@@ -108,7 +108,7 @@ class Window_Tscan(QtWidgets.QDialog):
 
         self.spinSetNsteps.valueChanged.connect(self.setN)
         self.spinSetNsteps.editingFinished.connect(lambda: self.setLCDNsteps(self.__scanconf['Nsteps']))
-        self.spinSetNsteps.editingFinished.connect(lambda: self.update_list(0, None))
+        self.spinSetNsteps.editingFinished.connect(lambda: self.update_list(1, 0))
         self.model.sig_Nsteps.connect(lambda value: self.setLCDNsteps(value))
         # self.model.sig_Nsteps.connect(self.spinSetNsteps.setValue)
 
@@ -119,7 +119,7 @@ class Window_Tscan(QtWidgets.QDialog):
 
         self.spinSetSizeSteps.valueChanged.connect(self.setSizeSteps)
         self.spinSetSizeSteps.editingFinished.connect(lambda: self.setLCDstepsize(self.__scanconf['SizeSteps']))
-        self.spinSetSizeSteps.editingFinished.connect(lambda: self.update_list(None, 0))
+        self.spinSetSizeSteps.editingFinished.connect(lambda: self.update_list(0, 1))
         self.model.sig_stepsize.connect(lambda value: self.setLCDstepsize(value))
         # self.model.sig_stepsize.connect(self.spinSetSizeSteps.setValue)
 
@@ -136,7 +136,8 @@ class Window_Tscan(QtWidgets.QDialog):
         if SizeSteps: 
             with self.dictlock: 
                 self.__scanconf['Nsteps'] = None
-            # self.__scanconf['SizeSteps'] = None            
+            # self.__scanconf['SizeSteps'] = None
+        print(self.__scanconf)         
         self.sig_updateScanListModel.emit(deepcopy(self.__scanconf))
         
     def setTstart(self, Tstart):
@@ -165,9 +166,11 @@ class Window_Tscan(QtWidgets.QDialog):
 
     def setLCDstepsize(self, value):
         self._LCD_stepsize = value
+        self.__scanconf['SizeSteps'] = value
 
     def setLCDNsteps(self, value):
         self._LCD_Nsteps = value
+        self.__scanconf['Nsteps'] = value
 
     def printing(self, message):
         print(message)

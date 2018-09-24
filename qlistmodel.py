@@ -300,7 +300,7 @@ class ScanListModel(QtCore.QAbstractListModel):
                 seq.append(start)
                 start += stepsize 
         N = len(seq)
-        self.sig_Nsteps.emit(deepcopy(N)) 
+        self.sig_Nsteps.emit(deepcopy(N))
         # self.sig_stepsize.emit(stepsize)
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return seq
