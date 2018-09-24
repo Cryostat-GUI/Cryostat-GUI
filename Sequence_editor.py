@@ -209,8 +209,10 @@ class Sequence_builder(Window_ui):
         self.listSequence.setModel(self.model)
 
         self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.addItem_toSequence(value))
-        self.pushSaving.clicked.connect(lambda: self.model.pass_data)
-        self.model.sig_send.connect(lambda value: self.printing(value))
+        self.pushSaving.clicked.connect(lambda: self.model.pass_data())
+        self.pushBrowse.clicked.connect(self.window_FileDialog)
+        # self.model.sig_send.connect(lambda value: self.printing(value))
+        self.model.sig_send.connect(self.saving)
         # self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.listSequence.repaint())
         self.show()
 
@@ -290,6 +292,14 @@ class Sequence_builder(Window_ui):
     def printing(self, data):
         print(data)
 
+    def saving(self, data):
+        with open(self.sequence_file, 'w'): 
+            for entry in data: 
+                print(entry)
+                if entry['typ'] == 'scan_T': 
+                    pass
+
+
     def initialize_all_windows(self):
         self.initialise_window_waiting()
         self.initialise_window_Tscan()
@@ -301,7 +311,12 @@ class Sequence_builder(Window_ui):
     def initialise_window_Tscan(self):
         self.window_Tscan = Window_Tscan()
         self.window_Tscan.sig_accept.connect(lambda value: self.addTscan(value))
-        # self.window_waiting.sig_accept.connect(lambda value: self.addWaiting(value))
+
+    def window_FileDialog(self):
+        self.sequence_file = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
+           'c:\\',"Sequence files (*.seq)")
+
+
 
 
     def read_sequence(self, file): 

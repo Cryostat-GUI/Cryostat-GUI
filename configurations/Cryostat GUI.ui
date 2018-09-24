@@ -69,6 +69,9 @@
      <addaction name="separator"/>
      <addaction name="action_show_ITC"/>
      <addaction name="action_show_ILM"/>
+     <addaction name="action_show_PS_120"/>
+     <addaction name="separator"/>
+     <addaction name="action_show_Lakeshore350"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
@@ -94,7 +97,7 @@
     </widget>
     <addaction name="menuOxford_Cryostat"/>
     <addaction name="separator"/>
-    <addaction name="action_run_Lakeshore_350"/>
+    <addaction name="action_run_Lakeshore350"/>
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
     <addaction name="action_Logging"/>
@@ -431,7 +434,7 @@
     <string>Data</string>
    </property>
   </action>
-  <action name="action_run_Lakeshore_350">
+  <action name="action_run_Lakeshore350">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -519,6 +522,22 @@
    </property>
    <property name="text">
     <string>ILM 211</string>
+   </property>
+  </action>
+  <action name="action_show_PS_120">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PS 120</string>
+   </property>
+  </action>
+  <action name="action_show_Lakeshore350">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lakeshore 350</string>
    </property>
   </action>
  </widget>

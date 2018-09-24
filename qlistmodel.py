@@ -166,7 +166,7 @@ class SequenceListModel(QtCore.QAbstractListModel):
     # -------------------  passing to Gui and writing to file --------------
 
     def pass_data(self):
-        print(self.__sequence)
+        # print(self.__sequence)
         self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
         return deepcopy(self.__sequence)
 

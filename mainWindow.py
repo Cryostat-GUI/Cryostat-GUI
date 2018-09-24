@@ -59,6 +59,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_Log_conf()
+        self.initialize_window_Lakeshore350()
         
 
 
@@ -295,6 +296,56 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         print(self.data['ILM'][-1]['channel_1_level'], self.data['ILM'][-1]['channel_2_level'])
 
         
+
+    def initialize_window_Lakeshore350(self):
+        """initialize ITC Window"""
+        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
+        self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
+
+        # self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
+        self.action_show_Lakeshore350.triggered['bool'].connect(self.show_LakeShore350)
+
+    @pyqtSlot(bool)
+    def show_LakeShore350(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.LakeShore350_window.show()
+        else:
+            self.LakeShore350_window.close()
+
+
+        """
+            self.textErrors = QtWidgets.QTextBrowser(Form)
+            self.textErrors.setObjectName("textErrors")
+            self.lcdHeaterOutput_mW = QtWidgets.QLCDNumber(Form)
+            self.lcdHeaterOutput_mW.setObjectName("lcdHeaterOutput_mW")
+            self.lcdSetTemp_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSetTemp_K.setObjectName("lcdSetTemp_K")
+            self.spinSetTemp_K = QtWidgets.QDoubleSpinBox(Form)
+            self.spinSetTemp_K.setDecimals(4)
+            self.spinSetTemp_K.setMaximum(300.0)
+            self.spinSetTemp_K.setObjectName("spinSetTemp_K")
+            self.lcdSetHeater_mW = QtWidgets.QLCDNumber(Form)
+            self.lcdSetHeater_mW.setObjectName("lcdSetHeater_mW")
+            self.spinSetHeater_mW = QtWidgets.QDoubleSpinBox(Form)
+            self.spinSetHeater_mW.setDecimals(1)
+            self.spinSetHeater_mW.setMaximum(1000.0)
+            self.spinSetHeater_mW.setObjectName("spinSetHeater_mW")
+            self.lcdSensor1_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor1_K.setObjectName("lcdSensor1_K")
+            self.lcdSensor2_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor2_K.setObjectName("lcdSensor2_K")
+            self.lcdSensor3_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor3_K.setObjectName("lcdSensor3_K")
+            self.lcdSensor4_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor4_K.setObjectName("lcdSensor4_K")
+
+            self.spinXXX.valueChanged.connect(self.method)
+            self.spinXXX.valueChanged.connect(lambda: self.threads['somethread'].THREAD_Class_method())
+            self.spinXXX.valueChanged.connect(lambdavalue: self.threads['somethread'].THREAD_Class_method(value))
+            self.lcdXXX.display(some_number)
+            self.textXXX.setText(some_string)
+        """
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
