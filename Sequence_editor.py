@@ -11,7 +11,7 @@ from copy import deepcopy
 import sys
 # import datetime
 # import pickle
-# import os
+import os
 import re
 import threading
 
@@ -102,9 +102,9 @@ class Window_Tscan(QtWidgets.QDialog):
         self.spinSetTend.valueChanged.connect(self.setTend)
         self.spinSetTend.editingFinished.connect(lambda: self.update_list(None, None))
 
-        self.spinSetNsteps.valueChanged.connect(lambda value: self.printing('spinSetNsteps: valueChanged: {}'.format(value)))
-        self.spinSetNsteps.editingFinished.connect(lambda: self.printing('spinSetNsteps: editingFinished'))
-        self.model.sig_Nsteps.connect(lambda value: self.printing('model: sig_Nsteps: {}'.format(value)))
+        # self.spinSetNsteps.valueChanged.connect(lambda value: self.printing('spinSetNsteps: valueChanged: {}'.format(value)))
+        # self.spinSetNsteps.editingFinished.connect(lambda: self.printing('spinSetNsteps: editingFinished'))
+        # self.model.sig_Nsteps.connect(lambda value: self.printing('model: sig_Nsteps: {}'.format(value)))
 
         self.spinSetNsteps.valueChanged.connect(self.setN)
         self.spinSetNsteps.editingFinished.connect(lambda: self.setLCDNsteps(self.__scanconf['Nsteps']))
@@ -113,9 +113,9 @@ class Window_Tscan(QtWidgets.QDialog):
         # self.model.sig_Nsteps.connect(self.spinSetNsteps.setValue)
 
 
-        self.spinSetSizeSteps.valueChanged.connect(lambda value: self.printing('spinSetSizeSteps: valueChanged: {}'.format(value)))
-        self.model.sig_stepsize.connect(lambda value: self.printing('model: sig_stepsize: {}'.format(value)))
-        self.spinSetSizeSteps.editingFinished.connect(lambda: self.printing('spinSetSizeSteps: editingFinished'))
+        # self.spinSetSizeSteps.valueChanged.connect(lambda value: self.printing('spinSetSizeSteps: valueChanged: {}'.format(value)))
+        # self.model.sig_stepsize.connect(lambda value: self.printing('model: sig_stepsize: {}'.format(value)))
+        # self.spinSetSizeSteps.editingFinished.connect(lambda: self.printing('spinSetSizeSteps: editingFinished'))
 
         self.spinSetSizeSteps.valueChanged.connect(self.setSizeSteps)
         self.spinSetSizeSteps.editingFinished.connect(lambda: self.setLCDstepsize(self.__scanconf['SizeSteps']))
@@ -137,7 +137,7 @@ class Window_Tscan(QtWidgets.QDialog):
             with self.dictlock: 
                 self.__scanconf['Nsteps'] = None
             # self.__scanconf['SizeSteps'] = None
-        print(self.__scanconf)         
+        # print(self.__scanconf)         
         self.sig_updateScanListModel.emit(deepcopy(self.__scanconf))
         
     def setTstart(self, Tstart):
@@ -211,6 +211,8 @@ class Sequence_builder(Window_ui):
         self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.addItem_toSequence(value))
         self.pushSaving.clicked.connect(lambda: self.model.pass_data())
         self.pushBrowse.clicked.connect(self.window_FileDialog)
+        self.lineFileLocation.setText(self.sequence_file)
+        self.lineFileLocation.textChanged.connect(lambda value: self.change_file_location(value))
         # self.model.sig_send.connect(lambda value: self.printing(value))
         self.model.sig_send.connect(self.saving)
         # self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.listSequence.repaint())
@@ -219,6 +221,7 @@ class Sequence_builder(Window_ui):
 
     def initialize_sequence(self, sequence_file):
         if sequence_file: 
+            self.change_file_location(sequence_file)
             def construct_pattern(expressions):
                 pat = ''
                 for e in exp: 
@@ -232,6 +235,8 @@ class Sequence_builder(Window_ui):
             for command in sequence: 
                 # print(command)
                 self.model.addItem(command)
+        else: 
+            self.sequence_file = ['']
 
     def addItem_toSequence(self, text):
         if text.text(0) == 'Wait': 
@@ -293,12 +298,21 @@ class Sequence_builder(Window_ui):
         print(data)
 
     def saving(self, data):
-        with open(self.sequence_file, 'w'): 
-            for entry in data: 
+        with open(self.sequence_file, 'w') as f:
+            for entry in data:
                 print(entry)
-                if entry['typ'] == 'scan_T': 
-                    pass
-
+                if entry['typ'] == 'scan_T':
+                    f.write('LPT SCANT {start} {end} {rate} {Nsteps} 0 0\n'.format(rate = 0,**entry))
+                    # os.write(f, os.linesep)
+                    f.write('RES 00 00 00 11 11 00\n')
+                    # os.write(f, os.linesep)
+                    f.write('ENT EOS\n')
+                    # os.write(f, os.linesep)
+                if entry['typ'] == 'Wait':
+                    Temp = 1 if entry['Temp'] else 0
+                    Field = 1 if entry['Field'] else 0
+                    f.write('WAI WAITFOR {Delay} {Temp} {Field}\n'.format(Delay=entry['Delay'], Temp=Temp, Field=Field ))
+                    # os.write(f, os.linesep)
 
     def initialize_all_windows(self):
         self.initialise_window_waiting()
@@ -313,8 +327,18 @@ class Sequence_builder(Window_ui):
         self.window_Tscan.sig_accept.connect(lambda value: self.addTscan(value))
 
     def window_FileDialog(self):
-        self.sequence_file = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
+        self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As', 
            'c:\\',"Sequence files (*.seq)")
+        self.lineFileLocation.setText(self.sequence_file)
+
+    def change_file_location(self, fname):
+        self.sequence_file = fname
+
+    def update_filelocation(self):
+        try: 
+            self.lineFileLocation.setText(self.sequence_file)
+        finally: 
+            QTimer.singleShot(0, update_filelocation)
 
 
 
@@ -350,15 +374,16 @@ class Sequence_builder(Window_ui):
                     templine = comm.splitlines()[0]
                     temps = [float(x) for x in self.number.findall(templine)]
                     dic = dict(typ='scan_T', start=temps[0], 
-                                                    stop=temps[1], 
-                                                    stepsize=temps[2],
-                                                    steps = temps[3])
+                                                    end=temps[1], 
+                                                    SizeSteps=temps[2],
+                                                    Nsteps = temps[3])
                 measureline = comm.splitlines()[1]
                 if measureline[:3] == 'RES': 
                     nums = [float(x) for x in self.number.findall(measureline)]
                 dic.update(dict(measuretype='RES', 
                                 RES_arbnum1 = nums[0], 
-                                RES_arbnum2 = nums[1] ))
+                                RES_arbnum2 = nums[1], 
+                                DisplayText = self.parse_Tscan(dic)))
             elif part[3]: 
                 # waiting
                 comm = part[3]
@@ -400,6 +425,7 @@ if __name__ == '__main__':
     file = 'Hg1201_UD88_17Aug2018_dn.seq'
     file = 'SEQ_20180914_Tscans.seq'
     file = None
+    file = 't.seq'
 
     app = QtWidgets.QApplication(sys.argv)
     form = Sequence_builder(file)

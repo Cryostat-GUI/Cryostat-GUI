@@ -10,6 +10,7 @@ from PyQt5.uic import loadUi
 import sys
 import time
 import datetime
+from threading import Lock
 
 # import mainWindow_ui
 
@@ -51,6 +52,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         self.logging_running_ITC = False
         self.logging_running_logger = False
+
+        self.dataLock = Lock()
 
         QTimer.singleShot(0, self.initialize_all_windows)
 
@@ -189,20 +192,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     @pyqtSlot(dict)
     def store_data_itc(self, data):
         """Store ITC data in self.data['ITC'], update ITC_window"""
-        data['date'] = convert_time(time.time())
-        self.data['ITC'].append(data)
-        self.ITC_window.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
-        self.ITC_window.lcdTemp_sens2.display(self.data['ITC'][-1]['sensor_2_temperature'])
-        self.ITC_window.lcdTemp_sens3.display(self.data['ITC'][-1]['sensor_3_temperature'])
-        self.ITC_window.lcdTemp_set.display(self.data['ITC'][-1]['set_temperature'])
-        self.ITC_window.lcdTemp_err.display(self.data['ITC'][-1]['temperature_error'])
-        self.ITC_window.progressHeaterPercent.setValue(self.data['ITC'][-1]['heater_output_as_percent'])
-        self.ITC_window.lcdHeaterVoltage.display(self.data['ITC'][-1]['heater_output_as_voltage'])
-        self.ITC_window.progressNeedleValve.setValue(self.data['ITC'][-1]['gas_flow_output'])
-        self.ITC_window.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
-        self.ITC_window.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
-        self.ITC_window.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
-        
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['ITC'] = data
+            self.ITC_window.lcdTemp_sens1.display(self.data['ITC']['sensor_1_temperature'])
+            self.ITC_window.lcdTemp_sens2.display(self.data['ITC']['sensor_2_temperature'])
+            self.ITC_window.lcdTemp_sens3.display(self.data['ITC']['sensor_3_temperature'])
+            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
+            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
+            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
+            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
+            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
+            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
+            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
 
     def printing(self,b):
         """arbitrary exmple function"""
@@ -289,11 +292,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     @pyqtSlot(dict)
     def store_data_ilm(self, data):
         """Store ILM data in self.data['ILM'], update ILM_window"""
-        data['date'] = convert_time(time.time())
-        self.data['ILM'].append(data)
-        self.MainDock_HeLevel.setValue(self.data['ILM'][-1]['channel_1_level'])
-        self.MainDock_N2Level.setValue(self.data['ILM'][-1]['channel_2_level'])
-        print(self.data['ILM'][-1]['channel_1_level'], self.data['ILM'][-1]['channel_2_level'])
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['ILM'] = data
+            self.MainDock_HeLevel.setValue(self.data['ILM']['channel_1_level'])
+            self.MainDock_N2Level.setValue(self.data['ILM']['channel_2_level'])
+            print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
 
         
 
