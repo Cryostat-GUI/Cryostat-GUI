@@ -46,17 +46,17 @@ class ilm211(AbstractSerialDeviceDriver):
             variable: Index of variable to read.
         """
         if not isinstance(variable, int):
-            raise AssertionError('argument must be integer')
+            raise AssertionError('ILM: getValue: Argument must be integer')
         if variable not in range(0,11):
-            raise AssertionError('Argument is not a valid number.')
+            raise AssertionError('ILM: getValue: Argument is not a valid number.')
         
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('bad reply: empty string')
+            raise AssertionError('ILM: getValue: bad reply: empty string')
         if value[0] != 'R':
-            raise AssertionError('bad reply: {}'.format(value))
+            raise AssertionError('ILM: getValue: bad reply: {}'.format(value))
         return float(value.strip('R+'))
 
     def _converting_status_channel(self, i):
@@ -92,18 +92,18 @@ class ilm211(AbstractSerialDeviceDriver):
     def setSlow(self, channel):
         """put channel 'channel' into slow sample rate"""
         if not isinstance(channel, int): 
-            raise AssertionError('argument must be integer')
+            raise AssertionError('ILM: setSlow: Argument must be integer')
         if channel not in [1,2]:
-            raise AssertionError('Argument is not a valid number.')         
+            raise AssertionError('ILM: setSlow: Argument is not a valid number.')         
 
         self.write('S{}'.format(channel))
 
     def setFast(self, channel):
         """put channel 'channel' into fast sample rate"""
         if not isinstance(channel, int): 
-            raise AssertionError('argument must be integer')
+            raise AssertionError('ILM: setFast: Argument must be integer')
         if channel not in [1,2]:
-            raise AssertionError('Argument is not a valid number.')         
+            raise AssertionError('ILM: setFast: Argument is not a valid number.')         
 
         self.write('T{}'.format(channel))       
         

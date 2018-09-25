@@ -115,13 +115,14 @@ class ITC_Updater(AbstractLoopThread):
     def setNeedle(self):
         """class method to be called to set Needle
             this is necessary, so it can be invoked by a signal
+            self.gasoutput between 0 and 100 %
         """
         value = self.set_GasOutput
         try:
             if 0 <= value <= 100:
                 self.ITC.setGasOutput(value)
             else:
-                raise AssertionError('Gas output setting must be between 0 and 100%!')
+                raise AssertionError('ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

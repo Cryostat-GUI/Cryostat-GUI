@@ -294,9 +294,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         with self.dataLock: 
             data['date'] = convert_time(time.time())
             self.data['ILM'] = data
+            self.ILM_window.progressLevelHe.setValue(self.data['ILM']['channel_1_level'])
+            self.ILM_window.progressLevelN2.setValue(self.data['ILM']['channel_2_level'])
+
             self.MainDock_HeLevel.setValue(self.data['ILM']['channel_1_level'])
             self.MainDock_N2Level.setValue(self.data['ILM']['channel_2_level'])
-            print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
+            # print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
 
         
 

@@ -47,9 +47,7 @@ class ips120(AbstractSerialDeviceDriver):
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
         super(ips120, self).__init__(**kwargs)
-        # self._visa_resource = resource_manager.open_resource(adress)
-        # self._visa_resource.read_termination = '\r'
-        # self.setDisplay('tesla')
+
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the IPS 120-10
@@ -63,9 +61,9 @@ class ips120(AbstractSerialDeviceDriver):
             state(int): the state in which to place the IPS 120-10
         """
         if not isinstance(state, int):
-            raise AssertionError('argument must be integer')
+            raise AssertionError('PS: setControl: Argument must be integer')
         if state not in [0,1,2,3]:
-            raise AssertionError('argument must be one of [0,1,2,3]')
+            raise AssertionError('PS: setControl: Argument must be one of [0,1,2,3]')
 
         self.write("$C{}".format(state))
 
@@ -80,7 +78,7 @@ class ips120(AbstractSerialDeviceDriver):
         # value_str = self._visa_resource.read()
 
         if value[0] != 'R' or value == '':
-            raise AssertionError('bad reply: {}'.format(value))
+            raise AssertionError('PS: readField: Bad reply: {}'.format(value))
         return float(value_str.strip('R+'))
 
     def readFieldSetpoint(self):
@@ -94,7 +92,7 @@ class ips120(AbstractSerialDeviceDriver):
         # value_str = self._visa_resource.read()
 
         if value[0] != 'R' or value == '':
-            raise AssertionError('bad reply: {}'.format(value))
+            raise AssertionError('PS: readFieldSetpoint: Bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
 
@@ -109,7 +107,7 @@ class ips120(AbstractSerialDeviceDriver):
         # value_str = self._visa_resource.read()
 
         if value[0] != 'R' or value == '':
-            raise AssertionError('bad reply: {}'.format(value))
+            raise AssertionError('PS: readFieldSweepRate: Bad reply: {}'.format(value))
 
         return float(value_str.strip('R+'))
 
@@ -126,13 +124,13 @@ class ips120(AbstractSerialDeviceDriver):
         """
 
         if not isinstance(state, int):
-            raise AssertionError('argument must be integer')
+            raise AssertionError('PS: setActivity: Argument must be integer')
         if state not in [0,1,2,3]:
-            raise AssertionError('argument must be one of [0,1,2,3]')
+            raise AssertionError('PS: setActivity: Argument must be one of [0,1,2,3]')
 
         self.write("$A{}".format(state))
 
-    def setHeater(self, state=1):
+    def setSwitchHeater(self, state=1):
         """Set the switch heater activation state
 
         0 - Heater Off              (close switch)
@@ -143,9 +141,9 @@ class ips120(AbstractSerialDeviceDriver):
             state(int): the switch heater activation state
         """
         if not isinstance(state, int):
-            raise AssertionError('argument must be integer')
+            raise AssertionError('PS: setSwitchHeater: Argument must be integer')
         if state not in [0,1,2]:
-            raise AssertionError('argument must be one of [0,1,2]')
+            raise AssertionError('PS: setSwitchHeater: Argument must be one of [0,1,2]')
         self.write("$H{}".format(state))
 
         # TODO: add timer to account for time it takes for switch to activate
@@ -158,7 +156,7 @@ class ips120(AbstractSerialDeviceDriver):
         """
         MAX_FIELD = 8
         if not abs(field) < MAX_FIELD:
-            raise AssertionError('field must be less than {}'.format(MAX_FIELD))
+            raise AssertionError('PS: setFieldSetpoint: Field must be less than {}'.format(MAX_FIELD))
 
         self.write("$J{}".format(field))
 
@@ -177,7 +175,7 @@ class ips120(AbstractSerialDeviceDriver):
             display(str): One of ['amps','tesla']
         """
         if display not in ['amps','tesla']:
-            raise AssertionError("argument must be one of ['amps','tesla']")
+            raise AssertionError("PS: setDisplay: Argument must be one of ['amps','tesla']")
 
         mode_dict = {'amps':8,
                      'tesla':9
