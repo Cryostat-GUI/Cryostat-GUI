@@ -76,7 +76,7 @@ class Window_Tscan(QtWidgets.QDialog):
         
         # BUGS BUGS BUGS
 
-        self.conf = dict(typ='scan_T')
+        self.conf = dict(typ='scan_T', measuretype='RES')
         self.__scanconf = dict(
                                 start = 0,
                                 end = 0,
@@ -95,6 +95,9 @@ class Window_Tscan(QtWidgets.QDialog):
 
         self.buttonOK.clicked.connect(self.acc)
         self.buttonCANCEL.clicked.connect(self.close)
+
+        self.comboSetTempramp.activated['int'].connect(self.setRampCondition)
+        self.spinSetRate.valueChanged.connect(self.setSweepRate)
 
         self.spinSetTstart.valueChanged.connect(self.setTstart)
         self.spinSetTstart.editingFinished.connect(lambda: self.update_list(None, None))
@@ -175,6 +178,22 @@ class Window_Tscan(QtWidgets.QDialog):
     def printing(self, message):
         print(message)
 
+    def setRampCondition(self, value):
+        with self.dictlock: 
+            self.conf['RampCondition'] = value
+            # 0 == Stabilize
+            # 1 == Sweep
+            # CHECK THIS
+
+            # if value == 0: 
+            #     self.conf['RampCondition'] = 'Stabilize'
+            # elif value == 1: 
+            #     self.conf['RampCondition'] = 'Sweep'
+
+    def setSweepRate(self, value):
+        with self.dictlock: 
+            self.conf['SweepRate'] = value
+
     def update_lcds(self):
         try: 
             self.lcdStepsize.display(self._LCD_stepsize)
@@ -195,11 +214,14 @@ class Window_Tscan(QtWidgets.QDialog):
 
 class Sequence_builder(Window_ui):
     """docstring for sequence_builder"""
+
+    sig_runSequence = pyqtSignal(dict)
+    sig_abortSequence = pyqtSignal()
+
     def __init__(self, sequence_file=None, parent=None, **kwargs):
         super(Sequence_builder, self).__init__(ui_file='.\\configurations\\sequence.ui', **kwargs)
 
         # self.listSequence.sig_dropped.connect(lambda value: self.dropreact(value))
-        self.data = []
         self.sequence_file = sequence_file
 
         QTimer.singleShot(0, self.initialize_all_windows)
@@ -210,13 +232,21 @@ class Sequence_builder(Window_ui):
 
         self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.addItem_toSequence(value))
         self.pushSaving.clicked.connect(lambda: self.model.pass_data())
-        self.pushBrowse.clicked.connect(self.window_FileDialog)
+        self.pushBrowse.clicked.connect(self.window_FileDialogSave)
+        self.pushOpen.clicked.connect(self.window_FileDialogOpen)
         self.lineFileLocation.setText(self.sequence_file)
         self.lineFileLocation.textChanged.connect(lambda value: self.change_file_location(value))
+
+        self.Button_RunSequence.clicked.connect(self.running_sequence)
+        self.Button_AbortSequence.clicked.connect(lambda: self.sig_abortSequence.emit())
         # self.model.sig_send.connect(lambda value: self.printing(value))
         self.model.sig_send.connect(self.saving)
         # self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.listSequence.repaint())
         self.show()
+
+    def running_sequence(self):
+        self.data = self.model.pass_data()
+        self.sig_runSequence.emit(deepcopy(self.data))
 
 
     def initialize_sequence(self, sequence_file):
@@ -271,7 +301,7 @@ class Sequence_builder(Window_ui):
         return string
 
     def parse_Tscan(self, data):
-        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SizeSteps}K/step'.format(**data)
+        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min'.format(**data)
 
     def parse_set_temp(self, data):
         return 'Set Temperature to {Temp} at {rate}K/min (rate is only a wish...)'.format(**data)
@@ -302,17 +332,13 @@ class Sequence_builder(Window_ui):
             for entry in data:
                 print(entry)
                 if entry['typ'] == 'scan_T':
-                    f.write('LPT SCANT {start} {end} {rate} {Nsteps} 0 0\n'.format(rate = 0,**entry))
-                    # os.write(f, os.linesep)
-                    f.write('RES 00 00 00 11 11 00\n')
-                    # os.write(f, os.linesep)
+                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {RampCondition} 0\n'.format(**entry))# make sure Rampcondition is actually where it is! 
+                    f.write('{measuretype} 00 00 00 11 11 00\n'.format(**entry))
                     f.write('ENT EOS\n')
-                    # os.write(f, os.linesep)
                 if entry['typ'] == 'Wait':
                     Temp = 1 if entry['Temp'] else 0
                     Field = 1 if entry['Field'] else 0
                     f.write('WAI WAITFOR {Delay} {Temp} {Field}\n'.format(Delay=entry['Delay'], Temp=Temp, Field=Field ))
-                    # os.write(f, os.linesep)
 
     def initialize_all_windows(self):
         self.initialise_window_waiting()
@@ -326,10 +352,17 @@ class Sequence_builder(Window_ui):
         self.window_Tscan = Window_Tscan()
         self.window_Tscan.sig_accept.connect(lambda value: self.addTscan(value))
 
-    def window_FileDialog(self):
+    def window_FileDialogSave(self):
         self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As', 
            'c:\\',"Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
+
+    def window_FileDialogOpen(self):
+        self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As', 
+           'c:\\',"Sequence files (*.seq)")
+        self.lineFileLocation.setText(self.sequence_file)
+        self.initialize_sequence(self.sequence_file)
+
 
     def change_file_location(self, fname):
         self.sequence_file = fname
@@ -344,7 +377,7 @@ class Sequence_builder(Window_ui):
 
 
     def read_sequence(self, file): 
-        with open('.\\testing\\{}'.format(file), 'r') as myfile:
+        with open(file, 'r') as myfile:
             data=myfile.read()#.replace('\n', '')
 
         sequence_raw = self.p.findall(data)
@@ -356,7 +389,7 @@ class Sequence_builder(Window_ui):
                 # set temperature
                 comm = part[0]
                 nums = [float(x) for x in self.number.findall(comm)]
-                dic = dict(typ='set_T', Temp=nums[0], rate=nums[1] )
+                dic = dict(typ='set_T', Temp=nums[0], SweepRate=nums[1] )
 
                 dic['DisplayText']=self.parse_set_temp(dic)
 
@@ -364,7 +397,7 @@ class Sequence_builder(Window_ui):
                 # set field
                 comm = part[1]
                 nums = [float(x) for x in self.number.findall(comm)]
-                dic = dict(typ='set_Field', Field=nums[0], rate=nums[1] )
+                dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1] )
                 dic['DisplayText']=self.parse_set_field(dic)
 
             elif part[2]: 
@@ -375,8 +408,9 @@ class Sequence_builder(Window_ui):
                     temps = [float(x) for x in self.number.findall(templine)]
                     dic = dict(typ='scan_T', start=temps[0], 
                                                     end=temps[1], 
-                                                    SizeSteps=temps[2],
-                                                    Nsteps = temps[3])
+                                                    SweepRate=temps[2],
+                                                    Nsteps = temps[3], 
+                                                    RampCondition=temps[4])
                 measureline = comm.splitlines()[1]
                 if measureline[:3] == 'RES': 
                     nums = [float(x) for x in self.number.findall(measureline)]
@@ -425,7 +459,7 @@ if __name__ == '__main__':
     file = 'Hg1201_UD88_17Aug2018_dn.seq'
     file = 'SEQ_20180914_Tscans.seq'
     file = None
-    file = 't.seq'
+    # file = 't.seq'
 
     app = QtWidgets.QApplication(sys.argv)
     form = Sequence_builder(file)

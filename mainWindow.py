@@ -257,7 +257,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def run_ILM(self, boolean):
         """start/stop the logging thread"""
 
-        # read the last configuration of what shall be logged from a respective file
 
         if boolean: 
             try: 
@@ -269,7 +268,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
 
                 self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
-                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
+                # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
 
                 self.action_run_ILM.setChecked(True)
             
@@ -346,7 +345,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             self.spinXXX.valueChanged.connect(self.method)
             self.spinXXX.valueChanged.connect(lambda: self.threads['somethread'].THREAD_Class_method())
-            self.spinXXX.valueChanged.connect(lambdavalue: self.threads['somethread'].THREAD_Class_method(value))
+            self.spinXXX.valueChanged.connect(lambda value: self.threads['somethread'].THREAD_Class_method(value))
             self.lcdXXX.display(some_number)
             self.textXXX.setText(some_string)
         """

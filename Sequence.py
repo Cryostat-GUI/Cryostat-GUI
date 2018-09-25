@@ -35,9 +35,12 @@ class Sequence_Thread(AbstractEventhandlingThread):
 
     def running(self):
         try: 
+            self.mainthread.ITC_window.widgetSetpoints.setEnabled(False)
             for entry in self.sequence:
                 if entry['typ'] == 'scan_T':
                     pass
+                    # always use the sweep option, so the rate can be controlled! 
+                    # in case stabilisation is needed, just sweep to the respective point (let's try this...)
                 if entry['typ'] == 'Wait':
                     self.wait_for_Temp(entry['Temp'])
                     self.wait_for_Field(entry['Field'])
@@ -45,6 +48,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
         except BreakCondition: 
             self.sig_aborted.emit()
             return 'Aborted!'
+        finally: 
+            self.mainthread.ITC_window.widgetSetpoints.setEnabled(True)            
                 
 
 

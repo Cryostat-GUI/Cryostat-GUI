@@ -145,8 +145,8 @@ class SequenceListModel(QtCore.QAbstractListModel):
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | \
-               QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#| \
+               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
 
 
     #=====================================================#

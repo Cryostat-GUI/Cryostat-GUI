@@ -44,31 +44,9 @@ class itc503(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
-        """Connect to an ITC 503 at the specified serial address
+        # set the heater voltage limit to be controlled dynamically according to the temperature
+        self.write('$M0')
 
-        """
-    #     self._visa_resource = resource_manager.open_resource(adress)
-    #     self._visa_resource.read_termination = '\r'
-    #     self.ComLock = threading.Lock()
-
-    # def write(self, command):
-    #     """
-    #         low-level communication wrapper for visa.write with Communication Lock, 
-    #         to prevent multiple writes to serial adapter
-    #     """
-    #     self.ComLock.acquire()
-    #     self._visa_resource.write(command)
-    #     self.ComLock.release()
-
-    # def query(self, command):
-    #     """
-    #         low-level communication wrapper for visa.query with Communication Lock, 
-    #         to prevent multiple writes to serial adapter
-    #     """
-    #     self.ComLock.acquire()
-    #     answer = self._visa_resource.query(command)
-    #     self.ComLock.release()
-    #     return answer
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the ITC 503
@@ -98,7 +76,7 @@ class itc503(AbstractSerialDeviceDriver):
                 above base temperature for any system.
         """
         if not isinstance(temperature, (int, float)):
-            raise AssertionError('argument must be a number')
+            raise AssertionError('ITC: setTemperature: argument must be a number')
 
         command = '$T{}'.format(temperature)# + str(int(1000*temperature))
         self.write(command)
@@ -120,17 +98,17 @@ class itc503(AbstractSerialDeviceDriver):
             variable: Index of variable to read.
         """
         if not isinstance(variable, int):
-            raise AssertionError('argument must be integer')
+            raise AssertionError('ITC: getValue: argument must be integer')
         if variable not in range(0,11):
-            raise AssertionError('Argument is not a valid number.')
+            raise AssertionError('ITC: getValue: Argument is not a valid number.')
         
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('bad reply: empty string')
+            raise AssertionError('ITC: getValue: bad reply: empty string')
         if value[0] != 'R':
-            raise AssertionError('bad reply: {}'.format(value))
+            raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):
@@ -171,7 +149,7 @@ class itc503(AbstractSerialDeviceDriver):
         """
         
         if sensor not in [1,2,3]:
-            raise AssertionError('Heater not on list.')
+            raise AssertionError('ITC: setHeaterSensor: Heater not on list.')
         
         self.write('$H{}'.format(sensor))
         return None
@@ -218,8 +196,12 @@ class itc503(AbstractSerialDeviceDriver):
 
         This fills up a dictionary with all the possible steps in
         a sweep. If a step number is not found in the sweep_parameters
-        dictionary, then it will create the sweep step with all
-        parameters set to 0.
+        dictionary, then it will create the sweep step with sweep_time and 
+        hold_time set to 0 - thus this step will be bypassed by the machine. 
+        The 16th step will nevertheless control the temperature setpoint after
+        the sweep is completed, it should thus NOT be set to 0, 
+        because this would actually set the temperature setpoint to 0. 
+        Therefore all non-used steps have a low but reachable set point in T(K)
 
         Args:
             sweep_parameters: A dictionary whose keys are the step
@@ -227,9 +209,11 @@ class itc503(AbstractSerialDeviceDriver):
                 dictionary whose keys are the parameters in the
                 sweep table (see _setSweepStep).
         """
+        if not isinstance(sweep_parameters, dict): 
+            raise AssertionError('ITC: setSweeps: Input should be a dict (of dicts)!')
         steps = range(1,17)
         parameters_keys = sweep_parameters.keys()
-        null_parameter = {  'set_point' : 0,
+        null_parameter = {  'set_point' : 5,
                             'sweep_time': 0,
                             'hold_time' : 0  }
 
@@ -281,3 +265,18 @@ class itc503(AbstractSerialDeviceDriver):
         """
         self._visa_resource.write('$x0')
         self._visa_resource.write('$y0')
+
+    def SweepStart(self):
+        """start the sweep, beginning at the first step in the table"""
+        self.write('$S1')
+
+    def SweepStartAtPoint(self, point):
+        """start walking through the sweep table at a specific point"""
+
+        if 32 > point < 2: 
+            raise AssertionError('ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
+        self.write('$S{}'.format(point))
+
+    def SweepStop(self):
+        """Stop any sweep which is currently running"""
+        self.write('$S0')
