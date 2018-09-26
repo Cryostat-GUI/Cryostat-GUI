@@ -36,8 +36,8 @@ class ILM_Updater(AbstractLoopThread):
 
     sensors = dict(        
         channel_1_level=1,
-        channel_2_level=2,
-        channel_3_level=3)
+        channel_2_level=2)
+        # channel_3_level=,
         # channel_1_wire_current=6,
         # channel_2_wire_current=7,
         # needle_valve_position=10)
@@ -107,13 +107,18 @@ class ILM_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot(int)
-    def setProbingSpeed(self, speed, channel):
-        """set probing speed for a specific channel"""
+    def setProbingSpeed(self, speed, channel=1):
+        """
+            set probing speed for a specific channel
+            for fast probing, speed = 1
+            for slow probing, speed = 0
+            this comes from the order in the comboBox in the GUI
+        """
         try: 
-            if speed == 0: 
-                self.ILM.setFast(1)
-            elif speed == 1: 
-                self.ILM.setSlow(1)
+            if speed == 1: 
+                self.ILM.setFast(channel)
+            elif speed == 0: 
+                self.ILM.setSlow(channel)
 
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])

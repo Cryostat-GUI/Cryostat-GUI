@@ -37,6 +37,7 @@ class ITC_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
+
     sensors = dict(
             set_temperature = 0,
             sensor_1_temperature = 1,
@@ -56,7 +57,6 @@ class ITC_Updater(AbstractLoopThread):
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
 
-        # TODO need initialisation for all the parameters!
 
         self.control_state = 3
         self.set_temperature = 0
@@ -70,11 +70,11 @@ class ITC_Updater(AbstractLoopThread):
         self.sweep_parameters = None
 
         self.delay1 = 1
-        self.delay2 = 0.4
+        self.delay = 0.0
         self.setControl()
         # self.__isRunning = True
 
-
+    # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
         
@@ -85,13 +85,15 @@ class ITC_Updater(AbstractLoopThread):
 
         """
         try: 
+
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
                 data[key] = self.ITC.getValue(idx_sensor)
-                time.sleep(self.delay2)
+                time.sleep(self.delay)
             self.sig_Infodata.emit(deepcopy(data))
+
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
@@ -101,27 +103,31 @@ class ITC_Updater(AbstractLoopThread):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    # def control_checks(func):
+    #     @functools.wraps(func)
+    #     def wrapper_control_checks(*args, **kwargs):
+    #         pass
 
-    # @pyqtSlot(int)
-    # def set_delay_sending(self, delay):
-    #     self.delay1 = delay
 
     @pyqtSlot(int)
-    def set_delay_measuring(self, delay):
-        self.delay2 = delay
+    def set_delay_sending(self, delay):
+        self.ITC.set_delay_measuring(delay)
+
+
 
 
     @pyqtSlot()
     def setNeedle(self):
         """class method to be called to set Needle
             this is necessary, so it can be invoked by a signal
+            self.gasoutput between 0 and 100 %
         """
         value = self.set_GasOutput
         try:
             if 0 <= value <= 100:
                 self.ITC.setGasOutput(value)
             else:
-                raise AssertionError('Gas output setting must be between 0 and 100%!')
+                raise AssertionError('ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

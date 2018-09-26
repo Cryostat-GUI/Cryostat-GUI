@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>231</width>
-    <height>242</height>
+    <width>280</width>
+    <height>275</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -19,43 +19,45 @@
   <property name="windowTitle">
    <string>ILM Control</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,50">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetNoConstraint</enum>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>He Probing rate</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="combosetProbingRate_chan1">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>Fast</string>
+         <string>He Probing rate</string>
         </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Slow</string>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="combosetProbingRate_chan1">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-       </item>
-      </widget>
-     </item>
-    </layout>
+        <item>
+         <property name="text">
+          <string>Slow</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Fast</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="Line" name="line">
@@ -67,7 +69,11 @@
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="4" column="1">
-      <widget class="QLCDNumber" name="lcdCurrentchan2"/>
+      <widget class="QLCDNumber" name="lcdCurrentchan2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
       <widget class="QProgressBar" name="progressLevelN2">
@@ -78,6 +84,9 @@
      </item>
      <item row="6" column="1">
       <widget class="QLabel" name="label_9">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Nitrogen</string>
        </property>
@@ -85,6 +94,9 @@
      </item>
      <item row="5" column="1">
       <widget class="QLabel" name="label_8">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Helium</string>
        </property>
@@ -113,6 +125,9 @@
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_chan2_current">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Nitrogen wire current</string>
        </property>
@@ -120,16 +135,26 @@
      </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_7">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Channel 2 cryogen</string>
        </property>
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLCDNumber" name="lcdCurrentchan1"/>
+      <widget class="QLCDNumber" name="lcdCurrentchan1">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_6">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Channel 1 cryogen</string>
        </property>
@@ -137,6 +162,9 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_chan1_current">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Helium wire current</string>
        </property>

@@ -10,12 +10,14 @@ from PyQt5.uic import loadUi
 import sys
 import time
 import datetime
+from threading import Lock
 
 # import mainWindow_ui
 
 # from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
+from Oxford.IPS_control import IPS_Updater
 
 
 
@@ -52,13 +54,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_ITC = False
         self.logging_running_logger = False
 
+        self.dataLock = Lock()
+        self.textErrors.setHtml('')
+
         QTimer.singleShot(0, self.initialize_all_windows)
 
 
     def initialize_all_windows(self):
         self.initialize_window_ITC()
         self.initialize_window_ILM()
+        self.initialize_window_IPS()
         self.initialize_window_Log_conf()
+        self.initialize_window_Lakeshore350()
         
 
 
@@ -85,7 +92,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if dataname in self.data or dataname == None:
             pass
         else: 
-            self.data[dataname] = list()
+            self.data[dataname] = dict()
 
         thread.started.connect(worker.work)
         thread.start()
@@ -99,6 +106,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.threads[threadname][1].wait()
         del self.threads[threadname]
 
+    def show_error_textBrowser(self, text):
+        self.textErrors.append('{}'.format(text))
+
+    # ------- Oxford Instruments 
+    # ------- ------- ITC
     def initialize_window_ITC(self):
         """initialize ITC Window"""
         self.ITC_window = Window_ui(ui_file='.\\Oxford\\ITC_control.ui')
@@ -119,9 +131,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata = self.running_thread(ITC_Updater('COM6'), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
-                getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('ITC: timeout'))
 
 
                 # setting ITC values by GUI ITC window
@@ -154,6 +168,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.logging_running_ITC = True
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
+                self.show_error_textBrowser(e)
                 print(e) # TODO: open window displaying the error message
 
         else:
@@ -188,21 +203,170 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     @pyqtSlot(dict)
     def store_data_itc(self, data):
         """Store ITC data in self.data['ITC'], update ITC_window"""
-        data['date'] = convert_time(time.time())
-        self.data['ITC'].append(data)
-        self.ITC_window.lcdTemp_sens1.display(self.data['ITC'][-1]['sensor_1_temperature'])
-        self.ITC_window.lcdTemp_sens2.display(self.data['ITC'][-1]['sensor_2_temperature'])
-        self.ITC_window.lcdTemp_sens3.display(self.data['ITC'][-1]['sensor_3_temperature'])
-        self.ITC_window.lcdTemp_set.display(self.data['ITC'][-1]['set_temperature'])
-        self.ITC_window.lcdTemp_err.display(self.data['ITC'][-1]['temperature_error'])
-        self.ITC_window.progressHeaterPercent.setValue(self.data['ITC'][-1]['heater_output_as_percent'])
-        self.ITC_window.lcdHeaterVoltage.display(self.data['ITC'][-1]['heater_output_as_voltage'])
-        self.ITC_window.progressNeedleValve.setValue(self.data['ITC'][-1]['gas_flow_output'])
-        self.ITC_window.lcdProportionalID.display(self.data['ITC'][-1]['proportional_band'])
-        self.ITC_window.lcdPIntegrationD.display(self.data['ITC'][-1]['integral_action_time'])
-        self.ITC_window.lcdPIDerivative.display(self.data['ITC'][-1]['derivative_action_time'])
-        
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['ITC'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up, 
+            # since the command failed in the communication with the device, the last value is retained
+            self.ITC_window.lcdTemp_sens1.display(self.data['ITC']['sensor_1_temperature'])
+            self.ITC_window.lcdTemp_sens2.display(self.data['ITC']['sensor_2_temperature'])
+            self.ITC_window.lcdTemp_sens3.display(self.data['ITC']['sensor_3_temperature'])
+            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
+            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
+            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
+            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
+            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
+            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
+            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
 
+    # ------- ------- ILM
+    def initialize_window_ILM(self):
+        """initialize ILM Window"""
+        self.ILM_window = Window_ui(ui_file='.\\Oxford\\ILM_control.ui')
+        self.ILM_window.sig_closing.connect(lambda: self.action_show_ILM.setChecked(False))
+
+        self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
+        self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
+
+    @pyqtSlot(bool)
+    def run_ILM(self, boolean):
+        """start/stop the Level Meter thread"""
+
+
+        if boolean: 
+            try: 
+                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'),'ILM', 'control_ILM')
+
+                getInfodata.sig_Infodata.connect(self.store_data_ilm)
+                getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('ILM: timeout'))
+
+                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
+                # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
+
+                self.action_run_ILM.setChecked(True)
+            
+            except VisaIOError as e:
+                self.action_run_ILM.setChecked(False)
+                self.show_error_textBrowser(e)
+                print(e) # TODO: open window displaying the error message
+        else: 
+            self.action_run_ILM.setChecked(False)
+            self.stopping_thread('control_ILM')
+
+    @pyqtSlot(bool)
+    def show_ILM(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.ILM_window.show()
+        else:
+            self.ILM_window.close()
+
+    @pyqtSlot(dict)
+    def store_data_ilm(self, data):
+        """Store ILM data in self.data['ILM'], update ILM_window"""
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['ILM'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up, 
+            # since the command failed in the communication with the device, the last value is retained
+            self.ILM_window.progressLevelHe.setValue(self.data['ILM']['channel_1_level'])
+            self.ILM_window.progressLevelN2.setValue(self.data['ILM']['channel_2_level'])
+
+            self.MainDock_HeLevel.setValue(self.data['ILM']['channel_1_level'])
+            self.MainDock_N2Level.setValue(self.data['ILM']['channel_2_level'])
+            # print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
+
+    # ------- ------- IPS
+    def initialize_window_IPS(self):
+        """initialize PS Window"""
+        self.IPS_window = Window_ui(ui_file='.\\Oxford\\IPS_control.ui')
+        self.IPS_window.sig_closing.connect(lambda: self.action_show_IPS.setChecked(False))
+
+        self.action_run_IPS.triggered['bool'].connect(self.run_IPS)
+        self.action_show_IPS.triggered['bool'].connect(self.show_IPS)
+
+        self.IPS_window.labelStatusMagnet.setText('')
+        self.IPS_window.labelStatusCurrent.setText('')
+        self.IPS_window.labelStatusActivity.setText('')
+        self.IPS_window.labelStatusLocRem.setText('')
+        self.IPS_window.labelStatusSwitchHeater.setText('')
+
+    @pyqtSlot(bool)
+    def run_IPS(self, boolean):
+        """start/stop the Powersupply thread"""
+
+        if boolean: 
+            try: 
+                getInfodata = self.running_thread(IPS_Updater(InstrumentAddress='COM4'),'IPS', 'control_IPS')
+
+                getInfodata.sig_Infodata.connect(self.store_data_ips)
+                getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('IPS: timeout'))
+
+                self.IPS_window.comboSetActivity.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setActivity(value))
+                self.IPS_window.comboSetSwitchHeater.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
+
+                self.IPS_window.spinSetFieldSetpoint.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSetPoint(value))
+                self.IPS_window.spinSetFieldSetpoint.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSetPoint())
+
+                self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
+                self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSweepRate())
+
+                self.action_run_IPS.setChecked(True)
+            
+            except VisaIOError as e:
+                self.action_run_IPS.setChecked(False)
+                self.show_error_textBrowser(e)
+                print(e) # TODO: open window displaying the error message
+        else: 
+            self.action_run_IPS.setChecked(False)
+            self.stopping_thread('control_IPS')
+
+    @pyqtSlot(bool)
+    def show_IPS(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.IPS_window.show()
+        else:
+            self.IPS_window.close()
+
+    @pyqtSlot(dict)
+    def store_data_ips(self, data):
+        """Store PS data in self.data['ILM'], update PS_window"""
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['IPS'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up, 
+            # since the command failed in the communication with the device, the last value is retained            
+            self.IPS_window.lcdFieldSetPoint.display(self.data['IPS']['FIELD_set_point'])
+            self.IPS_window.lcdFieldSweepRate.display(self.data['IPS']['FIELD_sweep_rate'])
+
+            self.IPS_window.lcdOutputField.display(self.data['IPS']['FIELD_output'])
+            self.IPS_window.lcdMeasuredMagnetCurrent.display(self.data['IPS']['measured_magnet_current'])
+            self.IPS_window.lcdOutputCurrent.display(self.data['IPS']['CURRENT_output'])
+            # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
+            # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
+
+            self.IPS_window.lcdLeadResistance.display(self.data['IPS']['lead_resistance'])
+
+            self.IPS_window.lcdPersistentMagnetField.display(self.data['IPS']['persistent_magnet_field'])
+            self.IPS_window.lcdTripField.display(self.data['IPS']['trip_field'])
+            self.IPS_window.lcdPersistentMagnetCurrent.display(self.data['IPS']['persistent_magnet_current'])
+            self.IPS_window.lcdTripCurrent.display(self.data['IPS']['trip_current'])
+
+            self.IPS_window.labelStatusMagnet.setText(self.data['IPS']['status_magnet'])
+            self.IPS_window.labelStatusCurrent.setText(self.data['IPS']['status_current'])
+            self.IPS_window.labelStatusActivity.setText(self.data['IPS']['status_activity'])
+            self.IPS_window.labelStatusLocRem.setText(self.data['IPS']['status_locrem'])
+            self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])            
+
+        
     def printing(self,b):
         """arbitrary exmple function"""
         print(b)
@@ -241,60 +405,82 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.Log_conf_window.close()
 
 
-    def initialize_window_ILM(self):
-        """initialize ILM Window"""
-        self.ILM_window = Window_ui(ui_file='.\\Oxford\\ILM_control.ui')
-        self.ILM_window.sig_closing.connect(lambda: self.action_show_ILM.setChecked(False))
 
-        self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
-        self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
+
+    def initialize_window_Lakeshore350(self):
+        """initialize ITC Window"""
+        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
+        self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
+
+        self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
+        self.action_show_Lakeshore350.triggered['bool'].connect(self.show_LakeShore350)
 
     @pyqtSlot(bool)
-    def run_ILM(self, boolean):
+    def show_LakeShore350(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.LakeShore350_window.show()
+        else:
+            self.LakeShore350_window.close()
+
+
+        """
+            self.textErrors = QtWidgets.QTextBrowser(Form)
+            self.textErrors.setObjectName("textErrors")
+            self.lcdHeaterOutput_mW = QtWidgets.QLCDNumber(Form)
+            self.lcdHeaterOutput_mW.setObjectName("lcdHeaterOutput_mW")
+            self.lcdSetTemp_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSetTemp_K.setObjectName("lcdSetTemp_K")
+            self.spinSetTemp_K = QtWidgets.QDoubleSpinBox(Form)
+            self.spinSetTemp_K.setDecimals(4)
+            self.spinSetTemp_K.setMaximum(300.0)
+            self.spinSetTemp_K.setObjectName("spinSetTemp_K")
+            self.lcdSetHeater_mW = QtWidgets.QLCDNumber(Form)
+            self.lcdSetHeater_mW.setObjectName("lcdSetHeater_mW")
+            self.spinSetHeater_mW = QtWidgets.QDoubleSpinBox(Form)
+            self.spinSetHeater_mW.setDecimals(1)
+            self.spinSetHeater_mW.setMaximum(1000.0)
+            self.spinSetHeater_mW.setObjectName("spinSetHeater_mW")
+            self.lcdSensor1_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor1_K.setObjectName("lcdSensor1_K")
+            self.lcdSensor2_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor2_K.setObjectName("lcdSensor2_K")
+            self.lcdSensor3_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor3_K.setObjectName("lcdSensor3_K")
+            self.lcdSensor4_K = QtWidgets.QLCDNumber(Form)
+            self.lcdSensor4_K.setObjectName("lcdSensor4_K")
+
+            self.spinXXX.valueChanged.connect(self.method)
+            self.spinXXX.valueChanged.connect(lambda: self.threads['somethread'].THREAD_Class_method())
+            self.spinXXX.valueChanged.connect(lambda value: self.threads['somethread'].THREAD_Class_method(value))
+            self.lcdXXX.display(some_number)
+            self.textXXX.setText(some_string)
+        """
+
+    @pyqtSlot(bool)
+    def run_LakeShore350(self, boolean):
         """start/stop the logging thread"""
 
-        # read the last configuration of what shall be logged from a respective file
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'),'ILM', 'control_ILM')
+                # getInfodata = self.running_thread(LakeShore_Updater(InstrumentAddress=''),'LakeShore350', 'control_LakeShore350')
 
-                getInfodata.sig_Infodata.connect(self.store_data_ilm)
-                getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+                # getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
+                # getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
 
-                self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
-                self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
 
-                self.action_run_ILM.setChecked(True)
+                self.action_run_LakeShore350.setChecked(True)
             
             except VisaIOError as e:
-                self.action_run_ILM.setChecked(False)
+                self.action_run_LakeShore350.setChecked(False)
                 print(e) # TODO: open window displaying the error message
         else: 
-            self.action_run_ILM.setChecked(False)
-            self.stopping_thread('control_ILM')
+            self.action_run_LakeShore350.setChecked(False)
+            # self.stopping_thread('control_LakeShore350')
 
-
-    @pyqtSlot(bool)
-    def show_ILM(self, boolean):
-        """display/close the ILM data & control window"""
-        if boolean:
-            self.ILM_window.show()
-        else:
-            self.ILM_window.close()
-
-    @pyqtSlot(dict)
-    def store_data_ilm(self, data):
-        """Store ILM data in self.data['ILM'], update ILM_window"""
-        data['date'] = convert_time(time.time())
-        self.data['ILM'].append(data)
-        self.MainDock_HeLevel.setValue(self.data['ILM'][-1]['channel_1_level'])
-        self.MainDock_N2Level.setValue(self.data['ILM'][-1]['channel_2_level'])
-        print(self.data['ILM'][-1]['channel_1_level'], self.data['ILM'][-1]['channel_2_level'])
-
-        
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
