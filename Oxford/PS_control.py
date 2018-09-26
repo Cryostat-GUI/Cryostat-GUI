@@ -64,7 +64,8 @@ class PS_Updater(AbstractLoopThread):
                 data[key] = self.PS.getValue(idx_sensor)
                 time.sleep(self.delay)
             self.sig_Infodata.emit(deepcopy(data))
-
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
@@ -91,44 +92,116 @@ class PS_Updater(AbstractLoopThread):
     @pyqtSlot()
     def readField(self): 
         '''method to readField - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.readField()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
     def readFieldSetpoint(self): 
         '''method to readFieldSetpoint - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.readFieldSetpoint()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
     def readFieldSweepRate(self): 
         '''method to readFieldSweepRate - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.readFieldSweepRate()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setActivity(self): 
+    def setActivity(self, state): 
         '''method to setActivity - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.setActivity( state)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setHeater(self): 
+    def setSwitchHeater(self, state): 
         '''method to setHeater - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.setSwitchHeater(state)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setFieldSetpoint(self): 
+    def setFieldSetpoint(self, field): 
         '''method to setFieldSetpoint - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.setFieldSetpoint(field)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setFieldSweepRate(self): 
+    def setFieldSweepRate(self, rate): 
         '''method to setFieldSweepRate - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.setFieldSweepRate(rate)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setDisplay(self): 
+    def setDisplay(self, display): 
         '''method to setDisplay - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.setDisplay(display)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
     def waitForField(self): 
         '''method to waitForField - this can be invoked by a signal'''
-        pass
+        try:
+            self.PS.waitForField()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0]) 

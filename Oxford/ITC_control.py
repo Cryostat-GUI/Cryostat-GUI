@@ -37,21 +37,6 @@ class ITC_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    class control_checks(object):
-        """decorator class for error handling"""
-        def __init__(subself, decorated):
-            functools.update_wrapper(subself, decorated) 
-            subself._decorated = decorated
-        def __call__(*args, **kwargs):
-            try:
-                return subself._decorated(*args, **kwargs)
-            except AssertionError as e_ass:
-                self.sig_assertion.emit(e_ass.args[0])
-            except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                    self.sig_visatimeout.emit()
-                else: 
-                    self.sig_visaerror.emit(e_visa.args[0])
 
     sensors = dict(
             set_temperature = 0,
@@ -100,24 +85,24 @@ class ITC_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        # try: 
+        try: 
 
-        data = dict()
-        # get key-value pairs of the sensors dict,
-        # so I can then transmit one single dict
-        for key, idx_sensor in self.sensors.items():
-            data[key] = self.ITC.getValue(idx_sensor)
-            time.sleep(self.delay)
-        self.sig_Infodata.emit(deepcopy(data))
+            data = dict()
+            # get key-value pairs of the sensors dict,
+            # so I can then transmit one single dict
+            for key, idx_sensor in self.sensors.items():
+                data[key] = self.ITC.getValue(idx_sensor)
+                time.sleep(self.delay)
+            self.sig_Infodata.emit(deepcopy(data))
 
-        #     # time.sleep(self.delay1)
-        # except AssertionError as e_ass:
-        #     self.sig_assertion.emit(e_ass.args[0])
-        # except VisaIOError as e_visa:
-        #     if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-        #         self.sig_visatimeout.emit()
-        #     else: 
-        #         self.sig_visaerror.emit(e_visa.args[0])
+            # time.sleep(self.delay1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
 
     def control_checks(func):
         @functools.wraps(func)

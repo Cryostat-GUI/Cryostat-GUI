@@ -28,7 +28,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
         super(Sequence_Thread, self).__init__()
         self.__isRunning = True
         self.sequence = sequence
-        self.Lock = mainthread.dataLock
+        self.dataLock = mainthread.dataLock
 
         self.threshold_Temp = 0.1
         self.threshold_Field = 0.1
@@ -60,7 +60,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
             produce a possibility to abort the sequence, through
             repeated check for value, for breaking condition, and sleeping
         """
-        with self.Lock:
+        with self.dataLock:
             # check for value
             # check for break condition
             if not self.__isRunning:
@@ -75,7 +75,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
             produce a possibility to abort the sequence, through
             repeated check for value, for breaking condition, and sleeping
         """
-        with self.Lock:
+        with self.dataLock:
             # check for value
             # check for break condition
             if not self.__isRunning:
