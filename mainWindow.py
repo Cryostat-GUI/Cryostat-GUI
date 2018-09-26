@@ -135,7 +135,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)
                 getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
-                getInfodata.sig_assertion.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: print('ITC: timeout'))
 
@@ -171,7 +171,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
                 self.show_error_textBrowser(e)
-                print(e) # TODO: open window displaying the error message
+                # print(e) # TODO: open window displaying the error message
 
         else:
             # possibly implement putting the instrument back to local operation
@@ -241,8 +241,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata = self.running_thread(ILM_Updater(InstrumentAddress=ILM_Instrumentadress),'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
-                getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.printing)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: print('ILM: timeout'))
 
@@ -254,7 +255,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             except VisaIOError as e:
                 self.action_run_ILM.setChecked(False)
                 self.show_error_textBrowser(e)
-                print(e) # TODO: open window displaying the error message
+                # print(e) # TODO: open window displaying the error message
         else: 
             self.action_run_ILM.setChecked(False)
             self.stopping_thread('control_ILM')
@@ -306,8 +307,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata = self.running_thread(IPS_Updater(InstrumentAddress=IPS_Instrumentadress),'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
-                getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.printing)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: print('IPS: timeout'))
 
@@ -325,7 +327,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             except VisaIOError as e:
                 self.action_run_IPS.setChecked(False)
                 self.show_error_textBrowser(e)
-                print(e) # TODO: open window displaying the error message
+                # print(e) # TODO: open window displaying the error message
         else: 
             self.action_run_IPS.setChecked(False)
             self.stopping_thread('control_IPS')
