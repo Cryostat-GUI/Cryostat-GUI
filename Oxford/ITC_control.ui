@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
-    <height>354</height>
+    <width>559</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,13 +20,6 @@
    <string>ITC Control</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
-   <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
-   </item>
    <item>
     <widget class="QWidget" name="widgetSetpoints" native="true">
      <layout class="QGridLayout" name="gridLayout">
@@ -241,8 +234,8 @@
      <property name="horizontalSpacing">
       <number>6</number>
      </property>
-     <item row="8" column="1">
-      <widget class="QLCDNumber" name="lcdProportionalID">
+     <item row="7" column="1">
+      <widget class="QLCDNumber" name="lcdHeaterVoltage">
        <property name="digitCount">
         <number>6</number>
        </property>
@@ -258,8 +251,8 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
-      <widget class="QLCDNumber" name="lcdHeaterVoltage">
+     <item row="8" column="1">
+      <widget class="QLCDNumber" name="lcdProportionalID">
        <property name="digitCount">
         <number>6</number>
        </property>
@@ -275,6 +268,20 @@
        </property>
        <property name="segmentStyle">
         <enum>QLCDNumber::Flat</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_15">
+       <property name="text">
+        <string>Integration action time</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Temperature 2</string>
        </property>
       </widget>
      </item>
@@ -295,13 +302,6 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_15">
-       <property name="text">
-        <string>Integration action time</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="1">
       <widget class="QLCDNumber" name="lcdTemp_err">
        <property name="digitCount">
@@ -312,31 +312,10 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_9">
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_12">
        <property name="text">
-        <string>Temperature 2</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_13">
-       <property name="text">
-        <string>Heater Output [V]</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>Temperature error</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QProgressBar" name="progressHeaterPercent">
-       <property name="value">
-        <number>24</number>
+        <string>Heater Output [%]</string>
        </property>
       </widget>
      </item>
@@ -356,29 +335,24 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_12">
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_11">
        <property name="text">
-        <string>Heater Output [%]</string>
+        <string>Temperature error</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLCDNumber" name="lcdTemp_sens1">
-       <property name="smallDecimalPoint">
-        <bool>false</bool>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="text">
+        <string>Heater Output [V]</string>
        </property>
-       <property name="digitCount">
-        <number>6</number>
-       </property>
-       <property name="mode">
-        <enum>QLCDNumber::Dec</enum>
-       </property>
-       <property name="segmentStyle">
-        <enum>QLCDNumber::Flat</enum>
-       </property>
-       <property name="value" stdset="0">
-        <double>0.000000000000000</double>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QProgressBar" name="progressHeaterPercent">
+       <property name="value">
+        <number>24</number>
        </property>
       </widget>
      </item>
@@ -386,13 +360,6 @@
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>Temperature 1</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_NeedleValve">
-       <property name="text">
-        <string>Gas Output</string>
        </property>
       </widget>
      </item>
@@ -416,10 +383,50 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_NeedleValve">
+       <property name="text">
+        <string>Gas Output</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLCDNumber" name="lcdTemp_sens1">
+       <property name="smallDecimalPoint">
+        <bool>false</bool>
+       </property>
+       <property name="digitCount">
+        <number>6</number>
+       </property>
+       <property name="mode">
+        <enum>QLCDNumber::Dec</enum>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
+       </property>
+       <property name="value" stdset="0">
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
+     </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_10">
        <property name="text">
         <string>Temperature 3</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string>Local / Remote control</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QLabel" name="label_status_locrem">
+       <property name="text">
+        <string>Remote &amp; Unlocked</string>
        </property>
       </widget>
      </item>

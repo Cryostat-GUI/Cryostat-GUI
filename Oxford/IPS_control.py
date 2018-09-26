@@ -10,7 +10,7 @@ from .Drivers.ips120 import ips120
 from pyvisa.errors import VisaIOError
 
 
-class PS_Updater(AbstractLoopThread):
+class IPS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
     sig_Infodata = pyqtSignal(dict)
@@ -19,7 +19,7 @@ class PS_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    sensors_= dict(
+    sensors= dict(
                     # demand_current_to_psu_= 0,#           output_current
                     measured_power_supply_voltage = 1,
                     measured_magnet_current = 2,
@@ -43,6 +43,31 @@ class PS_Updater(AbstractLoopThread):
                     # IDAC = 20,#                           demand_current_as_a_hexadecimal_number
                     safe_current_limit_most_negative = 21,
                     safe_current_limit_most_positive = 22)
+    statusdict = dict(magnetstatus= {'0': 'normal', 
+                                     '1': 'quenched', 
+                                     '2': 'over heated', 
+                                     '3': 'warming up'}, 
+                    currentstatus = {'0': 'normal', 
+                                     '1': 'on positive voltage limit', 
+                                     '2': 'on negative voltage limit', 
+                                     '4': 'outside negative current limit', 
+                                     '8': 'outside positive current limit'}, 
+                    activitystatus= {'0': 'Hold',
+                                     '1': 'To set point',
+                                     '2': 'To zero',
+                                     '3': 'Clamped'}, 
+                    loc_remstatus = {'0': 'local & locked',
+                                     '1': 'remote & locked',
+                                     '2': 'local & unlocked',
+                                     '3': 'remote & unlocked',
+                                     '4': 'AUTO RUN DOWN',
+                                     '5': 'AUTO RUN DOWN',
+                                     '6': 'AUTO RUN DOWN',
+                                     '7': 'AUTO RUN DOWN'}, 
+                    switchHeaterstat={'0': 'Off (closed) magnet at zero',
+                                      '1': 'On (open)',
+                                      '2': 'Off (closed) magnet at field',
+                                      '8': 'no switch fitted'})
 
 
     def __init__(self, InstrumentAddress):
@@ -51,6 +76,7 @@ class PS_Updater(AbstractLoopThread):
 
         self.PS = ips120(InstrumentAddress)
         self.delay = 0.0
+        self.field_setpoint = 0
 
 
     @pyqtSlot()
@@ -63,6 +89,7 @@ class PS_Updater(AbstractLoopThread):
             for key, idx_sensor in self.sensors.items():
                 data[key] = self.PS.getValue(idx_sensor)
                 time.sleep(self.delay)
+            data.update(self.getStatus())
             self.sig_Infodata.emit(deepcopy(data))
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
@@ -72,9 +99,17 @@ class PS_Updater(AbstractLoopThread):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
-    @pyqtSlot(float)
-    def set_delay_measuring(self, delay):
-        self.delay = delay
+    @pyqtSlot(int)
+    def set_delay_sending(self, delay):
+        self.PS.set_delay_measuring(delay)
+
+    def getStatus(self):
+        status = self.PS.getStatus()
+        return dict(status_magnet = self.statusdict['magnetstatus'][status[1]], 
+                    status_current = self.statusdict['currentstatus'][status[2]], 
+                    status_activity= self.statusdict['activitystatus'][status[4]], 
+                    status_locrem = self.statusdict['loc_remstatus'][status[6]], 
+                    status_switchheater= self.statusdict['switchHeaterstat'][status[8]])
 
     @pyqtSlot(int)
     def setControl(self, control_state=3):
@@ -155,10 +190,10 @@ class PS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def setFieldSetpoint(self, field): 
+    def setFieldSetpoint(self): 
         '''method to setFieldSetpoint - this can be invoked by a signal'''
         try:
-            self.PS.setFieldSetpoint(field)
+            self.PS.setFieldSetpoint(self.field_setpoint)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -166,12 +201,19 @@ class PS_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0]) 
+    @pyqtSlot(float)
+    def gettoset_FieldSetpoint(self, value):
+            """class method to receive and store the value, to set the Field Setpoint
+                later on, when the command to enforce the value is sent
+                TODO: adjust for units! 
+            """
+        self.field_setpoint = value
 
     @pyqtSlot()
-    def setFieldSweepRate(self, rate): 
+    def setFieldSweepRate(self): 
         '''method to setFieldSweepRate - this can be invoked by a signal'''
         try:
-            self.PS.setFieldSweepRate(rate)
+            self.PS.setFieldSweepRate(self.field_rate)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -179,6 +221,12 @@ class PS_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0]) 
+    @pyqtSlot(int)
+    def gettoset_FieldSweepRate(self, value):
+            """class method to receive and store the value to set the Field sweep rate
+                later on, when the command to enforce the value is sent
+            """
+        self.field_setpoint = value
 
     @pyqtSlot()
     def setDisplay(self, display): 
@@ -194,7 +242,7 @@ class PS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def waitForField(self): 
+    def waitForField(self, timeout, error_margin): 
         '''method to waitForField - this can be invoked by a signal'''
         try:
             self.PS.waitForField()

@@ -69,7 +69,7 @@
      <addaction name="separator"/>
      <addaction name="action_show_ITC"/>
      <addaction name="action_show_ILM"/>
-     <addaction name="action_show_PS_120"/>
+     <addaction name="action_show_IPS"/>
      <addaction name="separator"/>
      <addaction name="action_show_Lakeshore350"/>
     </widget>
@@ -86,7 +86,7 @@
      </property>
      <addaction name="action_run_ITC"/>
      <addaction name="action_run_ILM"/>
-     <addaction name="action_run_PS"/>
+     <addaction name="action_run_IPS"/>
     </widget>
     <widget class="QMenu" name="menuKeithley">
      <property name="title">
@@ -482,7 +482,7 @@
     <string>Level Meter</string>
    </property>
   </action>
-  <action name="action_run_PS">
+  <action name="action_run_IPS">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -524,7 +524,7 @@
     <string>ILM 211</string>
    </property>
   </action>
-  <action name="action_show_PS_120">
+  <action name="action_show_IPS">
    <property name="checkable">
     <bool>true</bool>
    </property>

@@ -57,7 +57,6 @@ class ITC_Updater(AbstractLoopThread):
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
 
-        # TODO need initialisation for all the parameters!
 
         self.control_state = 3
         self.set_temperature = 0
@@ -75,7 +74,7 @@ class ITC_Updater(AbstractLoopThread):
         self.setControl()
         # self.__isRunning = True
 
-    @control_checks
+    # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
         
@@ -104,15 +103,15 @@ class ITC_Updater(AbstractLoopThread):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
-    def control_checks(func):
-        @functools.wraps(func)
-        def wrapper_control_checks(*args, **kwargs):
-            pass
+    # def control_checks(func):
+    #     @functools.wraps(func)
+    #     def wrapper_control_checks(*args, **kwargs):
+    #         pass
 
 
-    # @pyqtSlot(int)
-    # def set_delay_sending(self, delay):
-    #     self.delay1 = delay
+    @pyqtSlot(int)
+    def set_delay_sending(self, delay):
+        self.ITC.set_delay_measuring(delay)
 
 
 
