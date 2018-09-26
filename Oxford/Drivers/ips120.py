@@ -67,6 +67,51 @@ class ips120(AbstractSerialDeviceDriver):
 
         self.write("$C{}".format(state))
 
+
+    def getValue(self, variable=0):
+        """Read the variable defined by the index.
+        
+         0: Demand Current to PSU (Output Current)
+         1: Measured Power supply voltage
+         2: measured magnet current
+         3: ----- unused -----
+         4: demand current (dublicate of 0)
+         5: CURRENT set point (Target) -  [A]
+         6: CURRENT sweep rate            [A/min]
+         7: Demand Field (Output Field)
+         8: FIELD set point (Target) -    [T]
+         9: FIELD sweep rate              [T/min]
+        10: Lead resistance               [milli Ohm]
+        11: channel 1 Freq/4
+        12: channel 2 Freq/4
+        13: channel 3 Freq/4
+        14: DACZ (PSU zero correction as a hexadecimal number)
+        15: software voltage limit
+        16: persistent magnet current
+        17: trip current
+        18: persistent magnet field
+        19: trip field
+        20: IDAC (demand current as a hexadecimal number)
+        21: safe current limit, most negative
+        22: safe current limit, most positive
+        
+        Args:
+            variable: Index of variable to read.
+        """
+        if not isinstance(variable, int):
+            raise AssertionError('PS: getValue: argument must be integer')
+        if variable not in range(0,23):
+            raise AssertionError('PS: getValue: Argument is not a valid number.')
+        
+        value = self.query('R{}'.format(variable))
+        # value = self._visa_resource.read()
+        
+        if value == "" or None:
+            raise AssertionError('PS: getValue: bad reply: empty string')
+        if value[0] != 'R':
+            raise AssertionError('PS: getValue: bad reply: {}'.format(value))
+        return float(value.strip('R+'))
+
     def readField(self):
         """Read the current magnetic field in Tesla
 
@@ -153,6 +198,10 @@ class ips120(AbstractSerialDeviceDriver):
 
         Args:
             field(float): the magnetic field set point, in Tesla
+
+        TODO: check for sanity: 
+        - manual says field is set in mT (0.001 T)
+        - plarity is set manually, NOT by setting negative field setpoint
         """
         MAX_FIELD = 8
         if not abs(field) < MAX_FIELD:
@@ -165,6 +214,9 @@ class ips120(AbstractSerialDeviceDriver):
 
         Args:
             rate(float): the magnetic field sweep rate, in Tesla/min
+
+        TODO: check for sanity: 
+        - manual: field rate in units of mT/min
         """
         self.write("$T{}".format(rate))
 
@@ -182,6 +234,10 @@ class ips120(AbstractSerialDeviceDriver):
                     }
 
         self.write("$M{}".format(mode_dict[display]))
+
+
+
+
 
     def waitForField(self, timeout=600, error_margin=0.01):
         """Wait for the field to reach the set point

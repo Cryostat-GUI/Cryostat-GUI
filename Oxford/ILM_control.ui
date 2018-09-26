@@ -46,12 +46,12 @@
         </property>
         <item>
          <property name="text">
-          <string>Fast</string>
+          <string>Slow</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Slow</string>
+          <string>Fast</string>
          </property>
         </item>
        </widget>

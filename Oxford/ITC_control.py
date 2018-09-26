@@ -37,6 +37,22 @@ class ITC_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
+    class control_checks(object):
+        """decorator class for error handling"""
+        def __init__(subself, decorated):
+            functools.update_wrapper(subself, decorated) 
+            subself._decorated = decorated
+        def __call__(*args, **kwargs):
+            try:
+                return subself._decorated(*args, **kwargs)
+            except AssertionError as e_ass:
+                self.sig_assertion.emit(e_ass.args[0])
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    self.sig_visatimeout.emit()
+                else: 
+                    self.sig_visaerror.emit(e_visa.args[0])
+
     sensors = dict(
             set_temperature = 0,
             sensor_1_temperature = 1,
@@ -70,11 +86,11 @@ class ITC_Updater(AbstractLoopThread):
         self.sweep_parameters = None
 
         self.delay1 = 1
-        self.delay2 = 0.4
+        self.delay = 0.0
         self.setControl()
         # self.__isRunning = True
 
-
+    @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
         
@@ -84,31 +100,36 @@ class ITC_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        try: 
-            data = dict()
-            # get key-value pairs of the sensors dict,
-            # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                data[key] = self.ITC.getValue(idx_sensor)
-                time.sleep(self.delay2)
-            self.sig_Infodata.emit(deepcopy(data))
-            # time.sleep(self.delay1)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else: 
-                self.sig_visaerror.emit(e_visa.args[0])
+        # try: 
+
+        data = dict()
+        # get key-value pairs of the sensors dict,
+        # so I can then transmit one single dict
+        for key, idx_sensor in self.sensors.items():
+            data[key] = self.ITC.getValue(idx_sensor)
+            time.sleep(self.delay)
+        self.sig_Infodata.emit(deepcopy(data))
+
+        #     # time.sleep(self.delay1)
+        # except AssertionError as e_ass:
+        #     self.sig_assertion.emit(e_ass.args[0])
+        # except VisaIOError as e_visa:
+        #     if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+        #         self.sig_visatimeout.emit()
+        #     else: 
+        #         self.sig_visaerror.emit(e_visa.args[0])
+
+    def control_checks(func):
+        @functools.wraps(func)
+        def wrapper_control_checks(*args, **kwargs):
+            pass
 
 
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
     #     self.delay1 = delay
 
-    @pyqtSlot(int)
-    def set_delay_measuring(self, delay):
-        self.delay2 = delay
+
 
 
     @pyqtSlot()

@@ -19,19 +19,51 @@ class PS_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
+    sensors_= dict(
+                    # demand_current_to_psu_= 0,#           output_current
+                    measured_power_supply_voltage = 1,
+                    measured_magnet_current = 2,
+                    # unused = 3,
+                    CURRENT_output = 4,#                  CURRENT output current (duplicate of R0)
+                    CURRENT_set_point= 5,#                CURRENT Target [A] 
+                    CURRENT_sweep_rate = 6,#              CURRENT        [A/min]
+                    FIELD_output = 7,#                    FIELD   Output_Field
+                    FIELD_set_point = 8,#                 FIELD   Target [T]
+                    FIELD_sweep_rate = 9,#                FIELD          [T/min]
+                    lead_resistance = 10,#                RESISTANCE     [milli_Ohm]
+                    # channel_1_Freq4 = 11,
+                    # channel_2_Freq4 = 12,
+                    # channel_3_Freq4 = 13,
+                    # DACZ = 14,#                           PSU_zero_correction_as_a_hexadecimal_number
+                    software_voltage_limit = 15,
+                    persistent_magnet_current = 16,
+                    trip_current = 17,
+                    persistent_magnet_field = 18,
+                    trip_field = 19,
+                    # IDAC = 20,#                           demand_current_as_a_hexadecimal_number
+                    safe_current_limit_most_negative = 21,
+                    safe_current_limit_most_positive = 22)
+
 
     def __init__(self, InstrumentAddress):
-        super().__init__()
+        super(PS_Updater, self).__init__()
         # QThread.__init__(self)
 
         self.PS = ips120(InstrumentAddress)
+        self.delay = 0.0
 
 
     @pyqtSlot()
     def running(self):
         """worker method of the power supply controlling thread"""
         try:
-            pass
+            data = dict()
+            # get key-value pairs of the sensors dict,
+            # so I can then transmit one single dict
+            for key, idx_sensor in self.sensors.items():
+                data[key] = self.PS.getValue(idx_sensor)
+                time.sleep(self.delay)
+            self.sig_Infodata.emit(deepcopy(data))
 
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
@@ -39,9 +71,12 @@ class PS_Updater(AbstractLoopThread):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot(float)
+    def set_delay_measuring(self, delay):
+        self.delay = delay
 
     @pyqtSlot(int)
-    def setControl(self, control_state):
+    def setControl(self, control_state=3):
         """method to set the control for local/remote"""
         try:
             self.PS.setControl(control_state)
