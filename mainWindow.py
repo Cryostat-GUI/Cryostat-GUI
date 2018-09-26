@@ -28,7 +28,9 @@ from logger import Logger_configuration #Logger_configuration
 from util import Window_ui
 
 
-ITC_Instrumentadress = 'COM6'
+ITC_Instrumentadress = 'ASRL6::INSTR'
+ILM_Instrumentadress = 'ASRL5::INSTR'
+IPS_Instrumentadress = 'ASRL4::INSTR'
 
 
 def convert_time(ts):
@@ -128,7 +130,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = self.running_thread(ITC_Updater('COM6'), 'ITC', 'control_ITC')
+                getInfodata = self.running_thread(ITC_Updater(ITC_Instrumentadress), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -236,7 +238,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress='COM5'),'ILM', 'control_ILM')
+                getInfodata = self.running_thread(ILM_Updater(InstrumentAddress=ILM_Instrumentadress),'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 getInfodata.sig_visaerror.connect(self.printing)
@@ -301,7 +303,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(IPS_Updater(InstrumentAddress='COM4'),'IPS', 'control_IPS')
+                getInfodata = self.running_thread(IPS_Updater(InstrumentAddress=IPS_Instrumentadress),'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
                 getInfodata.sig_visaerror.connect(self.printing)
@@ -312,8 +314,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.IPS_window.comboSetActivity.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setActivity(value))
                 self.IPS_window.comboSetSwitchHeater.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
 
-                self.IPS_window.spinSetFieldSetpoint.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSetPoint(value))
-                self.IPS_window.spinSetFieldSetpoint.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSetPoint())
+                self.IPS_window.spinSetFieldSetPoint.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSetPoint(value))
+                self.IPS_window.spinSetFieldSetPoint.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSetPoint())
 
                 self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
                 self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSweepRate())
