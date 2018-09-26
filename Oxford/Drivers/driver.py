@@ -19,7 +19,7 @@ class AbstractSerialDeviceDriver(object):
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         self._visa_resource.read_termination = '\r'
         self.ComLock = threading.Lock()    
-        self.delay = 0.1
+        self.delay = 0.2
 
 
     @pyqtSlot(float)

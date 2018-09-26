@@ -55,6 +55,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_logger = False
 
         self.dataLock = Lock()
+        self.textErrors.setHtml('')
 
         QTimer.singleShot(0, self.initialize_all_windows)
 
@@ -105,6 +106,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.threads[threadname][1].wait()
         del self.threads[threadname]
 
+    def show_error_textBrowser(self, text):
+        self.textErrors.append('{}'.format(text))
+
     # ------- Oxford Instruments 
     # ------- ------- ITC
     def initialize_window_ITC(self):
@@ -127,9 +131,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata = self.running_thread(ITC_Updater('COM6'), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
-                getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('ITC: timeout'))
 
 
                 # setting ITC values by GUI ITC window
@@ -162,6 +168,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.logging_running_ITC = True
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
+                self.show_error_textBrowser(e)
                 print(e) # TODO: open window displaying the error message
 
         else:
@@ -234,7 +241,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 getInfodata.sig_visaerror.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('ILM: timeout'))
 
                 self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
                 # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
@@ -243,6 +251,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             
             except VisaIOError as e:
                 self.action_run_ILM.setChecked(False)
+                self.show_error_textBrowser(e)
                 print(e) # TODO: open window displaying the error message
         else: 
             self.action_run_ILM.setChecked(False)
@@ -292,12 +301,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean: 
             try: 
-                getInfodata = self.running_thread(IPS_Updater(InstrumentAddress=''),'IPS', 'control_IPS')
+                getInfodata = self.running_thread(IPS_Updater(InstrumentAddress='COM4'),'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
                 getInfodata.sig_visaerror.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: print('IPS: timeout'))
 
                 self.IPS_window.comboSetActivity.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setActivity(value))
                 self.IPS_window.comboSetSwitchHeater.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
@@ -312,6 +322,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             
             except VisaIOError as e:
                 self.action_run_IPS.setChecked(False)
+                self.show_error_textBrowser(e)
                 print(e) # TODO: open window displaying the error message
         else: 
             self.action_run_IPS.setChecked(False)
