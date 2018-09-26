@@ -97,7 +97,7 @@
     </widget>
     <addaction name="menuOxford_Cryostat"/>
     <addaction name="separator"/>
-    <addaction name="action_run_Lakeshore350"/>
+    <addaction name="action_run_LakeShore350"/>
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
     <addaction name="action_Logging"/>
@@ -434,7 +434,7 @@
     <string>Data</string>
    </property>
   </action>
-  <action name="action_run_Lakeshore350">
+  <action name="action_run_LakeShore350">
    <property name="checkable">
     <bool>true</bool>
    </property>

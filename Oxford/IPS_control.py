@@ -43,19 +43,19 @@ class IPS_Updater(AbstractLoopThread):
                     # IDAC = 20,#                           demand_current_as_a_hexadecimal_number
                     safe_current_limit_most_negative = 21,
                     safe_current_limit_most_positive = 22)
-    statusdict = dict(magnetstatus= {'0': 'normal', 
-                                     '1': 'quenched', 
-                                     '2': 'over heated', 
-                                     '3': 'warming up'}, 
+    statusdict = dict(magnetstatus= {'0': 'normal',
+                                     '1': 'quenched',
+                                     '2': 'over heated',
+                                     '4': 'warming up'},
                     currentstatus = {'0': 'normal', 
-                                     '1': 'on positive voltage limit', 
-                                     '2': 'on negative voltage limit', 
-                                     '4': 'outside negative current limit', 
-                                     '8': 'outside positive current limit'}, 
+                                     '1': 'on positive voltage limit',
+                                     '2': 'on negative voltage limit',
+                                     '4': 'outside negative current limit',
+                                     '8': 'outside positive current limit'},
                     activitystatus= {'0': 'Hold',
                                      '1': 'To set point',
                                      '2': 'To zero',
-                                     '3': 'Clamped'}, 
+                                     '4': 'Clamped'},
                     loc_remstatus = {'0': 'local & locked',
                                      '1': 'remote & locked',
                                      '2': 'local & unlocked',
@@ -63,11 +63,35 @@ class IPS_Updater(AbstractLoopThread):
                                      '4': 'AUTO RUN DOWN',
                                      '5': 'AUTO RUN DOWN',
                                      '6': 'AUTO RUN DOWN',
-                                     '7': 'AUTO RUN DOWN'}, 
+                                     '7': 'AUTO RUN DOWN'},
                     switchHeaterstat={'0': 'Off (closed) magnet at zero',
                                       '1': 'On (open)',
                                       '2': 'Off (closed) magnet at field',
-                                      '8': 'no switch fitted'})
+                                      '8': 'no switch fitted'},
+                    modestatus1 = {'0': 'display: Amps,  mode: immediate, sweepmode: Fast',
+                                   '1': 'display: Tesla, mode: immediate, sweepmode: Fast',
+                                   '2': 'display: Amps,  mode: sweep,     sweepmode: Fast',
+                                   '3': 'display: Tesla, mode: sweep,     sweepmode: Fast',
+                                   '4': 'display: Amps,  mode: immediate, sweepmode: Train',
+                                   '5': 'display: Tesla, mode: immediate, sweepmode: Train',
+                                   '6': 'display: Amps,  mode: sweep,     sweepmode: Train',
+                                   '7': 'display: Tesla, mode: sweep,     sweepmode: Train'},
+                    modestatus2 = {'0': 'at rest (output constant)',
+                                   '1': 'sweeping (output changing)',
+                                   '2': 'rate limiting (output changing)',
+                                   '3': 'sweeping & rate limiting (output changing)'}, 
+                    polarity1 = {'0': 'desired: Forward, magnet: Forward, commanded: Forward',
+                                 '1': 'desired: Forward, magnet: Forward, commanded: Reverse',
+                                 '2': 'desired: Forward, magnet: Reverse, commanded: Forward',
+                                 '3': 'desired: Forward, magnet: Reverse, commanded: Reverse',
+                                 '4': 'desired: Reverse, magnet: Forward, commanded: Forward',
+                                 '5': 'desired: Reverse, magnet: Forward, commanded: Reverse',
+                                 '6': 'desired: Reverse, magnet: Reverse, commanded: Forward',
+                                 '7': 'desired: Reverse, magnet: Reverse, commanded: Reverse'}, 
+                    polarity2 = {'0': 'output clamped (transition)',
+                                 '1': 'forward (verification)',
+                                 '2': 'reverse (verification)',
+                                 '4': 'output clamped (requested)'})
 
 
     def __init__(self, InstrumentAddress):
@@ -109,7 +133,11 @@ class IPS_Updater(AbstractLoopThread):
                     status_current = self.statusdict['currentstatus'][status[2]], 
                     status_activity= self.statusdict['activitystatus'][status[4]], 
                     status_locrem = self.statusdict['loc_remstatus'][status[6]], 
-                    status_switchheater= self.statusdict['switchHeaterstat'][status[8]])
+                    status_switchheater= self.statusdict['switchHeaterstat'][status[8]], 
+                    status_mode1= self.statusdict['modestatus1'][status[10]],
+                    status_mode2= self.statusdict['modestatus2'][status[11]], 
+                    status_polarity1 = self.statusdict['polarity1'][status[13]],
+                    status_polarity3 = self.statusdict['polarity2'][status[14]])
 
     @pyqtSlot(int)
     def setControl(self, control_state=3):
@@ -203,10 +231,10 @@ class IPS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0]) 
     @pyqtSlot(float)
     def gettoset_FieldSetpoint(self, value):
-            """class method to receive and store the value, to set the Field Setpoint
-                later on, when the command to enforce the value is sent
-                TODO: adjust for units! 
-            """
+        """class method to receive and store the value, to set the Field Setpoint
+            later on, when the command to enforce the value is sent
+            TODO: adjust for units! 
+        """
         self.field_setpoint = value
 
     @pyqtSlot()
@@ -223,9 +251,9 @@ class IPS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0]) 
     @pyqtSlot(int)
     def gettoset_FieldSweepRate(self, value):
-            """class method to receive and store the value to set the Field sweep rate
-                later on, when the command to enforce the value is sent
-            """
+        """class method to receive and store the value to set the Field sweep rate
+            later on, when the command to enforce the value is sent
+        """
         self.field_setpoint = value
 
     @pyqtSlot()

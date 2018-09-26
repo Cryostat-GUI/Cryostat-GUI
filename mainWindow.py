@@ -281,7 +281,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_show_IPS.triggered['bool'].connect(self.show_IPS)
 
         self.IPS_window.labelStatusMagnet.setText('')
-        self.IPS_window.labelStatusCirrent.setText('')
+        self.IPS_window.labelStatusCurrent.setText('')
         self.IPS_window.labelStatusActivity.setText('')
         self.IPS_window.labelStatusLocRem.setText('')
         self.IPS_window.labelStatusSwitchHeater.setText('')
@@ -350,7 +350,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.IPS_window.lcdTripCurrent.display(self.data['IPS']['trip_current'])
 
             self.IPS_window.labelStatusMagnet.setText(self.data['IPS']['status_magnet'])
-            self.IPS_window.labelStatusCirrent.setText(self.data['IPS']['status_current'])
+            self.IPS_window.labelStatusCurrent.setText(self.data['IPS']['status_current'])
             self.IPS_window.labelStatusActivity.setText(self.data['IPS']['status_activity'])
             self.IPS_window.labelStatusLocRem.setText(self.data['IPS']['status_locrem'])
             self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])            
