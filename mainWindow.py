@@ -92,7 +92,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if dataname in self.data or dataname == None:
             pass
         else: 
-            self.data[dataname] = list()
+            self.data[dataname] = dict()
 
         thread.started.connect(worker.work)
         thread.start()
