@@ -112,7 +112,7 @@ class ips120(AbstractSerialDeviceDriver):
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')
+            raise AssertionError('IPS: getValue: bad reply: empty string')            
         if value[0] != 'R':
             raise AssertionError('IPS: getValue: bad reply: {}'.format(value))
         return float(value.strip('R+'))
