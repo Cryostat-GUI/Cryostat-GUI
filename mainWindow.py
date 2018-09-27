@@ -57,7 +57,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_logger = False
 
         self.dataLock = Lock()
-        self.textErrors.setHtml('')
+
 
         QTimer.singleShot(0, self.initialize_all_windows)
 
@@ -68,6 +68,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.initialize_window_IPS()
         self.initialize_window_Log_conf()
         self.initialize_window_Lakeshore350()
+        self.initialize_window_Errors()
+
         
 
 
@@ -109,7 +111,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         del self.threads[threadname]
 
     def show_error_textBrowser(self, text):
-        self.textErrors.append('{}'.format(text))
+        """ append error to Error window"""
+        self.Errors_window.textErrors.append('{} - {}'.format(convert_time(time.time()),text))
 
     # ------- Oxford Instruments 
     # ------- ------- ITC
@@ -137,7 +140,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: print('ITC: timeout'))
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
 
 
                 # setting ITC values by GUI ITC window
@@ -245,7 +248,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: print('ILM: timeout'))
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ILM: timeout'))
 
                 self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
                 # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
@@ -311,7 +314,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: print('IPS: timeout'))
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('IPS: timeout'))
 
                 self.IPS_window.comboSetActivity.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setActivity(value))
                 self.IPS_window.comboSetSwitchHeater.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
@@ -370,47 +373,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.IPS_window.labelStatusLocRem.setText(self.data['IPS']['status_locrem'])
             self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])            
 
-        
-    def printing(self,b):
-        """arbitrary exmple function"""
-        print(b)
+    
 
-    def initialize_window_Log_conf(self):
-        """initialize Logging configuration window"""
-        self.Log_conf_window = Logger_configuration()
-        self.Log_conf_window.sig_closing.connect(lambda: self.action_Logging_configuration.setChecked(False))
-        self.Log_conf_window.sig_send_conf.connect(lambda conf: self.sig_logging_newconf.emit(conf))
-
-        self.action_Logging.triggered['bool'].connect(self.run_logger)
-        self.action_Logging_configuration.triggered['bool'].connect(self.show_logging_configuration)
-
-    @pyqtSlot(bool)
-    def run_logger(self, boolean):
-        """start/stop the logging thread"""
-
-        # read the last configuration of what shall be logged from a respective file
-
-        if boolean: 
-            logger = self.running_thread(main_Logger(self), None, 'logger')
-            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
-            logger.sig_configuring.connect(self.show_logging_configuration)
-            self.logging_running_logger = True
-
-        else: 
-            self.stopping_thread('logger')
-            self.logging_running_logger = False
-
-    @pyqtSlot(bool)
-    def show_logging_configuration(self, boolean):
-        """display/close the logging configuration window"""
-        if boolean: 
-            self.Log_conf_window.show()
-        else: 
-            self.Log_conf_window.close()
-
-
-
-
+    # ------- LakeShore 350 -------
     def initialize_window_Lakeshore350(self):
         """initialize ITC Window"""
         self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
@@ -485,6 +450,63 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.action_run_LakeShore350.setChecked(False)
             # self.stopping_thread('control_LakeShore350')
 
+
+    # ------- MISC -------
+
+    def printing(self,b):
+        """arbitrary exmple function"""
+        print(b)
+
+    def initialize_window_Log_conf(self):
+        """initialize Logging configuration window"""
+        self.Log_conf_window = Logger_configuration()
+        self.Log_conf_window.sig_closing.connect(lambda: self.action_Logging_configuration.setChecked(False))
+        self.Log_conf_window.sig_send_conf.connect(lambda conf: self.sig_logging_newconf.emit(conf))
+
+        self.action_Logging.triggered['bool'].connect(self.run_logger)
+        self.action_Logging_configuration.triggered['bool'].connect(self.show_logging_configuration)
+
+    @pyqtSlot(bool)
+    def run_logger(self, boolean):
+        """start/stop the logging thread"""
+
+        # read the last configuration of what shall be logged from a respective file
+
+        if boolean: 
+            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            logger.sig_configuring.connect(self.show_logging_configuration)
+            self.logging_running_logger = True
+
+        else: 
+            self.stopping_thread('logger')
+            self.logging_running_logger = False
+
+    @pyqtSlot(bool)
+    def show_logging_configuration(self, boolean):
+        """display/close the logging configuration window"""
+        if boolean: 
+            self.Log_conf_window.show()
+        else: 
+            self.Log_conf_window.close()
+
+    def initialize_window_Errors(self):
+        """initialize Error Window"""
+        self.Errors_window = Window_ui(ui_file='.\\configurations\\Errors.ui')
+        self.Errors_window.sig_closing.connect(lambda: self.action_show_Errors.setChecked(False))
+
+        self.Errors_window.textErrors.setHtml('')
+
+        # self.action_run_Errors.triggered['bool'].connect(self.run_ITC)
+        self.action_show_Errors.triggered['bool'].connect(self.show_Errors)
+
+    @pyqtSlot(bool)
+    def show_Errors(self, boolean):
+        """display/close the Error window"""
+        if boolean: 
+            self.Errors_window.show()
+        else: 
+            self.Errors_window.close()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

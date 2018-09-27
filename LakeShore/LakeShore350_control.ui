@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>566</height>
+    <width>362</width>
+    <height>607</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>LakeShore 350 Control</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2" rowstretch="5,0,0">
+   <item row="2" column="0">
+    <widget class="QTextBrowser" name="textErrors"/>
+   </item>
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
      <item row="2" column="0">
@@ -114,9 +117,6 @@
       <string>Error message: </string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QTextBrowser" name="textErrors"/>
    </item>
   </layout>
  </widget>

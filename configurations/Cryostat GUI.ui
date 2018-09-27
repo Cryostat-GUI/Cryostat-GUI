@@ -15,25 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
-     <widget class="QTextBrowser" name="textErrors">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0">
      <widget class="QMdiArea" name="mdiArea">
       <property name="sizePolicy">
@@ -56,13 +37,6 @@
         <string>Data</string>
        </property>
       </widget>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>Errors:</string>
-      </property>
      </widget>
     </item>
    </layout>
@@ -93,6 +67,7 @@
       <string>Show</string>
      </property>
      <addaction name="action_show_Info_Dock"/>
+     <addaction name="action_show_Errors"/>
      <addaction name="action_show_Data"/>
      <addaction name="separator"/>
      <addaction name="action_show_ITC"/>
@@ -546,6 +521,14 @@
     <string>Lakeshore 350</string>
    </property>
   </action>
+  <action name="action_show_Errors">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Errors</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -561,7 +544,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>884</y>
+     <y>698</y>
     </hint>
    </hints>
   </connection>

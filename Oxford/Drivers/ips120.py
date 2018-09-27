@@ -18,6 +18,7 @@ from datetime import datetime
 import time
 import logging
 
+from pyvisa.errors import VisaIOError
 
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
@@ -47,7 +48,11 @@ class ips120(AbstractSerialDeviceDriver):
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
         super(ips120, self).__init__(**kwargs)
-        self.setControl()
+        # self.setControl() # done in thread
+
+    def read_buffer(self):
+        return self.read()
+
 
 
     def setControl(self, state=3):

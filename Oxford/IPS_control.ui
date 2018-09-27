@@ -16,11 +16,8 @@
     <height>564</height>
    </size>
   </property>
-  <property name="focusPolicy">
-   <enum>Qt::StrongFocus</enum>
-  </property>
   <property name="windowTitle">
-   <string>IPS Control</string>
+   <string>PS Control</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,3,0,0">
    <item>
@@ -209,9 +206,6 @@
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_5">
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
         <property name="text">
          <string>Output Field</string>
         </property>

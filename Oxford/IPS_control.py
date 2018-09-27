@@ -9,6 +9,8 @@ from PyQt5.uic import loadUi
 from .Drivers.ips120 import ips120
 from pyvisa.errors import VisaIOError
 
+from copy import deepcopy
+
 from util import AbstractLoopThread
 
 class IPS_Updater(AbstractLoopThread):
@@ -99,19 +101,24 @@ class IPS_Updater(AbstractLoopThread):
         super(IPS_Updater, self).__init__()
         # QThread.__init__(self)
 
-        self.PS = ips120(InstrumentAddress)
+        self.PS = ips120(InstrumentAddress=InstrumentAddress)
         self.delay = 0.0
         self.field_setpoint = 0
+        self.first = True
 
 
     @pyqtSlot()
     def running(self):
         """worker method of the power supply controlling thread"""
+        if self.first: 
+            time.sleep(1)
+            self.first = False
         try:
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
+                # key_f_timeout = key
                 data[key] = self.PS.getValue(idx_sensor)
                 time.sleep(self.delay)
             data.update(self.getStatus())
@@ -121,8 +128,18 @@ class IPS_Updater(AbstractLoopThread):
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
+                # self.readField(nosend=True)
+                self.read_buffer()
+                # data[key_f_timeout] = self.read_buffer()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
+
+    def read_buffer(self):
+        try:
+            return self.PS.read_buffer()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
 
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
@@ -154,23 +171,26 @@ class IPS_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
-    def readField(self): 
+    def readField(self, nosend=False): 
         '''method to readField - this can be invoked by a signal'''
         try:
-            self.PS.readField()
+            return self.PS.readField()
         except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
+            if not nosend:
+                self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
-                self.sig_visatimeout.emit()
+                if not nosend:
+                    self.sig_visatimeout.emit()
             else: 
-                self.sig_visaerror.emit(e_visa.args[0]) 
+                if not nosend:
+                    self.sig_visaerror.emit(e_visa.args[0]) 
 
     @pyqtSlot()
     def readFieldSetpoint(self): 
         '''method to readFieldSetpoint - this can be invoked by a signal'''
         try:
-            self.PS.readFieldSetpoint()
+            return self.PS.readFieldSetpoint()
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -183,7 +203,7 @@ class IPS_Updater(AbstractLoopThread):
     def readFieldSweepRate(self): 
         '''method to readFieldSweepRate - this can be invoked by a signal'''
         try:
-            self.PS.readFieldSweepRate()
+            return self.PS.readFieldSweepRate()
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -274,7 +294,7 @@ class IPS_Updater(AbstractLoopThread):
     def waitForField(self, timeout, error_margin): 
         '''method to waitForField - this can be invoked by a signal'''
         try:
-            self.PS.waitForField()
+            return self.PS.waitForField()
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
