@@ -88,7 +88,7 @@
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="QDoubleSpinBox" name="spinSetFieldSetpoint"/>
+       <widget class="QDoubleSpinBox" name="spinSetFieldSetPoint"/>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_3">
@@ -98,7 +98,7 @@
        </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QLCDNumber" name="lcdFieldSetpoint">
+       <widget class="QLCDNumber" name="lcdFieldSetPoint">
         <property name="segmentStyle">
          <enum>QLCDNumber::Filled</enum>
         </property>

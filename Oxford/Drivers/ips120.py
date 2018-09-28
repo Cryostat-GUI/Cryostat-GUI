@@ -18,6 +18,7 @@ from datetime import datetime
 import time
 import logging
 
+from pyvisa.errors import VisaIOError
 
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
@@ -40,14 +41,18 @@ logger.addHandler(logging.StreamHandler())
 class ips120(AbstractSerialDeviceDriver):
     """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments. """
 
-    def __init__(self, adress, **kwargs):
+    def __init__(self, **kwargs):
         """Connect to an IPS 120-10 at the specified RS232 address
 
         Args:
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
         super(ips120, self).__init__(**kwargs)
-        self.setControl()
+        # self.setControl() # done in thread
+
+    def read_buffer(self):
+        return self.read()
+
 
 
     def setControl(self, state=3):
@@ -62,9 +67,9 @@ class ips120(AbstractSerialDeviceDriver):
             state(int): the state in which to place the IPS 120-10
         """
         if not isinstance(state, int):
-            raise AssertionError('PS: setControl: Argument must be integer')
+            raise AssertionError('IPS: setControl: Argument must be integer')
         if state not in [0,1,2,3]:
-            raise AssertionError('PS: setControl: Argument must be one of [0,1,2,3]')
+            raise AssertionError('IPS: setControl: Argument must be one of [0,1,2,3]')
 
         self.write("$C{}".format(state))
 
@@ -99,24 +104,26 @@ class ips120(AbstractSerialDeviceDriver):
             variable: Index of variable to read.
         """
         if not isinstance(variable, int):
-            raise AssertionError('PS: getValue: argument must be integer')
+            raise AssertionError('IPS: getValue: argument must be integer')
         if variable not in range(0,23):
-            raise AssertionError('PS: getValue: Argument is not a valid number.')
+            raise AssertionError('IPS: getValue: Argument is not a valid number.')
         
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('PS: getValue: bad reply: empty string')
+            raise AssertionError('IPS: getValue: bad reply: empty string')            
         if value[0] != 'R':
-            raise AssertionError('PS: getValue: bad reply: {}'.format(value))
+            raise AssertionError('IPS: getValue: bad reply: {}'.format(value))
         return float(value.strip('R+'))
 
     def getStatus(self):
         value =  self.query('X')
 
-        if value[0] != 'X' or value == '':
-            raise AssertionError('PS: getStatus: Bad reply: {}'.format(value))
+        if value == "" or None:
+            raise AssertionError('IPS: getValue: bad reply: empty string')
+        if value[0] != 'X':
+            raise AssertionError('IPS: getStatus: Bad reply: {}'.format(value))
         return value
 
     def readField(self):
@@ -128,9 +135,10 @@ class ips120(AbstractSerialDeviceDriver):
         value = self.query('R7')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
-
-        if value[0] != 'R' or value == '':
-            raise AssertionError('PS: readField: Bad reply: {}'.format(value))
+        if value == "" or None:
+            raise AssertionError('IPS: getValue: bad reply: empty string')
+        if value[0] != 'R':
+            raise AssertionError('IPS: readField: Bad reply: {}'.format(value))
         return float(value.strip('R+'))
 
     def readFieldSetpoint(self):
@@ -142,9 +150,10 @@ class ips120(AbstractSerialDeviceDriver):
         value = self.query('R8')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
-
-        if value[0] != 'R' or value == '':
-            raise AssertionError('PS: readFieldSetpoint: Bad reply: {}'.format(value))
+        if value == "" or None:
+            raise AssertionError('IPS: getValue: bad reply: empty string')
+        if value[0] != 'R':
+            raise AssertionError('IPS: readFieldSetpoint: Bad reply: {}'.format(value))
 
         return float(value.strip('R+'))
 
@@ -157,9 +166,10 @@ class ips120(AbstractSerialDeviceDriver):
         value = self.query('R9')
         # self._visa_resource.wait_for_srq()
         # value_str = self._visa_resource.read()
-
-        if value[0] != 'R' or value == '':
-            raise AssertionError('PS: readFieldSweepRate: Bad reply: {}'.format(value))
+        if value == "" or None:
+            raise AssertionError('IPS: getValue: bad reply: empty string')
+        if value[0] != 'R':
+            raise AssertionError('IPS: readFieldSweepRate: Bad reply: {}'.format(value))
 
         return float(value.strip('R+'))
 
@@ -176,9 +186,9 @@ class ips120(AbstractSerialDeviceDriver):
         """
 
         if not isinstance(state, int):
-            raise AssertionError('PS: setActivity: Argument must be integer')
+            raise AssertionError('IPS: setActivity: Argument must be integer')
         if state not in [0,1,2,3]:
-            raise AssertionError('PS: setActivity: Argument must be one of [0,1,2,3]')
+            raise AssertionError('IPS: setActivity: Argument must be one of [0,1,2,3]')
 
         self.write("$A{}".format(state))
 
@@ -193,9 +203,9 @@ class ips120(AbstractSerialDeviceDriver):
             state(int): the switch heater activation state
         """
         if not isinstance(state, int):
-            raise AssertionError('PS: setSwitchHeater: Argument must be integer')
+            raise AssertionError('IPS: setSwitchHeater: Argument must be integer')
         if state not in [0,1,2]:
-            raise AssertionError('PS: setSwitchHeater: Argument must be one of [0,1,2]')
+            raise AssertionError('IPS: setSwitchHeater: Argument must be one of [0,1,2]')
         self.write("$H{}".format(state))
 
         # TODO: add timer to account for time it takes for switch to activate
@@ -212,7 +222,7 @@ class ips120(AbstractSerialDeviceDriver):
         """
         MAX_FIELD = 8
         if not abs(field) < MAX_FIELD:
-            raise AssertionError('PS: setFieldSetpoint: Field must be less than {}'.format(MAX_FIELD))
+            raise AssertionError('IPS: setFieldSetpoint: Field must be less than {}'.format(MAX_FIELD))
 
         self.write("$J{}".format(field))
 
@@ -235,7 +245,7 @@ class ips120(AbstractSerialDeviceDriver):
             display(str): One of ['amps','tesla']
         """
         if display not in ['amps','tesla']:
-            raise AssertionError("PS: setDisplay: Argument must be one of ['amps','tesla']")
+            raise AssertionError("IPS: setDisplay: Argument must be one of ['amps','tesla']")
 
         mode_dict = {'amps':8,
                      'tesla':9

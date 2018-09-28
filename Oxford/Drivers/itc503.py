@@ -44,8 +44,10 @@ class itc503(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
+
         # set the heater voltage limit to be controlled dynamically according to the temperature
         self.write('$M0')
+        # self.setControl() # done in thread
 
 
     def setControl(self, state=3):

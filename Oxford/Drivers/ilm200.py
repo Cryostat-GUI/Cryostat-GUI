@@ -96,7 +96,7 @@ class ilm211(AbstractSerialDeviceDriver):
         if channel not in [1,2]:
             raise AssertionError('ILM: setSlow: Argument is not a valid number.')         
 
-        self.write('S{}'.format(channel))
+        self.write('$S{}'.format(channel))
 
     def setFast(self, channel):
         """put channel 'channel' into fast sample rate"""
@@ -105,5 +105,5 @@ class ilm211(AbstractSerialDeviceDriver):
         if channel not in [1,2]:
             raise AssertionError('ILM: setFast: Argument is not a valid number.')         
 
-        self.write('T{}'.format(channel))       
+        self.write('$T{}'.format(channel))       
         

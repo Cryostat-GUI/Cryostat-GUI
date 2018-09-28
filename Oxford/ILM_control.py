@@ -43,7 +43,7 @@ class ILM_Updater(AbstractLoopThread):
         # needle_valve_position=10)
 
 
-    def __init__(self, InstrumentAddress='COM7'):
+    def __init__(self, InstrumentAddress=''):
         super().__init__()
 
         # here the class instance of the ITC should be handed
@@ -79,10 +79,17 @@ class ILM_Updater(AbstractLoopThread):
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
+                self.read_buffer()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    def read_buffer(self):
+        try:
+            return self.ILM.read()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
     #     self.delay1 = delay

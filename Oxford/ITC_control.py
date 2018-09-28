@@ -90,6 +90,7 @@ class ITC_Updater(AbstractLoopThread):
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
+                # key_f_timeout = key
                 data[key] = self.ITC.getValue(idx_sensor)
                 time.sleep(self.delay)
             self.sig_Infodata.emit(deepcopy(data))
@@ -100,6 +101,7 @@ class ITC_Updater(AbstractLoopThread):
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
+                self.read_buffer()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
@@ -107,6 +109,13 @@ class ITC_Updater(AbstractLoopThread):
     #     @functools.wraps(func)
     #     def wrapper_control_checks(*args, **kwargs):
     #         pass
+
+    def read_buffer(self):
+        try:
+            return self.ITC.read()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
 
 
     @pyqtSlot(int)
