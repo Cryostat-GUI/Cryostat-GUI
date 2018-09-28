@@ -2,3 +2,5 @@ __pycache__
 *test*
 *.xml
 *.iml
+*archiv*
+*.DS_Store*
