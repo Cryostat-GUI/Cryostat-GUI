@@ -1,11 +1,10 @@
 import time
 
-# from labdrivers.oxford.itc503 import itc503
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
-from .Drivers.itc503 import itc503
+import LakeShore350
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
@@ -35,35 +34,28 @@ class LakeShore350_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    sensors = dict(
-        set_temperature=0,
-        sensor_1_temperature=1,
-        sensor_2_temperature=2,
-        sensor_3_temperature=3,
-        temperature_error=4,
-        heater_output_as_percent=5,
-        heater_output_as_voltage=6,
-        gas_flow_output=7,
-        proportional_band=8,
-        integral_action_time=9,
-        derivative_action_time=10)
+
+#    sensors = dict(
+#        Heater_Output_mW=0,
+#        Temp_K=1,
+#        Heater_mW=2,
+#        Sensor_1_K=3,
+#        Sensor_2_K=4,
+#        Sensor_3_K=5,
+#        Sensor_4_K=6)
+
+    sensor_names = ['Heater_Output_mW', 'Temp_K', 'Heater_mW', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
+    sensor_values = []
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
 
-        # here the class instance of the ITC should be handed
-        self.ITC = itc503(InstrumentAddress=InstrumentAddress)
+        # here the class instance of the LakeShore should be handed
+        self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
 
-        self.control_state = 3
-        self.set_temperature = 0
-        self.set_prop = 0
-        self.set_integral = 0
-        self.set_derivative = 0
-        self.set_sensor = 1
-        self.set_heater_output = 0
-        self.set_gas_output = 0
-        self.set_auto_manual = 0
-        self.sweep_parameters = None
+        self.Temp_K_value = 3
+        self.Heater_mW_value = 0
+        
 
         self.delay1 = 1
         self.delay = 0.0
@@ -81,14 +73,17 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-
-            data = dict()
-            # get key-value pairs of the sensors dict,
-            # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                data[key] = self.ITC.getValue(idx_sensor)
-                time.sleep(self.delay)
-            self.sig_Infodata.emit(deepcopy(data))
+            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
+            sensor_values[1] = self.lakeShore350.ControlSetpointQuery(1)
+            sensor_values[2] =
+#            temp_list = self.LakeShore350.SemsoUnitsInputReadingQuery(0)
+            temp_list = self.LakeShore350.KelvinReadingQuery(0)
+            sensor_values[3] = temp_list[0]
+            sensor_values[4] = temp_list[1]
+            sensor_values[5] = temp_list[2]
+            sensor_values[6] = temp_list[3]
+            
+            self.sig_Infodata.emit(deepcopy(zip(sensor_names,sensor_values)))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
@@ -105,8 +100,59 @@ class LakeShore350_Updater(AbstractLoopThread):
     #         pass
 
 
-    @pyqtSlot(int)
-    def set_delay_sending(self, delay):
-        self.ITC.set_delay_measuring(delay)
+    def configSensor():
+        """configures sensor inputs to Cerox
+        """
+        for i in ['A','B','C','D']:
+            self.LakeShore350.InputTypeParameterCommand(i,3,1,0,1,1,0)
 
 
+    def configTempLimit():
+        """sets temperature limit
+        """
+        for i in ['A','B','C','D']:
+           self.LakeShore350.TemperatureLimitCommand(i,470.)
+
+
+    @pyqtSlot()
+    def setTemp_K(self):
+        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
+        """
+        try:
+            self.LakeShore350.ControlSetpointCommand(1,Temp_K_value)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
+
+
+    @pyqtSlot()
+    def setHeater_mW(self):
+        try:
+#            self.LakeShore350.set something with HTRSET
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
+
+
+    @pyqtSlot()
+    def gettoset_Temp_K(self,value):
+        """class method to receive and store the value to set the temperature
+        later on, when the command to enforce the value is sent
+        """
+        self.Temp_K_value = value
+
+
+    @pyqtSlot()
+    def gettoset_Heater_mW(self,value):
+        """class method to receive and store the value to set the temperature
+        later on, when the command to enforce the value is sent
+        """
+        self.Heater_mW_value = value

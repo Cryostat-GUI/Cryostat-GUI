@@ -18,6 +18,7 @@ from threading import Lock
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
+from Lakeshore.LakeShore350_control import LakeShore350_Updater
 
 
 
@@ -31,6 +32,7 @@ from util import Window_ui
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
+LakeShore_Instrumentaddress = 'GPIB0::12::INSTR'
 
 
 def convert_time(ts):
@@ -376,13 +378,47 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     
 
     # ------- LakeShore 350 -------
-    def initialize_window_Lakeshore350(self):
-        """initialize ITC Window"""
+    def initialize_window_LakeShore350(self):
+        """initialize LakeShore Window"""
         self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
-        self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_ITC.setChecked(False))
+        self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
         self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
         self.action_show_Lakeshore350.triggered['bool'].connect(self.show_LakeShore350)
+
+    @pyqtSlot(bool)
+    def run_LakeShore350(self, boolean):
+        """start/stop the LakeShore350 thread"""
+
+        if boolean: 
+            try: 
+                getInfodata = self.running_thread(LakeShore350_Updater(LakeShore_InstrumentAddress),'LakeShore350', 'control_LakeShore350')
+
+                getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
+                # getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
+
+
+                # setting LakeShore values by GUI LakeShore window
+                self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
+                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda value: self.threads['control_LakeShore350'][0].setTemp_K())
+
+                self.LakeShore350_window.spinSetHeater_mW.valueChanged.
+                self.LakeShore350_window.spinSetHeater_mW.editingFinished.
+
+
+
+                self.action_run_LakeShore350.setChecked(True)
+            
+            except VisaIOError as e:
+                self.action_run_LakeShore350.setChecked(False)
+                print(e) # TODO: open window displaying the error message
+        else: 
+            self.action_run_LakeShore350.setChecked(False)
+            self.stopping_thread('control_LakeShore350')
 
     @pyqtSlot(bool)
     def show_LakeShore350(self, boolean):
@@ -426,29 +462,24 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.textXXX.setText(some_string)
         """
 
-    @pyqtSlot(bool)
-    def run_LakeShore350(self, boolean):
-        """start/stop the logging thread"""
 
+        @pyqtSlot(dict)
+        def store_data_LakeShore350(self, data):
+        """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
+        with self.dataLock: 
+            data['date'] = convert_time(time.time())
+            self.data['Lakeshore350'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up, 
+            # since the command failed in the communication with the device, the last value is retained
+            self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['Lakeshore350']['Heater_Output_mW'])
+            self.LakeShore350_window.lcdSetTemp_K.display(self.data['Lakeshore350']['Temp_K'])
+            self.LakeShore350_window.lcdSetHeater_mW.display(self.data['Lakeshore350']['Heater_mW'])
 
-        if boolean: 
-            try: 
-                # getInfodata = self.running_thread(LakeShore_Updater(InstrumentAddress=''),'LakeShore350', 'control_LakeShore350')
+            self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
+            self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
+            self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
+            self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])     
 
-                # getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
-                # getInfodata.sig_visaerror.connect(self.printing)
-                # getInfodata.sig_assertion.connect(self.printing)
-                # getInfodata.sig_visatimeout.connect(lambda: print('timeout'))
-
-
-                self.action_run_LakeShore350.setChecked(True)
-            
-            except VisaIOError as e:
-                self.action_run_LakeShore350.setChecked(False)
-                print(e) # TODO: open window displaying the error message
-        else: 
-            self.action_run_LakeShore350.setChecked(False)
-            # self.stopping_thread('control_LakeShore350')
 
 
     # ------- MISC -------

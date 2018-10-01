@@ -16,7 +16,7 @@ try:
 except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
-class lakeshore350(object):
+class LakeShore350(object):
     def __init__(self, address = 'GPIB0::12::INSTR'):
 
 
@@ -699,7 +699,7 @@ class lakeshore350(object):
         """
         :param output: Specifies which heater output to configure: 1 or 2.
         :type output: int
-        :param heater_resistance: Heater Resistance Setting (output 1 only): 1 = 25 Ohm, 2 = 50 Ohm.
+        :param heater_resistance: Heater Resistance Setting (output 1 only): 1 = 25 Ohm, 2 = 50 Ohm.
         :type heater_resistance: int
         :param max_current: Specifies the maximum heater output current (output 1 only):
             0 = User Specified, 1 = 0.707A, 2 = 1A, 3 = 1.141A, 4 = 2A
@@ -707,7 +707,7 @@ class lakeshore350(object):
         :param max_usercurrent: Specifies the maximum heater output current if max current
             is set to User Specified (output 1 only).
         :type max_usercurrent: float
-        :param current_or_power: Specifies whether the heater output displays in current or power. Valid entries:
+        :param current_or_power: Specifies whether the heater output displays in current or power. Valid entries:
             1 = current, 2 = power.
         :type current_or_power: int
 
@@ -1595,9 +1595,9 @@ class lakeshore350(object):
         self.go('SCAL ' + '{0:1d},{1:2d},{2:10},{3:4.2f},{4:7},{5:4.2f},{6:7},{7:4.2f},{8:7}'.format(std, dest, sn, t1_value, u1_value, t2_value, u2_value, t3_value, u3_value))
 
     def ControlSetpointCommand(self, output, value):
-        """For outputs 3 and 4, setpoint is only valid in Warmup mode. Control settings, that is,
+        """For outputs 3 and 4, setpoint is only valid in Warmup mode. Control settings, that is,
         P, I, D, and Setpoint, are assigned to outputs, which results in the settings being
-        applied to the control loop formed by the output and its control input_value.
+        applied to the control loop formed by the output and its control input.
 
         :param output: Specifies which output’s control loop to configure: 1–4.
         :type output: int
@@ -1656,11 +1656,11 @@ class lakeshore350(object):
     def TemperatureLimitCommand(self, input_value, limit):
         """A temperature limit setting of 0 K turns the temperature limit feature off.
 
-        :param input_value:  Specifies which input to configure: A - D (D1 - D5 for 3062 option).
+        :param input_value:  Specifies which input to configure: A - D (D1 - D5 for 3062 option).
         :type input_value: str
-        :param limit: The temperature limit in kelvin for which to shut down all 
-            control outputs when exceeded. A temperature limit of zero 
-            turns the temperature limit feature off for the given 
+        :param limit: The temperature limit in kelvin for which to shut down all
+            control outputs when exceeded. A temperature limit of zero
+            turns the temperature limit feature off for the given
             sensor input.
         :type limit: float
 
