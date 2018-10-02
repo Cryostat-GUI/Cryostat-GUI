@@ -126,10 +126,17 @@ class main_Logger(AbstractLoopThread):
         self.conf_done_layer2 = False
 
 
-        self.connectdb('testdata')
-        self.mycursor = self.conn.cursor()
+        # QTimer.singleShot(1e3, self.initialise)
+        self.not_yet_initialised = False
 
 
+
+
+
+    # def initialise(self):
+    #     self.connectdb('testdata')
+    #     self.mycursor = self.conn.cursor()
+    #     self.not_yet_initialised = False
 
         # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
 
@@ -137,25 +144,25 @@ class main_Logger(AbstractLoopThread):
     def running(self):
         try:
             # Do things
-            print('logging running')
+            # print('logging running')
             if self.configuration_done:
                 self.sig_log.emit()
                 if not self.conf_done_layer2:
                     self.sig_configuring.emit(False)
                     self.conf_done_layer2 = True
-                print('emitted signal')
+                # print('emitted signal')
 
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-        finally:
-            QTimer.singleShot(self.interval*1e3, self.running)
+        # finally:
+        #     QTimer.singleShot(self.interval*1e3, self.running)
 
     # @pyqtSlot()
     # def stop(self):
     #     self.__isRunning = False
 
-def update_conf(self, conf):
+    def update_conf(self, conf):
         """
             - update the configuration with one being sent.
             - set the configuration done bool to True,
@@ -181,7 +188,7 @@ def update_conf(self, conf):
             # global conn
             self.conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
-            rase AssertionError("Logger: Couldn't establish connection {}".format(err))
+            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
 
 
 
@@ -206,16 +213,22 @@ def update_conf(self, conf):
                 sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
                 self.mycursor.execute(sql)
             except sqlite3.OperationalError as err:
-                raise AssertionError("Logger: prabably the column already exists, no problem. ({})".format(err))
+                pass # Logger: probably the column already exists, no problem.
+                # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
 
     def updatetable(self,  tablename,dictname):
+        if not dictname: 
+            raise AssertionError('Logger: dict does not yet exist')
+        # print('list',dictname)
 
-        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,list(dictname.keys())[0],list(dictname.values())[0])
+        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'CurrentTime',dictname['CurrentTime'])
+        # print(sql)
         self.mycursor.execute(sql)
 
         for i in range(len(dictname)):
-            sql="UPDATE {} SET {}={} WHERE {}={}".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],list(dictname.keys())[0],list(dictname.values())[0])
+            sql="UPDATE {} SET {}='{}' WHERE {}='{}'".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
+            # print(sql)
             self.mycursor.execute(sql)
 
         self.conn.commit()
@@ -250,12 +263,18 @@ def update_conf(self, conf):
             array.append(list(row))
 
         nparray=np.asarray(array)
-        print("the numpy array:")
-        print(nparray)
+        # print("the numpy array:")
+        # print(nparray)
+        return nparray
 
 
     @pyqtSlot(dict)
     def store_data(self, data):
+        if self.not_yet_initialised: 
+            return
+        self.connectdb('testdata.db')
+        self.mycursor = self.conn.cursor() 
+
         """storing logging data
             into database or logfile - to be decided!
             what data should be logged is set in self.conf
@@ -284,7 +303,6 @@ def update_conf(self, conf):
         ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
         # testdict['ReadableTime']=ReadableTime
         data['ReadableTime']=ReadableTime
-        data.update(timedict)
 
 
 
@@ -295,19 +313,26 @@ def update_conf(self, conf):
 
         #initializing a table with a primary key as first column:
 
+        names = ['ITC', 'ILM']
+        for name in names: 
+            try: 
+                data[name].update(timedict)
 
-        createtable('ITC', data['ITC'])
+                # print('creating table')
+                self.createtable(name, data[name])
+                #inserting in the measured values:
 
-        #inserting in the measured values:
+                # print('updating table')
+                self.updatetable(name,data[name])
 
+                # print('printing table')
+                # self.printtable('ITC',data,20181001000000,20191005000000)
+            except AssertionError as assertion:
+                self.sig_assertion.emit(assertion.args[0])
+            except KeyError as key: 
+                self.sig_assertion.emit(key.args[0])
 
-        updatetable('ITC',data['ITC'])
-
-
-        printtable('ITC',data,20181001000000,20181005000000)
-
-
-        exportdatatoarr(tablename,colnamelist)
+        # self.exportdatatoarr('ITC',colnamelist)
 
     # store_data(0,0)
     # def logging_read_configuration(self):
