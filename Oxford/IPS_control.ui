@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>382</width>
+    <height>565</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>379</width>
+    <height>564</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>PS Control</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,3,0,0">
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Set Activity of Magnet</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Control Switch Heater</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="2">
+       <widget class="QComboBox" name="comboSetSwitchHeater">
+        <item>
+         <property name="text">
+          <string>Heater Off                             (close switch)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Heater On, if PSU=Magnet (open switch)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Heater On, no checks          (open switch)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Field rate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="2">
+       <widget class="QComboBox" name="comboSetActivity">
+        <item>
+         <property name="text">
+          <string>Hold</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>To Set Point</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>To Zero</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clamp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QDoubleSpinBox" name="spinSetFieldSetPoint"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Field Setpoint</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QLCDNumber" name="lcdFieldSetPoint">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QLCDNumber" name="lcdFieldSweepRate">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QDoubleSpinBox" name="spinSetFieldSweepRate"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_2" native="true">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="5" column="1">
+       <widget class="QLCDNumber" name="lcdPersistentMagnetCurrent">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Output Current</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Persistent Magnet Current</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Trip Field</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLCDNumber" name="lcdTripCurrent">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLCDNumber" name="lcdPersistentMagnetField">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Trip Current</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Persistent Magnet Field</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLCDNumber" name="lcdTripField">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Lead Resistance</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLCDNumber" name="lcdLeadResistance">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Output Field</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLCDNumber" name="lcdOutputField">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLCDNumber" name="lcdOutputCurrent">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Filled</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Measured Magnet Current</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLCDNumber" name="lcdMeasuredMagnetCurrent"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_3" native="true">
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Status CURRENT: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Status MAGNET: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_18">
+        <property name="text">
+         <string>Status Switch Heater: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="labelStatusMagnet">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>Status ACTIVITY:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="labelStatusCurrent">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="labelStatusSwitchHeater">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="labelStatusActivity">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="text">
+         <string>Local / Remote control</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="labelStatusLocRem">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

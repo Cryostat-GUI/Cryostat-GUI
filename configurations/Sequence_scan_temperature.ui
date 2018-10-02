@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>424</width>
+    <height>496</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>424</width>
+    <height>496</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>424</width>
+    <height>496</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Scan Temperature</string>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>9</y>
+     <width>411</width>
+     <height>481</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab_temp">
+    <attribute name="title">
+     <string>Temperature</string>
+    </attribute>
+    <widget class="QWidget" name="gridLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>301</width>
+       <height>321</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0" columnstretch="0,0,10">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Ramping condition</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="spinSetTend">
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="maximum">
+         <double>400.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Number of Steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLCDNumber" name="lcdNsteps">
+        <property name="maximumSize">
+         <size>
+          <width>71</width>
+          <height>31</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinSetNsteps">
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Stepsize</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QDoubleSpinBox" name="spinSetSizeSteps">
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="maximum">
+         <double>50.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QLCDNumber" name="lcdStepsize">
+        <property name="maximumSize">
+         <size>
+          <width>71</width>
+          <height>31</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="spinSetTstart">
+        <property name="keyboardTracking">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="maximum">
+         <double>400.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="comboSetTempramp">
+        <item>
+         <property name="text">
+          <string>Stabilizing</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Sweep</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Temperature  end</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Temperature start</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="spinSetRate">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Rate [K/min]</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QListView" name="listTemperatures">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>10</y>
+       <width>71</width>
+       <height>431</height>
+      </rect>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::NoSelection</enum>
+     </property>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>390</y>
+       <width>181</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="buttonOK">
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="text">
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonCANCEL">
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_res">
+    <attribute name="title">
+     <string>Resistivity</string>
+    </attribute>
+   </widget>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>spinSetTstart</tabstop>
+  <tabstop>spinSetTend</tabstop>
+  <tabstop>comboSetTempramp</tabstop>
+  <tabstop>spinSetNsteps</tabstop>
+  <tabstop>spinSetSizeSteps</tabstop>
+  <tabstop>listTemperatures</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

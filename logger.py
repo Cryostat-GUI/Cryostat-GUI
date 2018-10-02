@@ -10,8 +10,10 @@ import pickle
 import os
 import sqlite3
 import numpy as np
+from copy import deepcopy
 
-from util import AbstractEventhandlingThread
+
+from util import AbstractLoopThread
 from util import Window_ui
 
 
@@ -21,40 +23,49 @@ class Logger_configuration(Window_ui):
 
     sig_send_conf = pyqtSignal(dict)
 
-    def __init__(self, **kwargs):
-        super(Logger_configuration, self).__init__(**kwargs)
+    ITC_sensors = dict(
+        set_temperature = False,
+        sensor_1_temperature = False,
+        sensor_2_temperature = False,
+        sensor_3_temperature = False,
+        temperature_error = False,
+        heater_output_as_percent = False,
+        heater_output_as_voltage = False,
+        gas_flow_output = False,
+        proportional_band = False,
+        integral_action_time = False,
+        derivative_action_time = False)
+
+    def __init__(self, parent=None, **kwargs):
+        super(Logger_configuration, self).__init__(ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
 
         self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(lambda: self.ITC_thread_running.setChecked)
+        self.general_threads_ITC.toggled.connect(lambda b: self.ITC_thread_running.setChecked(b))
         self.general_threads_ILM.toggled.connect(lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(lambda: self.ILM_thread_running.setChecked)
+        self.general_threads_ILM.toggled.connect(lambda b: self.ILM_thread_running.setChecked(b))
         self.general_threads_PS.toggled.connect(lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(lambda: self.PS_thread_running.setChecked)
+        self.general_threads_PS.toggled.connect(lambda b: self.PS_thread_running.setChecked(b))
         self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(lambda: self.Lakeshore350_thread_running.setChecked)
+        self.general_threads_Lakeshore350.toggled.connect(lambda b: self.Lakeshore350_thread_running.setChecked(b))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
-        # self.general_threads_Current1.toggled.connect(lambda: self.Current1_thread_running.setChecked)
+        # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
         # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
-        # self.general_threads_Current2.toggled.connect(lambda: self.Current2_thread_running.setChecked)
+        # self.general_threads_Current2.toggled.connect(lambda b: self.Current2_thread_running.setChecked(b))
         # self.general_threads_Nano1.toggled.connect(lambda value: self.setValue('Nano1', 'thread', value))
-        # self.general_threads_Nano1.toggled.connect(lambda: self.Nano1_thread_running.setChecked)
+        # self.general_threads_Nano1.toggled.connect(lambda b: self.Nano1_thread_running.setChecked(b))
         # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
-        # self.general_threads_Nano2.toggled.connect(lambda: self.Nano2_thread_running.setChecked)
+        # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
-        # self.general_threads_Nano3.toggled.connect(lambda: self.Nano3_thread_running.setChecked)
 
+        # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
+        
 
-        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(self.conf))
+        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
         self.buttonBox_finish.rejected.connect(self.close)
-        # print(self.conf)
-        # self.show()
-        # MAINTHREAD crashes when showing this window!
-        # TODO: FIND THE BUG!
-        print('bug')
 
 
     def close_and_safe(self):
@@ -65,19 +76,23 @@ class Logger_configuration(Window_ui):
 
 
     def setValue(self, instrument, value, bools):
+        """set a bool value according to the instrument and specific"""
         self.conf[instrument][value] = bools
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
             return the empty conf dict
         """
+
+        self.ITC_sensors.update(dict(thread=False))
         conf = dict()
-        conf['ITC'] = dict()
+        conf['ITC'] = self.ITC_sensors
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
         conf['Keithley Current']  = dict()
         conf['Keithley Volt']   = dict()
+        conf['general'] = dict(logfile_location='')
         return conf
 
     def read_configuration(self):
@@ -89,44 +104,7 @@ class Logger_configuration(Window_ui):
         else:
             self.conf = self.initialise_dicts()
 
-
-class test(Window_ui):
-    """docstring for test"""
-    def __init__(self, **kwargs):
-        super(test, self).__init__(**kwargs)
-        # self.arg = arg
-        self.show()
-
-
-
-class Log_config_windowthread(AbstractEventhandlingThread):
-    """class to handle the logging configuration window.
-
-    """
-
-    def __init__(self, mainthread, **kwargs):
-        super(Log_config_windowthread, self).__init__(**kwargs)
-        self.mainthread = mainthread
-
-
-    def running(self):
-        """instantiate the Logger configuration window-class,
-            connect its signals, so configurations are sent properly
-        """
-        self.logger_conf = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
-        # if window is closed, uncheck the menu-bar option in "show"
-        self.logger_conf.sig_closing.connect(lambda: self.mainthread.action_Logging_configuration.setChecked(False))
-        # if the button to accept configuration is pressed, emit signal with dict, sending it to the logger thread
-        self.logger_conf.sig_send_conf.connect(lambda conf: self.mainthread.sig_logging_newconf.emit(conf))
-        # self.logger_conf.show()
-        # print('run log config thread')
-        # print(self.mainthread.threads['logger_confwindow'])
-
-
-
-
-class main_Logger(AbstractEventhandlingThread):
-
+class main_Logger(AbstractLoopThread):
     """This is a worker thread
     """
 
@@ -138,7 +116,7 @@ class main_Logger(AbstractEventhandlingThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 2 # 60s interval for logging as initialisation
+        self.interval = 3 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -177,7 +155,7 @@ class main_Logger(AbstractEventhandlingThread):
     # def stop(self):
     #     self.__isRunning = False
 
-    def update_conf(self, conf):
+def update_conf(self, conf):
         """
             - update the configuration with one being sent.
             - set the configuration done bool to True,
@@ -186,7 +164,7 @@ class main_Logger(AbstractEventhandlingThread):
                 so that the configuring thread will be quit.
 
         """
-        print('updated conf for logging')
+        # print('updated conf for logging')
         self.conf = conf
         self.configuration_done = True
         self.conf_done_layer2 = False

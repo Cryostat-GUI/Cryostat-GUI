@@ -20,8 +20,10 @@ Classes:
 
 
 
+
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
@@ -51,26 +53,29 @@ class AbstractLoopThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.__isRunning = True
+        self.interval = 2 # second
+        # self.__isRunning = True
 
     @pyqtSlot() # int
     def work(self):
         """class method which is working all the time while the thread is running. """
-        while self.__isRunning:
-            try:
-                self.running()
-            except AssertionError as assertion:
-                self.sig_assertion.emit(assertion.args[0])
+        # while self.__isRunning:
+        try:
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval*1e3, self.work)            
 
 
     def running(self):
         """class method to be overriden """
         raise NotImplementedError
 
-    @pyqtSlot()
-    def stop(self):
-        """stop the loop execution, sets self.__isRunning to False"""
-        self.__isRunning = False
+    # @pyqtSlot()
+    # def stop(self):
+    #     """stop the loop execution, sets self.__isRunning to False"""
+    #     self.__isRunning = False
 
 
 class AbstractEventhandlingThread(AbstractThread):
@@ -110,7 +115,7 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file=None, **kwargs):
+    def __init__(self, ui_file=None, parent=None,**kwargs):
         super().__init__(**kwargs)
         loadUi(ui_file, self)
 
@@ -119,3 +124,15 @@ class Window_ui(QtWidgets.QWidget):
         self.sig_closing.emit()
         event.accept() # let the window close
 
+
+
+class sequence_listwidget(QtWidgets.QListWidget):
+    """docstring for Sequence_ListWidget"""
+    sig_dropped = pyqtSignal()
+    def __init__(self, **kwargs):
+        super(Sequence_ListWidget, self).__init__(**kwargs)
+
+    def dropEvent(self, event):
+        self.sig_dropped.emit(event)
+        event.accept()
+        
