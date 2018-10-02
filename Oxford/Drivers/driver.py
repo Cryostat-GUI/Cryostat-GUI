@@ -19,7 +19,7 @@ def do_check(func):
     def wrapper_do_check(*args, **kwargs):
         value = func(*args, **kwargs)
         if value == "" or None:
-            raise AssertionError(f'{func.__module__}: {func.__qualname__}: bad reply: empty string')
+            raise AssertionError('SerialDriver: query: bad reply: empty string')
         if value[0] == '?': 
             value = func(*args, **kwargs)
         return value
