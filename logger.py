@@ -61,7 +61,7 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
 
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
-        
+
 
         self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
@@ -218,7 +218,7 @@ class main_Logger(AbstractLoopThread):
 
 
     def updatetable(self,  tablename,dictname):
-        if not dictname: 
+        if not dictname:
             raise AssertionError('Logger: dict does not yet exist')
         # print('list',dictname)
 
@@ -270,10 +270,10 @@ class main_Logger(AbstractLoopThread):
 
     @pyqtSlot(dict)
     def store_data(self, data):
-        if self.not_yet_initialised: 
+        if self.not_yet_initialised:
             return
         self.connectdb('testdata.db')
-        self.mycursor = self.conn.cursor() 
+        self.mycursor = self.conn.cursor()
 
         """storing logging data
             into database or logfile - to be decided!
@@ -314,8 +314,8 @@ class main_Logger(AbstractLoopThread):
         #initializing a table with a primary key as first column:
 
         names = ['ITC', 'ILM']
-        for name in names: 
-            try: 
+        for name in names:
+            try:
                 data[name].update(timedict)
 
                 # print('creating table')
@@ -329,7 +329,7 @@ class main_Logger(AbstractLoopThread):
                 # self.printtable('ITC',data,20181001000000,20191005000000)
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
-            except KeyError as key: 
+            except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
 
         # self.exportdatatoarr('ITC',colnamelist)
