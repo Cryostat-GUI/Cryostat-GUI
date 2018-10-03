@@ -142,6 +142,7 @@ class main_Logger(AbstractLoopThread):
 
 
     def running(self):
+
         try:
             # Do things
             # print('logging running')
