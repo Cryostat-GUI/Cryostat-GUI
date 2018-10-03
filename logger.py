@@ -209,9 +209,9 @@ class main_Logger(AbstractLoopThread):
 
         #We should try to find a nicer a solution without try and except
         #try:
-        for i in dictname.keys():
+        for key in dictname.keys():
             try:
-                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
+                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key]))
                 self.mycursor.execute(sql)
             except sqlite3.OperationalError as err:
                 pass # Logger: probably the column already exists, no problem.
