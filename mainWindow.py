@@ -416,12 +416,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
 
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_P(value))
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_I(value))
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_D(value))
-#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setPID())
 
-
+                """ NEW GUI controls P, I and D values for Control Loop PID Values Command
+                """
+                self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
+                self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(lambda value: self.threads['control_LakeShore350'][0].setLoopP_Param())
+               
+                self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
+                self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(lambda value: self.threads['control_LakeShore350'][0].setLoopI_Param())
+               
+                self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
+                self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(lambda value: self.threads['control_LakeShore350'][0].setLoopD_Param())
+               
 
                 self.action_run_LakeShore350.setChecked(True)
 
@@ -500,6 +506,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
             self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
+
+            """NEW GUI to display P,I and D Parameters
+            """
+            self.LakeShore350_window.lcdLoopP_Param.display(self.data['LakeShore350']['Loop_P_Param'])
+            self.LakeShore350_window.lcdLoopI_Param.display(self.data['LakeShore350']['Loop_I_Param'])
+            self.LakeShore350_window.lcdLoopD_Param.display(self.data['LakeShore350']['Loop_D_Param'])            
 
 
 
