@@ -409,14 +409,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 #                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_mW(value))
 #                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setHeater_mW())
 
-                """ NEW GUI replaces gettoset_Heater_mW and setHeater_mW
-                """
-                self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
-                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
+                self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_RampRate_Kpmin(value))
+                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setRampRate_Kpmin())
 
-                """NEW GUI allows to choose from different inputs to connect to output 1 control loop. default is input 1.
-                """
-                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Input(value + 1))
+                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput_Sensor(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
 
@@ -488,21 +484,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
 
-            """NEW GUI Heater_Output_Percentage
-            """
             self.LakeShore350_window.progressHeaterOutput_precentage.display(self.data['Lakeshore350']['Heater_Output_percentage'])
-
             self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['Lakeshore350']['Heater_Output_mW'])
             self.LakeShore350_window.lcdSetTemp_K.display(self.data['Lakeshore350']['Temp_K'])
 
-            """NEW GUI Heater_mW changed to Ramp Rate
-            """
-            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['Lakeshore350']['Ramp_Rate'])
 
-            """NEW GUI Displays which Input is connected
+            """NEW GUI to display RampRate_Status & RamptRate_Kpmin seperately. Before RampRate_Kpmin was a list.
             """
+
+            self.LakeShore350_window.lcdRampeRate_Status.display(self.data['LakeShore350']['RampRate_Status'])
+            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['Lakeshore350']['RampRate_Kpmin'])
+
             self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(int(self.data['LakeShore350']['Input_Sensor'])-1)
-
             self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
