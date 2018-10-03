@@ -17,11 +17,11 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 class LakeShore350(object):
-    def __init__(self, address = 'GPIB0::12::INSTR'):
+    def __init__(self, InstrumentAddress = 'GPIB0::12::INSTR'):
 
 
 
-        self._visa_resource = resource_manager.open_resource(address)
+        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
 #        self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
         self.device = self._visa_resource

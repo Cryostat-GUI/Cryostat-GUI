@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.uic import loadUi
 
-import LakeShore350
+from LakeShore.LakeShore350 import LakeShore350
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
@@ -54,15 +54,15 @@ class LakeShore350_Updater(AbstractLoopThread):
         # here the class instance of the LakeShore should be handed
         self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
 
-		self.Temp_K_value = 3
-		self.Heater_mW_value = 0
-		self.Ramp_Rate_value = 0
-		self.Input_value = 1
+        self.Temp_K_value = 3
+        self.Heater_mW_value = 0
+        self.Ramp_Rate_value = 0
+        self.Input_value = 1
 
         """sets Heater power to 994,05 mW
         """
-		configHeater()
-		configTempLimit
+        self.configHeater()
+        self.configTempLimit()
 
         self.delay1 = 1
         self.delay = 0.0
@@ -108,20 +108,20 @@ class LakeShore350_Updater(AbstractLoopThread):
     #         pass
 
 
-    def configSensor():
+    def configSensor(self):
         """configures sensor inputs to Cerox
         """
         for i in ['A','B','C','D']:
             self.LakeShore350.InputTypeParameterCommand(i,3,1,0,1,1,0)
 
 
-    def configHeater():
-    	"""configures heater output
-    	HeaterSetupCommand(1,2,0,0.141,2) sets Output 1, Heater_Resistance to 50 Ohm, enables Custom Maximum Heater Output Current of 0.141 and configures the heater output displays to show in power.
-    	"""
-    	self.LakeShore350.HeaterSetupCommand(1,2,0,0.141,2)
+    def configHeater(self):
+        """configures heater output
+        HeaterSetupCommand(1,2,0,0.141,2) sets Output 1, Heater_Resistance to 50 Ohm, enables Custom Maximum Heater Output Current of 0.141 and configures the heater output displays to show in power.
+        """
+        self.LakeShore350.HeaterSetupCommand(1,2,0,0.141,2)
 
-    def configTempLimit():
+    def configTempLimit(self):
         """sets temperature limit
         """
         for i in ['A','B','C','D']:
@@ -157,8 +157,8 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     def setRamp_Rate_K(self):
-    	try:
-    		self.LakeShore350.ControlSetpointRampParameterCommand(1,1,self.Ramp_Rate_value)
+        try:
+            self.LakeShore350.ControlSetpointRampParameterCommand(1,1,self.Ramp_Rate_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -169,8 +169,8 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     def setInput(self):
-    	    	try:
-    		self.LakeShore350.OutputModeCommand(1,1,self.Input_value,1)
+        try:
+            self.LakeShore350.OutputModeCommand(1,1,self.Input_value,1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -201,8 +201,8 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     def gettoset_Ramp_Rate_K(self,value):
-    	self.Ramp_Rate_value = value
+        self.Ramp_Rate_value = value
 
-    @pyqtSlot()
-    def gettoset_Input(self,value)
-    	self.Input_value = value
+    # @pyqtSlot()
+    # def gettoset_Input(self,value):
+    #     self.Input_value = value
