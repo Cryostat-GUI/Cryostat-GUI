@@ -6,152 +6,148 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>421</width>
-    <height>543</height>
+    <width>474</width>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>LakeShore 350 Control</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2" rowstretch="5,0">
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="1">
+    <widget class="QDoubleSpinBox" name="spinSetTemp_K">
+     <property name="decimals">
+      <number>4</number>
+     </property>
+     <property name="maximum">
+      <double>300.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>Heater Output [mW]</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Sens 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Set Ramp Rate [K/min]</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Sens 2</string>
-       </property>
-      </widget>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Set Temperature [K]</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Heater Output [%]</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Sens 3</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Sens 4</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Sens 1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLCDNumber" name="lcdSetTemp_K"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QDoubleSpinBox" name="spinSetRampRate_Kpmin">
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin"/>
+   </item>
+   <item row="2" column="1" colspan="2">
+    <widget class="QComboBox" name="comboSetInput_Sensor">
+     <item>
+      <property name="text">
+       <string>Input Sensor 1</string>
+      </property>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Set Temperature [K]</string>
-       </property>
-      </widget>
+     <item>
+      <property name="text">
+       <string>Input Sensor 2</string>
+      </property>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Sens 3</string>
-       </property>
-      </widget>
+     <item>
+      <property name="text">
+       <string>Input Sensor 3</string>
+      </property>
      </item>
-     <item row="0" column="2">
-      <widget class="QLCDNumber" name="lcdSetTemp_K"/>
+     <item>
+      <property name="text">
+       <string>Input Sensor 4</string>
+      </property>
      </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Heater Output [%]</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="spinSetTemp_K">
-       <property name="decimals">
-        <number>4</number>
-       </property>
-       <property name="maximum">
-        <double>300.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Sens 1</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1" colspan="2">
-      <widget class="QLCDNumber" name="lcdSensor1_K"/>
-     </item>
-     <item row="4" column="1" colspan="2">
-      <widget class="QLCDNumber" name="lcdSensor2_K"/>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>Sens 4</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QLCDNumber" name="lcdSensor3_K"/>
-     </item>
-     <item row="6" column="1" colspan="2">
-      <widget class="QLCDNumber" name="lcdSensor4_K"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Set Ramp Rate [K/min]</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>TextLabel</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1" colspan="2">
-      <widget class="QComboBox" name="comboSetInput_Sensor">
-       <item>
-        <property name="text">
-         <string>Input Sensor 1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Input Sensor 2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Input Sensor 3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Input Sensor 4</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="spinSetRampRate_Kpmin">
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>100.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1" colspan="2">
-      <widget class="QProgressBar" name="progressHeaterOutput_percentage">
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>TextLabel</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1" colspan="2">
-      <widget class="QLCDNumber" name="lcdHeaterOutput_mW"/>
-     </item>
-    </layout>
+    </widget>
+   </item>
+   <item row="8" column="1" colspan="2">
+    <widget class="QLCDNumber" name="lcdHeaterOutput_mW"/>
+   </item>
+   <item row="7" column="1" colspan="2">
+    <widget class="QProgressBar" name="progressHeaterOutput_percentage">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" colspan="2">
+    <widget class="QLCDNumber" name="lcdSensor4_K"/>
+   </item>
+   <item row="5" column="1" colspan="2">
+    <widget class="QLCDNumber" name="lcdSensor3_K"/>
+   </item>
+   <item row="4" column="1" colspan="2">
+    <widget class="QLCDNumber" name="lcdSensor2_K"/>
+   </item>
+   <item row="3" column="1" colspan="2">
+    <widget class="QLCDNumber" name="lcdSensor1_K"/>
    </item>
   </layout>
  </widget>
