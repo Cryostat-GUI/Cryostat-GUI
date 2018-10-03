@@ -170,7 +170,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     def setInput(self):
     	    	try:
-    		self.LakeShore350.OutputModeCommand(1,1,Self.Input_value,1)
+    		self.LakeShore350.OutputModeCommand(1,1,self.Input_value,1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
