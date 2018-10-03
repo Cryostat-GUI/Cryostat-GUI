@@ -314,7 +314,7 @@ class main_Logger(AbstractLoopThread):
 
         #initializing a table with a primary key as first column:
 
-        names = ['ITC', 'ILM']
+        names = ['ITC', 'ILM', 'IPS','LakeShore350']
         for name in names:
             try:
                 data[name].update(timedict)

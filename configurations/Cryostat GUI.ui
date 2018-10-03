@@ -74,7 +74,7 @@
      <addaction name="action_show_ILM"/>
      <addaction name="action_show_IPS"/>
      <addaction name="separator"/>
-     <addaction name="action_show_Lakeshore350"/>
+     <addaction name="action_show_LakeShore350"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
@@ -513,7 +513,7 @@
     <string>IPS 120</string>
    </property>
   </action>
-  <action name="action_show_Lakeshore350">
+  <action name="action_show_LakeShore350">
    <property name="checkable">
     <bool>true</bool>
    </property>

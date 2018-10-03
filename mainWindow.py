@@ -384,7 +384,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
         self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
-        self.action_show_Lakeshore350.triggered['bool'].connect(self.show_LakeShore350)
+        self.action_show_LakeShore350.triggered['bool'].connect(self.show_LakeShore350)
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -404,26 +404,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
-                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda value: self.threads['control_LakeShore350'][0].setTemp_K())
+                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setTemp_K())
 
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_mW(value))
-#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setHeater_mW())
-
-                """ NEW GUI replaces gettoset_Heater_mW and setHeater_mW
-                """
                 self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
-                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished(lambda value: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
+                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
-                """NEW GUI allows to choose from different inputs to connect to output 1 control loop. default is input 1.
-                """
-                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Input(value + 1))
+                # allows to choose from different inputs to connect to output 1 control loop. default is input 1.
+                
+                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
-
-
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_P(value))
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_I(value))
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_D(value))
-#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setPID())
 
 
 
@@ -431,10 +420,16 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                self.show_error_textBrowser(e)
+                self.show_error_textBrowser('running: {}'.format(e)) 
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
+
+            self.LakeShore350_window.spinSetTemp_K.valueChanged.disconnect()
+            self.LakeShore350_window.spinSetTemp_K.editingFinished.disconnect()
+            self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.disconnect()
+            self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.disconnect()
+            self.LakeShore350_window.comboSetInput_Sensor.activated['int'].disconnect()
 
     @pyqtSlot(bool)
     def show_LakeShore350(self, boolean):
@@ -479,34 +474,34 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """
 
 
-        @pyqtSlot(dict)
-        def store_data_LakeShore350(self, data):
-            """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
-            with self.dataLock:
-                data['date'] = convert_time(time.time())
-                self.data['Lakeshore350'].update(data)
-                # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
-                # since the command failed in the communication with the device, the last value is retained
+    @pyqtSlot(dict)
+    def store_data_LakeShore350(self, data):
+        """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
+        with self.dataLock:
+            data['date'] = convert_time(time.time())
+            self.data['LakeShore350'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+            # since the command failed in the communication with the device, the last value is retained
 
-                """NEW GUI Heater_Output_Percentage
-                """
-                self.LakeShore350_window.progressHeaterOutput_precentage.display(self.data['Lakeshore350']['Heater_Output_percentage'])
+            """NEW GUI Heater_Output_Percentage
+            """
+            self.LakeShore350_window.progressHeaterOutput_percentage.setValue(self.data['LakeShore350']['Heater_Output_percentage'])
 
-                self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['Lakeshore350']['Heater_Output_mW'])
-                self.LakeShore350_window.lcdSetTemp_K.display(self.data['Lakeshore350']['Temp_K'])
+            self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['LakeShore350']['Heater_Output_mW'])
+            self.LakeShore350_window.lcdSetTemp_K.display(self.data['LakeShore350']['Temp_K'])
 
-                """NEW GUI Heater_mW changed to Ramp Rate
-                """
-                self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['Lakeshore350']['Ramp_Rate'])
+            """NEW GUI Heater_mW changed to Ramp Rate
+            """
+            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['LakeShore350']['Ramp_Rate'])
 
-                """NEW GUI Displays which Input is connected
-                """
-                self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(int(self.data['LakeShore350']['Input_Sensor'])-1)
+            """NEW GUI Displays which Input is connected
+            """
+            self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(int(self.data['LakeShore350']['Input_Sensor'])-1)
 
-                self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
-                self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
-                self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
-                self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
+            self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
+            self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
+            self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
+            self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
 
 
 

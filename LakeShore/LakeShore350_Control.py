@@ -44,7 +44,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_3_K=5,
 #        Sensor_4_K=6)
 
-    sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW' 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K','Input_Sensor']
+    sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW', 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K','Input_Sensor']
 
     sensor_values = [None] * 9
 
@@ -52,7 +52,11 @@ class LakeShore350_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
-        self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
+        try: 
+            self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
+        except VisaIOError as e: 
+            self.sig_assertion.emit('running in control: {}'.format(e))
+
 
         self.Temp_K_value = 3
         self.Heater_mW_value = 0
@@ -80,18 +84,19 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
-            sensor_values[1] = sensor_values[0]*994.5
-            sensor_values[2] = self.lakeShore350.ControlSetpointQuery(1)
-            sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)
+            self.sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
+            self.sensor_values[1] = self.sensor_values[0]*994.5
+            self.sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)
+            self.sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
             temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            sensor_values[4] = temp_list[0]
-            sensor_values[5] = temp_list[1]
-            sensor_values[6] = temp_list[2]
-            sensor_values[7] = temp_list[3]
-            sensor_values[8] = self.LakeShore350.OutputModeQuery[1]
+            self.sensor_values[4] = temp_list[0]
+            self.sensor_values[5] = temp_list[1]
+            self.sensor_values[6] = temp_list[2]
+            self.sensor_values[7] = temp_list[3]
+            self.sensor_values[8] = self.LakeShore350.OutputModeQuery(1)[1]
 
-            self.sig_Infodata.emit(deepcopy(dict(zip(sensor_names,sensor_values))))
+            # print(dict(zip(self.sensor_names,self.sensor_values)))
+            self.sig_Infodata.emit(deepcopy(dict(zip(self.sensor_names,self.sensor_values))))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
@@ -108,7 +113,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     #         pass
 
 
-    def configSensor(self):
+    def configSensor():
         """configures sensor inputs to Cerox
         """
         for i in ['A','B','C','D']:
@@ -168,9 +173,9 @@ class LakeShore350_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
-    def setInput(self):
+    def setInput(self, Input_value):
         try:
-            self.LakeShore350.OutputModeCommand(1,1,self.Input_value,1)
+            self.LakeShore350.OutputModeCommand(1,1,Input_value,1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
