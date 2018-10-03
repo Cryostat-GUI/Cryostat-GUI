@@ -8,7 +8,10 @@ import sys
 import datetime
 import pickle
 import os
+import sqlite3
+import numpy as np
 from copy import deepcopy
+
 
 from util import AbstractLoopThread
 from util import Window_ui
@@ -56,6 +59,7 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
         # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
+
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
 
 
@@ -100,10 +104,7 @@ class Logger_configuration(Window_ui):
         else:
             self.conf = self.initialise_dicts()
 
-
-
 class main_Logger(AbstractLoopThread):
-
     """This is a worker thread
     """
 
@@ -125,22 +126,42 @@ class main_Logger(AbstractLoopThread):
         self.conf_done_layer2 = False
 
 
+        # QTimer.singleShot(1e3, self.initialise)
+        self.not_yet_initialised = False
+
+
+
+
+
+    # def initialise(self):
+    #     self.connectdb('testdata')
+    #     self.mycursor = self.conn.cursor()
+    #     self.not_yet_initialised = False
+
+        # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
+
+
     def running(self):
-        # try:
-        # Do things
-        print('logging running')
-        if self.configuration_done:
-            self.sig_log.emit()
-            if not self.conf_done_layer2:
-                self.sig_configuring.emit(False)
-                self.conf_done_layer2 = True
-            print('emitted signal')
+
+        try:
+            # Do things
+            # print('logging running')
+            if self.configuration_done:
+                self.sig_log.emit()
+                if not self.conf_done_layer2:
+                    self.sig_configuring.emit(False)
+                    self.conf_done_layer2 = True
+                # print('emitted signal')
 
 
-        # except AssertionError as assertion:
-        #     self.sig_assertion.emit(assertion.args[0])
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
         # finally:
         #     QTimer.singleShot(self.interval*1e3, self.running)
+
+    # @pyqtSlot()
+    # def stop(self):
+    #     self.__isRunning = False
 
     def update_conf(self, conf):
         """
@@ -162,12 +183,165 @@ class main_Logger(AbstractLoopThread):
         self.interval = interval
 
 
+
+    def connectdb(self, dbname):
+        try:
+            # global conn
+            self.conn= sqlite3.connect(dbname)
+        except sqlite3.connect.Error as err:
+            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+
+
+
+    def createtable(self,tablename,dictname):
+
+        def typeof(dictkey):
+            if isinstance(dictkey,float):
+                return "REAL"
+            elif isinstance(dictkey,int):
+                return "INTEGER"
+            else:
+                return "TEXT"
+
+
+        sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
+        self.mycursor.execute(sql)
+
+        #We should try to find a nicer a solution without try and except
+        #try:
+        for i in dictname.keys():
+            try:
+                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
+                self.mycursor.execute(sql)
+            except sqlite3.OperationalError as err:
+                pass # Logger: probably the column already exists, no problem.
+                # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
+
+
+    def updatetable(self,  tablename,dictname):
+        if not dictname:
+            raise AssertionError('Logger: dict does not yet exist')
+        # print('list',dictname)
+
+        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'CurrentTime',dictname['CurrentTime'])
+        # print(sql)
+        self.mycursor.execute(sql)
+
+        for i in range(len(dictname)):
+            sql="UPDATE {} SET {}='{}' WHERE {}='{}'".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
+            # print(sql)
+            self.mycursor.execute(sql)
+
+        self.conn.commit()
+
+
+
+    def printtable(self,tablename,dictname,date1,date2):
+
+        for colnames in dictname.keys():
+            print(colnames, end=',', flush=True)
+        print('\n')
+
+        sql="SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}".format(tablename,date1,date2)
+        self.mycursor.execute(sql)
+
+        data = self.mycursor.fetchall()
+        for row in data:
+            print(row)
+
+
+
+
+    def exportdatatoarr(self, tablename,colnamelist):
+
+        array=[]
+
+        sql="SELECT {},{},{} from {} ".format(*colnamelist,tablename)
+        self.mycursor.execute(sql)
+        data = self.mycursor.fetchall()
+
+        for row in data:
+            array.append(list(row))
+
+        nparray=np.asarray(array)
+        # print("the numpy array:")
+        # print(nparray)
+        return nparray
+
+
     @pyqtSlot(dict)
     def store_data(self, data):
+        if self.not_yet_initialised:
+            return
+        self.connectdb('testdata.db')
+        self.mycursor = self.conn.cursor()
+
         """storing logging data
             into database or logfile - to be decided!
             what data should be logged is set in self.conf
+        # """
+        # dbname='test'
+        # tablename='measured_data'
+        # # colnamelist=['Voltage', 'Current','CurrentTime']
 
-        """
-        print(self.conf)
-        # saving data
+
+        # #test dict:
+        # testdict={
+        #     "Voltage":"10",
+        #     "Current" :"20",
+        #     "Temperature":"0",
+        #     "Testcol1":10,
+        #     "Testcol2":100,
+        #     "testcol3":3.1415
+        # }
+
+
+        timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S")} #it was the only way i could implement date and time and still select them
+        # testdict={**timedict,**testdict}
+
+        #Creating the readable time value and then appending it to the dictionary:
+        timestr=str(timedict["CurrentTime"])
+        ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
+        # testdict['ReadableTime']=ReadableTime
+        data['ReadableTime']=ReadableTime
+
+
+
+        #cursor setup:
+
+        #Optional command to delete a table, must be commented out
+        #mycursor.execute("DROP TABLE measured_data")
+
+        #initializing a table with a primary key as first column:
+
+        names = ['ITC', 'ILM']
+        for name in names:
+            try:
+                data[name].update(timedict)
+
+                # print('creating table')
+                self.createtable(name, data[name])
+                #inserting in the measured values:
+
+                # print('updating table')
+                self.updatetable(name,data[name])
+
+                # print('printing table')
+                # self.printtable('ITC',data,20181001000000,20191005000000)
+            except AssertionError as assertion:
+                self.sig_assertion.emit(assertion.args[0])
+            except KeyError as key:
+                self.sig_assertion.emit(key.args[0])
+
+        # self.exportdatatoarr('ITC',colnamelist)
+
+    # store_data(0,0)
+    # def logging_read_configuration(self):
+    #     """method to establish the configuration of
+    #         what shall be logged from a respective file
+
+    #         open window to let the user choose.
+
+    #         Return: dictionary holding bools
+    #     """
+    #     return None
