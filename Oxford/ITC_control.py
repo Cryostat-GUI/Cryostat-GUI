@@ -89,10 +89,11 @@ class ITC_Updater(AbstractLoopThread):
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
+            for key in self.sensors.keys():
                 # key_f_timeout = key
-                data[key] = self.ITC.getValue(idx_sensor)
+                data[key] = self.ITC.getValue(self.sensors[key])
                 time.sleep(self.delay)
+
             self.sig_Infodata.emit(deepcopy(data))
 
             # time.sleep(self.delay1)
