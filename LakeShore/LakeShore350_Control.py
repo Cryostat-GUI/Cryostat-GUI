@@ -44,9 +44,9 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_3_K=5,
 #        Sensor_4_K=6)
 
-    sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW' 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
+    sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW' 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K','Input_Sensor']
     
-    sensor_values = [None] * 8
+    sensor_values = [None] * 9
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -89,6 +89,7 @@ class LakeShore350_Updater(AbstractLoopThread):
             sensor_values[5] = temp_list[1]
             sensor_values[6] = temp_list[2]
             sensor_values[7] = temp_list[3]
+            sensor_values[8] = self.LakeShore350.OutputModeQuery[1]
             
             self.sig_Infodata.emit(deepcopy(dict(zip(sensor_names,sensor_values))))
 
