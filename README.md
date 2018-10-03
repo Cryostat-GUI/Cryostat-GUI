@@ -15,7 +15,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 ### low-level functions: 
 - [x] Oxford ITC 503
 - [x] Oxford ILM 211
-- [ ] Oxford PS120 10
+- [x] Oxford PS120 10
 - [x] Lakeshore 350
 - [ ] Keithley 2182 A
 - [ ] Keithley 6221
@@ -26,7 +26,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [x] Oxford ITC 503
 - [x] Oxford ILM 211
 - [x] Oxford PS120 10
-- [ ] Lakeshore 350
+- [x] Lakeshore 350
 - [ ] Keithley 2182 A
 - [ ] Keithley 6221
 - [ ] Keithley DMM 7510 7 
@@ -36,7 +36,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [x] Oxford ITC 503
 - [x] Oxford ILM 211
 - [x] Oxford PS120 10
-- [ ] Lakeshore 350
+- [x] Lakeshore 350
 - [ ] Keithley 2182 A
 - [ ] Keithley 6221
 - [ ] Keithley DMM 7510 7 
