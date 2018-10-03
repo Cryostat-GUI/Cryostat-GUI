@@ -57,7 +57,7 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
-        
+
 
         self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
@@ -94,10 +94,10 @@ class Logger_configuration(Window_ui):
     def read_configuration(self):
         '''search for configuration file, load it if found, initialise new dict if not found'''
         configurations = os.listdir(r'.\\configurations')
-        if 'log_conf.pickle' in configurations: 
+        if 'log_conf.pickle' in configurations:
             with open('configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
-        else: 
+        else:
             self.conf = self.initialise_dicts()
 
 
@@ -129,16 +129,16 @@ class main_Logger(AbstractLoopThread):
         # try:
         # Do things
         print('logging running')
-        if self.configuration_done: 
+        if self.configuration_done:
             self.sig_log.emit()
-            if not self.conf_done_layer2: 
+            if not self.conf_done_layer2:
                 self.sig_configuring.emit(False)
                 self.conf_done_layer2 = True
             print('emitted signal')
 
 
         # except AssertionError as assertion:
-        #     self.sig_assertion.emit(assertion.args[0])            
+        #     self.sig_assertion.emit(assertion.args[0])
         # finally:
         #     QTimer.singleShot(self.interval*1e3, self.running)
 

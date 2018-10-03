@@ -18,14 +18,14 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         For each self.ITC503 function (except collecting data), there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device. 
+        the corresponding value to the device.
 
         There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment 
+        the corresponding value, and stores it, so it can be sent upon acknowledgment
 
         The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class. 
+        the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sig_Infodata = pyqtSignal(dict)
@@ -45,7 +45,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_4_K=6)
 
     sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW' 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K','Input_Sensor']
-    
+
     sensor_values = [None] * 9
 
     def __init__(self, InstrumentAddress='', **kwargs):
@@ -58,7 +58,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 		self.Heater_mW_value = 0
 		self.Ramp_Rate_value = 0
 		self.Input_value = 1
-        
+
         """sets Heater power to 994,05 mW
         """
 		configHeater()
@@ -74,8 +74,8 @@ class LakeShore350_Updater(AbstractLoopThread):
         """Try to extract all current data from the ITC, and emit signal, sending the data
 
             self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
-            with any other PC, so errors which come back are "caught", or communication is set up 
+            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
+            with any other PC, so errors which come back are "caught", or communication is set up
             in a way no errors occur)
 
         """
@@ -90,7 +90,7 @@ class LakeShore350_Updater(AbstractLoopThread):
             sensor_values[6] = temp_list[2]
             sensor_values[7] = temp_list[3]
             sensor_values[8] = self.LakeShore350.OutputModeQuery[1]
-            
+
             self.sig_Infodata.emit(deepcopy(dict(zip(sensor_names,sensor_values))))
 
             # time.sleep(self.delay1)
@@ -137,9 +137,9 @@ class LakeShore350_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
@@ -150,9 +150,9 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        except AssertionError as e_ass:
 #            self.sig_assertion.emit(e_ass.args[0])
 #        except VisaIOError as e_visa:
-#            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+#            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
 #                self.sig_visatimeout.emit()
-#            else: 
+#            else:
 #                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -162,9 +162,9 @@ class LakeShore350_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -174,9 +174,9 @@ class LakeShore350_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
