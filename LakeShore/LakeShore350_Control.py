@@ -44,8 +44,9 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_3_K=5,
 #        Sensor_4_K=6)
 
-    sensor_names = ['Heater_Output_mW', 'Temp_K', 'Heater_mW', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
-    sensor_values = []
+    sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW' 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
+    
+    sensor_values = [None] * 8
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -53,13 +54,19 @@ class LakeShore350_Updater(AbstractLoopThread):
         # here the class instance of the LakeShore should be handed
         self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
 
-        self.Temp_K_value = 3
-        self.Heater_mW_value = 0
+		self.Temp_K_value = 3
+		self.Heater_mW_value = 0
+		self.Ramp_Rate_value = 0
+		self.Input_value = 1
         
+        """sets Heater power to 994,05 mW
+        """
+		configHeater()
+		configTempLimit
 
         self.delay1 = 1
         self.delay = 0.0
-        self.setControl()
+        # self.setControl()
         # self.__isRunning = True
 
     # @control_checks
@@ -74,16 +81,16 @@ class LakeShore350_Updater(AbstractLoopThread):
         """
         try:
             sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
-            sensor_values[1] = self.lakeShore350.ControlSetpointQuery(1)
-            sensor_values[2] =
-#            temp_list = self.LakeShore350.SemsoUnitsInputReadingQuery(0)
+            sensor_values[1] = sensor_values[0]*994.5
+            sensor_values[2] = self.lakeShore350.ControlSetpointQuery(1)
+            sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)
             temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            sensor_values[3] = temp_list[0]
-            sensor_values[4] = temp_list[1]
-            sensor_values[5] = temp_list[2]
-            sensor_values[6] = temp_list[3]
+            sensor_values[4] = temp_list[0]
+            sensor_values[5] = temp_list[1]
+            sensor_values[6] = temp_list[2]
+            sensor_values[7] = temp_list[3]
             
-            self.sig_Infodata.emit(deepcopy(zip(sensor_names,sensor_values)))
+            self.sig_Infodata.emit(deepcopy(dict(zip(sensor_names,sensor_values))))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
@@ -107,11 +114,17 @@ class LakeShore350_Updater(AbstractLoopThread):
             self.LakeShore350.InputTypeParameterCommand(i,3,1,0,1,1,0)
 
 
+    def configHeater():
+    	"""configures heater output
+    	HeaterSetupCommand(1,2,0,0.141,2) sets Output 1, Heater_Resistance to 50 Ohm, enables Custom Maximum Heater Output Current of 0.141 and configures the heater output displays to show in power.
+    	"""
+    	self.LakeShore350.HeaterSetupCommand(1,2,0,0.141,2)
+
     def configTempLimit():
         """sets temperature limit
         """
         for i in ['A','B','C','D']:
-           self.LakeShore350.TemperatureLimitCommand(i,470.)
+           self.LakeShore350.TemperatureLimitCommand(i,400.)
 
 
     @pyqtSlot()
@@ -119,7 +132,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
         try:
-            self.LakeShore350.ControlSetpointCommand(1,Temp_K_value)
+            self.LakeShore350.ControlSetpointCommand(1,self.Temp_K_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -128,11 +141,23 @@ class LakeShore350_Updater(AbstractLoopThread):
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+
+#    @pyqtSlot()
+#    def setHeater_mW(self):
+#        try:
+#            self.LakeShore350.HeaterSetupCommand
+#        except AssertionError as e_ass:
+#            self.sig_assertion.emit(e_ass.args[0])
+#        except VisaIOError as e_visa:
+#            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+#                self.sig_visatimeout.emit()
+#            else: 
+#                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
-    def setHeater_mW(self):
-        try:
-#            self.LakeShore350.set something with HTRSET
+    def setRamp_Rate_K(self):
+    	try:
+    		self.LakeShore350.ControlSetpointRampParameterCommand(1,1,self.Ramp_Rate_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -140,6 +165,21 @@ class LakeShore350_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setInput(self):
+    	    	try:
+    		self.LakeShore350.OutputModeCommand(1,1,Self.Input_value,1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+                self.sig_visatimeout.emit()
+            else: 
+                self.sig_visaerror.emit(e_visa.args[0])
+
+
+
 
 
     @pyqtSlot()
@@ -150,9 +190,18 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.Temp_K_value = value
 
 
+#    @pyqtSlot()
+#    def gettoset_Heater_mW(self,value):
+#        """class method to receive and store the value to set the temperature
+#        later on, when the command to enforce the value is sent
+#        """
+#        self.Heater_mW_value = value
+
+
     @pyqtSlot()
-    def gettoset_Heater_mW(self,value):
-        """class method to receive and store the value to set the temperature
-        later on, when the command to enforce the value is sent
-        """
-        self.Heater_mW_value = value
+    def gettoset_Ramp_Rate_K(self,value):
+    	self.Ramp_Rate_value = value
+
+    @pyqtSlot()
+    def gettoset_Input(self,value)
+    	self.Input_value = value

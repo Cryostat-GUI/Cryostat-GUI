@@ -406,8 +406,25 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
                 self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda value: self.threads['control_LakeShore350'][0].setTemp_K())
 
-                self.LakeShore350_window.spinSetHeater_mW.valueChanged.
-                self.LakeShore350_window.spinSetHeater_mW.editingFinished.
+#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_mW(value))
+#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setHeater_mW())
+
+                """ replaces gettoset_Heater_mW and setHeater_mW
+                """
+                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
+                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
+
+                """code below needs to be adapted to allow to choose from different inputs to connect to output 1 control loop. default is input 1.
+                """
+                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Input(value))
+                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
+
+                """needs to be integrated in GUI
+                """
+#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_P(value))
+#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_I(value))
+#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_D(value))
+#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setPID())
 
 
 
@@ -471,9 +488,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.data['Lakeshore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up, 
             # since the command failed in the communication with the device, the last value is retained
+
+            """Heater_Output_Percentage 
+            """
+            self.LakeShore350_window.lcdHeaterOutput_precentag.display(self.data['Lakeshore350']['Heater_Output_percentage'])
+            
             self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['Lakeshore350']['Heater_Output_mW'])
             self.LakeShore350_window.lcdSetTemp_K.display(self.data['Lakeshore350']['Temp_K'])
-            self.LakeShore350_window.lcdSetHeater_mW.display(self.data['Lakeshore350']['Heater_mW'])
+            
+            """Heater_mW changed to Ramp Rate
+            """
+            self.LakeShore350_window.lcdSetHeater_mW.display(self.data['Lakeshore350']['Ramp_Rate'])
 
             self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
