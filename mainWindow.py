@@ -18,7 +18,7 @@ from threading import Lock
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
-from LakeShore.LakeShore350_control import LakeShore350_Updater
+from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
 

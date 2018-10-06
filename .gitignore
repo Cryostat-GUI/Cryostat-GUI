@@ -4,4 +4,4 @@ __pycache__
 *.iml
 *archiv*
 *.DS_Store*
-*.db
+*.db*
