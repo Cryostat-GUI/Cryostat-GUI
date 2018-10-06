@@ -10,8 +10,10 @@ import pickle
 import os
 import sqlite3
 import numpy as np
+from copy import deepcopy
 
-from util import AbstractEventhandlingThread
+
+from util import AbstractLoopThread
 from util import Window_ui
 
 
@@ -21,40 +23,49 @@ class Logger_configuration(Window_ui):
 
     sig_send_conf = pyqtSignal(dict)
 
-    def __init__(self, **kwargs):
-        super(Logger_configuration, self).__init__(**kwargs)
+    ITC_sensors = dict(
+        set_temperature = False,
+        sensor_1_temperature = False,
+        sensor_2_temperature = False,
+        sensor_3_temperature = False,
+        temperature_error = False,
+        heater_output_as_percent = False,
+        heater_output_as_voltage = False,
+        gas_flow_output = False,
+        proportional_band = False,
+        integral_action_time = False,
+        derivative_action_time = False)
+
+    def __init__(self, parent=None, **kwargs):
+        super(Logger_configuration, self).__init__(ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
 
         self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(lambda: self.ITC_thread_running.setChecked)
+        self.general_threads_ITC.toggled.connect(lambda b: self.ITC_thread_running.setChecked(b))
         self.general_threads_ILM.toggled.connect(lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(lambda: self.ILM_thread_running.setChecked)
+        self.general_threads_ILM.toggled.connect(lambda b: self.ILM_thread_running.setChecked(b))
         self.general_threads_PS.toggled.connect(lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(lambda: self.PS_thread_running.setChecked)
+        self.general_threads_PS.toggled.connect(lambda b: self.PS_thread_running.setChecked(b))
         self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(lambda: self.Lakeshore350_thread_running.setChecked)
+        self.general_threads_Lakeshore350.toggled.connect(lambda b: self.Lakeshore350_thread_running.setChecked(b))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
-        # self.general_threads_Current1.toggled.connect(lambda: self.Current1_thread_running.setChecked)
+        # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
         # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
-        # self.general_threads_Current2.toggled.connect(lambda: self.Current2_thread_running.setChecked)
+        # self.general_threads_Current2.toggled.connect(lambda b: self.Current2_thread_running.setChecked(b))
         # self.general_threads_Nano1.toggled.connect(lambda value: self.setValue('Nano1', 'thread', value))
-        # self.general_threads_Nano1.toggled.connect(lambda: self.Nano1_thread_running.setChecked)
+        # self.general_threads_Nano1.toggled.connect(lambda b: self.Nano1_thread_running.setChecked(b))
         # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
-        # self.general_threads_Nano2.toggled.connect(lambda: self.Nano2_thread_running.setChecked)
+        # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
-        # self.general_threads_Nano3.toggled.connect(lambda: self.Nano3_thread_running.setChecked)
-        
 
-        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(self.conf))
+        # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
+
+
+        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
         self.buttonBox_finish.rejected.connect(self.close)
-        # print(self.conf)
-        # self.show()
-        # MAINTHREAD crashes when showing this window! 
-        # TODO: FIND THE BUG!
-        print('bug')
 
 
     def close_and_safe(self):
@@ -65,68 +76,35 @@ class Logger_configuration(Window_ui):
 
 
     def setValue(self, instrument, value, bools):
+        """set a bool value according to the instrument and specific"""
         self.conf[instrument][value] = bools
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
             return the empty conf dict
         """
+
+        self.ITC_sensors.update(dict(thread=False))
         conf = dict()
-        conf['ITC'] = dict()
+        conf['ITC'] = self.ITC_sensors
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
         conf['Keithley Current']  = dict()
         conf['Keithley Volt']   = dict()
+        conf['general'] = dict(logfile_location='')
         return conf
 
     def read_configuration(self):
         '''search for configuration file, load it if found, initialise new dict if not found'''
         configurations = os.listdir(r'.\\configurations')
-        if 'log_conf.pickle' in configurations: 
+        if 'log_conf.pickle' in configurations:
             with open('configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
-        else: 
+        else:
             self.conf = self.initialise_dicts()
 
-
-class test(Window_ui):
-    """docstring for test"""
-    def __init__(self, **kwargs):
-        super(test, self).__init__(**kwargs)
-        # self.arg = arg
-        self.show()
-        
-
-
-class Log_config_windowthread(AbstractEventhandlingThread):
-    """class to handle the logging configuration window.
-
-    """
-
-    def __init__(self, mainthread, **kwargs):
-        super(Log_config_windowthread, self).__init__(**kwargs)
-        self.mainthread = mainthread 
-
-
-    def running(self):
-        """instantiate the Logger configuration window-class, 
-            connect its signals, so configurations are sent properly
-        """
-        self.logger_conf = Logger_configuration(ui_file='.\\configurations\\Logger_conf.ui')
-        # if window is closed, uncheck the menu-bar option in "show"
-        self.logger_conf.sig_closing.connect(lambda: self.mainthread.action_Logging_configuration.setChecked(False))
-        # if the button to accept configuration is pressed, emit signal with dict, sending it to the logger thread
-        self.logger_conf.sig_send_conf.connect(lambda conf: self.mainthread.sig_logging_newconf.emit(conf))
-        # self.logger_conf.show()
-        # print('run log config thread')
-        # print(self.mainthread.threads['logger_confwindow'])
-
-
-
-
-class main_Logger(AbstractEventhandlingThread):
-
+class main_Logger(AbstractLoopThread):
     """This is a worker thread
     """
 
@@ -138,7 +116,7 @@ class main_Logger(AbstractEventhandlingThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 2 # 60s interval for logging as initialisation
+        self.interval = 3 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -147,25 +125,39 @@ class main_Logger(AbstractEventhandlingThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
+
+        # QTimer.singleShot(1e3, self.initialise)
+        self.not_yet_initialised = False
+
+
+
+
+
+    # def initialise(self):
+    #     self.connectdb('testdata')
+    #     self.mycursor = self.conn.cursor()
+    #     self.not_yet_initialised = False
+
         # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
 
 
     def running(self):
+
         try:
             # Do things
-            print('logging running')
-            if self.configuration_done: 
+            # print('logging running')
+            if self.configuration_done:
                 self.sig_log.emit()
-                if not self.conf_done_layer2: 
+                if not self.conf_done_layer2:
                     self.sig_configuring.emit(False)
                     self.conf_done_layer2 = True
-                print('emitted signal')
+                # print('emitted signal')
 
 
         except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])            
-        finally:
-            QTimer.singleShot(self.interval*1e3, self.running)
+            self.sig_assertion.emit(assertion.args[0])
+        # finally:
+        #     QTimer.singleShot(self.interval*1e3, self.running)
 
     # @pyqtSlot()
     # def stop(self):
@@ -180,7 +172,7 @@ class main_Logger(AbstractEventhandlingThread):
                 so that the configuring thread will be quit.
 
         """
-        print('updated conf for logging')
+        # print('updated conf for logging')
         self.conf = conf
         self.configuration_done = True
         self.conf_done_layer2 = False
@@ -191,136 +183,164 @@ class main_Logger(AbstractEventhandlingThread):
         self.interval = interval
 
 
+
+    def connectdb(self, dbname):
+        try:
+            # global conn
+            self.conn= sqlite3.connect(dbname)
+        except sqlite3.connect.Error as err:
+            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+
+
+
+    def createtable(self,tablename,dictname):
+
+        def typeof(dictkey):
+            if isinstance(dictkey,float):
+                return "REAL"
+            elif isinstance(dictkey,int):
+                return "INTEGER"
+            else:
+                return "TEXT"
+
+
+        sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
+        self.mycursor.execute(sql)
+
+        #We should try to find a nicer a solution without try and except
+        #try:
+        for key in dictname.keys():
+            try:
+                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key]))
+                self.mycursor.execute(sql)
+            except sqlite3.OperationalError as err:
+                pass # Logger: probably the column already exists, no problem.
+                # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
+
+
+    def updatetable(self,  tablename,dictname):
+        if not dictname:
+            raise AssertionError('Logger: dict does not yet exist')
+        # print('list',dictname)
+
+        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'CurrentTime',dictname['CurrentTime'])
+        # print(sql)
+        self.mycursor.execute(sql)
+
+        for i in range(len(dictname)):
+            sql="UPDATE {} SET {}='{}' WHERE {}='{}'".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
+            # print(sql)
+            self.mycursor.execute(sql)
+
+        self.conn.commit()
+
+
+
+    def printtable(self,tablename,dictname,date1,date2):
+
+        for colnames in dictname.keys():
+            print(colnames, end=',', flush=True)
+        print('\n')
+
+        sql="SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}".format(tablename,date1,date2)
+        self.mycursor.execute(sql)
+
+        data = self.mycursor.fetchall()
+        for row in data:
+            print(row)
+
+
+
+
+    def exportdatatoarr(self, tablename,colnamelist):
+
+        array=[]
+
+        sql="SELECT {},{},{} from {} ".format(*colnamelist,tablename)
+        self.mycursor.execute(sql)
+        data = self.mycursor.fetchall()
+
+        for row in data:
+            array.append(list(row))
+
+        nparray=np.asarray(array)
+        # print("the numpy array:")
+        # print(nparray)
+        return nparray
+
+
     @pyqtSlot(dict)
     def store_data(self, data):
+        if self.not_yet_initialised:
+            return
+        self.connectdb('testdata.db')
+        self.mycursor = self.conn.cursor()
+
         """storing logging data
             into database or logfile - to be decided!
             what data should be logged is set in self.conf
-        """
-        dbname='test'
-        tablename='measured_data'
-        colnamelist=['Voltage', 'Current','CurrentTime']
+        # """
+        # dbname='test'
+        # tablename='measured_data'
+        # # colnamelist=['Voltage', 'Current','CurrentTime']
 
 
-        #test dict:
-        testdict={ 
-            "Voltage":"10",
-            "Current" :"20",
-            "Temperature":"0",
-            "Testcol1":10,
-            "Testcol2":100,
-            "testcol3":3.1415
-        }
+        # #test dict:
+        # testdict={
+        #     "Voltage":"10",
+        #     "Current" :"20",
+        #     "Temperature":"0",
+        #     "Testcol1":10,
+        #     "Testcol2":100,
+        #     "testcol3":3.1415
+        # }
 
-        
+
         timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S")} #it was the only way i could implement date and time and still select them
-        testdict={**timedict,**testdict}
-        
+        # testdict={**timedict,**testdict}
+
         #Creating the readable time value and then appending it to the dictionary:
-        timestr=str(testdict.get("CurrentTime"))
+        timestr=str(timedict["CurrentTime"])
         ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
-        testdict['ReadableTime']=ReadableTime
-        
-        def connectdb(dbname):
-            try:
-                global conn 
-                conn= sqlite3.connect(dbname)
-            except sqlite3.connect.Error as err:
-                print("Couldn't establish connection {}".format(err))
+        # testdict['ReadableTime']=ReadableTime
+        data['ReadableTime']=ReadableTime
+
 
 
         #cursor setup:
-        connectdb(dbname)
-        mycursor = conn.cursor()
 
         #Optional command to delete a table, must be commented out
         #mycursor.execute("DROP TABLE measured_data")
 
         #initializing a table with a primary key as first column:
 
-        def createtable(tablename,dictname):
-            
-            def typeof(dictkey):
-                if isinstance(dictkey,float):
-                    return "REAL"
-                elif isinstance(dictkey,int):
-                    return "INTEGER"
-                else:
-                    return "TEXT"
+        names = ['ITC', 'ILM', 'IPS','LakeShore350']
+        for name in names:
+            try:
+                data[name].update(timedict)
 
+                # print('creating table')
+                self.createtable(name, data[name])
+                #inserting in the measured values:
 
-            sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
-            mycursor.execute(sql)
+                # print('updating table')
+                self.updatetable(name,data[name])
 
-            #We should try to find a nicer a solution without try and except
-            #try:
-            for i in dictname.keys():
-                try:
-                    sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
-                    mycursor.execute(sql)
-                except sqlite3.OperationalError as err:
-                    print("prabably the column already exists, no problem. ({})".format(err))
-            
+                # print('printing table')
+                # self.printtable('ITC',data,20181001000000,20191005000000)
+            except AssertionError as assertion:
+                self.sig_assertion.emit(assertion.args[0])
+            except KeyError as key:
+                self.sig_assertion.emit(key.args[0])
 
-        createtable(tablename,testdict)
-        
-        #inserting in the measured values:
-        
-        def updatetable(tablename,dictname):
-                        
-            sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,list(dictname.keys())[0],list(dictname.values())[0])
-            mycursor.execute(sql)
-            
-            for i in range(len(dictname)):
-                sql="UPDATE {} SET {}={} WHERE {}={}".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],list(dictname.keys())[0],list(dictname.values())[0])
-                mycursor.execute(sql)
-                                
-            conn.commit()
+        # self.exportdatatoarr('ITC',colnamelist)
 
-        updatetable(tablename,testdict)
-
-
-        def printtable(tablename,dictname,date1,date2):
-            
-            for colnames in dictname.keys():
-                print(colnames, end=',', flush=True)
-            print('\n')
-
-            sql="SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}".format(tablename,date1,date2)
-            mycursor.execute(sql)
-            
-            data =mycursor.fetchall()
-            for row in data:
-                print(row)
-
-        printtable(tablename,testdict,20180917132531,20190917132610)
-
-        
-
-
-        def exportdatatoarr (tablename,colnamelist):
-
-            array=[]
-
-            sql="SELECT {},{},{} from {} ".format(*colnamelist,tablename)
-            mycursor.execute(sql)
-            data =mycursor.fetchall()
-                
-            for row in data:
-                array.append(list(row))
-                
-            nparray=np.asarray(array)    
-            print("the numpy array:")
-            print(nparray)
-
-        exportdatatoarr(tablename,colnamelist)
-       
-    store_data(0,0)
+    # store_data(0,0)
     # def logging_read_configuration(self):
-    #     """method to establish the configuration of 
+    #     """method to establish the configuration of
     #         what shall be logged from a respective file
 
-    #         open window to let the user choose. 
+    #         open window to let the user choose.
 
     #         Return: dictionary holding bools
     #     """

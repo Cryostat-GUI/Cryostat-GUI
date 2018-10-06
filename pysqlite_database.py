@@ -14,9 +14,9 @@ colnamelist=['Voltage', 'Current','CurrentTime']
 
 #test dict:
 testdict={ 
-	"Voltage":"10",
-	"Current" :"20",
-	"Temperature":"0",
+	"Voltage":40,
+	"Current" :25,
+	"Temperature":30,
 	"Testcol1":10,
 	"Testcol2":5
 	}

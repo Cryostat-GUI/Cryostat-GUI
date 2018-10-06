@@ -1,7 +1,5 @@
 
-import sys
 import time
-
 
 # from labdrivers.oxford.itc503 import itc503 
 from PyQt5 import QtWidgets, QtGui
@@ -11,14 +9,10 @@ from PyQt5.uic import loadUi
 from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
+from copy import deepcopy
+
 # from util import AbstractThread
 from util import AbstractLoopThread
-# from util import AbstractEventhandlingThread
-
-import ITCcontrol_ui 
-
-
-
 
 
 class ITC_Updater(AbstractLoopThread):
@@ -32,7 +26,7 @@ class ITC_Updater(AbstractLoopThread):
         There is a second method for all wrappers, which accepts
         the corresponding value, and stores it, so it can be sent upon acknowledgment 
 
-        The information from the device is collected in regular intervals (method "work"),
+        The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
         the keys of which are displayed in the "sensors" dict in this class. 
     """
@@ -42,6 +36,7 @@ class ITC_Updater(AbstractLoopThread):
     sig_visaerror = pyqtSignal(str)
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
+
 
     sensors = dict(
             set_temperature = 0,
@@ -56,13 +51,12 @@ class ITC_Updater(AbstractLoopThread):
             integral_action_time = 9,
             derivative_action_time = 10)
 
-    def __init__(self, InstrumentAddress):
-        super().__init__()
+    def __init__(self, InstrumentAddress='', **kwargs):
+        super().__init__(**kwargs)
 
         # here the class instance of the ITC should be handed
-        self.ITC = itc503(InstrumentAddress)
+        self.ITC = itc503(InstrumentAddress=InstrumentAddress)
 
-        # TODO need initialisation for all the parameters!
 
         self.control_state = 3
         self.set_temperature = 0
@@ -76,54 +70,74 @@ class ITC_Updater(AbstractLoopThread):
         self.sweep_parameters = None
 
         self.delay1 = 1
-        self.delay2 = 0.4
+        self.delay = 0.0
         self.setControl()
         # self.__isRunning = True
 
-
+    # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
+        
             self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection.
+            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
+            with any other PC, so errors which come back are "caught", or communication is set up 
+            in a way no errors occur)
 
         """
         try: 
+
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                data[key] = self.ITC.getValue(idx_sensor)
-                time.sleep(self.delay2)
-            self.sig_Infodata.emit(data)
-            # time.sleep(self.delay1)
+            for key in self.sensors.keys():
+                # key_f_timeout = key
+                data[key] = self.ITC.getValue(self.sensors[key])
+                time.sleep(self.delay)
 
+            self.sig_Infodata.emit(deepcopy(data))
+
+            # time.sleep(self.delay1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
+                self.read_buffer()
             else: 
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    # def control_checks(func):
+    #     @functools.wraps(func)
+    #     def wrapper_control_checks(*args, **kwargs):
+    #         pass
 
-    # @pyqtSlot(int)
-    # def set_delay_sending(self, delay):
-    #     self.delay1 = delay
+    def read_buffer(self):
+        try:
+            return self.ITC.read()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
+
 
     @pyqtSlot(int)
-    def set_delay_measuring(self, delay):
-        self.delay2 = delay
+    def set_delay_sending(self, delay):
+        self.ITC.set_delay_measuring(delay)
+
+
 
 
     @pyqtSlot()
     def setNeedle(self):
         """class method to be called to set Needle
             this is necessary, so it can be invoked by a signal
+            self.gasoutput between 0 and 100 %
         """
         value = self.set_GasOutput
         try:
             if 0 <= value <= 100:
                 self.ITC.setGasOutput(value)
             else:
-                raise AssertionError('Gas output setting must be between 0 and 100%!')
+                raise AssertionError('ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -311,13 +325,19 @@ class ITC_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot(int)
+    def gettoset_Control(self, value):
+        """class method to receive and store the value to set the Control status
+            later on, when the command to enforce the value is sent
+        """
+        self.control_state = value
+
     @pyqtSlot(float)
     def gettoset_Temperature(self, value):
         """class method to receive and store the value to set the temperature
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
-        # print('got it')
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):
@@ -375,4 +395,5 @@ class ITC_Updater(AbstractLoopThread):
     #         later on, when the command to enforce the value is sent
     #     """
     #     self.set_auto_manual = value
+
 
