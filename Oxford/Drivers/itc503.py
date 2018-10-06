@@ -48,6 +48,7 @@ class itc503(AbstractSerialDeviceDriver):
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         self.write('$M0')
+        self.delay = 0.05
         # self.setControl() # done in thread
 
 
@@ -109,13 +110,19 @@ class itc503(AbstractSerialDeviceDriver):
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('ITC: getValue: bad reply: empty string')
-        if value[0] != 'R':
-            raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
-        if value[0] == 'T':
-            print('ITC: Assertion: T')
+            # raise AssertionError('ITC: getValue: bad reply: empty string')
+            print('ITC: Assertion: empty')
             self.read()
             value = self.getValue(variable)
+        if value[0] != 'R':
+            # raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
+            print('ITC: Assertion: {}'.format(value))
+            self.read()
+            value = self.getValue(variable)
+        # if value[0] == 'T':
+        #     print('ITC: Assertion: T')
+        #     self.read()
+        #     value = self.getValue(variable)
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):

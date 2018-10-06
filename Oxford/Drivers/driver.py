@@ -18,10 +18,13 @@ def do_check(func):
     @functools.wraps(func)
     def wrapper_do_check(*args, **kwargs):
         value = func(*args, **kwargs)
-        # if value == "" or None:
+        if value == "" or None:
             # raise AssertionError('SerialDriver: query: bad reply: empty string')
+            print('SerialDriver empty string')
+            value = wrapper_do_check(*args, **kwargs)
         if value[0] == '?': 
-            value = func(*args, **kwargs)
+            print('serialDriver received "?": {}'.format(value))
+            value = wrapper_do_check(*args, **kwargs)
         return value
     return wrapper_do_check
 
@@ -51,7 +54,7 @@ class AbstractSerialDeviceDriver(object):
             self._visa_resource.write(command)
             time.sleep(self.delay)
 
-    @do_check
+    # @do_check
     def query(self, command):
         """
             low-level communication wrapper for visa.query with Communication Lock, 
@@ -61,6 +64,14 @@ class AbstractSerialDeviceDriver(object):
             answer = self._visa_resource.query(command)
             time.sleep(self.delay)
         return answer
+
+    # def query(self, command):
+    #     answer = self.query_wrap(command)
+    #     # error handling for itc503
+    #     if answer[0] == 'T':
+    #         self.read()
+    #         answer = self.query(command)
+    #     return answer
 
     def read(self):
         with self.ComLock: 
