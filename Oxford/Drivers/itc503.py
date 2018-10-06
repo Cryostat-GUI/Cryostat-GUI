@@ -38,6 +38,7 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
+
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
 
@@ -111,6 +112,10 @@ class itc503(AbstractSerialDeviceDriver):
             raise AssertionError('ITC: getValue: bad reply: empty string')
         if value[0] != 'R':
             raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
+        if value[0] == 'T':
+            print('ITC: Assertion: T')
+            self.read()
+            value = self.getValue(variable)
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):
