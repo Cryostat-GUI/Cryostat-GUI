@@ -116,7 +116,7 @@ class main_Logger(AbstractLoopThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 3 # 60s interval for logging as initialisation
+        self.interval = 10 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -124,6 +124,8 @@ class main_Logger(AbstractLoopThread):
         QTimer.singleShot(1e3, lambda: self.sig_configuring.emit(True))
         self.configuration_done = False
         self.conf_done_layer2 = False
+
+        self.dbname = 'Logdata.db'
 
 
         # QTimer.singleShot(1e3, self.initialise)
@@ -209,9 +211,9 @@ class main_Logger(AbstractLoopThread):
 
         #We should try to find a nicer a solution without try and except
         #try:
-        for key in dictname.keys():
+        for i in dictname.keys():
             try:
-                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key]))
+                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
                 self.mycursor.execute(sql)
             except sqlite3.OperationalError as err:
                 pass # Logger: probably the column already exists, no problem.
@@ -273,7 +275,7 @@ class main_Logger(AbstractLoopThread):
     def store_data(self, data):
         if self.not_yet_initialised:
             return
-        self.connectdb('testdata.db')
+        self.connectdb(self.dbname)
         self.mycursor = self.conn.cursor()
 
         """storing logging data

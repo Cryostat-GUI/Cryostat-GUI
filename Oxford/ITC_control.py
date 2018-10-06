@@ -72,6 +72,7 @@ class ITC_Updater(AbstractLoopThread):
         self.delay1 = 1
         self.delay = 0.0
         self.setControl()
+        self.interval = 0.1
         # self.__isRunning = True
 
     # @control_checks
@@ -82,18 +83,26 @@ class ITC_Updater(AbstractLoopThread):
             with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
             with any other PC, so errors which come back are "caught", or communication is set up 
             in a way no errors occur)
-
         """
         try: 
 
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key in self.sensors.keys():
+            # for key, idx_sensor in self.sensors.items():
                 # key_f_timeout = key
-                data[key] = self.ITC.getValue(self.sensors[key])
-                time.sleep(self.delay)
-
+            data['set_temperature'] = self.ITC.getValue(0)
+            data['sensor_1_temperature'] = self.ITC.getValue(1)
+            data['sensor_2_temperature'] = self.ITC.getValue(2)
+            data['sensor_3_temperature'] = self.ITC.getValue(3)
+            data['temperature_error'] = self.ITC.getValue(4)
+            data['heater_output_as_percent'] = self.ITC.getValue(5)
+            data['heater_output_as_voltage'] = self.ITC.getValue(6)
+            data['gas_flow_output'] = self.ITC.getValue(7)
+            data['proportional_band'] = self.ITC.getValue(8)
+            data['integral_action_time'] = self.ITC.getValue(9)
+            data['derivative_action_time'] = self.ITC.getValue(10)
+            time.sleep(self.delay)
             self.sig_Infodata.emit(deepcopy(data))
 
             # time.sleep(self.delay1)

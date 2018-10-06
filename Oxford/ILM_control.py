@@ -64,9 +64,10 @@ class ILM_Updater(AbstractLoopThread):
             data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                data[key] = self.ILM.getValue(idx_sensor)*0.1
-                # time.sleep(self.delay2)
+            # for key, idx_sensor in self.sensors.items():
+            data['channel_1_level'] = self.ILM.getValue(1)*0.1
+            data['channel_2_level'] = self.ILM.getValue(2)*0.1
+            # time.sleep(self.delay2)
             # status = self.ILM.getStatus()
             # data.update(dict(   cryogen_channel_1=status[0],
             #                     cryogen_channel_2=status[1],

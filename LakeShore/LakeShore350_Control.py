@@ -52,10 +52,10 @@ class LakeShore350_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
-        try: 
-            self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
-        except VisaIOError as e: 
-            self.sig_assertion.emit('running in control: {}'.format(e))
+        # try: 
+        self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
+        # except VisaIOError as e: 
+        #     self.sig_assertion.emit('running in control: {}'.format(e))
 
 
         self.Temp_K_value = 3
