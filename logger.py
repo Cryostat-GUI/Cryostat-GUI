@@ -116,7 +116,7 @@ class main_Logger(AbstractLoopThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 10 # 60s interval for logging as initialisation
+        self.interval = 20 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)

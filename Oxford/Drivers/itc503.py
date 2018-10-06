@@ -113,12 +113,14 @@ class itc503(AbstractSerialDeviceDriver):
             # raise AssertionError('ITC: getValue: bad reply: empty string')
             print('ITC: Assertion: empty')
             self.read()
-            value = self.getValue(variable)
+            return self.getValue(variable)
+            # return None
         if value[0] != 'R':
             # raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
             print('ITC: Assertion: {}'.format(value))
             self.read()
-            value = self.getValue(variable)
+            return self.getValue(variable)
+            # return None
         # if value[0] == 'T':
         #     print('ITC: Assertion: T')
         #     self.read()

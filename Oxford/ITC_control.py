@@ -72,7 +72,7 @@ class ITC_Updater(AbstractLoopThread):
         self.delay1 = 1
         self.delay = 0.0
         self.setControl()
-        self.interval = 0.1
+        self.interval = 0.2
         # self.__isRunning = True
 
     # @control_checks
@@ -92,7 +92,9 @@ class ITC_Updater(AbstractLoopThread):
         for key in self.sensors.keys():
             try: 
 
-                data[key] = self.ITC.getValue(self.sensors[key])
+                value = self.ITC.getValue(self.sensors[key])
+                if value: 
+                    data[key] = value
                 time.sleep(self.delay)
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
@@ -101,7 +103,7 @@ class ITC_Updater(AbstractLoopThread):
                     self.sig_visatimeout.emit()
                     self.read_buffer()
                 else: 
-                self.sig_visaerror.emit(e_visa.args[0])
+                    self.sig_visaerror.emit(e_visa.args[0])
         self.sig_Infodata.emit(deepcopy(data))
 
 

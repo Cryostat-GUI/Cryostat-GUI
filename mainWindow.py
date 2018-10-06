@@ -144,6 +144,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
 
+                self.data['ITC'] =  dict(set_temperature = 0,
+                                         sensor_1_temperature =0,
+                                         sensor_2_temperature =0,
+                                         sensor_3_temperature =0,
+                                         temperature_error =0,
+                                         heater_output_as_percent =0,
+                                         heater_output_as_voltage =0,
+                                         gas_flow_output =0,
+                                         proportional_band =0,
+                                         integral_action_time =0,
+                                         derivative_action_time = 0)
+
 
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
@@ -281,11 +293,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.data['ILM'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            self.ILM_window.progressLevelHe.setValue(self.data['ILM']['channel_1_level'])
-            self.ILM_window.progressLevelN2.setValue(self.data['ILM']['channel_2_level'])
+            chan1 = 100 if self.data['ILM']['channel_1_level'] > 100 else self.data['ILM']['channel_1_level']
+            chan2 = 100 if self.data['ILM']['channel_2_level'] > 100 else self.data['ILM']['channel_2_level']
+            self.ILM_window.progressLevelHe.setValue(chan1)
+            self.ILM_window.progressLevelN2.setValue(chan2)
 
-            self.MainDock_HeLevel.setValue(self.data['ILM']['channel_1_level'])
-            self.MainDock_N2Level.setValue(self.data['ILM']['channel_2_level'])
+            self.MainDock_HeLevel.setValue(chan1)
+            self.MainDock_N2Level.setValue(chan2)
             # print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
 
     # ------- ------- IPS
