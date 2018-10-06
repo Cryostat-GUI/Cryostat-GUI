@@ -18,8 +18,8 @@ def do_check(func):
     @functools.wraps(func)
     def wrapper_do_check(*args, **kwargs):
         value = func(*args, **kwargs)
-        if value == "" or None:
-            raise AssertionError('SerialDriver: query: bad reply: empty string')
+        # if value == "" or None:
+            # raise AssertionError('SerialDriver: query: bad reply: empty string')
         if value[0] == '?': 
             value = func(*args, **kwargs)
         return value
@@ -65,4 +65,5 @@ class AbstractSerialDeviceDriver(object):
     def read(self):
         with self.ComLock: 
             answer = self._visa_resource.read()
+            time.sleep(self.delay)
         return answer
