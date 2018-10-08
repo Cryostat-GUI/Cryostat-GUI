@@ -387,33 +387,23 @@ diff to Setpoint</string>
       <string>Status Readings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_status_locrem">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Remote &amp; Unlocked</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_19">
-        <property name="text">
-         <string>Local / Remote control</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0" colspan="2">
        <widget class="QGroupBox" name="groupPID">
         <property name="title">
          <string>PID Values</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>P</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
-            <string>Integration action time</string>
+            <string>I</string>
            </property>
           </widget>
          </item>
@@ -450,18 +440,28 @@ diff to Setpoint</string>
          <item row="2" column="0">
           <widget class="QLabel" name="label_16">
            <property name="text">
-            <string>Derivative action time</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Proportional band</string>
+            <string>D</string>
            </property>
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_19">
+        <property name="text">
+         <string>Local / Remote control</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_status_locrem">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Remote &amp; Unlocked</string>
+        </property>
        </widget>
       </item>
      </layout>
