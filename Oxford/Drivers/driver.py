@@ -14,19 +14,19 @@ except OSError:
 
 import functools
 
-def do_check(func):
-    @functools.wraps(func)
-    def wrapper_do_check(*args, **kwargs):
-        value = func(*args, **kwargs)
-        if value == "" or None:
-            # raise AssertionError('SerialDriver: query: bad reply: empty string')
-            print('SerialDriver empty string')
-            value = wrapper_do_check(*args, **kwargs)
-        if value[0] == '?': 
-            print('serialDriver received "?": {}'.format(value))
-            value = wrapper_do_check(*args, **kwargs)
-        return value
-    return wrapper_do_check
+# def do_check(func):
+#     @functools.wraps(func)
+#     def wrapper_do_check(*args, **kwargs):
+#         value = func(*args, **kwargs)
+#         if value == "" or None:
+#             # raise AssertionError('SerialDriver: query: bad reply: empty string')
+#             print('SerialDriver empty string')
+#             value = wrapper_do_check(*args, **kwargs)
+#         if value[0] == '?': 
+#             print('serialDriver received "?": {}'.format(value))
+#             value = wrapper_do_check(*args, **kwargs)
+#         return value
+#     return wrapper_do_check
 
 class AbstractSerialDeviceDriver(object):
     """Abstract Device driver class"""
@@ -34,7 +34,7 @@ class AbstractSerialDeviceDriver(object):
         super(AbstractSerialDeviceDriver, self).__init__()
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.query_delay = 0.
-        self._visa_resource.timeout = 1000
+        self._visa_resource.timeout = 500
         self._visa_resource.read_termination = '\r'
         self._visa_resource.write_termination = '\r'
         self.ComLock = threading.Lock()    
@@ -76,5 +76,5 @@ class AbstractSerialDeviceDriver(object):
     def read(self):
         with self.ComLock: 
             answer = self._visa_resource.read()
-            time.sleep(self.delay)
+            # time.sleep(self.delay)
         return answer

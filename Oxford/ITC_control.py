@@ -75,6 +75,8 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.2
         # self.__isRunning = True
 
+
+
     # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
