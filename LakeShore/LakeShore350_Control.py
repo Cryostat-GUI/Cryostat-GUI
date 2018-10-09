@@ -56,7 +56,8 @@ class LakeShore350_Updater(AbstractLoopThread):
     	'Sensor_4_K',
     	'Loop_P_Param',
     	'Loop_I_Param',
-    	'Loop_D_Param']
+    	'Loop_D_Param',
+    	'Heater_Range']
 
     sensor_values = [None] * 20 # 10 of 20 used
 
@@ -70,17 +71,29 @@ class LakeShore350_Updater(AbstractLoopThread):
         #     self.sig_assertion.emit('running in control: {}'.format(e))
 
 		self.Temp_K_value = 3
-		self.Heater_mW_value = 0
+#		self.Heater_mW_value = 0
 		self.Ramp_Rate_value = 0
 		self.Input_value = 1
 		self.LoopP_value = 0
 		self.LoopI_value = 0
 		self.LoopD_value = 0
 
+		self.Upper_Bound_value = 300
+		"""proper P, I, D values needed
+		"""
+		self.ZoneP_value
+		self.ZoneI_value
+		self.ZoneD_value
+		self.Mout_value = 50
+		self.Zone_Range_value = 2
+		self.Zone_Rate_value = 1
+
+
         """sets Heater power to 994,05 mW
         """
         self.configHeater()
         self.configTempLimit()
+        self.setControlLoopZone()
 
         self.delay1 = 1
         self.delay = 0.0
@@ -98,9 +111,9 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
+            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)[0]
             sensor_values[1] = self.sensor_values[0]*994.5
-            sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)
+            sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)[0]
             sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
             sensor_values[4] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
             sensor_values[5] = self.LakeShore350.OutputModeQuery(1)[1]
@@ -109,10 +122,11 @@ class LakeShore350_Updater(AbstractLoopThread):
             sensor_values[7] = temp_list[1]
             sensor_values[8] = temp_list[2]
             sensor_values[9] = temp_list[3]
-            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
             sensor_values[10] = temp_list2[0]
             sensor_values[11] = temp_list2[1]
             sensor_values[12] = temp_list2[2]
+            sensor_values[13] = self.HeaterRangeQuery(1)[0]
  
 
             # print(dict(zip(self.sensor_names,self.sensor_values)))
@@ -243,7 +257,32 @@ class LakeShore350_Updater(AbstractLoopThread):
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
+    @pyqtSlot()
+    def setHeater_Range(self):
+    	"""set Heater Range for Output 1
+    	"""
+    	try:
+    		self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
+    	except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
+    def setControlLoopZone(self):
+
+    	try:
+    		self.LakeShore350.ControlLoopZoneTableParameterCommand(1, 1, self.Upper_Bound_value, self.ZoneP_value, self.ZoneI_value, self.ZoneD_value, self.Mout_value, self.Zone_Range_value, 1, self.Zone_Rate_value)
+       	except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
     def gettoset_Temp_K(self,value):
@@ -264,15 +303,39 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     def gettoset_LoopP_Param(self,value):
     	self.LoopP_value = value
-
     @pyqtSlot()
     def gettoset_LoopI_Param(self,value):
     	self.LoopI_value = value
-
     @pyqtSlot()
     def gettoset_LoopD_Param(self,value):
     	self.LoopD_value = value
-
+    @pyqtSlot()
     def gettoset_Ramp_Rate_K(self,value):
         self.Ramp_Rate_value = value
+
+    @pyqtSlot()
+    def gettoset_Upper_Bound(self,value):
+    	self.Upper_Bound_value = value
+    @pyqtSlot()
+    def gettoset_ZoneP_Param(self,value):
+    	self.ZoneP_value = value
+    @pyqtSlot()
+    def gettoset_ZoneI_Param(self,value):
+    	self.ZoneI_value = value
+    @pyqtSlot()
+    def gettoset_ZoneD_Param(self,value):
+    	self.ZoneD_value = value
+    @pyqtSlot()
+    def gettoset_ZoneMout(self,value):
+    	self.Mout_value = value
+    @pyqtSlot()
+    def gettoset_Zone_Range(self,value):
+    	self.Zone_Range_value = value
+    @pyqtSlot()
+    def gettoset_Zone_Rate(self,value):
+    	self.Zone_Rate_value = value
+
+
+#    def gettoset_Heater_Range(self,value):
+#    	self.Heater_Range_value = value
 
