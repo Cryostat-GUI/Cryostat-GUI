@@ -95,8 +95,7 @@ class ITC_Updater(AbstractLoopThread):
             try: 
 
                 value = self.ITC.getValue(self.sensors[key])
-                if value: 
-                    data[key] = value
+                data[key] = value
                 time.sleep(self.delay)
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
