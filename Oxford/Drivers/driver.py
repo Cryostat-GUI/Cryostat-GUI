@@ -19,9 +19,12 @@ def do_check(func):
     def wrapper_do_check(*args, **kwargs):
         value = func(*args, **kwargs)
         if value == "" or None:
-            raise AssertionError('SerialDriver: query: bad reply: empty string')
+            # raise AssertionError('SerialDriver: query: bad reply: empty string')
+            print('SerialDriver empty string')
+            value = wrapper_do_check(*args, **kwargs)
         if value[0] == '?': 
-            value = func(*args, **kwargs)
+            print('serialDriver received "?": {}'.format(value))
+            value = wrapper_do_check(*args, **kwargs)
         return value
     return wrapper_do_check
 
@@ -30,12 +33,12 @@ class AbstractSerialDeviceDriver(object):
     def __init__(self, InstrumentAddress):
         super(AbstractSerialDeviceDriver, self).__init__()
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
-        self._visa_resource.query_delay = 0.2
+        # self._visa_resource.query_delay = 0.
         self._visa_resource.timeout = 1000
         self._visa_resource.read_termination = '\r'
         self._visa_resource.write_termination = '\r'
         self.ComLock = threading.Lock()    
-        self.delay = 0.3
+        self.delay = 0.0
 
 
     @pyqtSlot(float)
@@ -51,7 +54,7 @@ class AbstractSerialDeviceDriver(object):
             self._visa_resource.write(command)
             time.sleep(self.delay)
 
-    @do_check
+    # @do_check
     def query(self, command):
         """
             low-level communication wrapper for visa.query with Communication Lock, 
@@ -62,7 +65,16 @@ class AbstractSerialDeviceDriver(object):
             time.sleep(self.delay)
         return answer
 
+    # def query(self, command):
+    #     answer = self.query_wrap(command)
+    #     # error handling for itc503
+    #     if answer[0] == 'T':
+    #         self.read()
+    #         answer = self.query(command)
+    #     return answer
+
     def read(self):
         with self.ComLock: 
             answer = self._visa_resource.read()
+            time.sleep(self.delay)
         return answer

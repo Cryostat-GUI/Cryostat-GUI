@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Sequence - FILE</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="3,0,0,0,0" columnstretch="0,0,2,0,0,0,1">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="3,0,0,0" columnstretch="0,0,2,0,0,0,1">
    <item row="2" column="2" colspan="3">
     <widget class="QLineEdit" name="lineFileLocation"/>
    </item>
@@ -122,6 +122,14 @@
         <set>ItemIsSelectable|ItemIsEnabled</set>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>Shutdown Temperature Control</string>
+       </property>
+       <property name="flags">
+        <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
+       </property>
+      </item>
      </item>
      <item>
       <property name="text">
@@ -164,7 +172,7 @@
       </property>
       <item>
        <property name="text">
-        <string>Set data file</string>
+        <string>Change Data File</string>
        </property>
        <property name="flags">
         <set>ItemIsSelectable|ItemIsUserCheckable</set>

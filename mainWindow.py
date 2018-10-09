@@ -18,7 +18,7 @@ from threading import Lock
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
-from Lakeshore.LakeShore350_control import LakeShore350_Updater
+from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
 
@@ -32,7 +32,7 @@ from util import Window_ui
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
-LakeShore_Instrumentaddress = 'GPIB0::12::INSTR'
+LakeShore_InstrumentAddress = 'GPIB0::12::INSTR'
 
 
 def convert_time(ts):
@@ -69,7 +69,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.initialize_window_ILM()
         self.initialize_window_IPS()
         self.initialize_window_Log_conf()
-        self.initialize_window_Lakeshore350()
+        self.initialize_window_LakeShore350()
         self.initialize_window_Errors()
 
 
@@ -143,6 +143,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
+
+                self.data['ITC'] =  dict(set_temperature = 0,
+                                         sensor_1_temperature =0,
+                                         sensor_2_temperature =0,
+                                         sensor_3_temperature =0,
+                                         temperature_error =0,
+                                         heater_output_as_percent =0,
+                                         heater_output_as_voltage =0,
+                                         gas_flow_output =0,
+                                         proportional_band =0,
+                                         integral_action_time =0,
+                                         derivative_action_time = 0)
 
 
                 # setting ITC values by GUI ITC window
@@ -281,11 +293,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.data['ILM'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            self.ILM_window.progressLevelHe.setValue(self.data['ILM']['channel_1_level'])
-            self.ILM_window.progressLevelN2.setValue(self.data['ILM']['channel_2_level'])
+            chan1 = 100 if self.data['ILM']['channel_1_level'] > 100 else self.data['ILM']['channel_1_level']
+            chan2 = 100 if self.data['ILM']['channel_2_level'] > 100 else self.data['ILM']['channel_2_level']
+            self.ILM_window.progressLevelHe.setValue(chan1)
+            self.ILM_window.progressLevelN2.setValue(chan2)
 
-            self.MainDock_HeLevel.setValue(self.data['ILM']['channel_1_level'])
-            self.MainDock_N2Level.setValue(self.data['ILM']['channel_2_level'])
+            self.MainDock_HeLevel.setValue(chan1)
+            self.MainDock_N2Level.setValue(chan2)
             # print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
 
     # ------- ------- IPS
@@ -384,7 +398,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
         self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
-        self.action_show_Lakeshore350.triggered['bool'].connect(self.show_LakeShore350)
+        self.action_show_LakeShore350.triggered['bool'].connect(self.show_LakeShore350)
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -392,7 +406,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             try:
-                getInfodata = self.running_thread(LakeShore350_Updater(LakeShore_InstrumentAddress),'LakeShore350', 'control_LakeShore350')
+                getInfodata = self.running_thread(LakeShore350_Updater(InstrumentAddress=LakeShore_InstrumentAddress),'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -404,17 +418,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
-                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda value: self.threads['control_LakeShore350'][0].setTemp_K())
+                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setTemp_K())
 
-#                self.LakeShore350_window.spinSetHeater_mW.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_mW(value))
-#                self.LakeShore350_window.spinSetHeater_mW.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setHeater_mW())
 
-                self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_RampRate_Kpmin(value))
-                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setRampRate_Kpmin())
 
-                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput_Sensor(value + 1))
+                self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
+                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
+
+                # allows to choose from different inputs to connect to output 1 control loop. default is input 1.
+                
+                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
-
 
 
                 """ NEW GUI controls P, I and D values for Control Loop PID Values Command
@@ -433,10 +447,16 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                print(e) # TODO: open window displaying the error message
+                self.show_error_textBrowser('running: {}'.format(e)) 
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
+
+            self.LakeShore350_window.spinSetTemp_K.valueChanged.disconnect()
+            self.LakeShore350_window.spinSetTemp_K.editingFinished.disconnect()
+            self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.disconnect()
+            self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.disconnect()
+            self.LakeShore350_window.comboSetInput_Sensor.activated['int'].disconnect()
 
     @pyqtSlot(bool)
     def show_LakeShore350(self, boolean):
@@ -481,19 +501,21 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """
 
 
-        @pyqtSlot(dict)
-        def store_data_LakeShore350(self, data):
+    @pyqtSlot(dict)
+    def store_data_LakeShore350(self, data):
         """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
         with self.dataLock:
             data['date'] = convert_time(time.time())
-            self.data['Lakeshore350'].update(data)
+            self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
 
-            self.LakeShore350_window.progressHeaterOutput_precentage.display(self.data['Lakeshore350']['Heater_Output_percentage'])
-            self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['Lakeshore350']['Heater_Output_mW'])
-            self.LakeShore350_window.lcdSetTemp_K.display(self.data['Lakeshore350']['Temp_K'])
+            self.LakeShore350_window.progressHeaterOutput_percentage.setValue(self.data['LakeShore350']['Heater_Output_percentage'])
 
+            self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['LakeShore350']['Heater_Output_mW'])
+            self.LakeShore350_window.lcdSetTemp_K.display(self.data['LakeShore350']['Temp_K'])
+
+            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['LakeShore350']['Ramp_Rate'])
 
             """NEW GUI to display RampRate_Status & RamptRate_Kpmin seperately. Before RampRate_Kpmin was a list.
             """
