@@ -511,17 +511,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # since the command failed in the communication with the device, the last value is retained
 
             self.LakeShore350_window.progressHeaterOutput_percentage.setValue(self.data['LakeShore350']['Heater_Output_percentage'])
-
             self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['LakeShore350']['Heater_Output_mW'])
             self.LakeShore350_window.lcdSetTemp_K.display(self.data['LakeShore350']['Temp_K'])
-
-            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['LakeShore350']['Ramp_Rate'])
-
-            """NEW GUI to display RampRate_Status & RamptRate_Kpmin seperately. Before RampRate_Kpmin was a list.
-            """
-
             self.LakeShore350_window.lcdRampeRate_Status.display(self.data['LakeShore350']['RampRate_Status'])
-            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['Lakeshore350']['RampRate_Kpmin'])
+            self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['LakeShore350']['Ramp_Rate'])
 
             self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(int(self.data['LakeShore350']['Input_Sensor'])-1)
             self.LakeShore350_window.lcdSensor1_K.display(self.data['LakeShore350']['Sensor_1_K'])
