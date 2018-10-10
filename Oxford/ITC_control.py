@@ -72,7 +72,10 @@ class ITC_Updater(AbstractLoopThread):
         self.delay1 = 1
         self.delay = 0.0
         self.setControl()
+        self.interval = 0.2
         # self.__isRunning = True
+
+
 
     # @control_checks
     def running(self):
@@ -84,26 +87,26 @@ class ITC_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        try: 
 
-            data = dict()
+        data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                # key_f_timeout = key
-                data[key] = self.ITC.getValue(idx_sensor)
-                time.sleep(self.delay)
-            self.sig_Infodata.emit(deepcopy(data))
+        for key in self.sensors.keys():
+            try: 
 
-            # time.sleep(self.delay1)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-                self.read_buffer()
-            else: 
-                self.sig_visaerror.emit(e_visa.args[0])
+                value = self.ITC.getValue(self.sensors[key])
+                data[key] = value
+                time.sleep(self.delay)
+            except AssertionError as e_ass:
+                self.sig_assertion.emit(e_ass.args[0])
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    self.sig_visatimeout.emit()
+                    self.read_buffer()
+                else: 
+                    self.sig_visaerror.emit(e_visa.args[0])
+        self.sig_Infodata.emit(deepcopy(data))
+
 
     # def control_checks(func):
     #     @functools.wraps(func)
