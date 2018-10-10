@@ -116,7 +116,7 @@ class main_Logger(AbstractLoopThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 3 # 60s interval for logging as initialisation
+        self.interval = 20 # 60s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -124,6 +124,8 @@ class main_Logger(AbstractLoopThread):
         QTimer.singleShot(1e3, lambda: self.sig_configuring.emit(True))
         self.configuration_done = False
         self.conf_done_layer2 = False
+
+        self.dbname = 'Logdata.db'
 
 
         # QTimer.singleShot(1e3, self.initialise)
@@ -273,7 +275,7 @@ class main_Logger(AbstractLoopThread):
     def store_data(self, data):
         if self.not_yet_initialised:
             return
-        self.connectdb('testdata.db')
+        self.connectdb(self.dbname)
         self.mycursor = self.conn.cursor()
 
         """storing logging data
@@ -314,7 +316,7 @@ class main_Logger(AbstractLoopThread):
 
         #initializing a table with a primary key as first column:
 
-        names = ['ITC', 'ILM']
+        names = ['ITC', 'ILM', 'IPS','LakeShore350']
         for name in names:
             try:
                 data[name].update(timedict)

@@ -249,25 +249,6 @@ class Sequence_builder(Window_ui):
         self.sig_runSequence.emit(deepcopy(self.data))
 
 
-    def initialize_sequence(self, sequence_file):
-        if sequence_file: 
-            self.change_file_location(sequence_file)
-            def construct_pattern(expressions):
-                pat = ''
-                for e in exp: 
-                    pat = pat + r'|' + e
-                return pat[1:]
-            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)EOS$', r'WAITFOR(.*?)$']
-            self.p = re.compile(construct_pattern(exp), re.DOTALL|re.M) # '(.*?)[^\S]* EOS'
-            self.number = re.compile(r'([0-9]+[.]*[0-9]*)') 
-
-            sequence = self.read_sequence(sequence_file)       
-            for command in sequence: 
-                # print(command)
-                self.model.addItem(command)
-        else: 
-            self.sequence_file = ['']
-
     def addItem_toSequence(self, text):
         if text.text(0) == 'Wait': 
             # self.window_waiting.show()
@@ -284,6 +265,15 @@ class Sequence_builder(Window_ui):
             self.window_Tscan.exec_()
 
         if text.text(0) == 'Resistivity vs Field': 
+            raise NotImplementedError
+
+        if text.text(0) == 'Shutdown Temperature Control':
+            raise NotImplementedError
+
+        if text.text(0) == 'Chain Sequence':
+            raise NotImplementedError
+
+        if text.text(0) == 'Change Data File':
             raise NotImplementedError
 
     def parse_waiting(self, data):
@@ -322,6 +312,13 @@ class Sequence_builder(Window_ui):
         data.update(dict(DisplayText=string))
         self.model.addItem(data)
         QTimer.singleShot(1, lambda: self.listSequence.repaint())
+
+    def addChainSequence(self, data):
+        new_file_seq, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As', 
+           'c:\\',"Sequence files (*.seq)")        
+
+    def addChangeDataFile(self, data):
+        pass
 
 
     def printing(self, data):
@@ -374,11 +371,33 @@ class Sequence_builder(Window_ui):
             QTimer.singleShot(0, update_filelocation)
 
 
+    def initialize_sequence(self, sequence_file):
+        if sequence_file: 
+            self.change_file_location(sequence_file)
+            def construct_pattern(expressions):
+                pat = ''
+                for e in exp: 
+                    pat = pat + r'|' + e
+                return pat[1:]
+                # set temp,            set field,       scan Something,  Wait for something, chain sequence, change data file
+            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)EOS$', r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
+            self.p = re.compile(construct_pattern(exp), re.DOTALL|re.M) # '(.*?)[^\S]* EOS'
+            self.number = re.compile(r'([0-9]+[.]*[0-9]*)') 
+
+            sequence = self.read_sequence(sequence_file)       
+            for command in sequence: 
+                # print(command)
+                self.model.addItem(command)
+        else: 
+            self.sequence_file = ['']
+
 
 
     def read_sequence(self, file): 
         with open(file, 'r') as myfile:
             data=myfile.read()#.replace('\n', '')
+
+        exp_datafile = re.compile(r'''["'](.*?)["']''')
 
         sequence_raw = self.p.findall(data)
         commands = []
@@ -429,6 +448,21 @@ class Sequence_builder(Window_ui):
                 dic = dict(typ='Wait', Temp=Temp, Field=Field, Delay=seconds)
                 dic['DisplayText']=self.parse_waiting(dic)
                 # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
+            elif part[4]:
+                # chain sequence
+                comm = part[4]
+                dic = dict(typ='chain sequence', new_seq_file=comm, 
+                            DisplayText='Chain sequence: {}'.format(comm))
+                print('CHN', comm)
+            elif part[5]:
+                # change data file
+                comm = part[5]
+                fiel = exp_datafile.findall(comm)[0]
+                dic = dict(typ='change datafile', new_file_data=file,
+                            mode='a' if comm[-1]=='1' else 'w', 
+                            # a - appending, w - writing, can be inserted directly into opening statement
+                            DisplayText='Change data file: {}'.format(file))
+                print('CDF',comm)
 
 
             commands.append(dic)
