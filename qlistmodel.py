@@ -162,6 +162,13 @@ class SequenceListModel(QtCore.QAbstractListModel):
         # print(item, self.rowCount(), self.__sequence)
         self.dataChanged.emit(parent, parent)
 
+    def clear_all(self):
+        parent=QtCore.QModelIndex()
+        self.beginRemoveRows(parent, self.rowCount(), self.rowCount())
+        self.__sequence = []
+        self.endRemoveRows()
+        self.dataChanged.emit(parent, parent)
+
 
     # -------------------  passing to Gui and writing to file --------------
 
