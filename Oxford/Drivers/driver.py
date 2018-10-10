@@ -30,6 +30,7 @@ import functools
 
 class AbstractSerialDeviceDriver(object):
     """Abstract Device driver class"""
+    timeouterror = VisaIOError(-1073807339)
     def __init__(self, InstrumentAddress):
         super(AbstractSerialDeviceDriver, self).__init__()
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
@@ -78,3 +79,14 @@ class AbstractSerialDeviceDriver(object):
             answer = self._visa_resource.read()
             # time.sleep(self.delay)
         return answer
+
+    def clear_buffers(self):
+        self._visa_resource.timeout = 5
+        try:
+            self.read()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
+            else: 
+                raise e_visa
+        self._visa_resource.timeout = 500

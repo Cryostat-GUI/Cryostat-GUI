@@ -41,7 +41,7 @@ except OSError:
 
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
-    timeouterror = VisaIOError(-1073807339)
+    
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
@@ -122,7 +122,7 @@ class itc503(AbstractSerialDeviceDriver):
         
         if value == "" or None:
             # raise AssertionError('ITC: getValue: bad reply: empty string')
-            print('ITC: Assertion: empty')
+            # print('ITC: Assertion: empty')
             try:
                 self.read()
             except VisaIOError as e_visa:
@@ -132,7 +132,7 @@ class itc503(AbstractSerialDeviceDriver):
             # return None
         if value[0] != 'R':
             # raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
-            print('ITC: Assertion: {}'.format(value))
+            # print('ITC: Assertion: {}'.format(value))
             try:
                 self.read()
             except VisaIOError as e_visa:

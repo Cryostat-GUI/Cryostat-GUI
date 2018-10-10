@@ -1,6 +1,7 @@
 import threading
 
 import visa
+from pyvisa.errors import VisaIOError
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
 
@@ -29,7 +30,7 @@ class ilm211(AbstractSerialDeviceDriver):
 
         self.write("$C{}".format(state))
 
-    def getValue(self, variable=0):
+    def getValue(self, variable=2):
         """Read the variable defined by the index.
         
         There are values 11-13 but useless for
@@ -50,13 +51,29 @@ class ilm211(AbstractSerialDeviceDriver):
         if variable not in range(0,11):
             raise AssertionError('ILM: getValue: Argument is not a valid number.')
         
+        self.clear_buffers()
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('ILM: getValue: bad reply: empty string')
+            # raise AssertionError('ILM: getValue: bad reply: empty string')
+            # print('ILM: Assertion: empty')
+            try:
+                self.read()
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    pass
+            return self.getValue(variable)
+            # return None
         if value[0] != 'R':
-            raise AssertionError('ILM: getValue: bad reply: {}'.format(value))
+            # raise AssertionError('ILM: getValue: bad reply: {}'.format(value))
+            # print('ILM: Assertion: {}'.format(value))
+            try:
+                self.read()
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    pass
+            return self.getValue(variable)
         return float(value.strip('R+'))
 
     def _converting_status_channel(self, i):
