@@ -518,14 +518,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
             self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
 
-            timediff = (time.time()-self.LakeShore350_newtime_Kpmin)/60
+            timediff = (time.time()-self.LakeShore350_Kpmin['newtime'])/60
 
-            self.LakeShore350_window.lcdSensor1_Kpmin.display(self.data['LakeShore350']['Sensor_1_K']/timediff)
-            self.LakeShore350_window.lcdSensor2_Kpmin.display(self.data['LakeShore350']['Sensor_2_K']/timediff)
-            self.LakeShore350_window.lcdSensor3_Kpmin.display(self.data['LakeShore350']['Sensor_3_K']/timediff)
-            self.LakeShore350_window.lcdSensor4_Kpmin.display(self.data['LakeShore350']['Sensor_4_K']/timediff)
+            self.LakeShore350_window.lcdSensor1_Kpmin.display((self.LakeShore350_Kpmin['Sensor_1_K']-self.data['LakeShore350']['Sensor_1_K'])/timediff)
+            self.LakeShore350_window.lcdSensor2_Kpmin.display((self.LakeShore350_Kpmin['Sensor_2_K']-self.data['LakeShore350']['Sensor_2_K'])/timediff)
+            self.LakeShore350_window.lcdSensor3_Kpmin.display((self.LakeShore350_Kpmin['Sensor_3_K']-self.data['LakeShore350']['Sensor_3_K'])/timediff)
+            self.LakeShore350_window.lcdSensor4_Kpmin.display((self.LakeShore350_Kpmin['Sensor_4_K']-self.data['LakeShore350']['Sensor_4_K'])/timediff)
 
-        self.LakeShore350_newtime_Kpmin = time.time()
+        self.LakeShore350_Kpmin = dict(newtime = time.time(),
+                                        Sensor1_K = deepcopy(data['Sensor_1_K']),
+                                        Sensor2_K = deepcopy(data['Sensor_2_K']),
+                                        Sensor3_K = deepcopy(data['Sensor_3_K']),
+                                        Sensor4_K = deepcopy(data['Sensor_4_K']))
 
 
 
