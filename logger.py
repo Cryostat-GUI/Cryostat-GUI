@@ -125,7 +125,7 @@ class main_Logger(AbstractLoopThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
-        self.dbname = 'Logdata.db'
+        self.dbname = 'He_first_cooldown.db'
 
 
         # QTimer.singleShot(1e3, self.initialise)

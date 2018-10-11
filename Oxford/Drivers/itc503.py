@@ -107,15 +107,7 @@ class itc503(AbstractSerialDeviceDriver):
             raise AssertionError('ITC: getValue: Argument is not a valid number.')
 
         # clear any buffer by reading, ignoring all timeout errors
-        self._visa_resource.timeout = 5
-        try:
-            self.read()
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                pass
-            else: 
-                raise e_visa
-        self._visa_resource.timeout = 500
+        self.clear_buffers()
         # retrieve value     
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
