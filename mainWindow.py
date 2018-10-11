@@ -415,7 +415,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
 
-                self.LakeShore350_newtime_Kpmin = time.time()
+                self.LakeShore350_Kpmin = dict(newtime = time.time(),
+                                Sensor1_K = 0,
+                                Sensor2_K = 0,
+                                Sensor3_K = 0,
+                                Sensor4_K = 0)
+
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
