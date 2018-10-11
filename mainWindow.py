@@ -415,6 +415,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
 
+                self.LakeShore350_newtime_Kpmin = time.time()
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
@@ -516,6 +517,16 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
             self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
+
+            timediff = (time.time()-self.LakeShore350_newtime_Kpmin)/60
+
+            self.LakeShore350_window.lcdSensor1_Kpmin.display(self.data['LakeShore350']['Sensor_1_K']/timediff)
+            self.LakeShore350_window.lcdSensor2_Kpmin.display(self.data['LakeShore350']['Sensor_2_K']/timediff)
+            self.LakeShore350_window.lcdSensor3_Kpmin.display(self.data['LakeShore350']['Sensor_3_K']/timediff)
+            self.LakeShore350_window.lcdSensor4_Kpmin.display(self.data['LakeShore350']['Sensor_4_K']/timediff)
+
+        self.LakeShore350_newtime_Kpmin = time.time()
+
 
 
 
