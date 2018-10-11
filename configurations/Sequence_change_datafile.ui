@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="3">
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="comboMode">
      <item>
       <property name="text">
        <string>writing</string>
@@ -36,14 +36,14 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="pushBrowse">
      <property name="text">
       <string>Browse</string>
      </property>
     </widget>
    </item>
    <item row="1" column="2">
-    <widget class="QLineEdit" name="lineEdit"/>
+    <widget class="QLineEdit" name="lineFileLocation"/>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
@@ -53,7 +53,7 @@
     </widget>
    </item>
    <item row="2" column="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="buttonDialog">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
