@@ -6,6 +6,7 @@ from PyQt5.QtCore import QTimer
 
 import sys
 import datetime
+import time
 import pickle
 import os
 import sqlite3
@@ -298,7 +299,7 @@ class main_Logger(AbstractLoopThread):
         # }
 
 
-        timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S")} #it was the only way i could implement date and time and still select them
+        timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S"), 'timeseconds':time.time()} #it was the only way i could implement date and time and still select them
         # testdict={**timedict,**testdict}
 
         #Creating the readable time value and then appending it to the dictionary:
