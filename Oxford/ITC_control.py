@@ -40,9 +40,9 @@ class ITC_Updater(AbstractLoopThread):
 
     sensors = dict(
             set_temperature = 0,
-            sensor_1_temperature = 1,
-            sensor_2_temperature = 2,
-            sensor_3_temperature = 3,
+            Sensor_1_K = 1,
+            Sensor_2_K = 2,
+            Sensor_3_K = 3,
             temperature_error = 4,
             heater_output_as_percent = 5,
             heater_output_as_voltage = 6,

@@ -20,45 +20,6 @@
       <string>Settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4" rowstretch="2,0,0,0,0,0">
-      <item row="5" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupPID_set">
-        <property name="title">
-         <string>PID Values</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>P</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>I</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>D</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="spinBox"/>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox_2"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="spinBox_3"/>
-         </item>
-        </layout>
-       </widget>
-      </item>
       <item row="0" column="0" rowspan="2" colspan="3">
        <widget class="QWidget" name="widget" native="true">
         <layout class="QGridLayout" name="gridLayout_7">
@@ -90,7 +51,11 @@
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QLCDNumber" name="lcdSetTemp_K"/>
+          <widget class="QLCDNumber" name="lcdSetTemp_K">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_4">
@@ -124,7 +89,11 @@
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin"/>
+          <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="4" column="0">
           <widget class="QLabel" name="label_8">
@@ -137,6 +106,57 @@
           <widget class="QCheckBox" name="checkRamp_Status">
            <property name="text">
             <string>Ramping</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QGroupBox" name="groupPID_set">
+        <property name="title">
+         <string>PID Values</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>P</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>I</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>D</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="spinBox">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="spinBox_2">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="spinBox_3">
+           <property name="maximum">
+            <number>1000</number>
            </property>
           </widget>
          </item>
@@ -176,7 +196,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Heater Output [%]</string>
@@ -199,10 +219,14 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
-       <widget class="QLCDNumber" name="lcdHeaterOutput_mW"/>
+      <item row="7" column="1">
+       <widget class="QLCDNumber" name="lcdHeaterOutput_mW">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Heater Output [mW]</string>
@@ -283,7 +307,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="QProgressBar" name="progressHeaterOutput_percentage">
         <property name="value">
          <number>0</number>
@@ -302,6 +326,50 @@
         <property name="text">
          <string>Sens 1 - Probe Head</string>
         </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QComboBox" name="comboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>Off</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 4</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -334,7 +402,11 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLCDNumber" name="lcdLoopP_Param"/>
+          <widget class="QLCDNumber" name="lcdLoopP_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="2" column="0">
           <widget class="QLabel" name="label_12">
@@ -344,10 +416,18 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLCDNumber" name="lcdLoopI_Param"/>
+          <widget class="QLCDNumber" name="lcdLoopI_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QLCDNumber" name="lcdLoopD_Param"/>
+          <widget class="QLCDNumber" name="lcdLoopD_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

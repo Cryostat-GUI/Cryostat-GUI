@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>303</height>
+    <width>713</width>
+    <height>336</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,8 +26,52 @@
       <string>Settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="combosetAutocontrol">
+        <item>
+         <property name="text">
+          <string>heater man, gas man</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>heater auto, gas man</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>heater man, gas auto</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>heater auto, gas auto</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QSpinBox" name="spinsetGasOutput">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_18">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Rate [K/min]</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="2">
        <widget class="QComboBox" name="comboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <item>
          <property name="text">
           <string>Sweep</string>
@@ -40,20 +84,16 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_18">
-        <property name="text">
-         <string>Rate [K/min]</string>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
-      </item>
-      <item row="2" column="0" colspan="3">
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+        <property name="text">
+         <string>Set Temp [K]</string>
         </property>
        </widget>
       </item>
@@ -86,30 +126,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Set Temp [K]</string>
+      <item row="2" column="0" colspan="3">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_17">
-        <property name="text">
-         <string>Gas Output [%]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Derivative</string>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -120,10 +147,10 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_17">
         <property name="text">
-         <string>Integration</string>
+         <string>Gas Output [%]</string>
         </property>
        </widget>
       </item>
@@ -146,41 +173,10 @@
         </item>
        </widget>
       </item>
-      <item row="9" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Proportional</string>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="1" colspan="2">
-       <widget class="QSpinBox" name="spinsetPIntegrationD"/>
-      </item>
-      <item row="11" column="1" colspan="2">
-       <widget class="QSpinBox" name="spinsetPIDerivative"/>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Heater Output 
-[% of max]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="1" colspan="2">
-       <widget class="QSpinBox" name="spinsetProportionalID"/>
-      </item>
       <item row="6" column="1" colspan="2">
        <widget class="QDoubleSpinBox" name="spinsetHeaterPercent">
         <property name="decimals">
          <number>1</number>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0" colspan="3">
-       <widget class="Line" name="line_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -191,35 +187,63 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QComboBox" name="combosetAutocontrol">
-        <item>
-         <property name="text">
-          <string>heater man, gas man</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>heater auto, gas man</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>heater man, gas auto</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>heater auto, gas auto</string>
-         </property>
-        </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Heater Output 
+[% of max]</string>
+        </property>
        </widget>
       </item>
-      <item row="4" column="1" colspan="2">
-       <widget class="QSpinBox" name="spinsetGasOutput">
-        <property name="maximum">
-         <number>100</number>
+      <item row="8" column="2">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>PID Values</string>
         </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>I</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="spinsetProportionalID">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="spinsetPIntegrationD">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>P</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>D</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="spinsetPIDerivative">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
@@ -230,49 +254,19 @@
      <property name="title">
       <string>Readings</string>
      </property>
-     <layout class="QGridLayout" name="gridReadings">
+     <layout class="QGridLayout" name="gridReadings" columnstretch="0,1,1">
       <property name="horizontalSpacing">
        <number>6</number>
       </property>
-      <item row="7" column="1">
-       <widget class="QLCDNumber" name="lcdHeaterVoltage">
-        <property name="digitCount">
-         <number>6</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Temperature 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLCDNumber" name="lcdTemp_err">
-        <property name="digitCount">
-         <number>6</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_12">
-        <property name="text">
-         <string>Heater Output [%]</string>
+         <string>Temperature 1</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLCDNumber" name="lcdTemp_sens2">
+       <widget class="QLCDNumber" name="lcdTemp_sens2_K">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -298,6 +292,13 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Heater Output [%]</string>
+        </property>
+       </widget>
+      </item>
       <item row="7" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
@@ -305,22 +306,28 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
-       <widget class="QProgressBar" name="progressHeaterPercent">
-        <property name="value">
-         <number>0</number>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Temperature 2</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Temperature 1</string>
+      <item row="4" column="1">
+       <widget class="QLCDNumber" name="lcdTemp_err">
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLCDNumber" name="lcdTemp_sens3">
+       <widget class="QLCDNumber" name="lcdTemp_sens3_K">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -332,13 +339,13 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QProgressBar" name="progressNeedleValve">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_10">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
-        <property name="value">
-         <number>0</number>
+        <property name="text">
+         <string>Temperature 3</string>
         </property>
        </widget>
       </item>
@@ -350,7 +357,7 @@ diff to Setpoint</string>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLCDNumber" name="lcdTemp_sens1">
+       <widget class="QLCDNumber" name="lcdTemp_sens1_K">
         <property name="smallDecimalPoint">
          <bool>false</bool>
         </property>
@@ -368,13 +375,71 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_10">
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>[Kelvin/min]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_21">
+        <property name="text">
+         <string>[Kelvin]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens1_Kpmin">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens2_Kpmin">
         <property name="enabled">
          <bool>false</bool>
         </property>
-        <property name="text">
-         <string>Temperature 3</string>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens3_Kpmin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QProgressBar" name="progressNeedleValve">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="2">
+       <widget class="QProgressBar" name="progressHeaterPercent">
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="2">
+       <widget class="QLCDNumber" name="lcdHeaterVoltage">
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
       </item>
