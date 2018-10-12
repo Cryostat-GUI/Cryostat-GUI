@@ -11,7 +11,8 @@ import sys
 import time
 import datetime
 from threading import Lock
-import numpy
+import numpy as np
+from copy import deepcopy
 
 # import mainWindow_ui
 
