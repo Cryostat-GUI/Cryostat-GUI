@@ -1665,7 +1665,7 @@ class LakeShore350(object):
         if input_value not in ['A', 'B', 'C', 'D']:
             raise AssertionError("LakeShore:SensorUnitsInputReadingQuery: Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('SDRG? ' + '{0:1d}'.format(input_value))
+        return self.query('SDRG? ' + '{0:1d}'.format(input_value))
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
@@ -1806,7 +1806,7 @@ class LakeShore350(object):
 
         :param output: Specifies which heater output to configure: 1 – 4.
         :type output: int
-        :param zone: Specifies which zone in the table to configure. Valid entries are: 1–10.
+        :param zone: Specifies which zone in the table to configure. Valid entries are: 1–10.
         :type zone: int
         :param upper_bound: Specifies the upper Setpoint boundary of this zone in kelvin.
         :type upper_bound: float

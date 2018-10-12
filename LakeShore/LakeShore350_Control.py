@@ -95,6 +95,9 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.configTempLimit()
         self.setControlLoopZone()
 
+
+#        self.startHeater()
+
         self.delay1 = 1
         self.delay = 0.0
         # self.setControl()
@@ -111,22 +114,22 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)[0]
-            sensor_values[1] = self.sensor_values[0]*994.5
-            sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)[0]
-            sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
-            sensor_values[4] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-            sensor_values[5] = self.LakeShore350.OutputModeQuery(1)[1]
+            self.sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)[0]
+            self.sensor_values[1] = (self.sensor_values[0]/100)*994.5
+            self.sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)[0]
+            self.sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+            self.sensor_values[4] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+            self.sensor_values[5] = self.LakeShore350.OutputModeQuery(1)[1]
             temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            sensor_values[6] = temp_list[0]
-            sensor_values[7] = temp_list[1]
-            sensor_values[8] = temp_list[2]
-            sensor_values[9] = temp_list[3]
+            self.sensor_values[6] = temp_list[0]
+            self.sensor_values[7] = temp_list[1]
+            self.sensor_values[8] = temp_list[2]
+            self.sensor_values[9] = temp_list[3]
             temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
-            sensor_values[10] = temp_list2[0]
-            sensor_values[11] = temp_list2[1]
-            sensor_values[12] = temp_list2[2]
-            sensor_values[13] = self.HeaterRangeQuery(1)[0]
+            self.sensor_values[10] = temp_list2[0]
+            self.sensor_values[11] = temp_list2[1]
+            self.sensor_values[12] = temp_list2[2]
+            self.sensor_values[13] = self.HeaterRangeQuery(1)[0]
  
 
             # print(dict(zip(self.sensor_names,self.sensor_values)))
@@ -219,6 +222,19 @@ class LakeShore350_Updater(AbstractLoopThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
+    def startHeater(self):
+    	"""start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
+    	"""
+    	try:
+    		self.LakeShore.OutputModeCommand(1,1,sensor_values[5],1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
     def setLoopP_Param(self):
