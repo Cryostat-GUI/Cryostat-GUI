@@ -51,6 +51,7 @@ class ILM_Updater(AbstractLoopThread):
         self.control_state = 3
         # self.interval = 60*30# every half hour one measurement lHe is not measured more often by the device anyways
         self.interval = 3
+
         self.setControl()
 
     def running(self):
@@ -91,6 +92,7 @@ class ILM_Updater(AbstractLoopThread):
                 else: 
                     self.sig_visaerror.emit(e_visa.args[0])
         self.sig_Infodata.emit(deepcopy(data))
+
 
 
     def read_buffer(self):

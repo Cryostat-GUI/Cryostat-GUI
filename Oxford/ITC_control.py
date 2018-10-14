@@ -76,7 +76,6 @@ class ITC_Updater(AbstractLoopThread):
         # self.__isRunning = True
 
 
-
     # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
@@ -120,11 +119,22 @@ class ITC_Updater(AbstractLoopThread):
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 pass
 
+    # def control_checks(func):
+    #     @functools.wraps(func)
+    #     def wrapper_control_checks(*args, **kwargs):
+    #         pass
+
+    def read_buffer(self):
+        try:
+            return self.ITC.read()
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                pass
+
 
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
-
 
 
 

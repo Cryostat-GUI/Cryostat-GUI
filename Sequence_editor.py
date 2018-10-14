@@ -68,8 +68,6 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
         pass
 
 
-
-
 class Window_waiting(QtWidgets.QDialog):
     """docstring for Window_waiting"""
 
@@ -91,6 +89,7 @@ class Window_waiting(QtWidgets.QDialog):
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
         # if not self.conf['Temp'] and not self.conf['Field']:
+
         #     self.reject()
         #     return
         self.sig_accept.emit(deepcopy(self.conf))
@@ -119,8 +118,6 @@ class Window_Tscan(QtWidgets.QDialog):
         self.dictlock = threading.Lock()
 
     def initialisations(self):
-
-        # BUGS BUGS BUGS
 
         self.conf = dict(typ='scan_T', measuretype='RES')
         self.__scanconf = dict(
@@ -197,6 +194,7 @@ class Window_Tscan(QtWidgets.QDialog):
 
     def setTend(self, Tend):
         with self.dictlock:
+
             self.__scanconf['end'] = Tend
         self.putin_end = True
         self.conf.update(self.__scanconf)
@@ -226,6 +224,7 @@ class Window_Tscan(QtWidgets.QDialog):
 
     def setRampCondition(self, value):
         with self.dictlock:
+
             self.conf['RampCondition'] = value
             # 0 == Stabilize
             # 1 == Sweep
@@ -262,6 +261,7 @@ class Sequence_builder(Window_ui):
     """docstring for sequence_builder"""
 
     sig_runSequence = pyqtSignal(list)
+
     sig_abortSequence = pyqtSignal()
 
     def __init__(self, sequence_file=None, parent=None, **kwargs):
@@ -283,6 +283,7 @@ class Sequence_builder(Window_ui):
         self.lineFileLocation.setText(self.sequence_file)
         self.lineFileLocation.textChanged.connect(lambda value: self.change_file_location(value))
         self.pushClear.clicked.connect(lambda: self.model.clear_all())
+
 
         self.Button_RunSequence.clicked.connect(self.running_sequence)
         self.Button_AbortSequence.clicked.connect(lambda: self.sig_abortSequence.emit())
@@ -339,6 +340,7 @@ class Sequence_builder(Window_ui):
             string += 'Temperature' + separator
             sep_taken = True
         if data['Field']:
+
             string = string + 'Field' if sep_taken else  string + 'Field' + separator
             sep_taken = True
         string += ' & {} seconds more'.format(data['Delay'])
@@ -353,7 +355,7 @@ class Sequence_builder(Window_ui):
     def parse_set_field(self, data):
         return 'Set Field to {Field} at {rate}T/min (rate is only a wish...)'.format(**data)
 
-
+ 
     def addWaiting(self, data):
         string = self.parse_waiting(data)
         data.update(dict(DisplayText=string))
@@ -371,7 +373,6 @@ class Sequence_builder(Window_ui):
 
     def addChangeDataFile(self, data):
         pass
-
 
 
     def printing(self, data):
@@ -395,6 +396,7 @@ class Sequence_builder(Window_ui):
         self.initialise_window_Tscan()
         self.initialise_window_ChangeDataFile()
 
+
     def initialise_window_waiting(self):
         self.window_waiting = Window_waiting()
         self.window_waiting.sig_accept.connect(lambda value: self.addWaiting(value))
@@ -409,11 +411,13 @@ class Sequence_builder(Window_ui):
 
     def window_FileDialogSave(self):
         self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As',
+
            'c:\\',"Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
 
     def window_FileDialogOpen(self):
         self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As',
+
            'c:\\',"Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
         self.initialize_sequence(self.sequence_file)
@@ -471,6 +475,7 @@ class Sequence_builder(Window_ui):
                 dic['DisplayText']=self.parse_set_temp(dic)
 
             elif part[1]:
+
                 # set field
                 comm = part[1]
                 nums = [float(x) for x in self.number.findall(comm)]

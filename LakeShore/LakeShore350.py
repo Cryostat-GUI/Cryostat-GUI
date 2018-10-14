@@ -1668,6 +1668,7 @@ class LakeShore350(object):
         answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
         return answer
 
+
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
         couple block used in the room temperature compensation calculation
