@@ -19,6 +19,22 @@ from util import Window_ui
 
 
 
+
+def typeof(dictkey):
+    if isinstance(dictkey,float):
+        return "REAL"
+    elif isinstance(dictkey,int):
+        return "INTEGER"
+    else:
+        return "TEXT"
+
+def sql_buildDictTableString(dictname):
+    string = '(id INTEGER PRIMARY KEY'
+    for key in dictname.keys(): 
+        string += ',{key} {typ}'.format(key=key, typ=typeof(dictname[key]))
+    string += ')'
+    return string
+
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
@@ -198,27 +214,21 @@ class main_Logger(AbstractLoopThread):
 
     def createtable(self,tablename,dictname):
 
-        def typeof(dictkey):
-            if isinstance(dictkey,float):
-                return "REAL"
-            elif isinstance(dictkey,int):
-                return "INTEGER"
-            else:
-                return "TEXT"
 
 
-        sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
+        sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
+        sql += sql_buildDictTableString(dictname)
         self.mycursor.execute(sql)
 
         #We should try to find a nicer a solution without try and except
-        #try:
-        for i in dictname.keys():
-            try:
-                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
-                self.mycursor.execute(sql)
-            except sqlite3.OperationalError as err:
-                pass # Logger: probably the column already exists, no problem.
-                # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
+        # #try:
+        # for i in dictname.keys():
+        #     try:
+        #         sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
+        #         self.mycursor.execute(sql)
+        #     except sqlite3.OperationalError as err:
+        #         pass # Logger: probably the column already exists, no problem.
+        #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
 
     def updatetable(self,  tablename,dictname):
@@ -237,6 +247,29 @@ class main_Logger(AbstractLoopThread):
 
         self.conn.commit()
 
+
+    def change_to_correct_types(self, tablename, dictname):
+        sql = []
+        if not dictname:
+            raise AssertionError('Logger: dict does not yet exist')
+        sql.append('PRAGMA foreign_keys = 0')
+        sql.append('CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'.format(table=tablename))
+        sql.append('DROP TABLE {table}'.format(table=tablename))
+        sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
+        for key in dictname.keys(): 
+            sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
+
+        sql_temp = 'INSERT INTO {table} (id'.format(table=tablename)
+        for key in dictname.keys():
+            sql_temp += ',{}'.format(key)
+        sql_temp += ') SELECT id'
+        for key in dictname.keys():
+            sql_temp += ',{}'.format(key)
+        sql_temp += 'FROM python_temp_{table}'.format(table=tablename)
+        sql.append(sql_temp)
+        sql.append('DROP TABLE python_temp_{table}'.format(table=tablename))
+        sql.append('PRAGMA foreign_keys = 1')
+        return sql
 
 
     def printtable(self,tablename,dictname,date1,date2):
