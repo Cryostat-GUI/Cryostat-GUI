@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>713</width>
-    <height>336</height>
+    <width>674</width>
+    <height>327</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -261,26 +261,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Temperature 1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLCDNumber" name="lcdTemp_sens2_K">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="smallDecimalPoint">
-         <bool>false</bool>
-        </property>
-        <property name="digitCount">
-         <number>6</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-        <property name="value" stdset="0">
-         <double>0.000000000000000</double>
+         <string>Sens 1 - VTI</string>
         </property>
        </widget>
       </item>
@@ -292,14 +273,14 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_12">
         <property name="text">
          <string>Heater Output [%]</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
          <string>Heater Output [V]</string>
@@ -312,7 +293,7 @@ diff to Setpoint</string>
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Temperature 2</string>
+         <string>Sens 2</string>
         </property>
        </widget>
       </item>
@@ -323,6 +304,83 @@ diff to Setpoint</string>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens1_Kpmin">
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1" colspan="2">
+       <widget class="QLCDNumber" name="lcdHeaterVoltage">
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens3_Kpmin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLCDNumber" name="lcdTemp_sens2_Kpmin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="digitCount">
+         <number>6</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>[Kelvin/min]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_21">
+        <property name="text">
+         <string>[Kelvin]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="2">
+       <widget class="QProgressBar" name="progressNeedleValve">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="2">
+       <widget class="QProgressBar" name="progressHeaterPercent">
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>
@@ -345,11 +403,11 @@ diff to Setpoint</string>
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Temperature 3</string>
+         <string>Sens 3</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_NeedleValve">
         <property name="text">
          <string>Gas Output</string>
@@ -375,71 +433,29 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_20">
-        <property name="text">
-         <string>[Kelvin/min]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_21">
-        <property name="text">
-         <string>[Kelvin]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLCDNumber" name="lcdTemp_sens1_Kpmin">
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLCDNumber" name="lcdTemp_sens2_Kpmin">
+      <item row="2" column="1">
+       <widget class="QLCDNumber" name="lcdTemp_sens2_K">
         <property name="enabled">
          <bool>false</bool>
         </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLCDNumber" name="lcdTemp_sens3_Kpmin">
-        <property name="enabled">
+        <property name="smallDecimalPoint">
          <bool>false</bool>
         </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QProgressBar" name="progressNeedleValve">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QProgressBar" name="progressHeaterPercent">
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1" colspan="2">
-       <widget class="QLCDNumber" name="lcdHeaterVoltage">
         <property name="digitCount">
          <number>6</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
+        </property>
+        <property name="value" stdset="0">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>

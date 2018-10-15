@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
-    <height>229</height>
+    <width>912</width>
+    <height>665</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>464</width>
+     <width>912</width>
      <height>21</height>
     </rect>
    </property>
@@ -105,9 +105,17 @@
     <addaction name="menuKeithley"/>
     <addaction name="action_Logging"/>
    </widget>
+   <widget class="QMenu" name="menuShow_Data">
+    <property name="title">
+     <string>Show Data</string>
+    </property>
+    <addaction name="actionLive"/>
+    <addaction name="actionDatabase"/>
+   </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSystems_Online"/>
+   <addaction name="menuShow_Data"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -527,6 +535,16 @@
    </property>
    <property name="text">
     <string>Errors</string>
+   </property>
+  </action>
+  <action name="actionLive">
+   <property name="text">
+    <string>Live</string>
+   </property>
+  </action>
+  <action name="actionDatabase">
+   <property name="text">
+    <string>Database</string>
    </property>
   </action>
  </widget>
