@@ -151,6 +151,7 @@
        <widget class="QLabel" name="label_17">
         <property name="text">
          <string>Gas Output [%]</string>
+
         </property>
        </widget>
       </item>

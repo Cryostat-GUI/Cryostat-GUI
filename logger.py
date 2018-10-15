@@ -119,6 +119,7 @@ class main_Logger(AbstractLoopThread):
 
         self.interval = 5 # 60s interval for logging as initialisation
 
+
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
 
@@ -127,7 +128,6 @@ class main_Logger(AbstractLoopThread):
         self.conf_done_layer2 = False
 
         self.dbname = 'He_first_cooldown.db'
-
 
         # QTimer.singleShot(1e3, self.initialise)
         self.not_yet_initialised = False

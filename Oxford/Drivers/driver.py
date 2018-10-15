@@ -10,7 +10,9 @@ try:
 except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
+
 from visa import constants as vconst
+
 
 
 import functools
@@ -57,6 +59,7 @@ class AbstractSerialDeviceDriver(object):
     def res_close(self):
         self._visa_resource.close()     
 
+
     @pyqtSlot(float)
     def set_delay_measuring(self, delay):
         self.delay = delay
@@ -71,6 +74,7 @@ class AbstractSerialDeviceDriver(object):
             time.sleep(self.delay)
 
     # @do_check
+
     def query(self, command):
         """
             low-level communication wrapper for visa.query with Communication Lock, 

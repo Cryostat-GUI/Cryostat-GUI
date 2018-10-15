@@ -6,8 +6,10 @@
    <rect>
     <x>0</x>
     <y>0</y>
+
     <width>798</width>
     <height>294</height>
+
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +17,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_6">
    <item row="0" column="0">
+
     <widget class="QGroupBox" name="groupSettings">
      <property name="title">
       <string>Settings</string>

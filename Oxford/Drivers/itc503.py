@@ -38,7 +38,6 @@ except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
-
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
     
@@ -49,6 +48,7 @@ class itc503(AbstractSerialDeviceDriver):
         # set the heater voltage limit to be controlled dynamically according to the temperature
         self.write('$M0')
         self.delay = 0.06
+
         # self.setControl() # done in thread
 
 
@@ -106,8 +106,8 @@ class itc503(AbstractSerialDeviceDriver):
         if variable not in range(0,11):
             raise AssertionError('ITC: getValue: Argument is not a valid number.')
 
-        # clear any buffer by reading, ignoring all timeout errors
-        self.clear_buffers()
+        ### clear any buffer by reading, ignoring all timeout errors
+        # self.clear_buffers()
         # retrieve value     
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
@@ -136,6 +136,7 @@ class itc503(AbstractSerialDeviceDriver):
         #     print('ITC: Assertion: T')
         #     self.read()
         #     value = self.getValue(variable)
+
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):
