@@ -24,6 +24,7 @@ from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
 
+
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger
@@ -64,6 +65,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
         QTimer.singleShot(0, self.initialize_all_windows)
+
 
 
     def initialize_all_windows(self):
@@ -147,9 +149,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
 
                 self.data['ITC'] =  dict(set_temperature = 0,
-                                         sensor_1_temperature =0,
-                                         sensor_2_temperature =0,
-                                         sensor_3_temperature =0,
+                                         Sensor_1_K =0,
+                                         Sensor_2_K =0,
+                                         Sensor_3_K =0,
                                          temperature_error =0,
                                          heater_output_as_percent =0,
                                          heater_output_as_voltage =0,
@@ -164,7 +166,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                                 Sensor_2_K = [0]*integration_length,
                                                 Sensor_3_K = [0]*integration_length,
                                                 Sensor_4_K = [0]*integration_length)
-
 
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
@@ -239,6 +240,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
             self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
             self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+
             self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
             self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
             self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
@@ -274,8 +276,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
         self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
-
-
 
 
     # ------- ------- ILM
@@ -339,6 +339,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             self.MainDock_HeLevel.setValue(chan1)
             self.MainDock_N2Level.setValue(chan2)
+
             # print(self.data['ILM']['channel_1_level'], self.data['ILM']['channel_2_level'])
 
     # ------- ------- IPS
@@ -461,6 +462,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                 Sensor_2_K = [0]*integration_length,
                                 Sensor_3_K = [0]*integration_length,
                                 Sensor_4_K = [0]*integration_length)
+
 
 
                 # setting LakeShore values by GUI LakeShore window
@@ -594,7 +596,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.LakeShore350_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
         self.LakeShore350_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
         self.LakeShore350_Kpmin['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
-
 
 
 

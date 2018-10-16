@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>442</width>
+    <height>482</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Data Selection</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupTimeRelAbs">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Time Display</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="radioTimeRelAbs_abs">
+        <property name="text">
+         <string>Absolute</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioTimeRelAbs_rel">
+        <property name="text">
+         <string>Relative</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupDataSelection">
+     <property name="title">
+      <string>Data Selection</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,1">
+      <item row="2" column="2">
+       <widget class="QComboBox" name="comboBox"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>Data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QComboBox" name="comboBox_2"/>
+      </item>
+      <item row="4" column="2">
+       <widget class="QComboBox" name="comboBox_3"/>
+      </item>
+      <item row="7" column="2">
+       <widget class="QComboBox" name="comboBox_6"/>
+      </item>
+      <item row="7" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Instrument</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QComboBox" name="comboAxis_Y3"/>
+      </item>
+      <item row="6" column="2">
+       <widget class="QComboBox" name="comboAxis_Y5"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Y 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Y 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Y 3</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Axis</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Y 5</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Y 4</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4_11">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4_10">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4_9">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4_8">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboAxis_Y4_7">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupTimeFormat">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Show Time in </string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="radioTimeformat_sec">
+        <property name="text">
+         <string>Seconds</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="radioTimeFormat_min">
+        <property name="text">
+         <string>Minutes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioTimeFormat_h">
+        <property name="text">
+         <string>Hours</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="1" rowspan="2">
+    <widget class="QGroupBox" name="groupDateRange">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Display Range</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Min</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Start Date</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="checkRangeAuto_X">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>End Date</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="2">
+       <widget class="QDateTimeEdit" name="dateTime_RangeEnd"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Auto</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QDoubleSpinBox" name="spinRangeMax_Y1">
+        <property name="maximum">
+         <double>5000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QDoubleSpinBox" name="spinRangeMin_X">
+        <property name="maximum">
+         <double>5000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QDoubleSpinBox" name="spinRangeMax_X">
+        <property name="maximum">
+         <double>5000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Max</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="checkRangeAuto_Y">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="2">
+       <widget class="QDateTimeEdit" name="dateTime_RangeStart"/>
+      </item>
+      <item row="4" column="3">
+       <widget class="QDoubleSpinBox" name="spinRangeMin_Y1">
+        <property name="maximum">
+         <double>5000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_15">
+        <property name="text">
+         <string>Y</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+     <property name="centerButtons">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QTextBrowser" name="textBrowse">
+     <property name="minimumSize">
+      <size>
+       <width>424</width>
+       <height>71</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>71</height>
+      </size>
+     </property>
+     <property name="html">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:36pt; font-weight:600;&quot;&gt;DATABASE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>checkRangeAuto_X</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinRangeMin_X</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>266</x>
+     <y>318</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkRangeAuto_X</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinRangeMax_X</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>270</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkRangeAuto_Y</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinRangeMax_Y1</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>263</x>
+     <y>347</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>310</x>
+     <y>351</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkRangeAuto_Y</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spinRangeMin_Y1</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>270</x>
+     <y>344</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>388</x>
+     <y>345</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
