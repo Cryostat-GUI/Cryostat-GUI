@@ -321,23 +321,8 @@ class main_Logger(AbstractLoopThread):
         self.mycursor = self.conn.cursor()
 
         """storing logging data
-            into database or logfile - to be decided!
-            what data should be logged is set in self.conf
-        # """
-        # dbname='test'
-        # tablename='measured_data'
-        # # colnamelist=['Voltage', 'Current','CurrentTime']
-
-
-        # #test dict:
-        # testdict={
-        #     "Voltage":"10",
-        #     "Current" :"20",
-        #     "Temperature":"0",
-        #     "Testcol1":10,
-        #     "Testcol2":100,
-        #     "testcol3":3.1415
-        # }
+            what data should be logged is set in self.conf - or will be set there eventually
+        """
 
 
         timedict={'timeseconds':time.time(), 'ReadableTime': convert_time(time.time())} #it was the only way i could implement date and time and still select them
@@ -350,12 +335,6 @@ class main_Logger(AbstractLoopThread):
         # data['ReadableTime']=ReadableTime
 
 
-
-        #cursor setup:
-
-        #Optional command to delete a table, must be commented out
-        #mycursor.execute("DROP TABLE measured_data")
-
         #initializing a table with a primary key as first column:
 
         names = ['ITC', 'ILM', 'IPS','LakeShore350']
@@ -364,21 +343,16 @@ class main_Logger(AbstractLoopThread):
                 data[name].update(timedict)
                 change_to_correct_types(name, data[name])
 
-                # print('creating table')
                 self.createtable(name, data[name])
                 #inserting in the measured values:
 
-                # print('updating table')
                 self.updatetable(name,data[name])
 
-                # print('printing table')
-                # self.printtable('ITC',data,20181001000000,20191005000000)
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
             except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
 
-        # self.exportdatatoarr('ITC',colnamelist)
 
     # store_data(0,0)
     # def logging_read_configuration(self):

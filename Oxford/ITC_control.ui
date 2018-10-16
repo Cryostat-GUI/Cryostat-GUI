@@ -408,31 +408,6 @@ diff to Setpoint</string>
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
-       <widget class="QGroupBox" name="groupBox_2">
-        <property name="title">
-         <string>Measuring Interval</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_8">
-         <item row="1" column="0">
-          <widget class="QDoubleSpinBox" name="spin_threadinterval">
-           <property name="maximum">
-            <double>3600.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_22">
-           <property name="text">
-            <string>Defines the time to wait [s] 
-between two runs of 
-all performed queries</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
       <item row="8" column="0">
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
@@ -478,6 +453,31 @@ all performed queries</string>
           <widget class="QSpinBox" name="spinsetPIDerivative">
            <property name="maximum">
             <number>1000</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="8" column="1" colspan="2">
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="title">
+         <string>Measuring Interval</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <item row="1" column="0">
+          <widget class="QDoubleSpinBox" name="spin_threadinterval">
+           <property name="maximum">
+            <double>3600.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_22">
+           <property name="text">
+            <string>Defines the time to wait [s] 
+between two runs of 
+all performed queries</string>
            </property>
           </widget>
          </item>
