@@ -35,6 +35,36 @@ def sql_buildDictTableString(dictname):
     string += ')'
     return string
 
+def change_to_correct_types(tablename, dictname):
+    sql = []
+    if not dictname:
+        raise AssertionError('Logger: dict does not yet exist')
+    sql.append('PRAGMA foreign_keys = 0')
+    sql.append('CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'.format(table=tablename))
+    sql.append('DROP TABLE {table}'.format(table=tablename))
+    # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
+    sql.append("CREATE TABLE IF NOT EXISTS {} ".format(tablename) + sql_buildDictTableString(dictname))
+    # for key in dictname.keys(): 
+    #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
+
+    sql_temp = 'INSERT INTO {table} (id'.format(table=tablename)
+    for key in dictname.keys():
+        sql_temp += ',{}'.format(key)
+    sql_temp += ') SELECT id'
+    for key in dictname.keys():
+        sql_temp += ',{}'.format(key)
+    sql_temp += 'FROM python_temp_{table}'.format(table=tablename)
+    sql.append(sql_temp)
+    sql.append('DROP TABLE python_temp_{table}'.format(table=tablename))
+    sql.append('PRAGMA foreign_keys = 1')
+    return sql
+
+def convert_time(ts):
+    """converts timestamps from time.time() into reasonable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+
+
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
@@ -248,28 +278,6 @@ class main_Logger(AbstractLoopThread):
         self.conn.commit()
 
 
-    def change_to_correct_types(self, tablename, dictname):
-        sql = []
-        if not dictname:
-            raise AssertionError('Logger: dict does not yet exist')
-        sql.append('PRAGMA foreign_keys = 0')
-        sql.append('CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'.format(table=tablename))
-        sql.append('DROP TABLE {table}'.format(table=tablename))
-        sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
-        for key in dictname.keys(): 
-            sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
-
-        sql_temp = 'INSERT INTO {table} (id'.format(table=tablename)
-        for key in dictname.keys():
-            sql_temp += ',{}'.format(key)
-        sql_temp += ') SELECT id'
-        for key in dictname.keys():
-            sql_temp += ',{}'.format(key)
-        sql_temp += 'FROM python_temp_{table}'.format(table=tablename)
-        sql.append(sql_temp)
-        sql.append('DROP TABLE python_temp_{table}'.format(table=tablename))
-        sql.append('PRAGMA foreign_keys = 1')
-        return sql
 
 
     def printtable(self,tablename,dictname,date1,date2):
@@ -332,14 +340,14 @@ class main_Logger(AbstractLoopThread):
         # }
 
 
-        timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S"), 'timeseconds':time.time()} #it was the only way i could implement date and time and still select them
+        timedict={'timeseconds':time.time(), 'ReadableTime': convert_time(time.time())} #it was the only way i could implement date and time and still select them
         # testdict={**timedict,**testdict}
 
         #Creating the readable time value and then appending it to the dictionary:
-        timestr=str(timedict["CurrentTime"])
-        ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
-        # testdict['ReadableTime']=ReadableTime
-        data['ReadableTime']=ReadableTime
+        # timestr=str(timedict["CurrentTime"])
+        # ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
+        # # testdict['ReadableTime']=ReadableTime
+        # data['ReadableTime']=ReadableTime
 
 
 
@@ -354,6 +362,7 @@ class main_Logger(AbstractLoopThread):
         for name in names:
             try:
                 data[name].update(timedict)
+                change_to_correct_types(name, data[name])
 
                 # print('creating table')
                 self.createtable(name, data[name])
@@ -381,3 +390,10 @@ class main_Logger(AbstractLoopThread):
     #         Return: dictionary holding bools
     #     """
     #     return None
+if __name__ == '__main__': 
+    dbname = 'He_first_cooldown.db'
+    conn= sqlite3.connect(dbname)
+    mycursor = conn.cursor()
+
+
+
