@@ -110,8 +110,8 @@
     <property name="title">
      <string>Show Data</string>
     </property>
-    <addaction name="actionLive"/>
-    <addaction name="actionDatabase"/>
+    <addaction name="action_plotLive"/>
+    <addaction name="action_plotDatabase"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
@@ -538,12 +538,12 @@
     <string>Errors</string>
    </property>
   </action>
-  <action name="actionLive">
+  <action name="action_plotLive">
    <property name="text">
     <string>Live</string>
    </property>
   </action>
-  <action name="actionDatabase">
+  <action name="action_plotDatabase">
    <property name="text">
     <string>Database</string>
    </property>
