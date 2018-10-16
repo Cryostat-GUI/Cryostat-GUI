@@ -158,7 +158,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                          integral_action_time =0,
                                          derivative_action_time = 0)
 
-                integration_length = 5
+                integration_length = 7
                 self.ITC_Kpmin = dict(newtime = [time.time()]*integration_length,
                                                 Sensor_1_K = [0]*integration_length,
                                                 Sensor_2_K = [0]*integration_length,
