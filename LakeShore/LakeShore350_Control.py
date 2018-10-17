@@ -113,26 +113,26 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-            self.sensor['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)[0]
-            self.sensor['Heater_Output_mW'] = (self.sensor['Heater_Output_percentage']/100)*994.5
-            self.sensor['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)[0]
-            self.sensor['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
-            self.sensor['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-            self.sensor['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
+            self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)[0]
+            self.sensors['Heater_Output_mW'] = (self.sensor['Heater_Output_percentage']/100)*994.5
+            self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)[0]
+            self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+            self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+            self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
             temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            self.sensor['Sensor_1_K'] = temp_list[0]
-            self.sensor['Sensor_2_K'] = temp_list[1]
-            self.sensor['Sensor_3_K'] = temp_list[2]
-            self.sensor['Sensor_4_K'] = temp_list[3]
+            self.sensors['Sensor_1_K'] = temp_list[0]
+            self.sensors['Sensor_2_K'] = temp_list[1]
+            self.sensors['Sensor_3_K'] = temp_list[2]
+            self.sensors['Sensor_4_K'] = temp_list[3]
             temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-            self.sensor['Loop_P_Param'] = temp_list2[0]
-            self.sensor['Loop_I_Param'] = temp_list2[1]
-            self.sensor['Loop_D_Param'] = temp_list2[2]
-            self.sensor['Heater_Range'] = self.HeaterRangeQuery(1)[0]
+            self.sensors['Loop_P_Param'] = temp_list2[0]
+            self.sensors['Loop_I_Param'] = temp_list2[1]
+            self.sensors['Loop_D_Param'] = temp_list2[2]
+            self.sensors['Heater_Range'] = self.HeaterRangeQuery(1)[0]
  
 
             # print(dict(zip(self.sensor_names,self.sensor_values)))
-            self.sig_Infodata.emit(deepcopy(dict(zip(self.sensor_names,self.sensor_values))))
+            self.sig_Infodata.emit(deepcopy(sensors))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
