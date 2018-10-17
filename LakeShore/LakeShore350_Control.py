@@ -1,4 +1,4 @@
-import time
+# import time
 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -35,14 +35,14 @@ class LakeShore350_Updater(AbstractLoopThread):
     timeouterror = VisaIOError(-1073807339)
 
 
-#    sensors = dict(
-#        Heater_Output_mW=0,
-#        Temp_K=1,
-#        Heater_mW=2,
-#        Sensor_1_K=3,
-#        Sensor_2_K=4,
-#        Sensor_3_K=5,
-#        Sensor_4_K=6)
+    # sensors = dict(
+    #    Heater_Output_mW=0,
+    #    Temp_K=1,
+    #    Heater_mW=2,
+    #    Sensor_1_K=3,
+    #    Sensor_2_K=4,
+    #    Sensor_3_K=5,
+    #    Sensor_4_K=6)
 
     sensor_names = ['Heater_Output_percentage', 'Heater_Output_mW', 'Temp_K', 'Ramp_Rate', 'Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K','Input_Sensor']
 
@@ -111,7 +111,6 @@ class LakeShore350_Updater(AbstractLoopThread):
             self.sig_Infodata.emit(deepcopy(dic))
 
 
-            # time.sleep(self.delay1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

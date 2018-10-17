@@ -68,8 +68,6 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
         pass
 
 
-
-
 class Window_waiting(QtWidgets.QDialog):
     """docstring for Window_waiting"""
 
@@ -204,13 +202,13 @@ class Window_Tscan(QtWidgets.QDialog):
     def setN(self, N):
         with self.dictlock:
             self.__scanconf['Nsteps'] = N
-        self.putin_N = True
+        # self.putin_N = True
         self.conf.update(self.__scanconf)
 
     def setSizeSteps(self, stepsize):
         with self.dictlock:
             self.__scanconf['SizeSteps'] = stepsize
-        self.putin_Size = True
+        # self.putin_Size = True
         self.conf.update(self.__scanconf)
 
     def setLCDstepsize(self, value):
@@ -251,11 +249,10 @@ class Window_Tscan(QtWidgets.QDialog):
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
 
-        self.conf['sequence'] = self.model.pass_data()
+        self.conf['sequence_temperature'] = self.model.pass_data()
 
         self.sig_accept.emit(deepcopy(self.conf))
         self.accept()
-
 
 
 class Sequence_builder(Window_ui):
