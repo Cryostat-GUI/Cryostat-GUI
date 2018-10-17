@@ -29,34 +29,34 @@ def typeof(dictkey):
         return "TEXT"
 
 def sql_buildDictTableString(dictname):
-    string = '(id INTEGER PRIMARY KEY'
+    string = '''(id INTEGER PRIMARY KEY'''
     for key in dictname.keys(): 
-        string += ',{key} {typ}'.format(key=key, typ=typeof(dictname[key]))
-    string += ')'
+        string += ''',{key} {typ}'''.format(key=key, typ=typeof(dictname[key]))
+    string += ''')'''
     return string
 
 def change_to_correct_types(tablename, dictname):
     sql = []
     if not dictname:
         raise AssertionError('Logger: dict does not yet exist')
-    sql.append('PRAGMA foreign_keys = 0')
-    sql.append('CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'.format(table=tablename))
-    sql.append('DROP TABLE {table}'.format(table=tablename))
+    sql.append('''PRAGMA foreign_keys = 0''')
+    sql.append('''CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'''.format(table=tablename))
+    sql.append('''DROP TABLE {table}'''.format(table=tablename))
     # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
-    sql.append("CREATE TABLE IF NOT EXISTS {} ".format(tablename) + sql_buildDictTableString(dictname))
+    sql.append('''CREATE TABLE IF NOT EXISTS {} '''.format(tablename) + sql_buildDictTableString(dictname))
     # for key in dictname.keys(): 
     #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
 
-    sql_temp = 'INSERT INTO {table} (id'.format(table=tablename)
+    sql_temp = '''INSERT INTO {table} (id'''.format(table=tablename)
     for key in dictname.keys():
         sql_temp += ',{}'.format(key)
-    sql_temp += ') SELECT id'
+    sql_temp += ''') SELECT id'''
     for key in dictname.keys():
-        sql_temp += ',{}'.format(key)
-    sql_temp += 'FROM python_temp_{table}'.format(table=tablename)
+        sql_temp += ''',{}'''.format(key)
+    sql_temp += ''' FROM python_temp_{table}'''.format(table=tablename)
     sql.append(sql_temp)
-    sql.append('DROP TABLE python_temp_{table}'.format(table=tablename))
-    sql.append('PRAGMA foreign_keys = 1')
+    sql.append('''DROP TABLE python_temp_{table}'''.format(table=tablename))
+    sql.append('''PRAGMA foreign_keys = 1''')
     return sql
 
 def convert_time(ts):
@@ -271,7 +271,7 @@ class main_Logger(AbstractLoopThread):
         self.mycursor.execute(sql)
 
         for i in range(len(dictname)):
-            sql="UPDATE {} SET {}='{}' WHERE {}='{}'".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
+            sql="""UPDATE {} SET {}='{}' WHERE {}='{}'""".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
             # print(sql)
             self.mycursor.execute(sql)
 
@@ -286,7 +286,7 @@ class main_Logger(AbstractLoopThread):
             print(colnames, end=',', flush=True)
         print('\n')
 
-        sql="SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}".format(tablename,date1,date2)
+        sql="""SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}""".format(tablename,date1,date2)
         self.mycursor.execute(sql)
 
         data = self.mycursor.fetchall()
@@ -300,7 +300,7 @@ class main_Logger(AbstractLoopThread):
 
         array=[]
 
-        sql="SELECT {},{},{} from {} ".format(*colnamelist,tablename)
+        sql="""SELECT {},{},{} from {} """.format(*colnamelist,tablename)
         self.mycursor.execute(sql)
         data = self.mycursor.fetchall()
 
@@ -336,12 +336,20 @@ class main_Logger(AbstractLoopThread):
 
 
         #initializing a table with a primary key as first column:
+        data.update(timedict)
 
         names = ['ITC', 'ILM', 'IPS','LakeShore350']
         for name in names:
             try:
                 data[name].update(timedict)
-                change_to_correct_types(name, data[name])
+                # sql = change_to_correct_types(name, data[name])
+                # for ct, command in enumerate(sql): 
+                    # print(command)
+                    # if ct >=2: 
+                    #     sq="""SELECT id from python_temp_{}""".format(name)
+                    #     self.mycursor.execute(sq)
+                        # print(self.mycursor.fetchall()[-5:])
+                    # self.mycursor.execute(command)
 
                 self.createtable(name, data[name])
                 #inserting in the measured values:
