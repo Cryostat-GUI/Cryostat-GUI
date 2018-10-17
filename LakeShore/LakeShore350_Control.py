@@ -71,36 +71,37 @@ class LakeShore350_Updater(AbstractLoopThread):
         # except VisaIOError as e: 
         #     self.sig_assertion.emit('running in control: {}'.format(e))
 
-		self.Temp_K_value = 3
-#		self.Heater_mW_value = 0
-		self.Ramp_Rate_value = 0
-		self.Input_value = 1
-		self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
-		self.LoopI_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[1]
-		self.LoopD_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[2]
+		  self.Temp_K_value = 3
+# 		self.Heater_mW_value = 0
+	  	self.Ramp_Rate_value = 0
+		  self.Input_value = 1
+		  self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
+	  	self.LoopI_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[1]
+  		self.LoopD_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[2]
 
-		self.Upper_Bound_value = 300
-		"""proper P, I, D values needed
-		"""
-		self.ZoneP_value
-		self.ZoneI_value
-		self.ZoneD_value
-		self.Mout_value = 50
-		self.Zone_Range_value = 2
-		self.Zone_Rate_value = 1
 
-        """sets Heater power to 994,05 mW
-        """
-        self.configHeater()
-        self.configTempLimit()
-        self.setControlLoopZone()
+		  self.Upper_Bound_value = 300
+		  """proper P, I, D values needed
+  		"""
+	  	self.ZoneP_value
+		  self.ZoneI_value
+  		self.ZoneD_value
+	  	self.Mout_value = 50
+		  self.Zone_Range_value = 2
+	  	self.Zone_Rate_value = 1
 
-#        self.startHeater()
+      """sets Heater power to 994,05 mW
+      """
+      self.configHeater()
+      self.configTempLimit()
+      self.setControlLoopZone()
 
-        self.delay1 = 1
-        self.delay = 0.0
-        # self.setControl()
-        # self.__isRunning = True
+#     self.startHeater()
+
+      self.delay1 = 1
+      self.delay = 0.0
+      # self.setControl()
+      # self.__isRunning = True
 
     # @control_checks
     def running(self):
@@ -212,7 +213,44 @@ class LakeShore350_Updater(AbstractLoopThread):
     	"""(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
     	"""
         try:
-            self.LakeShore350.OutputModeCommand(1,1,Input_value,1)
+            self.LakeShore350.OutputModeCommand(1,1,self.Input_value,1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+
+    @pyqtSlot()
+    def setLoopP_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, sensor_values[11], sensor_values[12])
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setLoopI_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, sensor_values[10], self.LoopI_value, sensor_values[12])
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setLoopD_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, sensor_values[10], sensor_values[11], self.LoopD_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

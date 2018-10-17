@@ -75,6 +75,8 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.2
         # self.__isRunning = True
 
+
+
     # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
@@ -93,8 +95,7 @@ class ITC_Updater(AbstractLoopThread):
             try: 
 
                 value = self.ITC.getValue(self.sensors[key])
-                if value: 
-                    data[key] = value
+                data[key] = value
                 time.sleep(self.delay)
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
