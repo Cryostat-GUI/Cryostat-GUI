@@ -44,22 +44,23 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_3_K=5,
 #        Sensor_4_K=6)
 
-    sensor_names = ['Heater_Output_percentage',
-    	'Heater_Output_mW',
-    	'Temp_K',
-    	'Ramp_Rate_Status',
-    	'Ramp_Rate',
-    	'Input_Sensor',
-    	'Sensor_1_K',
-    	'Sensor_2_K',
-    	'Sensor_3_K',
-    	'Sensor_4_K',
-    	'Loop_P_Param',
-    	'Loop_I_Param',
-    	'Loop_D_Param',
-    	'Heater_Range']
+    sensors =  dict(
+    	Heater_Output_percentage = 0,
+    	Heater_Output_mW = 0,
+    	Temp_K = 0,
+    	Ramp_Rate_Status = 0,
+    	Ramp_Rate = 0,
+    	Input_Sensor = 0,
+    	Sensor_1_K = 0,
+    	Sensor_2_K = 0,
+    	Sensor_3_K = 0,
+    	Sensor_4_K = 0,
+    	Loop_P_Param = 0,
+    	Loop_I_Param = 0,
+    	Loop_D_Param = 0,
+    	Heater_Range = 0)
 
-    sensor_values = [None] * 20 # 10 of 20 used
+#    sensor_values = [None] * 20 # 10 of 20 used
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -70,35 +71,37 @@ class LakeShore350_Updater(AbstractLoopThread):
         # except VisaIOError as e: 
         #     self.sig_assertion.emit('running in control: {}'.format(e))
 
-		self.Temp_K_value = 3
-#		self.Heater_mW_value = 0
-		self.Ramp_Rate_value = 0
-		self.Input_value = 1
-		self.LoopP_value = 0
-		self.LoopI_value = 0
-		self.LoopD_value = 0
-
-		self.Upper_Bound_value = 300
-		"""proper P, I, D values needed
-		"""
-		self.ZoneP_value
-		self.ZoneI_value
-		self.ZoneD_value
-		self.Mout_value = 50
-		self.Zone_Range_value = 2
-		self.Zone_Rate_value = 1
+		  self.Temp_K_value = 3
+# 		self.Heater_mW_value = 0
+	  	self.Ramp_Rate_value = 0
+		  self.Input_value = 1
+		  self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
+	  	self.LoopI_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[1]
+  		self.LoopD_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[2]
 
 
-        """sets Heater power to 994,05 mW
-        """
-        self.configHeater()
-        self.configTempLimit()
-        self.setControlLoopZone()
+		  self.Upper_Bound_value = 300
+		  """proper P, I, D values needed
+  		"""
+	  	self.ZoneP_value
+		  self.ZoneI_value
+  		self.ZoneD_value
+	  	self.Mout_value = 50
+		  self.Zone_Range_value = 2
+	  	self.Zone_Rate_value = 1
 
-        self.delay1 = 1
-        self.delay = 0.0
-        # self.setControl()
-        # self.__isRunning = True
+      """sets Heater power to 994,05 mW
+      """
+      self.configHeater()
+      self.configTempLimit()
+      self.setControlLoopZone()
+
+#     self.startHeater()
+
+      self.delay1 = 1
+      self.delay = 0.0
+      # self.setControl()
+      # self.__isRunning = True
 
     # @control_checks
     def running(self):
@@ -111,26 +114,26 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         """
         try:
-            sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)[0]
-            sensor_values[1] = self.sensor_values[0]*994.5
-            sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)[0]
-            sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
-            sensor_values[4] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-            sensor_values[5] = self.LakeShore350.OutputModeQuery(1)[1]
+            self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)[0]
+            self.sensors['Heater_Output_mW'] = (self.sensor['Heater_Output_percentage']/100)*994.5
+            self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)[0]
+            self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+            self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+            self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
             temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            sensor_values[6] = temp_list[0]
-            sensor_values[7] = temp_list[1]
-            sensor_values[8] = temp_list[2]
-            sensor_values[9] = temp_list[3]
-            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
-            sensor_values[10] = temp_list2[0]
-            sensor_values[11] = temp_list2[1]
-            sensor_values[12] = temp_list2[2]
-            sensor_values[13] = self.HeaterRangeQuery(1)[0]
+            self.sensors['Sensor_1_K'] = temp_list[0]
+            self.sensors['Sensor_2_K'] = temp_list[1]
+            self.sensors['Sensor_3_K'] = temp_list[2]
+            self.sensors['Sensor_4_K'] = temp_list[3]
+            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+            self.sensors['Loop_P_Param'] = temp_list2[0]
+            self.sensors['Loop_I_Param'] = temp_list2[1]
+            self.sensors['Loop_D_Param'] = temp_list2[2]
+            self.sensors['Heater_Range'] = self.HeaterRangeQuery(1)[0]
  
 
             # print(dict(zip(self.sensor_names,self.sensor_values)))
-            self.sig_Infodata.emit(deepcopy(dict(zip(self.sensor_names,self.sensor_values))))
+            self.sig_Infodata.emit(deepcopy(sensors))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
@@ -248,6 +251,56 @@ class LakeShore350_Updater(AbstractLoopThread):
     def setLoopD_Param(self):
     	try:
     		self.LakeShore350.ControlLoopPIDValuesCommand(1, sensor_values[10], sensor_values[11], self.LoopD_value)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def startHeater(self):
+    	"""start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
+    	"""
+    	try:
+    		self.LakeShore.OutputModeCommand(1,1,self.sensor_values[5],1)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setLoopP_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.sensor_values[11], self.sensor_values[12])
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setLoopI_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensor_values[10], self.LoopI_value, self.sensor_values[12])
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def setLoopD_Param(self):
+    	try:
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensor_values[10], self.sensor_values[11], self.LoopD_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
