@@ -71,35 +71,35 @@ class LakeShore350_Updater(AbstractLoopThread):
         # except VisaIOError as e: 
         #     self.sig_assertion.emit('running in control: {}'.format(e))
 
-		  self.Temp_K_value = 3
+        self.Temp_K_value = 3
 # 		self.Heater_mW_value = 0
 	  	self.Ramp_Rate_value = 0
-		  self.Input_value = 1
-		  self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
+		self.Input_value = 1
+		self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
 	  	self.LoopI_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[1]
   		self.LoopD_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[2]
 
 
-		  self.Upper_Bound_value = 300
-		  """proper P, I, D values needed
+		self.Upper_Bound_value = 300
+		"""proper P, I, D values needed
   		"""
 	  	self.ZoneP_value
-		  self.ZoneI_value
+		self.ZoneI_value
   		self.ZoneD_value
 	  	self.Mout_value = 50
-		  self.Zone_Range_value = 2
+		self.Zone_Range_value = 2
 	  	self.Zone_Rate_value = 1
 
-      """sets Heater power to 994,05 mW
-      """
-      self.configHeater()
-      self.configTempLimit()
-      self.setControlLoopZone()
+        """sets Heater power to 994,05 mW
+        """
+        self.configHeater()
+        self.configTempLimit()
+        self.setControlLoopZone()
 
-#     self.startHeater()
+#       self.startHeater()
 
-      self.delay1 = 1
-      self.delay = 0.0
+        self.delay1 = 1
+        self.delay = 0.0
       # self.setControl()
       # self.__isRunning = True
 
