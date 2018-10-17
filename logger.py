@@ -3,6 +3,7 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
+from PyQt5 import QtWidgets
 
 import sys
 import datetime
@@ -96,6 +97,7 @@ class Logger_configuration(Window_ui):
         self.general_threads_PS.toggled.connect(lambda b: self.PS_thread_running.setChecked(b))
         self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
         self.general_threads_Lakeshore350.toggled.connect(lambda b: self.Lakeshore350_thread_running.setChecked(b))
+        self.general_spinSetInterval.valueChanged.connect(lambda value: self.setValue('general','interval', value) )
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
@@ -109,6 +111,7 @@ class Logger_configuration(Window_ui):
 
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
 
+        self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
         self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
@@ -117,6 +120,7 @@ class Logger_configuration(Window_ui):
 
     def close_and_safe(self):
         """save the configuration dict to a file, close the window afterwards"""
+        self.sig_send_conf.emit(self.conf)
         with open('configurations/log_conf.pickle', 'wb') as handle:
             pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.close()
@@ -139,7 +143,7 @@ class Logger_configuration(Window_ui):
         conf['Lakeshore350'] = dict()
         conf['Keithley Current']  = dict()
         conf['Keithley Volt']   = dict()
-        conf['general'] = dict(logfile_location='')
+        conf['general'] = dict(logfile_location='', interval=2)
         return conf
 
     def read_configuration(self):
@@ -150,6 +154,14 @@ class Logger_configuration(Window_ui):
                 self.conf = pickle.load(handle)
         else:
             self.conf = self.initialise_dicts()
+
+
+    def window_FileDialogSave(self):
+        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Database File Location',
+           'c:\\',"Database Files - SQLite3 (*.db)")
+        self.lineFilelocation.setText(dbname)
+        self.setValue('general', 'logfile_location', dbname)
+
 
 class main_Logger(AbstractLoopThread):
     """This is a worker thread
@@ -173,21 +185,12 @@ class main_Logger(AbstractLoopThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
-        self.dbname = 'He_first_cooldown.db'
+        # self.dbname = 'He_first_cooldown.db'
 
         # QTimer.singleShot(1e3, self.initialise)
         self.not_yet_initialised = False
 
 
-
-
-
-    # def initialise(self):
-    #     self.connectdb('testdata')
-    #     self.mycursor = self.conn.cursor()
-    #     self.not_yet_initialised = False
-
-        # self.test = test(ui_file='.\\configurations\\Logger_conf.ui')
 
 
     def running(self):
@@ -205,12 +208,7 @@ class main_Logger(AbstractLoopThread):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-        # finally:
-        #     QTimer.singleShot(self.interval*1e3, self.running)
 
-    # @pyqtSlot()
-    # def stop(self):
-    #     self.__isRunning = False
 
     def update_conf(self, conf):
         """
@@ -223,13 +221,18 @@ class main_Logger(AbstractLoopThread):
         """
         # print('updated conf for logging')
         self.conf = conf
+        self.interval = self.conf['general']['interval']
         self.configuration_done = True
         self.conf_done_layer2 = False
 
-    @pyqtSlot(int)
-    def set_Interval(self, interval):
-        """set the interval between logging events in seconds"""
-        self.interval = interval
+
+
+
+
+    # @pyqtSlot(int)
+    # def set_Interval(self, interval):
+    #     """set the interval between logging events in seconds"""
+    #     self.interval = interval
 
 
 
@@ -239,8 +242,6 @@ class main_Logger(AbstractLoopThread):
             self.conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))
-
-
 
     def createtable(self,tablename,dictname):
 
@@ -260,7 +261,6 @@ class main_Logger(AbstractLoopThread):
         #         pass # Logger: probably the column already exists, no problem.
         #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
-
     def updatetable(self,  tablename,dictname):
         if not dictname:
             raise AssertionError('Logger: dict does not yet exist')
@@ -277,9 +277,6 @@ class main_Logger(AbstractLoopThread):
 
         self.conn.commit()
 
-
-
-
     def printtable(self,tablename,dictname,date1,date2):
 
         for colnames in dictname.keys():
@@ -292,9 +289,6 @@ class main_Logger(AbstractLoopThread):
         data = self.mycursor.fetchall()
         for row in data:
             print(row)
-
-
-
 
     def exportdatatoarr(self, tablename,colnamelist):
 
@@ -312,17 +306,16 @@ class main_Logger(AbstractLoopThread):
         # print(nparray)
         return nparray
 
-
     @pyqtSlot(dict)
     def store_data(self, data):
-        if self.not_yet_initialised:
-            return
-        self.connectdb(self.dbname)
-        self.mycursor = self.conn.cursor()
-
         """storing logging data
             what data should be logged is set in self.conf - or will be set there eventually
         """
+        if self.not_yet_initialised:
+            return
+        self.connectdb(self.conf['general']['logfile_location'])
+        self.mycursor = self.conn.cursor()
+
 
 
         timedict={'timeseconds':time.time(), 'ReadableTime': convert_time(time.time())} #it was the only way i could implement date and time and still select them
@@ -335,13 +328,11 @@ class main_Logger(AbstractLoopThread):
         # data['ReadableTime']=ReadableTime
 
 
-        #initializing a table with a primary key as first column:
-
         names = ['ITC', 'ILM', 'IPS','LakeShore350']
         for name in names:
             try:
                 data[name].update(timedict)
-                change_to_correct_types(name, data[name])
+                # change_to_correct_types(name, data[name])
 
                 self.createtable(name, data[name])
                 #inserting in the measured values:
@@ -354,16 +345,7 @@ class main_Logger(AbstractLoopThread):
                 self.sig_assertion.emit(key.args[0])
 
 
-    # store_data(0,0)
-    # def logging_read_configuration(self):
-    #     """method to establish the configuration of
-    #         what shall be logged from a respective file
 
-    #         open window to let the user choose.
-
-    #         Return: dictionary holding bools
-    #     """
-    #     return None
 if __name__ == '__main__': 
     dbname = 'He_first_cooldown.db'
     conn= sqlite3.connect(dbname)
