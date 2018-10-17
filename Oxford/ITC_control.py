@@ -69,10 +69,8 @@ class ITC_Updater(AbstractLoopThread):
         self.set_auto_manual = 0
         self.sweep_parameters = None
 
-        self.delay1 = 1
-        self.delay = 0.0
         self.setControl()
-        self.interval = 0.2
+        self.interval = 0.05
         # self.__isRunning = True
 
 
@@ -95,7 +93,6 @@ class ITC_Updater(AbstractLoopThread):
 
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
-                time.sleep(self.delay)
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
             except VisaIOError as e_visa:

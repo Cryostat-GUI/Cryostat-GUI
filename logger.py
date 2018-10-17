@@ -164,7 +164,7 @@ class Logger_configuration(Window_ui):
 
 
 class main_Logger(AbstractLoopThread):
-    """This is a worker thread
+    """This is a the logging worker thread
     """
 
     sig_configuring = pyqtSignal(bool)
@@ -192,11 +192,9 @@ class main_Logger(AbstractLoopThread):
 
 
 
-
     def running(self):
 
         try:
-            # Do things
             # print('logging running')
             if self.configuration_done:
                 self.sig_log.emit()
@@ -208,7 +206,6 @@ class main_Logger(AbstractLoopThread):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-
 
     def update_conf(self, conf):
         """
@@ -225,20 +222,8 @@ class main_Logger(AbstractLoopThread):
         self.configuration_done = True
         self.conf_done_layer2 = False
 
-
-
-
-
-    # @pyqtSlot(int)
-    # def set_Interval(self, interval):
-    #     """set the interval between logging events in seconds"""
-    #     self.interval = interval
-
-
-
     def connectdb(self, dbname):
         try:
-            # global conn
             self.conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))

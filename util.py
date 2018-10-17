@@ -72,6 +72,14 @@ class AbstractLoopThread(AbstractThread):
         """class method to be overriden """
         raise NotImplementedError
 
+
+    @pyqtSlot(int)
+    def setInterval(self, interval):
+        """set the interval between running events in seconds"""
+        self.interval = interval
+
+
+
     # @pyqtSlot()
     # def stop(self):
     #     """stop the loop execution, sets self.__isRunning to False"""
