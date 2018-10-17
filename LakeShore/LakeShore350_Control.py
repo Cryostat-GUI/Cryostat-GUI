@@ -75,9 +75,11 @@ class LakeShore350_Updater(AbstractLoopThread):
 # 		self.Heater_mW_value = 0
 	  	self.Ramp_Rate_value = 0
 		self.Input_value = 1
-		self.LoopP_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[0]
-	  	self.LoopI_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[1]
-  		self.LoopD_value = self.LakeShore350.ControlLoopPIDValuesQuery(1)[2]
+
+        temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+		self.LoopP_value = temp_list0[0]
+	  	self.LoopI_value = temp_list0[1]
+  		self.LoopD_value = temp_list0[2]
 
 
 		self.Upper_Bound_value = 300
