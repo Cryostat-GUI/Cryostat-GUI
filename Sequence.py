@@ -1,6 +1,5 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtCore import QTimer
 
 # import sys
 # import datetime
@@ -14,9 +13,6 @@ from util import AbstractEventhandlingThread
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
     pass
-    # def __init__(self, message, *args, **kwargs):
-    #     super(BreakCondition, self).__init__(*args, **kwargs)
-    #     self.message = message
 
 
 class Sequence_Thread(AbstractEventhandlingThread):
@@ -52,7 +48,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
                         self.mainthread.threads['control_LakeShore350'][0].gettoset_Temp_K(temp_setpoint_sample)
                         self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
 
-                        self.wait_for_Temp(temp_setpoint_sample)
+                        self.check_Temp_in_Scan(temp_setpoint_sample)
 
                     # always use the sweep option, so the rate can be controlled!
                     # in case stabilisation is needed, just sweep to the respective point (let's try this...)
@@ -70,7 +66,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
             self.mainthread.LakeShore350_window.widgetSetpoints.setEnabled(True)
 
 
-    def check_Temp_in_Scan(self):
+    def check_Temp_in_Scan(self, Temp, direction=0):
         pass
 
 

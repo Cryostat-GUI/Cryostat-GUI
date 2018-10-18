@@ -279,7 +279,12 @@ class main_Logger(AbstractLoopThread):
 
         array=[]
 
-        sql="""SELECT {},{},{} from {} """.format(*colnamelist,tablename)
+        sql="""SELECT {}""".format(colnamelist[0])
+
+        if len(colnamelist) > 1: 
+            for x in colnamelist[1:]: 
+                sql += """,{}""".format(x)
+        sql += """ from {} """.format(tablename)
         self.mycursor.execute(sql)
         data = self.mycursor.fetchall()
 
