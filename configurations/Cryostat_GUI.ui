@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>969</width>
-    <height>229</height>
+    <width>912</width>
+    <height>665</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>969</width>
+     <width>912</width>
      <height>21</height>
     </rect>
    </property>
@@ -104,10 +104,19 @@
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
     <addaction name="action_Logging"/>
+    <addaction name="actionLogging_LIVE"/>
+   </widget>
+   <widget class="QMenu" name="menuShow_Data">
+    <property name="title">
+     <string>Show Data</string>
+    </property>
+    <addaction name="action_plotLive"/>
+    <addaction name="action_plotDatabase"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSystems_Online"/>
+   <addaction name="menuShow_Data"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -178,7 +187,7 @@
             <number>100</number>
            </property>
            <property name="value">
-            <number>100</number>
+            <number>0</number>
            </property>
            <property name="textDirection">
             <enum>QProgressBar::TopToBottom</enum>
@@ -212,7 +221,7 @@
             <number>100</number>
            </property>
            <property name="value">
-            <number>50</number>
+            <number>0</number>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -486,7 +495,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Logging</string>
+    <string>Logging into database</string>
    </property>
   </action>
   <action name="action_Logging_configuration">
@@ -527,6 +536,21 @@
    </property>
    <property name="text">
     <string>Errors</string>
+   </property>
+  </action>
+  <action name="action_plotLive">
+   <property name="text">
+    <string>Live</string>
+   </property>
+  </action>
+  <action name="action_plotDatabase">
+   <property name="text">
+    <string>Database</string>
+   </property>
+  </action>
+  <action name="actionLogging_LIVE">
+   <property name="text">
+    <string>Logging LIVE</string>
    </property>
   </action>
  </widget>

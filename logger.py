@@ -6,6 +6,7 @@ from PyQt5.QtCore import QTimer
 
 import sys
 import datetime
+import time
 import pickle
 import os
 import sqlite3
@@ -15,6 +16,52 @@ from copy import deepcopy
 
 from util import AbstractLoopThread
 from util import Window_ui
+
+
+
+
+def typeof(dictkey):
+    if isinstance(dictkey,float):
+        return "REAL"
+    elif isinstance(dictkey,int):
+        return "INTEGER"
+    else:
+        return "TEXT"
+
+def sql_buildDictTableString(dictname):
+    string = '(id INTEGER PRIMARY KEY'
+    for key in dictname.keys(): 
+        string += ',{key} {typ}'.format(key=key, typ=typeof(dictname[key]))
+    string += ')'
+    return string
+
+def change_to_correct_types(tablename, dictname):
+    sql = []
+    if not dictname:
+        raise AssertionError('Logger: dict does not yet exist')
+    sql.append('PRAGMA foreign_keys = 0')
+    sql.append('CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'.format(table=tablename))
+    sql.append('DROP TABLE {table}'.format(table=tablename))
+    # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
+    sql.append("CREATE TABLE IF NOT EXISTS {} ".format(tablename) + sql_buildDictTableString(dictname))
+    # for key in dictname.keys(): 
+    #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
+
+    sql_temp = 'INSERT INTO {table} (id'.format(table=tablename)
+    for key in dictname.keys():
+        sql_temp += ',{}'.format(key)
+    sql_temp += ') SELECT id'
+    for key in dictname.keys():
+        sql_temp += ',{}'.format(key)
+    sql_temp += 'FROM python_temp_{table}'.format(table=tablename)
+    sql.append(sql_temp)
+    sql.append('DROP TABLE python_temp_{table}'.format(table=tablename))
+    sql.append('PRAGMA foreign_keys = 1')
+    return sql
+
+def convert_time(ts):
+    """converts timestamps from time.time() into reasonable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
 
@@ -116,7 +163,8 @@ class main_Logger(AbstractLoopThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 3 # 60s interval for logging as initialisation
+        self.interval = 5 # 60s interval for logging as initialisation
+
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -125,6 +173,7 @@ class main_Logger(AbstractLoopThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
+        self.dbname = 'He_first_cooldown.db'
 
         # QTimer.singleShot(1e3, self.initialise)
         self.not_yet_initialised = False
@@ -195,27 +244,21 @@ class main_Logger(AbstractLoopThread):
 
     def createtable(self,tablename,dictname):
 
-        def typeof(dictkey):
-            if isinstance(dictkey,float):
-                return "REAL"
-            elif isinstance(dictkey,int):
-                return "INTEGER"
-            else:
-                return "TEXT"
 
 
-        sql="CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename)
+        sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
+        sql += sql_buildDictTableString(dictname)
         self.mycursor.execute(sql)
 
         #We should try to find a nicer a solution without try and except
-        #try:
-        for key in dictname.keys():
-            try:
-                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key]))
-                self.mycursor.execute(sql)
-            except sqlite3.OperationalError as err:
-                pass # Logger: probably the column already exists, no problem.
-                # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
+        # #try:
+        # for i in dictname.keys():
+        #     try:
+        #         sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
+        #         self.mycursor.execute(sql)
+        #     except sqlite3.OperationalError as err:
+        #         pass # Logger: probably the column already exists, no problem.
+        #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
 
     def updatetable(self,  tablename,dictname):
@@ -233,6 +276,7 @@ class main_Logger(AbstractLoopThread):
             self.mycursor.execute(sql)
 
         self.conn.commit()
+
 
 
 
@@ -273,44 +317,23 @@ class main_Logger(AbstractLoopThread):
     def store_data(self, data):
         if self.not_yet_initialised:
             return
-        self.connectdb('testdata.db')
+        self.connectdb(self.dbname)
         self.mycursor = self.conn.cursor()
 
         """storing logging data
-            into database or logfile - to be decided!
-            what data should be logged is set in self.conf
-        # """
-        # dbname='test'
-        # tablename='measured_data'
-        # # colnamelist=['Voltage', 'Current','CurrentTime']
+            what data should be logged is set in self.conf - or will be set there eventually
+        """
 
 
-        # #test dict:
-        # testdict={
-        #     "Voltage":"10",
-        #     "Current" :"20",
-        #     "Temperature":"0",
-        #     "Testcol1":10,
-        #     "Testcol2":100,
-        #     "testcol3":3.1415
-        # }
-
-
-        timedict={"CurrentTime":datetime.datetime.now().strftime("%Y%m%d%H%M%S")} #it was the only way i could implement date and time and still select them
+        timedict={'timeseconds':time.time(), 'ReadableTime': convert_time(time.time())} #it was the only way i could implement date and time and still select them
         # testdict={**timedict,**testdict}
 
         #Creating the readable time value and then appending it to the dictionary:
-        timestr=str(timedict["CurrentTime"])
-        ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
-        # testdict['ReadableTime']=ReadableTime
-        data['ReadableTime']=ReadableTime
+        # timestr=str(timedict["CurrentTime"])
+        # ReadableTime="'"+timestr[0:4]+'-'+timestr[4:6]+'-'+timestr[6:8]+' '+timestr[8:10]+':'+timestr[10:12]+':'+timestr[12:14]+"'"
+        # # testdict['ReadableTime']=ReadableTime
+        # data['ReadableTime']=ReadableTime
 
-
-
-        #cursor setup:
-
-        #Optional command to delete a table, must be commented out
-        #mycursor.execute("DROP TABLE measured_data")
 
         #initializing a table with a primary key as first column:
 
@@ -318,22 +341,18 @@ class main_Logger(AbstractLoopThread):
         for name in names:
             try:
                 data[name].update(timedict)
+                change_to_correct_types(name, data[name])
 
-                # print('creating table')
                 self.createtable(name, data[name])
                 #inserting in the measured values:
 
-                # print('updating table')
                 self.updatetable(name,data[name])
 
-                # print('printing table')
-                # self.printtable('ITC',data,20181001000000,20191005000000)
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
             except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
 
-        # self.exportdatatoarr('ITC',colnamelist)
 
     # store_data(0,0)
     # def logging_read_configuration(self):
@@ -345,3 +364,10 @@ class main_Logger(AbstractLoopThread):
     #         Return: dictionary holding bools
     #     """
     #     return None
+if __name__ == '__main__': 
+    dbname = 'He_first_cooldown.db'
+    conn= sqlite3.connect(dbname)
+    mycursor = conn.cursor()
+
+
+

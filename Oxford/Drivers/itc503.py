@@ -24,7 +24,7 @@ import threading
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
 import visa
-# from pyvisa.errors import VisaIOError
+from pyvisa.errors import VisaIOError
 
 # create a logger object for this module
 logger = logging.getLogger(__name__)
@@ -40,13 +40,15 @@ except OSError:
 
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
-
+    
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         self.write('$M0')
+        self.delay = 0.06
+
         # self.setControl() # done in thread
 
 
@@ -103,14 +105,38 @@ class itc503(AbstractSerialDeviceDriver):
             raise AssertionError('ITC: getValue: argument must be integer')
         if variable not in range(0,11):
             raise AssertionError('ITC: getValue: Argument is not a valid number.')
-        
+
+        ### clear any buffer by reading, ignoring all timeout errors
+        # self.clear_buffers()
+        # retrieve value     
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
         
         if value == "" or None:
-            raise AssertionError('ITC: getValue: bad reply: empty string')
+            # raise AssertionError('ITC: getValue: bad reply: empty string')
+            # print('ITC: Assertion: empty')
+            try:
+                self.read()
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    pass
+            return self.getValue(variable)
+            # return None
         if value[0] != 'R':
-            raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
+            # raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
+            # print('ITC: Assertion: {}'.format(value))
+            try:
+                self.read()
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    pass
+            return self.getValue(variable)
+            # return None
+        # if value[0] == 'T':
+        #     print('ITC: Assertion: T')
+        #     self.read()
+        #     value = self.getValue(variable)
+
         return float(value.strip('R+'))
         
     def setProportional(self, prop=0):

@@ -26,12 +26,13 @@ def connectdb(dbname):
             conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))
-connectdb("test")
+# connectdb("test")
+connectdb("He_first_cooldown.db")
 mycursor = conn.cursor()
 
 #colnames setup, so that the user can choose from in the GUI, the Comboboxes are filled up witth this array
 axis=[]
-mycursor.execute("SELECT * FROM measured_data")
+mycursor.execute("SELECT * FROM ITC")
 colnames= mycursor.description
 for row in colnames:
     axis.append(row[0])
@@ -57,14 +58,14 @@ class Ui_Dialog(object):
         self.comboSetX = QtWidgets.QComboBox(Dialog)
         
         #setting up the combo box for the selection of x and y axes
-        self.comboSetX.setGeometry(QtCore.QRect(90, 10, 69, 22))
+        self.comboSetX.setGeometry(QtCore.QRect(90, 10, 400, 22))
         self.comboSetX.setTabletTracking(True)
         self.comboSetX.setObjectName("comboSetX")
         self.comboSetX.addItems(axis)
         self.comboSetX.activated.connect(self.xchanged) #signal when the x axis is selected
 
         self.comboSetY = QtWidgets.QComboBox(Dialog)
-        self.comboSetY.setGeometry(QtCore.QRect(90, 50, 69, 22))
+        self.comboSetY.setGeometry(QtCore.QRect(90, 50, 400, 22))
         self.comboSetY.setObjectName("comboSetY")
         self.comboSetY.addItems(axis)
         self.comboSetY.activated.connect(self.ychanged)
@@ -92,7 +93,7 @@ class Ui_Dialog(object):
         print("y was set to: ",y)
 
     def plotstart(self): 
-        exportdatatoarr('measured_data',x,y)  
+        exportdatatoarr('ITC',x,y)  
 
 def exportdatatoarr (tablename,X,Y):
     #this method gets called as soon as "OK" button is pressed

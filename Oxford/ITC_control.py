@@ -40,9 +40,9 @@ class ITC_Updater(AbstractLoopThread):
 
     sensors = dict(
             set_temperature = 0,
-            sensor_1_temperature = 1,
-            sensor_2_temperature = 2,
-            sensor_3_temperature = 3,
+            Sensor_1_K = 1,
+            Sensor_2_K = 2,
+            Sensor_3_K = 3,
             temperature_error = 4,
             heater_output_as_percent = 5,
             heater_output_as_voltage = 6,
@@ -72,7 +72,9 @@ class ITC_Updater(AbstractLoopThread):
         self.delay1 = 1
         self.delay = 0.0
         self.setControl()
+        self.interval = 0.2
         # self.__isRunning = True
+
 
     # @control_checks
     def running(self):
@@ -84,27 +86,38 @@ class ITC_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        try: 
 
-            data = dict()
+        data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
-            for key in self.sensors.keys():
-                # key_f_timeout = key
-                data[key] = self.ITC.getValue(self.sensors[key])
+        for key in self.sensors.keys():
+            try: 
+
+                value = self.ITC.getValue(self.sensors[key])
+                data[key] = value
                 time.sleep(self.delay)
+            except AssertionError as e_ass:
+                self.sig_assertion.emit(e_ass.args[0])
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    self.sig_visatimeout.emit()
+                    self.read_buffer()
+                else: 
+                    self.sig_visaerror.emit(e_visa.args[0])
+        self.sig_Infodata.emit(deepcopy(data))
 
-            self.sig_Infodata.emit(deepcopy(data))
 
-            # time.sleep(self.delay1)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
+    # def control_checks(func):
+    #     @functools.wraps(func)
+    #     def wrapper_control_checks(*args, **kwargs):
+    #         pass
+
+    def read_buffer(self):
+        try:
+            return self.ITC.read()
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-                self.read_buffer()
-            else: 
-                self.sig_visaerror.emit(e_visa.args[0])
+                pass
 
     # def control_checks(func):
     #     @functools.wraps(func)
@@ -122,7 +135,6 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
-
 
 
 

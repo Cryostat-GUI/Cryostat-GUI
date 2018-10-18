@@ -52,10 +52,12 @@ class LakeShore350_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
+
         try: 
             self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
         except VisaIOError as e: 
             self.sig_assertion.emit('running in control: {}'.format(e))
+
 
 
         self.Temp_K_value = 3
@@ -93,10 +95,21 @@ class LakeShore350_Updater(AbstractLoopThread):
             self.sensor_values[5] = temp_list[1]
             self.sensor_values[6] = temp_list[2]
             self.sensor_values[7] = temp_list[3]
+
+            temp_list2 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
+            # print(temp_list2)
+            dec = dict(Sensor_1_Ohm=temp_list2[0],
+            	         Sensor_2_Ohm=temp_list2[1],
+                         Sensor_3_Ohm=temp_list2[2],
+                         Sensor_4_Ohm=temp_list2[3],)
+
             self.sensor_values[8] = self.LakeShore350.OutputModeQuery(1)[1]
 
             # print(dict(zip(self.sensor_names,self.sensor_values)))
-            self.sig_Infodata.emit(deepcopy(dict(zip(self.sensor_names,self.sensor_values))))
+            dic = dict(zip(self.sensor_names,self.sensor_values))
+            dic.update(dec)
+            self.sig_Infodata.emit(deepcopy(dic))
+
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:

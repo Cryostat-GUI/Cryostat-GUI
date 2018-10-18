@@ -18,8 +18,8 @@
     <rect>
      <x>20</x>
      <y>20</y>
-     <width>571</width>
-     <height>361</height>
+     <width>641</width>
+     <height>371</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -29,165 +29,169 @@
     <attribute name="title">
      <string>General</string>
     </attribute>
-    <widget class="QWidget" name="gridLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>10</y>
-       <width>491</width>
-       <height>321</height>
-      </rect>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="general_threads_ITC">
-        <property name="text">
-         <string>ITC - Oxford Temperature</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="general_threads_ILM">
-        <property name="text">
-         <string>ILM - Oxford Cryogen Levels</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QCheckBox" name="general_threads_PS">
-        <property name="text">
-         <string>PS - Oxford Power supply </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Threads running: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="general_threads_Lakeshore350">
-        <property name="text">
-         <string>Lakeshore350 Temperature</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Setpoints: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="general_setps_ITC_Temp">
-        <property name="text">
-         <string>Set Temp ITC</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="general_threads_Logging">
-        <property name="text">
-         <string>Logging Thread</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="general_setps_PS_Field">
-        <property name="text">
-         <string>Set Field PS</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="general_setps_Current1_Exc">
-        <property name="text">
-         <string>Excitation 1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QCheckBox" name="general_setps_Current2_Exc">
-        <property name="text">
-         <string>Excitation 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="general_setps_Lakeshore350_Temp">
-        <property name="text">
-         <string>Set Temp Lakeshore350</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="general_threads_Current1">
-        <property name="text">
-         <string>Keithley - Current Source 1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QCheckBox" name="general_threads_Current2">
-        <property name="text">
-         <string>Keithley - Current Source 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0">
-       <widget class="QCheckBox" name="general_threads_Nano3">
-        <property name="text">
-         <string>Keithley - Nanovoltmeter 3</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="general_threads_Nano1">
-        <property name="text">
-         <string>Keithley - Nanovoltmeter 1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="general_threads_Nano2">
-        <property name="text">
-         <string>Keithley - Nanovoltmeter 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QCheckBox" name="general_readValues_ITC_Temp">
-        <property name="text">
-         <string>Temp ITC</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QCheckBox" name="general_readValues_Lakeshore350_Temp">
-        <property name="text">
-         <string>Temp Sample Lakeshore350</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QCheckBox" name="general_readValues_PS_Field">
-        <property name="text">
-         <string>Magnet Field</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QCheckBox" name="general_readValues_ILM_Levels">
-        <property name="text">
-         <string>Cryogen Levels</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout_9">
+     <item row="0" column="0">
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="9" column="0">
+        <widget class="QCheckBox" name="general_threads_Nano3">
+         <property name="text">
+          <string>Keithley - Nanovoltmeter 3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="general_threads_Nano1">
+         <property name="text">
+          <string>Keithley - Nanovoltmeter 1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QCheckBox" name="general_threads_Nano2">
+         <property name="text">
+          <string>Keithley - Nanovoltmeter 2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="general_threads_Current2">
+         <property name="text">
+          <string>Keithley - Current Source 2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QCheckBox" name="general_readValues_ITC_Temp">
+         <property name="text">
+          <string>Temp ITC</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QSpinBox" name="general_spinSetInterval"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="general_threads_PS">
+         <property name="text">
+          <string>PS - Oxford Power supply </string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="general_threads_Lakeshore350">
+         <property name="text">
+          <string>Lakeshore350 Temperature</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Threads running: </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="general_threads_ILM">
+         <property name="text">
+          <string>ILM - Oxford Cryogen Levels</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="general_threads_ITC">
+         <property name="text">
+          <string>ITC - Oxford Temperature</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QCheckBox" name="general_readValues_PS_Field">
+         <property name="text">
+          <string>Magnet Field</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QCheckBox" name="general_readValues_ILM_Levels">
+         <property name="text">
+          <string>Cryogen Levels</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QCheckBox" name="general_readValues_Lakeshore350_Temp">
+         <property name="text">
+          <string>Temp Sample Lakeshore350</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QCheckBox" name="general_threads_Logging">
+         <property name="text">
+          <string>Logging Thread</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="general_setps_PS_Field">
+         <property name="text">
+          <string>Set Field PS</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Setpoints: </string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="general_setps_ITC_Temp">
+         <property name="text">
+          <string>Set Temp ITC</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="general_setps_Lakeshore350_Temp">
+         <property name="text">
+          <string>Set Temp Lakeshore350</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QCheckBox" name="general_setps_Current2_Exc">
+         <property name="text">
+          <string>Excitation 2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QCheckBox" name="general_threads_Current1">
+         <property name="text">
+          <string>Keithley - Current Source 1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="general_setps_Current1_Exc">
+         <property name="text">
+          <string>Excitation 1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Logging Interval:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </widget>
    <widget class="QWidget" name="tab_ITC">
     <attribute name="title">

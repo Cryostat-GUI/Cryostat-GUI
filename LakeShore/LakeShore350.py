@@ -1662,10 +1662,11 @@ class LakeShore350(object):
             Or if all input are queried:
             <A value>,<B value>,<C value>,<D value>
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ['A', 'B', 'C', 'D', 0]:
             raise AssertionError("LakeShore:SensorUnitsInputReadingQuery: Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.go('SDRG? ' + '{0:1d}'.format(input_value))
+        answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
+        return answer
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-

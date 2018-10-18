@@ -49,6 +49,9 @@ class ILM_Updater(AbstractLoopThread):
         # here the class instance of the ITC should be handed
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.control_state = 3
+        # self.interval = 60*30# every half hour one measurement lHe is not measured more often by the device anyways
+        self.interval = 3
+
         self.setControl()
 
     def running(self):
@@ -60,28 +63,36 @@ class ILM_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        try: 
-            data = dict()
-            # get key-value pairs of the sensors dict,
-            # so I can then transmit one single dict
-            for key, idx_sensor in self.sensors.items():
-                data[key] = self.ILM.getValue(idx_sensor)*0.1
+        data = dict()
+
+        for key in self.sensors: 
+            try: 
+                # get key-value pairs of the sensors dict,
+                # so I can then transmit one single dict
+                # for key, idx_sensor in self.sensors.items():
+                data[key] = self.ILM.getValue(self.sensors[key])*0.1
+                # data['channel_2_level'] = self.ILM.getValue(2)*0.1
+                # if data[key] > 100:
+                #     data[key] = 100
+                # if data['channel_1_level'] > 100 
+                #     data['channel_1_level'] = 100                
                 # time.sleep(self.delay2)
-            # status = self.ILM.getStatus()
-            # data.update(dict(   cryogen_channel_1=status[0],
-            #                     cryogen_channel_2=status[1],
-            #                     status_channel_1=status[2],
-            #                     status_channel_2=status[3],
-            #                     status_channel_3=status[4]))
-            self.sig_Infodata.emit(deepcopy(data))
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-                self.read_buffer()
-            else: 
-                self.sig_visaerror.emit(e_visa.args[0])
+                # status = self.ILM.getStatus()
+                # data.update(dict(   cryogen_channel_1=status[0],
+                #                     cryogen_channel_2=status[1],
+                #                     status_channel_1=status[2],
+                #                     status_channel_2=status[3],
+                #                     status_channel_3=status[4]))
+            except AssertionError as e_ass:
+                self.sig_assertion.emit(e_ass.args[0])
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    self.sig_visatimeout.emit()
+                    self.read_buffer()
+                else: 
+                    self.sig_visaerror.emit(e_visa.args[0])
+        self.sig_Infodata.emit(deepcopy(data))
+
 
 
     def read_buffer(self):
