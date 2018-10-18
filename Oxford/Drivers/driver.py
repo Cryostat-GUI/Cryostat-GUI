@@ -4,6 +4,9 @@ import visa
 from pyvisa.errors import VisaIOError
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
+# create a logger object for this module
+logger = logging.getLogger(__name__)
+
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
     resource_manager = visa.ResourceManager()

@@ -16,7 +16,9 @@ Attributes:
 
 
 Classes:
-    itc503: a class for interfacing with a ITC 503 temperature controller
+    itc503: a class for interfacing with a ITC 503 temperature controller+
+            inherits from AbstractSerialDeviceDriver where the low-level visa
+            communications are defined. 
 
 """
 import logging

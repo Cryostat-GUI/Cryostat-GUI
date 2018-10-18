@@ -1,3 +1,12 @@
+"""Module containing the class and possible helperfunctions to run a measuring sequence
+    
+
+
+    Author(s): bklebel (Benjamin Klebel)
+    
+"""
+
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 
@@ -30,6 +39,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.threshold_Temp = 0.1
         self.threshold_Field = 0.1
 
+        self.temp_VTI_offset = 5
+
     def running(self):
         try:
             self.mainthread.ITC_window.widgetSetpoints.setEnabled(False)
@@ -39,7 +50,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
             for entry in self.sequence:
                 if entry['typ'] == 'scan_T':
                     for temp_setpoint_sample in entry['sequence_temperature']:
-                        temp_setpoint_VTI = temp_setpoint_sample - 5
+                        temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
                         temp_setpoint_VTI =  4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
 
                         self.mainthread.threads['control_ITC'][0].gettoset_Temperature(temp_setpoint_VTI)
@@ -76,17 +87,17 @@ class Sequence_Thread(AbstractEventhandlingThread):
             produce a possibility to abort the sequence, through
             repeated check for value, for breaking condition, and sleeping
         """
+        # check for break condition
+        if not self.__isRunning:
+            raise BreakCondition
         with self.dataLock:
-            # check for value
-            # check for break condition
-            if not self.__isRunning:
-                raise BreakCondition
             Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
-            if abs(Temp_now-Temp_target) < threshold:
-                return
-
-        # sleep for short time OUTSIDE of Lock
-        time.sleep(0.1)
+        while abs(Temp_now-Temp_target) > threshold:
+            with self.dataLock:
+                # check for value
+                Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
+            # sleep for short time OUTSIDE of Lock
+            time.sleep(0.1)
 
     def wait_for_Field(self, Field):
         """repeatedly check whether the field was reached,
@@ -94,11 +105,12 @@ class Sequence_Thread(AbstractEventhandlingThread):
             produce a possibility to abort the sequence, through
             repeated check for value, for breaking condition, and sleeping
         """
+        # check for break condition
+        if not self.__isRunning:
+            raise BreakCondition
         with self.dataLock:
             # check for value
-            # check for break condition
-            if not self.__isRunning:
-                raise BreakCondition
+            pass
 
         # sleep for short time OUTSIDE of Lock
         time.sleep(0.1)
@@ -108,3 +120,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
     def stop(self):
         """stop the sequence execution by setting self.__isRunning to False"""
         self.__isRunning = False
+
+    @pyqtSlot()
+    def setTempVTIOffset(self, offset):
+        self.temp_VTI_offset = offset
