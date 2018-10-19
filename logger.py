@@ -363,6 +363,68 @@ class main_Logger(AbstractLoopThread):
                 self.sig_assertion.emit(key.args[0])
 
 
+class live_Logger(AbstractLoopThread):
+    """docstring for live_Logger"""
+
+
+    def __init__(self, mainthread,**kwargs):
+        super(live_Logger, self).__init__()
+        self.mainthread = mainthread
+        self.interval = 2
+        self.initialised = False
+
+        # QTimer.singleShot(*1e3, self.worker)
+
+
+    @pyqtSlot() # int
+    def work(self):
+        """class method which (here) starts the run as soon as the initialisation was done. """
+        try:
+            while not self.initialised: 
+                pass
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval*1e3, self.worker)
+
+
+    @pyqtSlot() # int
+    def worker(self):
+        """class method which is working all the time while the thread is running. """
+        try:
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval*1e3, self.worker)
+
+
+
+    def running(self):
+
+        try:
+            with self.mainthread.dataLock:
+                for instrument in self.mainthread.data:  
+                    for variablekey in self.mainthread.data[instrument]:
+                        self.mainthread.data_live[instrument][variablekey].append(self.mainthread.data[instrument][variablekey])
+
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        except KeyError as key: 
+            self.sig_assertion.emit(key.args[0])
+
+
+    def initialisation(self):
+
+        with self.mainthread.dataLock: 
+            self.mainthread.data_live = self.mainthread.data
+            for instrument in self.mainthread.data:  
+                for variablekey in self.mainthread.data[instrument]:
+                    self.mainthread.data_live[instrument][variablekey] = []
+        self.initialised = True
+
+
 
 if __name__ == '__main__':
     dbname = 'He_first_cooldown.db'
