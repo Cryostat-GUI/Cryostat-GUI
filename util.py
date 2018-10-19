@@ -73,7 +73,7 @@ class AbstractLoopThread(AbstractThread):
         raise NotImplementedError
 
 
-    @pyqtSlot(int)
+    @pyqtSlot(float)
     def setInterval(self, interval):
         """set the interval between running events in seconds"""
         self.interval = interval

@@ -480,8 +480,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
 
 
-                integration_length = 5
-                self.LakeShore350_Kpmin = dict(newtime = [time.time()]*integration_length,
+                integration_length = 20
+                self.LakeShore350_Kpmin = dict(newtime = [time.time_ns()]*integration_length,
                                 Sensor_1_K = [0]*integration_length,
                                 Sensor_2_K = [0]*integration_length,
                                 Sensor_3_K = [0]*integration_length,
@@ -501,6 +501,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
+
+                self.LakeShore350_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
 
 
                 self.action_run_LakeShore350.setChecked(True)
@@ -532,23 +534,27 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             Calculate the rate of change of Temperature on the sensors [K/min]
             Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
-
+        integration_length = 5
         # building lists of differences
-        timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1])]# -self.LakeShore350_Kpmin['newtime'])/60
-        tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-1])], 
-                            Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-1])], 
-                            Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-1])], 
-                            Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-1])])
+        timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+integration_length])/60/1e9 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-integration_length])]# -self.LakeShore350_Kpmin['newtime'])/60
+        tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-integration_length])], 
+                            Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-integration_length])], 
+                            Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-integration_length])], 
+                            Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-integration_length])])
         #integrating over the lists, to get an integrated rate of Kelvin/min
         integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
                                 Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
                                 Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)), 
                                 Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
       
-        self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
-        self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
-        self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
-        self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
+        if not integrated_diff['Sensor_1_Kpmin'] == 0:
+            self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        if not integrated_diff['Sensor_2_Kpmin'] == 0:
+            self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        if not integrated_diff['Sensor_3_Kpmin'] == 0:
+            self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+        if not integrated_diff['Sensor_4_Kpmin'] == 0:
+            self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
         # advancing entries to the next slot
         for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]): 
             self.LakeShore350_Kpmin['newtime'][i+1] = entry
@@ -558,7 +564,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_Kpmin['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensor_4_K'][i]
 
         # including the new values 
-        self.LakeShore350_Kpmin['newtime'][0] = time.time()
+        self.LakeShore350_Kpmin['newtime'][0] = time.time_ns()
         self.LakeShore350_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.LakeShore350_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
         self.LakeShore350_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
