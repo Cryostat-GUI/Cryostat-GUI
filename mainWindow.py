@@ -14,23 +14,17 @@ from threading import Lock
 import numpy as np
 from copy import deepcopy
 
-# import mainWindow_ui
 
-# from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
 from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
-
-
-""""""
-
 from pyvisa.errors import VisaIOError
 
-from logger import main_Logger
-from logger import Logger_configuration #Logger_configuration
+from logger import main_Logger, live_Logger
+from logger import Logger_configuration 
 from util import Window_ui
 
 
@@ -110,7 +104,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if dataname in self.data or dataname == None:
             pass
         else:
-            self.data[dataname] = dict()
+            with self.dataLock:
+                self.data[dataname] = dict()
 
         thread.started.connect(worker.work)
         thread.start()
@@ -638,6 +633,31 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.Log_conf_window.show()
         else:
             self.Log_conf_window.close()
+
+
+    @pyqtSlot(bool)
+    def run_logger_live(self, boolean):
+        """method to start/stop the thread which controls the Oxford ITC"""
+
+        if boolean:
+            try:
+
+                getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+
+                self.actionLogging_LIVE.setChecked(True)
+            except VisaIOError as e:
+                self.action_run_ITC.setChecked(False)
+                self.show_error_textBrowser(e)
+                # print(e) # TODO: open window displaying the error message
+
+        else:
+            self.stopping_thread('control_Logging_live')
+            self.actionLogging_LIVE.setChecked(False)
+
+
+
+
 
     def initialize_window_Errors(self):
         """initialize Error Window"""

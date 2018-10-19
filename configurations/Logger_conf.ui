@@ -217,9 +217,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="3">
-        <widget class="QSpinBox" name="general_spinSetInterval"/>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
@@ -245,6 +242,16 @@
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>Readings:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QDoubleSpinBox" name="general_spinSetInterval">
+         <property name="maximum">
+          <double>3600.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
          </property>
         </widget>
        </item>
