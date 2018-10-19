@@ -45,20 +45,20 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        Sensor_4_K=6)
 
     sensors =  dict(
-    	Heater_Output_percentage = 0,
-    	Heater_Output_mW = 0,
-    	Temp_K = 0,
-    	Ramp_Rate_Status = 0,
-    	Ramp_Rate = 0,
-    	Input_Sensor = 0,
-    	Sensor_1_K = 0,
-    	Sensor_2_K = 0,
-    	Sensor_3_K = 0,
-    	Sensor_4_K = 0,
-    	Loop_P_Param = 0,
-    	Loop_I_Param = 0,
-    	Loop_D_Param = 0,
-    	Heater_Range = 0)
+    	Heater_Output_percentage = None,
+    	Heater_Output_mW = None,
+    	Temp_K = None,
+    	Ramp_Rate_Status = None,
+    	Ramp_Rate = None,
+    	Input_Sensor = None,
+    	Sensor_1_K = None,
+    	Sensor_2_K = None,
+    	Sensor_3_K = None,
+    	Sensor_4_K = None,
+    	Loop_P_Param = None,
+    	Loop_I_Param = None,
+    	Loop_D_Param = None,
+    	Heater_Range = None)
 
 #    sensor_values = [None] * 20 # 10 of 20 used
 
@@ -100,8 +100,8 @@ class LakeShore350_Updater(AbstractLoopThread):
 
 #       self.startHeater()
 
-        self.delay1 = 1
-        self.delay = 0.0
+#        self.delay1 = 1
+#        self.delay = 0.0
       # self.setControl()
       # self.__isRunning = True
 
@@ -228,7 +228,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     def setLoopP_Param(self):
     	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, sensor_values[11], sensor_values[12])
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.sensors['Loop_I_Param'], self.sensors['Loop_D_Param'])
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -240,7 +240,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     def setLoopI_Param(self):
     	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, sensor_values[10], self.LoopI_value, sensor_values[12])
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensors['Loop_P_Param'], self.LoopI_value, self.sensors['Loop_D_Param'])
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -252,7 +252,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     def setLoopD_Param(self):
     	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, sensor_values[10], sensor_values[11], self.LoopD_value)
+    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensors['Loop_P_Param'], self.sensors['Loop_I_Param'], self.LoopD_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -267,42 +267,6 @@ class LakeShore350_Updater(AbstractLoopThread):
     	"""
     	try:
     		self.LakeShore.OutputModeCommand(1,1,self.sensor_values[5],1)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
-
-    @pyqtSlot()
-    def setLoopP_Param(self):
-    	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.sensor_values[11], self.sensor_values[12])
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
-
-    @pyqtSlot()
-    def setLoopI_Param(self):
-    	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensor_values[10], self.LoopI_value, self.sensor_values[12])
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
-
-    @pyqtSlot()
-    def setLoopD_Param(self):
-    	try:
-    		self.LakeShore350.ControlLoopPIDValuesCommand(1, self.sensor_values[10], self.sensor_values[11], self.LoopD_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
