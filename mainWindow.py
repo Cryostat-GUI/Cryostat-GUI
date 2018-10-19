@@ -453,7 +453,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     # ------- LakeShore 350 -------
     def initialize_window_LakeShore350(self):
         """initialize LakeShore Window"""
-        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
+        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control_test.ui')
         self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
         self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
@@ -540,10 +540,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                 Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)), 
                                 Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
       
-        self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
-        self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
-        self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
-        self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
+        # self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        # self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        # self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+        # self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
+
+        self.LakeShore350_window.textSensor1_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_1_Kpmin']))
+        self.LakeShore350_window.textSensor2_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_2_Kpmin']))
+        self.LakeShore350_window.textSensor3_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_3_Kpmin']))
+        self.LakeShore350_window.textSensor4_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_4_Kpmin']))
+
+
         # advancing entries to the next slot
         for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]): 
             self.LakeShore350_Kpmin['newtime'][i+1] = entry
