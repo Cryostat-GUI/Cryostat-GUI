@@ -475,7 +475,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
 
 
-                integration_length = 20
+                integration_length = 200
                 self.LakeShore350_Kpmin = dict(newtime = [time.time_ns()]*integration_length,
                                 Sensor_1_K = [0]*integration_length,
                                 Sensor_2_K = [0]*integration_length,
@@ -529,7 +529,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             Calculate the rate of change of Temperature on the sensors [K/min]
             Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
-        integration_length = 5
+        integration_length = 10
         # building lists of differences
         timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+integration_length])/60/1e9 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-integration_length])]# -self.LakeShore350_Kpmin['newtime'])/60
         tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-integration_length])], 
@@ -537,10 +537,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                             Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-integration_length])], 
                             Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-integration_length])])
         #integrating over the lists, to get an integrated rate of Kelvin/min
-        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
-                                Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
-                                Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)), 
-                                Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
+        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin']))/np.mean(np.array(timediffs)), 
+                                Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin']))/np.mean(np.array(timediffs)), 
+                                Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin']))/np.mean(np.array(timediffs)), 
+                                Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin']))/np.mean(np.array(timediffs)) )
       
         # if not integrated_diff['Sensor_1_Kpmin'] == 0:
         #     self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
@@ -551,10 +551,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         # if not integrated_diff['Sensor_4_Kpmin'] == 0:
         #     self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
 
-        self.LakeShore350_window.textSensor1_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_1_Kpmin']))
-        self.LakeShore350_window.textSensor2_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_2_Kpmin']))
-        self.LakeShore350_window.textSensor3_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_3_Kpmin']))
-        self.LakeShore350_window.textSensor4_Kpmin.setText('{num:0>6.4f}'.format(num=integrated_diff['Sensor_4_Kpmin']))
+        if not integrated_diff['Sensor_1_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor1_Kpmin.setText('{num:= 10.4f}'.format(num=integrated_diff['Sensor_1_Kpmin']))
+        if not integrated_diff['Sensor_2_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor2_Kpmin.setText('{num:= 10.4f}'.format(num=integrated_diff['Sensor_2_Kpmin']))
+        if not integrated_diff['Sensor_3_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor3_Kpmin.setText('{num:= 10.4f}'.format(num=integrated_diff['Sensor_3_Kpmin']))
+        if not integrated_diff['Sensor_4_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor4_Kpmin.setText('{num:= 10.4f}'.format(num=integrated_diff['Sensor_4_Kpmin']))
 
         # advancing entries to the next slot
         for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]): 

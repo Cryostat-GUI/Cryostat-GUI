@@ -13,6 +13,7 @@ import os
 import sqlite3
 import numpy as np
 from copy import deepcopy
+import math
 
 
 from util import AbstractLoopThread
@@ -275,12 +276,13 @@ class main_Logger(AbstractLoopThread):
 
         try:         
             for key in dictname:
-                sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
+                if not math.isnan(dictname[key]):
+                    sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                             column=key,
                                                             value=SQLFormatting(dictname[key]),
                                                             sec='''timeseconds''',
                                                             sec_now=dictname['timeseconds'])
-                self.mycursor.execute(sql)
+                    self.mycursor.execute(sql)
         except Exception as e: 
             raise AssertionError(e.args[0])# do not know whether this will work
         self.conn.commit()
