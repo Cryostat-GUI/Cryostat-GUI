@@ -20,6 +20,11 @@ from util import Window_ui
 
 
 
+def SQLFormatting(variable):
+    if isinstance(variable, (float, int)):
+        return variable
+    else: 
+        return f"""'{variable}'"""
 
 def typeof(dictkey):
     if isinstance(dictkey,float):
@@ -175,13 +180,13 @@ class main_Logger(AbstractLoopThread):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 5 # 60s interval for logging as initialisation
+        self.interval = 5 # 5s interval for logging as initialisation
 
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
 
-        QTimer.singleShot(1e3, lambda: self.sig_configuring.emit(True))
+        QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
         self.configuration_done = False
         self.conf_done_layer2 = False
 
@@ -201,7 +206,6 @@ class main_Logger(AbstractLoopThread):
                 if not self.conf_done_layer2:
                     self.sig_configuring.emit(False)
                     self.conf_done_layer2 = True
-                # print('emitted signal')
 
 
         except AssertionError as assertion:
@@ -216,20 +220,19 @@ class main_Logger(AbstractLoopThread):
                 so that the configuring thread will be quit.
 
         """
-        # print('updated conf for logging')
         self.conf = conf
         self.interval = self.conf['general']['interval']
         self.configuration_done = True
         self.conf_done_layer2 = False
 
     def connectdb(self, dbname):
+
         try:
             self.conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))
 
     def createtable(self,tablename,dictname):
-
 
 
         sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
@@ -249,17 +252,20 @@ class main_Logger(AbstractLoopThread):
     def updatetable(self,  tablename,dictname):
         if not dictname:
             raise AssertionError('Logger: dict does not yet exist')
-        # print('list',dictname)
-
-        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'CurrentTime',dictname['CurrentTime'])
-        # print(sql)
+        sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'timeseconds',dictname['timeseconds'])
         self.mycursor.execute(sql)
 
-        for i in range(len(dictname)):
-            sql="""UPDATE {} SET {}='{}' WHERE {}='{}'""".format(tablename,list(dictname.keys())[i],list(dictname.values())[i],'CurrentTime',dictname['CurrentTime'])
-            # print(sql)
-            self.mycursor.execute(sql)
 
+        try:         
+            for key in dictname:
+                sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
+                                                            column=key,
+                                                            value=SQLFormatting(dictname[key]),
+                                                            sec='''timeseconds''',
+                                                            sec_now=dictname['timeseconds'])
+                self.mycursor.execute(sql)
+        except Exception as e: 
+            raise AssertionError(e)
         self.conn.commit()
 
     def printtable(self,tablename,dictname,date1,date2):
@@ -268,7 +274,7 @@ class main_Logger(AbstractLoopThread):
             print(colnames, end=',', flush=True)
         print('\n')
 
-        sql="""SELECT * from {} WHERE CurrentTime BETWEEN {} AND {}""".format(tablename,date1,date2)
+        sql="""SELECT * from {} WHERE timeseconds BETWEEN {} AND {}""".format(tablename,date1,date2)
         self.mycursor.execute(sql)
 
         data = self.mycursor.fetchall()
@@ -334,12 +340,10 @@ class main_Logger(AbstractLoopThread):
                         # print(self.mycursor.fetchall()[-5:])
                     # self.mycursor.execute(command)
 
-
                 self.createtable(name, data[name])
+                
                 #inserting in the measured values:
-
                 self.updatetable(name,data[name])
-
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
             except KeyError as key:

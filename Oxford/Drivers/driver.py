@@ -1,4 +1,5 @@
 import threading
+import logging
 import time
 import visa
 from pyvisa.errors import VisaIOError
