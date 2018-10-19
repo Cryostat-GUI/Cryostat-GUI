@@ -237,37 +237,24 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
-        """Store ITC data in self.data['ITC'], update ITC_window"""
-        with self.dataLock:
-            data['date'] = convert_time(time.time())
-            self.data['ITC'].update(data)
-            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
-            # since the command failed in the communication with the device, the last value is retained
-            self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
-            self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
-            self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+        """
+            Calculate the rate of change of Temperature on the sensors [K/min]
+            Store ITC data in self.data['ITC'], update ITC_window
+        """
 
-            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
-            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
-            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
-            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
-            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
-            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
-            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
-            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+        timediffs = [(entry-self.ITC_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]# -self.ITC_Kpmin['newtime'])/60
+        tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])], 
+                            Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])], 
+                            Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
+        #integrating over the lists, to get an integrated rate of Kelvin/min
+        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
+                                Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
+                                Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
 
-            timediffs = [(entry-self.ITC_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]# -self.ITC_Kpmin['newtime'])/60
-            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
-                                Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
-                                Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
-            #integrating over the lists, to get an integrated rate of Kelvin/min
-            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
-                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
-                                    Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
 
-            self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
-            self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
-            self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+        self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
 
 
         # advancing entries to the next slot
@@ -282,6 +269,28 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
         self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
+
+
+        data['date'] = convert_time(time.time())
+        with self.dataLock:
+            self.data['ITC'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+            # since the command failed in the communication with the device, the last value is retained
+            self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
+            self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
+            self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+
+            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
+            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
+            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
+            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
+            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
+            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
+            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])        
 
 
     # ------- ------- ILM
@@ -514,9 +523,48 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     @pyqtSlot(dict)
     def store_data_LakeShore350(self, data):
-        """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
+        """
+            Calculate the rate of change of Temperature on the sensors [K/min]
+            Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
+        """
+
+        # building lists of differences
+        timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1])]# -self.LakeShore350_Kpmin['newtime'])/60
+        tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-1])], 
+                            Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-1])], 
+                            Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-1])], 
+                            Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-1])])
+        #integrating over the lists, to get an integrated rate of Kelvin/min
+        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
+                                Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
+                                Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)), 
+                                Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
+      
+        self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+        self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
+        # advancing entries to the next slot
+        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]): 
+            self.LakeShore350_Kpmin['newtime'][i+1] = entry
+            self.LakeShore350_Kpmin['Sensor_1_K'][i+1] = self.LakeShore350_Kpmin['Sensor_1_K'][i]
+            self.LakeShore350_Kpmin['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensor_2_K'][i]
+            self.LakeShore350_Kpmin['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensor_3_K'][i]
+            self.LakeShore350_Kpmin['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensor_4_K'][i]
+
+        # including the new values 
+        self.LakeShore350_Kpmin['newtime'][0] = time.time()
+        self.LakeShore350_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
+        self.LakeShore350_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
+        self.LakeShore350_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+        self.LakeShore350_Kpmin['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
+
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
+
+        data['date'] = convert_time(time.time())
         with self.dataLock:
-            data['date'] = convert_time(time.time())
             self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -540,39 +588,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
             self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
-
-            # building lists of differences
-            timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1])]# -self.LakeShore350_Kpmin['newtime'])/60
-            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-1])],
-                                Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-1])],
-                                Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-1])],
-                                Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-1])])
-            #integrating over the lists, to get an integrated rate of Kelvin/min
-            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
-                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
-                                    Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)),
-                                    Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
-
-            self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
-            self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
-            self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
-            self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
-        # advancing entries to the next slot
-        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
-            self.LakeShore350_Kpmin['newtime'][i+1] = entry
-            self.LakeShore350_Kpmin['Sensor_1_K'][i+1] = self.LakeShore350_Kpmin['Sensor_1_K'][i]
-            self.LakeShore350_Kpmin['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensor_2_K'][i]
-            self.LakeShore350_Kpmin['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensor_3_K'][i]
-            self.LakeShore350_Kpmin['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensor_4_K'][i]
-
-        # including the new values
-        self.LakeShore350_Kpmin['newtime'][0] = time.time()
-        self.LakeShore350_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
-        self.LakeShore350_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
-        self.LakeShore350_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
-        self.LakeShore350_Kpmin['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
-
-
 
     # ------- MISC -------
 

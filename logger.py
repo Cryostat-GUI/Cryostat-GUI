@@ -243,12 +243,12 @@ class main_Logger(AbstractLoopThread):
 
         #We should try to find a nicer a solution without try and except
         # #try:
-        # for i in dictname.keys():
-        #     try:
-        #         sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,i,typeof(i))
-        #         self.mycursor.execute(sql)
-        #     except sqlite3.OperationalError as err:
-        #         pass # Logger: probably the column already exists, no problem.
+        for key in dictname.keys():
+            try:
+                sql="ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,dictname[key])
+                self.mycursor.execute(sql)
+            except sqlite3.OperationalError as err:
+                pass # Logger: probably the column already exists, no problem.
         #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
     def updatetable(self,  tablename,dictname):
@@ -265,14 +265,24 @@ class main_Logger(AbstractLoopThread):
         sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'timeseconds',dictname['timeseconds'])
         self.mycursor.execute(sql)
 
-        for key in dictname.keys():
-            sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
-                                                        column=key,
-                                                        value=SQLFormatting(dictname[key]),
-                                                        sec='''timeseconds''',
-                                                        sec_now=dictname['timeseconds'])
-            self.mycursor.execute(sql)
+        # for key in dictname.keys():
+        #     sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
+        #                                                 column=key,
+        #                                                 value=SQLFormatting(dictname[key]),
+        #                                                 sec='''timeseconds''',
+        #                                                 sec_now=dictname['timeseconds'])
+        #     self.mycursor.execute(sql)
 
+        try:         
+            for key in dictname:
+                sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
+                                                            column=key,
+                                                            value=SQLFormatting(dictname[key]),
+                                                            sec='''timeseconds''',
+                                                            sec_now=dictname['timeseconds'])
+                self.mycursor.execute(sql)
+        except Exception as e: 
+            raise AssertionError(e.args[0])# do not know whether this will work
         self.conn.commit()
 
     def printtable(self,tablename,dictname,date1,date2):

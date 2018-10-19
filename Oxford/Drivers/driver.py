@@ -4,6 +4,9 @@ import time
 import visa
 from pyvisa.errors import VisaIOError
 
+# from PyQt5.QtCore import pyqtSignal
+# from PyQt5.QtCore import pyqtSlot
+
 # create a logger object for this module
 logger = logging.getLogger(__name__)
 
@@ -61,10 +64,6 @@ class AbstractSerialDeviceDriver(object):
     def res_close(self):
         self._visa_resource.close()
 
-
-    @pyqtSlot(float)
-    def set_delay_measuring(self, delay):
-        self.delay = delay
 
     def write(self, command):
         """

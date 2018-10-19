@@ -94,11 +94,14 @@ class ITC_Updater(AbstractLoopThread):
                 data[key] = value
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
+                data[key] = None
             except VisaIOError as e_visa:
                 if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                     self.read_buffer()
-                else:
+                    data[key] = None
+                else: 
+
                     self.sig_visaerror.emit(e_visa.args[0])
         self.sig_Infodata.emit(deepcopy(data))
 
