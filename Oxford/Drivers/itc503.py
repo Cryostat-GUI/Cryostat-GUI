@@ -18,7 +18,7 @@ Attributes:
 Classes:
     itc503: a class for interfacing with a ITC 503 temperature controller+
             inherits from AbstractSerialDeviceDriver where the low-level visa
-            communications are defined. 
+            communications are defined.
 
 """
 import logging
@@ -42,7 +42,7 @@ except OSError:
 
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
-    
+
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
@@ -75,7 +75,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def setTemperature(self, temperature=0.010):
         """Change the temperature set point.
-        
+
         Args:
             temperature(float): temperature to move to in Kelvin.
                 Default: 0.010 K (10 mK) for default no heating
@@ -89,17 +89,17 @@ class itc503(AbstractSerialDeviceDriver):
 
     def getValue(self, variable=0):
         """Read the variable defined by the index.
-        
+
         There are values 11-13 but generally useless for
         general use. These are omitted.
-        
+
         0: SET TEMPERATURE           6: HEATER O/P (as V)
         1: SENSOR 1 TEMPERATURE      7: GAS FLOW O/P (a.u.)
         2: SENSOR 2 TEMPERATURE      8: PROPORTIONAL BAND
         3: SENSOR 3 TEMPERATURE      9: INTEGRAL ACTION TIME
         4: TEMPERATURE ERROR        10: DERIVATIVE ACTION TIME
         5: HEATER O/P (as %)
-        
+
         Args:
             variable: Index of variable to read.
         """
@@ -110,10 +110,10 @@ class itc503(AbstractSerialDeviceDriver):
 
         ### clear any buffer by reading, ignoring all timeout errors
         # self.clear_buffers()
-        # retrieve value     
+        # retrieve value
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
-        
+
         if value == "" or None:
             # raise AssertionError('ITC: getValue: bad reply: empty string')
             # print('ITC: Assertion: empty')
@@ -140,65 +140,65 @@ class itc503(AbstractSerialDeviceDriver):
         #     value = self.getValue(variable)
 
         return float(value.strip('R+'))
-        
+
     def setProportional(self, prop=0):
         """Sets the proportional band.
-        
+
         Args:
             prop: Proportional band, in steps of 0.0001K.
         """
         self.write('$P{}'.format(prop))
         return None
-        
+
     def setIntegral(self, integral=0):
         """Sets the integral action time.
-        
+
         Args:
             integral: Integral action time, in steps of 0.1 minute.
                         Ranges from 0 to 140 minutes.
         """
         self.write('$I{}'.format(integral))
         return None
-        
+
     def setDerivative(self, derivative=0):
         """Sets the derivative action time.
-        
+
         Args:
             derivative: Derivative action time.
                         Ranges from 0 to 273 minutes.
         """
         self.write('$D{}'.format(derivative))
         return None
-        
+
     def setHeaterSensor(self, sensor=1):
         """Selects the heater sensor.
-        
+
         Args:
             sensor: Should be 1, 2, or 3, corresponding to
                     the heater on the front panel.
         """
-        
+
         if sensor not in [1,2,3]:
             raise AssertionError('ITC: setHeaterSensor: Heater not on list.')
-        
+
         self.write('$H{}'.format(sensor))
         return None
-        
+
     def setHeaterOutput(self, heater_output=0):
         """Sets the heater output level.
-        
+
         Args:
             heater_output: Sets the percent of the maximum
                         heater output in units of 0.1%.
                         Min: 0. Max: 999.
         """
-        
+
         self.write('$O{}'.format(heater_output))
         return None
 
     def setGasOutput(self, gas_output=0):
         """Sets the gas (needle valve) output level.
-        
+
         Args:
             gas_output: Sets the percent of the maximum gas
                     output in units of 0.1%.
@@ -206,16 +206,16 @@ class itc503(AbstractSerialDeviceDriver):
         """
         self.write('$G{}'.format(gas_output))
         return None
-        
+
     def setAutoControl(self, auto_manual=0):
         """Sets automatic control for heater/gas(needle valve).
-        
+
         Value:Status map
             0: heater manual, gas manual
             1: heater auto  , gas manual
             2: heater manual, gas auto
             3: heater auto  , gas auto
-        
+
         Args:
             auto_manual: Index for gas/manual.
         """
@@ -226,11 +226,11 @@ class itc503(AbstractSerialDeviceDriver):
 
         This fills up a dictionary with all the possible steps in
         a sweep. If a step number is not found in the sweep_parameters
-        dictionary, then it will create the sweep step with sweep_time and 
-        hold_time set to 0 - thus this step will be bypassed by the machine. 
+        dictionary, then it will create the sweep step with sweep_time and
+        hold_time set to 0 - thus this step will be bypassed by the machine.
         The 16th step will nevertheless control the temperature setpoint after
-        the sweep is completed, it should thus NOT be set to 0, 
-        because this would actually set the temperature setpoint to 0. 
+        the sweep is completed, it should thus NOT be set to 0,
+        because this would actually set the temperature setpoint to 0.
         Therefore all non-used steps have a low but reachable set point in T(K)
 
         Args:
@@ -239,7 +239,7 @@ class itc503(AbstractSerialDeviceDriver):
                 dictionary whose keys are the parameters in the
                 sweep table (see _setSweepStep).
         """
-        if not isinstance(sweep_parameters, dict): 
+        if not isinstance(sweep_parameters, dict):
             raise AssertionError('ITC: setSweeps: Input should be a dict (of dicts)!')
         steps = range(1,17)
         parameters_keys = sweep_parameters.keys()
@@ -303,7 +303,7 @@ class itc503(AbstractSerialDeviceDriver):
     def SweepStartAtPoint(self, point):
         """start walking through the sweep table at a specific point"""
 
-        if 32 > point < 2: 
+        if 32 > point < 2:
             raise AssertionError('ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
         self.write('$S{}'.format(point))
 

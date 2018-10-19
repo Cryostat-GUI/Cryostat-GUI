@@ -8,7 +8,7 @@
 
 
 
-#curently works with database name "test" and tabel name measured data, 
+#curently works with database name "test" and tabel name measured data,
 #all the variable types to be plotted must have numeric types, otherwise
 #it won't plot. This is a pretty beta version, but should work, the data is collected by the database!
 
@@ -56,7 +56,7 @@ class Ui_Dialog(object):
         self.groupBox_2.setGeometry(QtCore.QRect(0, 50, 61, 16))
         self.groupBox_2.setObjectName("groupBox_2")
         self.comboSetX = QtWidgets.QComboBox(Dialog)
-        
+
         #setting up the combo box for the selection of x and y axes
         self.comboSetX.setGeometry(QtCore.QRect(90, 10, 69, 22))
         self.comboSetX.setTabletTracking(True)
@@ -86,30 +86,30 @@ class Ui_Dialog(object):
         global x
         x=self.comboSetX.currentText()
         print("x was set to: ",x)
-        
+
     def ychanged(self):
         global y
         y=self.comboSetY.currentText()
         print("y was set to: ",y)
 
-    def plotstart(self): 
-        exportdatatoarr('ITC',x,y)  
+    def plotstart(self):
+        exportdatatoarr('ITC',x,y)
 
 def exportdatatoarr (tablename,X,Y):
     #this method gets called as soon as "OK" button is pressed
-    
+
     array=[]
 
     sql="SELECT {},{} from {} ".format(X,Y,tablename)
     mycursor.execute(sql)
     data =mycursor.fetchall()
-        
+
     for row in data:
         array.append(list(row))
         print(row)
-    
+
     #■plotting
-    nparray = np.asarray(array)   
+    nparray = np.asarray(array)
     nparray_x = nparray[:,[0]]
     nparray_y = nparray[:,[1]]
     plt.plot(nparray_x,nparray_y)

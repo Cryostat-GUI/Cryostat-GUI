@@ -59,10 +59,10 @@ class Window_plotting(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    info = dict(data = [random.random() for i in range(10)], 
-                title = 'random data', 
-                label_x = 'x-axis', 
-                label_y='y-axis') 
+    info = dict(data = [random.random() for i in range(10)],
+                title = 'random data',
+                label_x = 'x-axis',
+                label_y='y-axis')
 
 
     main = Window_plotting(**info)

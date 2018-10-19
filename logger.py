@@ -23,7 +23,7 @@ from util import Window_ui
 def SQLFormatting(variable):
     if isinstance(variable, (float, int)):
         return variable
-    else: 
+    else:
         return f"""'{variable}'"""
 
 def typeof(dictkey):
@@ -36,7 +36,7 @@ def typeof(dictkey):
 
 def sql_buildDictTableString(dictname):
     string = '''(id INTEGER PRIMARY KEY'''
-    for key in dictname.keys(): 
+    for key in dictname.keys():
         string += ''',{key} {typ}'''.format(key=key, typ=typeof(dictname[key]))
     string += ''')'''
     return string
@@ -50,7 +50,7 @@ def change_to_correct_types(tablename, dictname):
     sql.append('''DROP TABLE {table}'''.format(table=tablename))
     # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
     sql.append('''CREATE TABLE IF NOT EXISTS {} '''.format(tablename) + sql_buildDictTableString(dictname))
-    # for key in dictname.keys(): 
+    # for key in dictname.keys():
     #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
 
     sql_temp = '''INSERT INTO {table} (id'''.format(table=tablename)
@@ -255,7 +255,7 @@ class main_Logger(AbstractLoopThread):
         """insert a new row into the database table with all data
             a table-updating scheme was chosen to loop through all key-value pairs,
             instead of an approach where the sql command-string is built in the loop
-            thus: 
+            thus:
                 - insert a new row into the database table with the time
                 - loop through the dict
                     - update the newly made row with the key-value pair of the dict in the loop
@@ -291,8 +291,8 @@ class main_Logger(AbstractLoopThread):
 
     def exportdatatoarr(self, tablename,colnamelist):
         """export the data (defined by the list of columns) from a table (tablename)
-            
-            returns: 
+
+            returns:
                 numpy array containing all the data, in the same order as in the colnamelist
         """
 
@@ -300,8 +300,8 @@ class main_Logger(AbstractLoopThread):
 
         sql="""SELECT {}""".format(colnamelist[0])
 
-        if len(colnamelist) > 1: 
-            for x in colnamelist[1:]: 
+        if len(colnamelist) > 1:
+            for x in colnamelist[1:]:
                 sql += """,{}""".format(x)
         sql += """ from {} """.format(tablename)
         self.mycursor.execute(sql)
@@ -345,16 +345,16 @@ class main_Logger(AbstractLoopThread):
             try:
                 data[name].update(timedict)
                 # sql = change_to_correct_types(name, data[name])
-                # for ct, command in enumerate(sql): 
+                # for ct, command in enumerate(sql):
                     # print(command)
-                    # if ct >=2: 
+                    # if ct >=2:
                     #     sq="""SELECT id from python_temp_{}""".format(name)
                     #     self.mycursor.execute(sq)
                         # print(self.mycursor.fetchall()[-5:])
                     # self.mycursor.execute(command)
 
                 self.createtable(name, data[name])
-                
+
                 #inserting in the measured values:
                 self.updatetable(name,data[name])
             except AssertionError as assertion:
@@ -364,7 +364,7 @@ class main_Logger(AbstractLoopThread):
 
 
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     dbname = 'He_first_cooldown.db'
     conn= sqlite3.connect(dbname)
     mycursor = conn.cursor()

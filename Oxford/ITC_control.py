@@ -1,10 +1,9 @@
 
 import time
 
-# from labdrivers.oxford.itc503 import itc503 
-from PyQt5 import QtWidgets, QtGui
+# from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.uic import loadUi
+# from PyQt5.uic import loadUi
 
 from .Drivers.itc503 import itc503
 from pyvisa.errors import VisaIOError
@@ -21,14 +20,14 @@ class ITC_Updater(AbstractLoopThread):
 
         For each self.ITC503 function (except collecting data), there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device. 
+        the corresponding value to the device.
 
         There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment 
+        the corresponding value, and stores it, so it can be sent upon acknowledgment
 
         The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class. 
+        the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sig_Infodata = pyqtSignal(dict)
@@ -77,10 +76,10 @@ class ITC_Updater(AbstractLoopThread):
     # @control_checks
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
-        
+
             self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked 
-            with any other PC, so errors which come back are "caught", or communication is set up 
+            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
+            with any other PC, so errors which come back are "caught", or communication is set up
             in a way no errors occur)
 
         """
@@ -89,7 +88,7 @@ class ITC_Updater(AbstractLoopThread):
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
         for key in self.sensors.keys():
-            try: 
+            try:
 
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
@@ -99,7 +98,7 @@ class ITC_Updater(AbstractLoopThread):
                 if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                     self.read_buffer()
-                else: 
+                else:
                     self.sig_visaerror.emit(e_visa.args[0])
         self.sig_Infodata.emit(deepcopy(data))
 
@@ -115,19 +114,6 @@ class ITC_Updater(AbstractLoopThread):
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 pass
-
-    # def control_checks(func):
-    #     @functools.wraps(func)
-    #     def wrapper_control_checks(*args, **kwargs):
-    #         pass
-
-    def read_buffer(self):
-        try:
-            return self.ITC.read()
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                pass
-
 
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
@@ -150,9 +136,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -165,9 +151,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -180,9 +166,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -197,9 +183,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -215,16 +201,16 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
     def setDerivative(self):
         """class method to be called to set Derivative
             this is to be invoked by a signal
-            
+
             derivative: Derivative action time.
             Ranges from 0 to 273 minutes.
         """
@@ -233,9 +219,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -252,9 +238,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -271,9 +257,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -283,16 +269,16 @@ class ITC_Updater(AbstractLoopThread):
 
             gas_output: Sets the percent of the maximum gas
                     output in units of 1%.
-                    Min: 0. Max: 99.            
+                    Min: 0. Max: 99.
         """
         try:
             self.ITC.setGasOutput(self.set_gas_output)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -313,9 +299,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
@@ -328,9 +314,9 @@ class ITC_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args: 
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
-            else: 
+            else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
 
