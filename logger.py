@@ -226,14 +226,16 @@ class main_Logger(AbstractLoopThread):
         self.conf_done_layer2 = False
 
     def connectdb(self, dbname):
-
+        """connect to the sqlite database"""
         try:
             self.conn= sqlite3.connect(dbname)
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))
 
     def createtable(self,tablename,dictname):
-
+        """create the sql table if it does not exist,
+            with all columns named after the keys in the dictionary
+        """
 
         sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
         sql += sql_buildDictTableString(dictname)
@@ -250,25 +252,31 @@ class main_Logger(AbstractLoopThread):
         #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
     def updatetable(self,  tablename,dictname):
+        """insert a new row into the database table with all data
+            a table-updating scheme was chosen to loop through all key-value pairs,
+            instead of an approach where the sql command-string is built in the loop
+            thus: 
+                - insert a new row into the database table with the time
+                - loop through the dict
+                    - update the newly made row with the key-value pair of the dict in the loop
+        """
         if not dictname:
             raise AssertionError('Logger: dict does not yet exist')
         sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'timeseconds',dictname['timeseconds'])
         self.mycursor.execute(sql)
 
+        for key in dictname.keys():
+            sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
+                                                        column=key,
+                                                        value=SQLFormatting(dictname[key]),
+                                                        sec='''timeseconds''',
+                                                        sec_now=dictname['timeseconds'])
+            self.mycursor.execute(sql)
 
-        try:         
-            for key in dictname:
-                sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
-                                                            column=key,
-                                                            value=SQLFormatting(dictname[key]),
-                                                            sec='''timeseconds''',
-                                                            sec_now=dictname['timeseconds'])
-                self.mycursor.execute(sql)
-        except Exception as e: 
-            raise AssertionError(e)
         self.conn.commit()
 
     def printtable(self,tablename,dictname,date1,date2):
+        """print the data of one table between two dates (given in time.time())"""
 
         for colnames in dictname.keys():
             print(colnames, end=',', flush=True)
@@ -282,6 +290,11 @@ class main_Logger(AbstractLoopThread):
             print(row)
 
     def exportdatatoarr(self, tablename,colnamelist):
+        """export the data (defined by the list of columns) from a table (tablename)
+            
+            returns: 
+                numpy array containing all the data, in the same order as in the colnamelist
+        """
 
         array=[]
 
