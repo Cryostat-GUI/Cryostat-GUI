@@ -1,9 +1,9 @@
-from PyQt5 import QtWidgets, QtCore, uic
+# from PyQt5 import QtWidgets, QtCore, uic
 import sys
 from copy import deepcopy
 from pickle import dumps, load, loads
 from PyQt5.QtCore import QTimer
-import math
+# import math
 
 class PyMimeData(QtCore.QMimeData):
     """ The PyMimeData wraps a Python instance as MIME data.
@@ -87,7 +87,7 @@ class PyMimeData(QtCore.QMimeData):
 #     def __init__(self, data):
 #         super(Node, self).__init__()
 #         self.data = data
-        
+
 
 
 
@@ -95,7 +95,7 @@ class PyMimeData(QtCore.QMimeData):
 class SequenceListModel(QtCore.QAbstractListModel):
 
     sig_send = QtCore.pyqtSignal(list)
-    
+
     def __init__(self, sequence = [], parent = None):
         QtCore.QAbstractListModel.__init__(self, parent)
         self.__sequence = sequence
@@ -104,9 +104,9 @@ class SequenceListModel(QtCore.QAbstractListModel):
         # self.debug_running()
 
     def debug_running(self):
-        try: 
+        try:
             print(self.__sequence)
-        finally: 
+        finally:
             QTimer.singleShot(2*1e3,self.debug_running)
 
     def headerData(self, section, orientation, role):
@@ -132,7 +132,7 @@ class SequenceListModel(QtCore.QAbstractListModel):
         if role == QtCore.Qt.DisplayRole:
             value = self.__sequence[row]['DisplayText']
             return value
-        
+
     # def setData(self, index, value, role = QtCore.Qt.EditRole):
     #     if role == QtCore.Qt.EditRole:
     #         row = index.row()
@@ -146,7 +146,7 @@ class SequenceListModel(QtCore.QAbstractListModel):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#| \
-               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
+               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
 
 
     #=====================================================#
@@ -259,7 +259,7 @@ class ScanListModel(QtCore.QAbstractListModel):
     sig_send = QtCore.pyqtSignal(list)
     sig_stepsize = QtCore.pyqtSignal(float)
     sig_Nsteps = QtCore.pyqtSignal(int)
-    
+
     def __init__(self, signalreceiver, start=None, end=None, Nsteps=None, SizeSteps=None, **kwargs):
         super(ScanListModel, self).__init__(**kwargs)
 
@@ -287,7 +287,7 @@ class ScanListModel(QtCore.QAbstractListModel):
         stepsize = abs(end-start)/(N-1)
         stepsize = abs(stepsize) if start < end else -abs(stepsize)
         seq = []
-        for __ in range(int(N)): 
+        for __ in range(int(N)):
             seq.append(start)
             start += stepsize
         # self.sig_Nsteps.emit(N-1)
@@ -298,14 +298,14 @@ class ScanListModel(QtCore.QAbstractListModel):
     def Build_Scan_Size(self, start, end, parameter):
         stepsize = abs(parameter) if start < end else -abs(parameter)
         seq = []
-        if start < end: 
-            while start < end: 
+        if start < end:
+            while start < end:
                 seq.append(start)
                 start += stepsize
-        else: 
-           while start > end: 
+        else:
+           while start > end:
                 seq.append(start)
-                start += stepsize 
+                start += stepsize
         N = len(seq)
         self.sig_Nsteps.emit(deepcopy(N))
         # self.sig_stepsize.emit(stepsize)
@@ -320,9 +320,9 @@ class ScanListModel(QtCore.QAbstractListModel):
 
 
     def debug_running(self):
-        try: 
+        try:
             print(self.__sequence)
-        finally: 
+        finally:
             pass
         #     QTimer.singleShot(2*1e3,self.debug_running)
 
@@ -335,7 +335,7 @@ class ScanListModel(QtCore.QAbstractListModel):
         if role == QtCore.Qt.DisplayRole:
             value = self.__sequence[row]
             return value
-        
+
     def setData(self, index, value, role = QtCore.Qt.EditRole):
         if role == QtCore.Qt.EditRole:
             row = index.row()
@@ -352,13 +352,13 @@ class ScanListModel(QtCore.QAbstractListModel):
             return QtCore.Qt.ItemIsEnabled
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#  | \
                 # QtCore.Qt.ItemIsEditable
-               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled        
+               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
 
 
 
 
 if __name__ == '__main__':
-    
+
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("plastique")
 
@@ -378,25 +378,25 @@ if __name__ == '__main__':
     # listView.setMovement(QtWidgets.QListView.Free)
     # listView.setFlow(QtWidgets.QListView.TopToBottom)
     # listView.showDropIndicator()
- 
-    
+
+
     first = dict(DisplayText='first', arbdata = 'arvb')
     second = dict(DisplayText='second', arbdata = 'arvb')
     third = dict(DisplayText='third', arbdata = 'arvb')
     fourth = dict(DisplayText='fourth', arbdata = 'arvb')
     five = dict(DisplayText='five', arbdata = 'arvb')
 
-    
 
 
 
 
-   
+
+
     model = SequenceListModel([first, second, third])
     model.addItem(fourth)
 
     # model.addItem(dict(DisplayText='wuha', arbdata='noha'))
-    
+
     listView.setModel(model)
 
     model.pass_data()

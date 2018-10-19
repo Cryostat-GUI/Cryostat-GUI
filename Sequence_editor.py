@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -11,7 +11,7 @@ from copy import deepcopy
 import sys
 # import datetime
 # import pickle
-import os
+# import os
 import re
 import threading
 
@@ -35,7 +35,7 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
         loadUi(ui_file, self)
 
         self.conf = dict(typ='change datafile', new_file_data='',
-                            mode='a' if comm[-1]=='1' else 'w', 
+                            mode='a' if comm[-1]=='1' else 'w',
                             DisplayText='')
         self.lineFileLocation.setText(self.conf['new_file_data'])
         self.lineFileLocation.textChanged.connect(lambda value: self.setValue('new_file_data', value))
@@ -512,7 +512,7 @@ class Sequence_builder(Window_ui):
             elif part[5]:
                 # change data file
                 comm = part[5]
-                fiel = exp_datafile.findall(comm)[0]
+                file = exp_datafile.findall(comm)[0]
                 dic = dict(typ='change datafile', new_file_data=file,
                             mode='a' if comm[-1]=='1' else 'w',
                             # a - appending, w - writing, can be inserted directly into opening statement

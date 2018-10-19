@@ -1,8 +1,6 @@
 # import time
 
-from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.uic import loadUi
 
 from LakeShore.LakeShore350 import LakeShore350
 from pyvisa.errors import VisaIOError
@@ -53,9 +51,9 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         # here the class instance of the LakeShore should be handed
 
-        try: 
+        try:
             self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
-        except VisaIOError as e: 
+        except VisaIOError as e:
             self.sig_assertion.emit('running in control: {}'.format(e))
 
 
@@ -125,7 +123,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     #         pass
 
 
-    def configSensor():
+    def configSensor(self):
         """configures sensor inputs to Cerox
         """
         for i in ['A','B','C','D']:

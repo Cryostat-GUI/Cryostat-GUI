@@ -256,19 +256,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                 Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
                                 Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
 
+
         self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
         self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
         self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
 
 
         # advancing entries to the next slot
-        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]): 
+        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
             self.ITC_Kpmin['newtime'][i+1] = entry
             self.ITC_Kpmin['Sensor_1_K'][i+1] = self.ITC_Kpmin['Sensor_1_K'][i]
             self.ITC_Kpmin['Sensor_2_K'][i+1] = self.ITC_Kpmin['Sensor_2_K'][i]
             self.ITC_Kpmin['Sensor_3_K'][i+1] = self.ITC_Kpmin['Sensor_3_K'][i]
 
-        # including the new values 
+        # including the new values
         self.ITC_Kpmin['newtime'][0] = time.time()
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
@@ -496,7 +497,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
                 # allows to choose from different inputs to connect to output 1 control loop. default is input 1.
-                
+
                 self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
@@ -506,7 +507,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                self.show_error_textBrowser('running: {}'.format(e)) 
+                self.show_error_textBrowser('running: {}'.format(e))
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
@@ -592,8 +593,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.lcdSensor2_K.display(self.data['LakeShore350']['Sensor_2_K'])
             self.LakeShore350_window.lcdSensor3_K.display(self.data['LakeShore350']['Sensor_3_K'])
             self.LakeShore350_window.lcdSensor4_K.display(self.data['LakeShore350']['Sensor_4_K'])
-
-
 
     # ------- MISC -------
 

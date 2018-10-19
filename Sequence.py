@@ -1,9 +1,9 @@
 """Module containing the class and possible helperfunctions to run a measuring sequence
-    
+
 
 
     Author(s): bklebel (Benjamin Klebel)
-    
+
 """
 
 

@@ -11,7 +11,7 @@ Classes:
     AbstractEventhandlingThread: a thread class, inheriting from AbstractThread,
         which is designed to be used for handling signal-events, not continuous loops
 
-    Window_ui: a window class, which loads the UI definitions from a spcified .ui file, 
+    Window_ui: a window class, which loads the UI definitions from a spcified .ui file,
         emits a signal upon closing
 """
 
@@ -65,7 +65,7 @@ class AbstractLoopThread(AbstractThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval*1e3, self.work)            
+            QTimer.singleShot(self.interval*1e3, self.work)
 
 
     def running(self):
@@ -143,4 +143,3 @@ class sequence_listwidget(QtWidgets.QListWidget):
     def dropEvent(self, event):
         self.sig_dropped.emit(event)
         event.accept()
-        

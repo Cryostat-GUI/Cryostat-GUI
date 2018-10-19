@@ -75,7 +75,7 @@ class ips120(AbstractSerialDeviceDriver):
 
     def getValue(self, variable=0):
         """Read the variable defined by the index.
-        
+
          0: Demand Current to PSU (Output Current)
          1: Measured Power supply voltage
          2: measured magnet current
@@ -99,7 +99,7 @@ class ips120(AbstractSerialDeviceDriver):
         20: IDAC (demand current as a hexadecimal number)
         21: safe current limit, most negative
         22: safe current limit, most positive
-        
+
         Args:
             variable: Index of variable to read.
         """
@@ -107,12 +107,12 @@ class ips120(AbstractSerialDeviceDriver):
             raise AssertionError('IPS: getValue: argument must be integer')
         if variable not in range(0,23):
             raise AssertionError('IPS: getValue: Argument is not a valid number.')
-        
+
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
-        
+
         if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')            
+            raise AssertionError('IPS: getValue: bad reply: empty string')
         if value[0] != 'R':
             raise AssertionError('IPS: getValue: bad reply: {}'.format(value))
         return float(value.strip('R+'))
@@ -216,7 +216,7 @@ class ips120(AbstractSerialDeviceDriver):
         Args:
             field(float): the magnetic field set point, in Tesla
 
-        TODO: check for sanity: 
+        TODO: check for sanity:
         - manual says field is set in mT (0.001 T)
         - plarity is set manually, NOT by setting negative field setpoint
         """
@@ -232,7 +232,7 @@ class ips120(AbstractSerialDeviceDriver):
         Args:
             rate(float): the magnetic field sweep rate, in Tesla/min
 
-        TODO: check for sanity: 
+        TODO: check for sanity:
         - manual: field rate in units of mT/min
         - look up the maximum rate and implement a check
         """
