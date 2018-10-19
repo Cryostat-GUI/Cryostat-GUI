@@ -274,9 +274,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
         self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
-        # data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
-        #                     Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
-        #                     Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
 
 
         data['date'] = convert_time(time.time())
@@ -564,9 +564,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.LakeShore350_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
         self.LakeShore350_Kpmin['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
 
-        # data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
-        #                     Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
-        #                     Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'], 
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'], 
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
 
         data['date'] = convert_time(time.time())
         with self.dataLock:
