@@ -68,8 +68,9 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.configHeater()
         self.configTempLimit()
 
-        self.delay1 = 1
-        self.delay = 0.0
+        # self.delay1 = 1
+        # self.delay = 0.0
+        self.interval = 0
         # self.setControl()
         # self.__isRunning = True
 
