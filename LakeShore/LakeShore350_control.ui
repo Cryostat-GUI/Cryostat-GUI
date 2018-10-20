@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>358</height>
+    <width>1003</width>
+    <height>530</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -115,6 +115,9 @@
          </item>
          <item row="0" column="2">
           <widget class="QLCDNumber" name="lcdSetTemp_K">
+           <property name="digitCount">
+            <number>7</number>
+           </property>
            <property name="segmentStyle">
             <enum>QLCDNumber::Flat</enum>
            </property>
@@ -331,16 +334,6 @@ all performed queries</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLCDNumber" name="lcdSensor1_Kpmin">
-        <property name="digitCount">
-         <number>7</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QLabel" name="label_16">
         <property name="text">
@@ -348,40 +341,10 @@ all performed queries</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <widget class="QLCDNumber" name="lcdSensor3_Kpmin">
-        <property name="digitCount">
-         <number>7</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLCDNumber" name="lcdSensor2_Kpmin">
-        <property name="digitCount">
-         <number>7</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
        <widget class="QLabel" name="label_17">
         <property name="text">
          <string>[Kelvin/min]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QLCDNumber" name="lcdSensor4_Kpmin">
-        <property name="digitCount">
-         <number>7</number>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
       </item>
@@ -458,6 +421,82 @@ all performed queries</string>
           <string>Range 4</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QTextEdit" name="textSensor4_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QTextEdit" name="textSensor1_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QTextEdit" name="textSensor2_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QTextEdit" name="textSensor3_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
        </widget>
       </item>
      </layout>

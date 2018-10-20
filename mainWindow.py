@@ -456,7 +456,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     # ------- LakeShore 350 -------
     def initialize_window_LakeShore350(self):
         """initialize LakeShore Window"""
-        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control_test.ui')
+        self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
         self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
         # self.LakeShore350_window.textSensor1_Kpmin.setAlignment(QtAlignRight)
