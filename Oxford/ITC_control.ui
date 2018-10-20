@@ -344,13 +344,6 @@ all performed queries</string>
            </item>
           </widget>
          </item>
-         <item row="4" column="1" colspan="2">
-          <widget class="QSpinBox" name="spinsetGasOutput">
-           <property name="maximum">
-            <number>100</number>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox">
            <property name="enabled">
@@ -487,6 +480,19 @@ all performed queries</string>
            </property>
            <property name="segmentStyle">
             <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1" colspan="2">
+          <widget class="QDoubleSpinBox" name="spinsetGasOutput">
+           <property name="inputMethodHints">
+            <set>Qt::ImhFormattedNumbersOnly|Qt::ImhMultiLine</set>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="singleStep">
+            <double>0.500000000000000</double>
            </property>
           </widget>
          </item>
