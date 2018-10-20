@@ -292,6 +292,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
             self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
             self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
             self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
             self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
             self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])        
