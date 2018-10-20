@@ -19,7 +19,7 @@ import math
 from util import AbstractLoopThread
 from util import Window_ui
 
-
+from sqlite3 import OperationalError
 
 def SQLFormatting(variable):
     if isinstance(variable, (float, int)):
@@ -261,7 +261,9 @@ class main_Logger(AbstractLoopThread):
                 - loop through the dict
                     - update the newly made row with the key-value pair of the dict in the loop
         """
+        # print('ichi update')
         if not dictname:
+            # print('no column like this!!!')
             raise AssertionError('Logger: dict does not yet exist')
         sql="INSERT INTO {} ({}) VALUES ({})".format(tablename,'timeseconds',dictname['timeseconds'])
         self.mycursor.execute(sql)
@@ -273,18 +275,35 @@ class main_Logger(AbstractLoopThread):
         #                                                 sec='''timeseconds''',
         #                                                 sec_now=dictname['timeseconds'])
         #     self.mycursor.execute(sql)
-
+        # print('vor testing')
+        def testing(variable):
+            try: 
+                if not variable == None:
+                    var = float(variable)
+                    bo = math.isnan(var)
+                else: 
+                    var = 0
+                    bo = True
+            except ValueError: 
+                var = variable
+                bo = False
+            return var, bo
+        # print('nach testing')
         try:         
             for key in dictname:
-                if not math.isnan(dictname[key]):
+                # print(key, 'key')
+                var, bools = testing(dictname[key])
+                # print(var, bools, type(var))
+                if not bools:
+                    # print('ich arbeite')
                     sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                             column=key,
-                                                            value=SQLFormatting(dictname[key]),
+                                                            value=SQLFormatting(var),
                                                             sec='''timeseconds''',
                                                             sec_now=dictname['timeseconds'])
                     self.mycursor.execute(sql)
-        except Exception as e: 
-            raise AssertionError(e.args[0])# do not know whether this will work
+        except sqlite3.OperationalError as err:
+            raise AssertionError(err.args[0])# do not know whether this will work
         self.conn.commit()
 
     def printtable(self,tablename,dictname,date1,date2):
@@ -364,9 +383,9 @@ class main_Logger(AbstractLoopThread):
                     #     self.mycursor.execute(sq)
                         # print(self.mycursor.fetchall()[-5:])
                     # self.mycursor.execute(command)
-
+                # print('create')
                 self.createtable(name, data[name])
-
+                # print('update')
                 #inserting in the measured values:
                 self.updatetable(name,data[name])
             except AssertionError as assertion:

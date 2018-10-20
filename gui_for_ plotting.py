@@ -27,12 +27,12 @@ def connectdb(dbname):
         except sqlite3.connect.Error as err:
             raise AssertionError("Logger: Couldn't establish connection {}".format(err))
 # connectdb("test")
-connectdb("He_first_cooldown.db")
+connectdb("Log19102018.db")
 mycursor = conn.cursor()
 
 #colnames setup, so that the user can choose from in the GUI, the Comboboxes are filled up witth this array
 axis=[]
-mycursor.execute("SELECT * FROM ITC")
+mycursor.execute("SELECT * FROM LakeShore350")
 colnames= mycursor.description
 for row in colnames:
     axis.append(row[0])
@@ -58,14 +58,14 @@ class Ui_Dialog(object):
         self.comboSetX = QtWidgets.QComboBox(Dialog)
 
         #setting up the combo box for the selection of x and y axes
-        self.comboSetX.setGeometry(QtCore.QRect(90, 10, 69, 22))
+        self.comboSetX.setGeometry(QtCore.QRect(90, 10, 300, 22))
         self.comboSetX.setTabletTracking(True)
         self.comboSetX.setObjectName("comboSetX")
         self.comboSetX.addItems(axis)
         self.comboSetX.activated.connect(self.xchanged) #signal when the x axis is selected
 
         self.comboSetY = QtWidgets.QComboBox(Dialog)
-        self.comboSetY.setGeometry(QtCore.QRect(90, 50, 69, 22))
+        self.comboSetY.setGeometry(QtCore.QRect(90, 50, 300, 22))
         self.comboSetY.setObjectName("comboSetY")
         self.comboSetY.addItems(axis)
         self.comboSetY.activated.connect(self.ychanged)
@@ -93,7 +93,7 @@ class Ui_Dialog(object):
         print("y was set to: ",y)
 
     def plotstart(self):
-        exportdatatoarr('ITC',x,y)
+        exportdatatoarr('LakeShore350',x,y)
 
 def exportdatatoarr (tablename,X,Y):
     #this method gets called as soon as "OK" button is pressed
@@ -106,13 +106,13 @@ def exportdatatoarr (tablename,X,Y):
 
     for row in data:
         array.append(list(row))
-        print(row)
+        # print(row)
 
     #■plotting
     nparray = np.asarray(array)
     nparray_x = nparray[:,[0]]
     nparray_y = nparray[:,[1]]
-    plt.plot(nparray_x,nparray_y)
+    plt.plot(nparray_x,nparray_y, '*')
     #labels:
     plt.xlabel(X)
     plt.ylabel(Y)
