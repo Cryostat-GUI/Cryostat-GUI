@@ -1,3 +1,33 @@
+"""  -----------------------------------------------------------------------------------
+    Main Module of the Cryostat-GUI built for a custom setup PPMS at TU Wien, Austria
+    (Technical University of Vienna, Austria)
+
+    The cryostat is an Oxford Spectromag, controlled by:
+        - Oxford:
+            - Intelligent Temperature Controller (ITC) 503
+            - Intelligent Level Meter (ILM) 211
+            - Intelligent Power Supply (IPS) 120-10
+        - LakeShore 350 Temperature Controller
+
+    Measurements will be performed with:
+    - Keithley:
+        - 2182A Nanovoltmeter (x3)
+        - 6221 Current Source (AC and DC)
+        - DMM7510 7 1/2 Digital Multimeter
+        - 2700 Multimeter / Data Acquisition System
+
+
+Classes:
+    mainWindow:
+        The main GUI class for the PyQt application
+
+    Author(s):
+        bklebel (Benjamin Klebel)
+        adtera
+        Acronis
+----------------------------------------------------------------------------------------
+"""
+
 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject
@@ -5,27 +35,25 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
+# from PyQt5.QtWidgets import QtAlignRight
 from PyQt5.uic import loadUi
 
 import sys
 import time
 import datetime
 from threading import Lock
+import numpy as np
+from copy import deepcopy
 
-# import mainWindow_ui
-
-# from Oxford.ITCcontrol_ui import Ui_ITCcontrol
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
 from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
-
-
 from pyvisa.errors import VisaIOError
 
-from logger import main_Logger
-from logger import Logger_configuration #Logger_configuration
+from logger import main_Logger, live_Logger
+from logger import Logger_configuration
 from util import Window_ui
 
 
@@ -47,7 +75,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
 
-    def __init__(self, **kwargs):
+    def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
@@ -59,9 +87,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_logger = False
 
         self.dataLock = Lock()
+        self.app = app
 
 
         QTimer.singleShot(0, self.initialize_all_windows)
+
+
+    def closeEvent(self, event):
+        super(mainWindow, self).closeEvent(event)
+        self.app.quit()
 
 
     def initialize_all_windows(self):
@@ -98,7 +132,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         if dataname in self.data or dataname == None:
             pass
         else:
-            self.data[dataname] = dict()
+            with self.dataLock:
+                self.data[dataname] = dict()
 
         thread.started.connect(worker.work)
         thread.start()
@@ -145,9 +180,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
 
                 self.data['ITC'] =  dict(set_temperature = 0,
-                                         sensor_1_temperature =0,
-                                         sensor_2_temperature =0,
-                                         sensor_3_temperature =0,
+                                         Sensor_1_K =0,
+                                         Sensor_2_K =0,
+                                         Sensor_3_K =0,
                                          temperature_error =0,
                                          heater_output_as_percent =0,
                                          heater_output_as_voltage =0,
@@ -155,7 +190,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                          proportional_band =0,
                                          integral_action_time =0,
                                          derivative_action_time = 0)
-
+                integration_length = 7
+                self.ITC_Kpmin = dict(newtime = [time.time()]*integration_length,
+                                                Sensor_1_K = [0]*integration_length,
+                                                Sensor_2_K = [0]*integration_length,
+                                                Sensor_3_K = [0]*integration_length,
+                                                Sensor_4_K = [0]*integration_length)
 
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
@@ -180,6 +220,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 self.ITC_window.combosetAutocontrol.activated['int'].connect(lambda value: self.threads['control_ITC'][0].setAutoControl(value))
 
+                self.ITC_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_ITC'][0].setInterval(value))
 
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
@@ -206,6 +247,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.ITC_window.spinsetPIDerivative.editingFinished.disconnect()
             self.ITC_window.combosetHeatersens.activated['int'].disconnect()
             self.ITC_window.combosetAutocontrol.activated['int'].disconnect()
+            self.ITC_window.spin_threadinterval.valueChanged.disconnect()
 
             self.stopping_thread('control_ITC')
             self.action_run_ITC.setChecked(False)
@@ -221,23 +263,65 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
-        """Store ITC data in self.data['ITC'], update ITC_window"""
+        """
+            Calculate the rate of change of Temperature on the sensors [K/min]
+            Store ITC data in self.data['ITC'], update ITC_window
+        """
+
+        timediffs = [(entry-self.ITC_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]# -self.ITC_Kpmin['newtime'])/60
+        tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
+                            Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
+                            Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
+        #integrating over the lists, to get an integrated rate of Kelvin/min
+        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
+                                Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
+                                Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
+
+
+        if not integrated_diff['Sensor_1_Kpmin'] == 0:
+            self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        if not integrated_diff['Sensor_2_Kpmin'] == 0:
+            self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        if not integrated_diff['Sensor_3_Kpmin'] == 0:
+            self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+
+
+        # advancing entries to the next slot
+        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
+            self.ITC_Kpmin['newtime'][i+1] = entry
+            self.ITC_Kpmin['Sensor_1_K'][i+1] = self.ITC_Kpmin['Sensor_1_K'][i]
+            self.ITC_Kpmin['Sensor_2_K'][i+1] = self.ITC_Kpmin['Sensor_2_K'][i]
+            self.ITC_Kpmin['Sensor_3_K'][i+1] = self.ITC_Kpmin['Sensor_3_K'][i]
+
+        # including the new values
+        self.ITC_Kpmin['newtime'][0] = time.time()
+        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
+        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
+        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
+
+
+        data['date'] = convert_time(time.time())
         with self.dataLock:
-            data['date'] = convert_time(time.time())
             self.data['ITC'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            self.ITC_window.lcdTemp_sens1.display(self.data['ITC']['sensor_1_temperature'])
-            self.ITC_window.lcdTemp_sens2.display(self.data['ITC']['sensor_2_temperature'])
-            self.ITC_window.lcdTemp_sens3.display(self.data['ITC']['sensor_3_temperature'])
+            self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
+            self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
+            self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+
             self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
             self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
             self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
             self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
             self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
             self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
             self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
             self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+
 
     # ------- ------- ILM
     def initialize_window_ILM(self):
@@ -266,6 +350,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
                 # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
+
+                self.ILM_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_ILM'][0].setInterval(value))
 
                 self.action_run_ILM.setChecked(True)
 
@@ -297,6 +383,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             chan2 = 100 if self.data['ILM']['channel_2_level'] > 100 else self.data['ILM']['channel_2_level']
             self.ILM_window.progressLevelHe.setValue(chan1)
             self.ILM_window.progressLevelN2.setValue(chan2)
+
+            self.ILM_window.lcdLevelHe.display(self.data['ILM']['channel_1_level'])
+            self.ILM_window.lcdLevelN2.display(self.data['ILM']['channel_2_level'])
 
             self.MainDock_HeLevel.setValue(chan1)
             self.MainDock_N2Level.setValue(chan2)
@@ -340,6 +429,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
                 self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(lambda: self.threads['control_IPS'][0].setFieldSweepRate())
+
+                self.IPS_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_IPS'][0].setInterval(value))
 
                 self.action_run_IPS.setChecked(True)
 
@@ -390,15 +481,39 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])
 
 
-
     # ------- LakeShore 350 -------
     def initialize_window_LakeShore350(self):
         """initialize LakeShore Window"""
         self.LakeShore350_window = Window_ui(ui_file='.\\LakeShore\\LakeShore350_control.ui')
         self.LakeShore350_window.sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
 
+        # self.LakeShore350_window.textSensor1_Kpmin.setAlignment(QtAlignRight)
+
         self.action_run_LakeShore350.triggered['bool'].connect(self.run_LakeShore350)
         self.action_show_LakeShore350.triggered['bool'].connect(self.show_LakeShore350)
+        self.LakeShore350_Kpmin = None
+
+    def func_LakeShore350_setKpminLength(self, length):
+        """set the number of measurements the calculation should be conducted over"""
+        if not self.LakeShore350_Kpmin: 
+            self.LakeShore350_Kpmin = dict( newtime = [time.time()]*length,
+                                            Sensors=dict(
+                                                Sensor_1_K = [0]*length,
+                                                Sensor_2_K = [0]*length,
+                                                Sensor_3_K = [0]*length,
+                                                Sensor_4_K = [0]*length), 
+                                            length=length)
+        elif self.LakeShore350_Kpmin['length'] > length: 
+            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
+            for sensor in self.LakeShore350_Kpmin['Sensors']: 
+                sensor = seensor[:length]
+            self.LakeShore350_Kpmin['length'] = length
+        elif self.LakeShore350_Kpmin['length'] < length: 
+            self.LakeShore350_Kpmin['newtime'] += [time.time()]*(length-self.LakeShore350_Kpmin['length'])
+            for sensor in self.LakeShore350_Kpmin['Sensors']: 
+                sensor += [0]*(length-self.LakeShore350_Kpmin['length'])
+            self.LakeShore350_Kpmin['length'] = length
+
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -415,12 +530,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                 getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
 
+                self.func_LakeShore350_setKpminLength(5)
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
                 self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setTemp_K())
-
-
 
                 self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
                 self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
@@ -459,6 +573,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.spinSetZone_Rate.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Rate(value))
 
 
+                self.LakeShore350_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
+
 
                 self.action_run_LakeShore350.setChecked(True)
 
@@ -483,46 +599,85 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             self.LakeShore350_window.close()
 
+    def calculate_Kpmin(self, data):
+        """calculate the rate of change of Temperature"""
+        coeffs = []
+        for sensordata in self.LakeShore350_Kpmin['Sensors'].values(): 
+            coeffs.append(np.polynomial.polynomial.polyfit(self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
 
-        """
-            self.textErrors = QtWidgets.QTextBrowser(Form)
-            self.textErrors.setObjectName("textErrors")
-            self.lcdHeaterOutput_mW = QtWidgets.QLCDNumber(Form)
-            self.lcdHeaterOutput_mW.setObjectName("lcdHeaterOutput_mW")
-            self.lcdSetTemp_K = QtWidgets.QLCDNumber(Form)
-            self.lcdSetTemp_K.setObjectName("lcdSetTemp_K")
-            self.spinSetTemp_K = QtWidgets.QDoubleSpinBox(Form)
-            self.spinSetTemp_K.setDecimals(4)
-            self.spinSetTemp_K.setMaximum(300.0)
-            self.spinSetTemp_K.setObjectName("spinSetTemp_K")
-            self.lcdSetHeater_mW = QtWidgets.QLCDNumber(Form)
-            self.lcdSetHeater_mW.setObjectName("lcdSetHeater_mW")
-            self.spinSetHeater_mW = QtWidgets.QDoubleSpinBox(Form)
-            self.spinSetHeater_mW.setDecimals(1)
-            self.spinSetHeater_mW.setMaximum(1000.0)
-            self.spinSetHeater_mW.setObjectName("spinSetHeater_mW")
-            self.lcdSensor1_K = QtWidgets.QLCDNumber(Form)
-            self.lcdSensor1_K.setObjectName("lcdSensor1_K")
-            self.lcdSensor2_K = QtWidgets.QLCDNumber(Form)
-            self.lcdSensor2_K.setObjectName("lcdSensor2_K")
-            self.lcdSensor3_K = QtWidgets.QLCDNumber(Form)
-            self.lcdSensor3_K.setObjectName("lcdSensor3_K")
-            self.lcdSensor4_K = QtWidgets.QLCDNumber(Form)
-            self.lcdSensor4_K.setObjectName("lcdSensor4_K")
+        integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1]*60,
+                                Sensor_2_Kpmin=coeffs[1][1]*60,
+                                Sensor_3_Kpmin=coeffs[2][1]*60,
+                                Sensor_4_Kpmin=coeffs[3][1]*60)
 
-            self.spinXXX.valueChanged.connect(self.method)
-            self.spinXXX.valueChanged.connect(lambda: self.threads['somethread'].THREAD_Class_method())
-            self.spinXXX.valueChanged.connect(lambda value: self.threads['somethread'].THREAD_Class_method(value))
-            self.lcdXXX.display(some_number)
-            self.textXXX.setText(some_string)
-        """
+        # advancing entries to the next slot
+        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
+            self.LakeShore350_Kpmin['newtime'][i+1] = entry
+            self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][i]
+            self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i]
+            self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i]
+            self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i]
 
+            # including the new values
+            self.LakeShore350_Kpmin['newtime'][0] = time.time()
+            self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
+            self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
+            self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+            self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
+
+        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
+                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
+                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin'], 
+                            Sensor_4_Kpmin=integrated_diff['Sensor_4_Kpmin']))
+
+        return integrated_diff, data
 
     @pyqtSlot(dict)
     def store_data_LakeShore350(self, data):
-        """Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window"""
+        """
+            Calculate the rate of change of Temperature on the sensors [K/min]
+            Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
+        """
+        # integration_length = 1
+        # building lists of differences
+        # timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+integration_length]) for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-integration_length])]# -self.LakeShore350_Kpmin['newtime'])/60
+        # tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-integration_length])],
+        #                     Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-integration_length])],
+        #                     Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-integration_length])],
+        #                     Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-integration_length])])
+        #integrating over the lists, to get an integrated rate of Kelvin/min
+
+        # timemean = np.mean(timediffs)
+        # print(timemean*60)
+        # print(c1, tiymediffs[0])
+
+                                    # np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
+
+        # if not integrated_diff['Sensor_1_Kpmin'] == 0:
+        #     self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
+        # if not integrated_diff['Sensor_2_Kpmin'] == 0:
+        #     self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
+        # if not integrated_diff['Sensor_3_Kpmin'] == 0:
+        #     self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+        # if not integrated_diff['Sensor_4_Kpmin'] == 0:
+        #     self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
+
+
+
+
+        coeffs, data = self.calculate_Kpmin(data)
+
+        if not coeffs['Sensor_1_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor1_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_1_Kpmin']))
+        if not coeffs['Sensor_2_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor2_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_2_Kpmin']))
+        if not coeffs['Sensor_3_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor3_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_3_Kpmin']))
+        if not coeffs['Sensor_4_Kpmin'] == 0:
+            self.LakeShore350_window.textSensor4_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_4_Kpmin']))
+
+        data['date'] = convert_time(time.time())
         with self.dataLock:
-            data['date'] = convert_time(time.time())
             self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -552,7 +707,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     # ------- MISC -------
 
     def printing(self,b):
-        """arbitrary exmple function"""
+        """arbitrary example function"""
         print(b)
 
     def initialize_window_Log_conf(self):
@@ -572,7 +727,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             logger = self.running_thread(main_Logger(self), None, 'logger')
-            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            logger.sig_log.connect(lambda : self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
             self.logging_running_logger = True
 
@@ -587,6 +742,27 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.Log_conf_window.show()
         else:
             self.Log_conf_window.close()
+
+    @pyqtSlot(bool)
+    def run_logger_live(self, boolean):
+        """method to start/stop the thread which controls the Oxford ITC"""
+
+        if boolean:
+            try:
+
+                getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
+                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+
+                self.actionLogging_LIVE.setChecked(True)
+            except VisaIOError as e:
+                self.action_run_ITC.setChecked(False)
+                self.show_error_textBrowser(e)
+                # print(e) # TODO: open window displaying the error message
+
+        else:
+            self.stopping_thread('control_Logging_live')
+            self.actionLogging_LIVE.setChecked(False)
+
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
@@ -609,7 +785,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     a = time.time()
-    form = mainWindow()
+    form = mainWindow(app=app)
     form.show()
     print(time.time()-a)
     sys.exit(app.exec_())
