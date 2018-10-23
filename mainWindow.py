@@ -13,6 +13,8 @@ import datetime
 from threading import Lock
 import numpy as np
 from copy import deepcopy
+import sqlite3
+import matplotlib.pyplot as plt
 
 # import mainWindow_ui
 
@@ -43,16 +45,37 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
+def connectdb(dbname):
+        try:
+            global conn
+            conn= sqlite3.connect(dbname)
+        except sqlite3.connect.Error as err:
+            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+# connectdb("test")
+connectdb("He_first_cooldown.db")
+mycursor = conn.cursor()
+
+
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window, where other windows will be spawned from"""
 
     sig_arbitrary = pyqtSignal()
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
+    
+    #these will hold the strings which the user selects to extract the data from db with the sql query and plot it
+    #x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
+    x=0
+    y1=0
+    y2=0
+
+    x_plot=0
+    y1_plot=0
+    y2_plot=0
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        loadUi('.\\configurations\\Cryostat_GUI.ui', self)
+        loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
         self.threads = dict()
         self.data = dict()
@@ -135,27 +158,153 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_plotLive.triggered.connect(self.show_dataplotlive)
 
 
-    def show_data_db(self):
+    def show_data_db(self):##a lot of work to do
         self.action_plotDatabase.triggered.connect(self.show_dataplotdb)
-        loadUi('.\\configurations\\Data_display_selection_database.ui', self)
-        self.comboAxis_Y4_11.activated.connect(self.show_data_db)
-        x=self.comboAxis_Y4_11.currentText()
-        print("x was set to: ",x)
-    
+        
+        
+   
+    def show_dataplotdb(self):
+        self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_database.ui')
+        self.dataplot.show()
+        #populating the combobox instruments tab with tablenames:
+        mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
+        axis2=mycursor.fetchall()
 
-    @pyqtSlot(bool)
-    #def show_dataplot(self):
-    #	self.dataplot.show()
+        self.dataplot.comboAxis_Y4_11.clear()
+        self.dataplot.comboAxis_Y4_10.clear()
+        self.dataplot.comboAxis_Y4_9.clear()
+        self.dataplot.comboAxis_Y4_8.clear()
+        self.dataplot.comboAxis_Y4_7.clear()
+        self.dataplot.comboAxis_Y4.clear()
+
+        for i in axis2:
+        	self.dataplot.comboAxis_Y4_11.addItems(i) 
+        	self.dataplot.comboAxis_Y4_10.addItems(i)
+        	self.dataplot.comboAxis_Y4_9.addItems(i)
+        	self.dataplot.comboAxis_Y4_8.addItems(i)
+        	self.dataplot.comboAxis_Y4_7.addItems(i)
+        	self.dataplot.comboAxis_Y4.addItems(i)    
+        self.dataplot.comboAxis_Y4_11.activated.connect(self.selection_x)
+        self.dataplot.comboAxis_Y4_10.activated.connect(self.selection_y1)
+        self.dataplot.buttonBox.clicked.connect(self.plotstart)   
 
     def show_dataplotlive(self):
         self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
         self.dataplot.show()
+
+        mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
+        axis2=mycursor.fetchall()
+        self.dataplot.comboAxis_Y4_11.clear()
+        self.dataplot.comboAxis_Y4_10.clear()
+        self.dataplot.comboAxis_Y4_9.clear()
+        self.dataplot.comboAxis_Y4_8.clear()
+        self.dataplot.comboAxis_Y4_7.clear()
+        self.dataplot.comboAxis_Y4.clear()
+
+        for i in axis2:
+        	self.dataplot.comboAxis_Y4_11.addItems(i) 
+        	self.dataplot.comboAxis_Y4_10.addItems(i)
+        	self.dataplot.comboAxis_Y4_9.addItems(i)
+        	self.dataplot.comboAxis_Y4_8.addItems(i)
+        	self.dataplot.comboAxis_Y4_7.addItems(i)
+        	self.dataplot.comboAxis_Y4.addItems(i)
+        self.dataplot.comboAxis_Y4_11.activated.connect(self.selection_x)
+        self.dataplot.comboAxis_Y4_10.activated.connect(self.selection_y1)
+        self.dataplot.buttonBox.clicked.connect(self.plotstart)
+
+    def selection_x(self):
+        self.dataplot.comboBox.clear()
+        self.x=self.dataplot.comboAxis_Y4_11.currentText()
+        print("x was set to: ",self.x)
+        axis=[]
+        mycursor.execute("SELECT * FROM {}".format(self.x))
+        colnames= mycursor.description
+        for row in colnames:
+            axis.append(row[0])
+        self.dataplot.comboBox.addItems(axis) 
+        self.dataplot.comboBox.activated.connect(self.x_changed)
+           
+    def x_changed(self):
+        self.x_plot=self.dataplot.comboBox.currentText()
+
+    def selection_y1(self):
+        self.dataplot.comboBox_2.clear()
+        self.y1=self.dataplot.comboAxis_Y4_10.currentText()
+        print("y1 was set to: ",self.y1)
+        axis=[]
+        mycursor.execute("SELECT * FROM {}".format(self.y1))
+        colnames= mycursor.description
+        for row in colnames:
+            axis.append(row[0])
+        self.dataplot.comboBox_2.addItems(axis)
+        self.dataplot.comboBox_2.activated.connect(self.y1_changed)
+        
+    def y1_changed(self):
+    	self.y1_plot=self.dataplot.comboBox_2.currentText()
+
+    #gotta have an if statement for the case when x and y values are from different tables
+    def plotstart(self):
+        print(self.x_plot,self.y1_plot, self.x)
+        array1=[]
+        array2=[]
+        if self.x==self.y:
+            sql="SELECT {},{} from {} ".format(self.x_plot,self.y1_plot,self.x)
+            mycursor.execute(sql)
+            data =mycursor.fetchall()
+
+            for row in data:
+                array1.append(list(row))
+            
+            #this is for is for omiting 'None' values from the array, skipping this step would cause the plot to break!
+
+            nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]   
+            nparray_x = nparray[:,[0]]
+            nparray_y = nparray[:,[1]]
+            plt.plot(nparray_x,nparray_y)
+            #labels:
+            plt.xlabel(self.x_plot)
+            plt.ylabel(self.y1_plot)
+
+            plt.show() 
+        else:
+            sql="SELECT {} FROM {}".format(self.x_plot,self.x)
+            mycursor.execute(sql)
+            data=mycursor.fetchall()
+
+            for row in data:
+                array1.append(list(row))
+            nparray_x=np.asarray(array1)[np.asarray(array1) != np.array(None)]
+            
+            sql="SELECT {} FROM {}".format(self.y1_plot,self.y1)
+            mycursor.execute(sql)
+            data=mycursor.fetchall()
+
+            for row in data:
+            	array2.append(list(row))
+            nparray_y=np.asarray(array2)[np.asarray(array2) != np.array(None)]
+            
+            #there can be still some problems if the dimensions don't match so:
+            if len(nparray_x)>len(nparray_y):
+            	nparray_x=nparray_x[0:len(nparray_y)]
+            else:
+            	nparray_y=nparray_y[0:len(nparray_x)]
+
+            plt.plot(nparray_x,nparray_y)
+            #labels:
+            plt.xlabel(self.x_plot+" from table: "+str(self.x))
+            plt.ylabel(self.y1_plot+" from table: "+str(self.y1))
+
+            plt.show() 
+
+
+    @pyqtSlot(bool)
+    
+    
+
+    
         
     
-    def show_dataplotdb(self):
-        self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_database.ui')
-        self.dataplot.show()
-        
+    
 
 
     def run_ITC(self, boolean):
