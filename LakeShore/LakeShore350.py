@@ -1,5 +1,7 @@
-# coding=utf-8
-# Commands for dealing with the LakeShore 350
+# -*- coding: utf-8 -*-
+"""
+Driver for the LakeShore 350 Cryogenic Temperature Controller
+"""
 
 import threading, visa
 
