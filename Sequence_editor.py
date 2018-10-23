@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -11,7 +11,7 @@ from copy import deepcopy
 import sys
 # import datetime
 # import pickle
-import os
+# import os
 import re
 import threading
 
@@ -22,6 +22,50 @@ from qlistmodel import SequenceListModel
 from qlistmodel import ScanListModel
 
 dropstring = re.compile(r'([a-zA-Z0-9])')
+
+class Window_ChangeDataFile(QtWidgets.QDialog):
+    """docstring for Window_waiting"""
+
+    sig_accept = pyqtSignal(dict)
+    sig_reject = pyqtSignal()
+
+    def __init__(self, ui_file='.\\configurations\\Sequence_change_datafile.ui'):
+        """build ui, build dict, connect to signals"""
+        super(Window_ChangeDataFile, self).__init__()
+        loadUi(ui_file, self)
+
+        self.conf = dict(typ='change datafile', new_file_data='',
+                            mode='a' if comm[-1]=='1' else 'w',
+                            DisplayText='')
+        self.lineFileLocation.setText(self.conf['new_file_data'])
+        self.lineFileLocation.textChanged.connect(lambda value: self.setValue('new_file_data', value))
+        self.pushBrowse.clicked.connect(self.Browse)
+        self.comboMode.activated['int'].connect()
+
+        self.buttonDialog.accepted.connect(self.acc)
+        self.buttonDialog.rejected.connect(self.close)
+
+    def acc(self):
+        """if not rejected, emit signal with configuration and accept"""
+        # if not self.conf['Temp'] and not self.conf['Field']:
+        #     self.reject()
+        #     return
+        self.sig_accept.emit(deepcopy(self.conf))
+        self.accept()
+
+    def setValue(self, parameter, value):
+        """set any kind of value in the conf dict"""
+        self.conf[parameter] = value
+
+    def Browse(self):
+        """open File Saving Dialog, to choose the datafile, set datafile in conf dict"""
+        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
+               'c:\\',"Datafiles (*.dat)")
+        self.setValue('new_file_data', new_file_data)
+        self.lineFileLocation.setText(self.conf['new_file_data'])
+
+    def setMode(self, modeint):
+        pass
 
 
 class Window_waiting(QtWidgets.QDialog):
@@ -44,7 +88,7 @@ class Window_waiting(QtWidgets.QDialog):
 
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
-        # if not self.conf['Temp'] and not self.conf['Field']: 
+        # if not self.conf['Temp'] and not self.conf['Field']:
         #     self.reject()
         #     return
         self.sig_accept.emit(deepcopy(self.conf))
@@ -73,14 +117,14 @@ class Window_Tscan(QtWidgets.QDialog):
         self.dictlock = threading.Lock()
 
     def initialisations(self):
-        
+
         # BUGS BUGS BUGS
 
         self.conf = dict(typ='scan_T', measuretype='RES')
         self.__scanconf = dict(
                                 start = 0,
                                 end = 0,
-                                Nsteps = None, 
+                                Nsteps = None,
                                 SizeSteps = None)
         self.putin_start = False
         self.putin_end = False
@@ -127,44 +171,44 @@ class Window_Tscan(QtWidgets.QDialog):
         # self.model.sig_stepsize.connect(self.spinSetSizeSteps.setValue)
 
     def update_list(self, Nsteps, SizeSteps):
-        if not (self.putin_start and self.putin_end): 
+        if not (self.putin_start and self.putin_end):
             return
-        # if not (self.putin_Size or self.putin_N): 
+        # if not (self.putin_Size or self.putin_N):
         #     return
         if Nsteps:
             # self.__scanconf['Nsteps'] = Nsteps
-            with self.dictlock: 
+            with self.dictlock:
                 self.__scanconf['SizeSteps'] = None
 
-        if SizeSteps: 
-            with self.dictlock: 
+        if SizeSteps:
+            with self.dictlock:
                 self.__scanconf['Nsteps'] = None
             # self.__scanconf['SizeSteps'] = None
-        # print(self.__scanconf)         
+        # print(self.__scanconf)
         self.sig_updateScanListModel.emit(deepcopy(self.__scanconf))
-        
+
     def setTstart(self, Tstart):
-        with self.dictlock: 
+        with self.dictlock:
             self.__scanconf['start'] = Tstart
         self.putin_start = True
         self.conf.update(self.__scanconf)
 
     def setTend(self, Tend):
-        with self.dictlock: 
+        with self.dictlock:
             self.__scanconf['end'] = Tend
         self.putin_end = True
         self.conf.update(self.__scanconf)
 
     def setN(self, N):
-        with self.dictlock: 
+        with self.dictlock:
             self.__scanconf['Nsteps'] = N
-        self.putin_N = True 
+        # self.putin_N = True
         self.conf.update(self.__scanconf)
 
     def setSizeSteps(self, stepsize):
-        with self.dictlock: 
+        with self.dictlock:
             self.__scanconf['SizeSteps'] = stepsize
-        self.putin_Size = True 
+        # self.putin_Size = True
         self.conf.update(self.__scanconf)
 
     def setLCDstepsize(self, value):
@@ -179,43 +223,42 @@ class Window_Tscan(QtWidgets.QDialog):
         print(message)
 
     def setRampCondition(self, value):
-        with self.dictlock: 
+        with self.dictlock:
             self.conf['RampCondition'] = value
             # 0 == Stabilize
             # 1 == Sweep
             # CHECK THIS
 
-            # if value == 0: 
+            # if value == 0:
             #     self.conf['RampCondition'] = 'Stabilize'
-            # elif value == 1: 
+            # elif value == 1:
             #     self.conf['RampCondition'] = 'Sweep'
 
     def setSweepRate(self, value):
-        with self.dictlock: 
+        with self.dictlock:
             self.conf['SweepRate'] = value
 
     def update_lcds(self):
-        try: 
+        try:
             self.lcdStepsize.display(self._LCD_stepsize)
             self.lcdNsteps.display(self._LCD_Nsteps)
             # self.listTemperatures.repaint()
-        finally: 
+        finally:
             QTimer.singleShot(0, self.update_lcds)
 
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
 
-        self.conf['sequence'] = self.model.pass_data()
+        self.conf['sequence_temperature'] = self.model.pass_data()
 
         self.sig_accept.emit(deepcopy(self.conf))
         self.accept()
 
 
-
 class Sequence_builder(Window_ui):
     """docstring for sequence_builder"""
 
-    sig_runSequence = pyqtSignal(dict)
+    sig_runSequence = pyqtSignal(list)
     sig_abortSequence = pyqtSignal()
 
     def __init__(self, sequence_file=None, parent=None, **kwargs):
@@ -236,6 +279,7 @@ class Sequence_builder(Window_ui):
         self.pushOpen.clicked.connect(self.window_FileDialogOpen)
         self.lineFileLocation.setText(self.sequence_file)
         self.lineFileLocation.textChanged.connect(lambda value: self.change_file_location(value))
+        self.pushClear.clicked.connect(lambda: self.model.clear_all())
 
         self.Button_RunSequence.clicked.connect(self.running_sequence)
         self.Button_AbortSequence.clicked.connect(lambda: self.sig_abortSequence.emit())
@@ -250,30 +294,37 @@ class Sequence_builder(Window_ui):
 
 
     def addItem_toSequence(self, text):
-        if text.text(0) == 'Wait': 
+        """
+            depending on the Item clicked, add the correct Item to the model,
+            which may involve executing a certain window
+        """
+        if text.text(0) == 'Wait':
             # self.window_waiting.show()
             self.window_waiting.exec_()# if self.window_waiting.exec_():
             # print('success')
 
-        if text.text(0) == 'Set Temperature': 
-            raise NotImplementedError
-
-        if text.text(0) == 'Set Field': 
-            raise NotImplementedError
-
-        if text.text(0) == 'Resistivity vs Temperature': 
+        if text.text(0) == 'Resistivity vs Temperature':
+            # here the Tscan comes
             self.window_Tscan.exec_()
 
-        if text.text(0) == 'Resistivity vs Field': 
-            raise NotImplementedError
-
-        if text.text(0) == 'Shutdown Temperature Control':
-            raise NotImplementedError
-
         if text.text(0) == 'Chain Sequence':
-            raise NotImplementedError
+            new_file_seq, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Sequence',
+               'c:\\',"Sequence files (*.seq)")
+            data = dict(typ='chain sequence', new_file_seq=new_file_seq,
+                            DisplayText='Chain sequence: {}'.format(new_file_seq))
+            self.model.addItem(data)
+            QTimer.singleShot(1, lambda: self.listSequence.repaint())
+
 
         if text.text(0) == 'Change Data File':
+            raise NotImplementedError
+        if text.text(0) == 'Set Temperature':
+            raise NotImplementedError
+        if text.text(0) == 'Set Field':
+            raise NotImplementedError
+        if text.text(0) == 'Resistivity vs Field':
+            raise NotImplementedError
+        if text.text(0) == 'Shutdown Temperature Control':
             raise NotImplementedError
 
     def parse_waiting(self, data):
@@ -284,7 +335,7 @@ class Sequence_builder(Window_ui):
         if data['Temp']:
             string += 'Temperature' + separator
             sep_taken = True
-        if data['Field']: 
+        if data['Field']:
             string = string + 'Field' if sep_taken else  string + 'Field' + separator
             sep_taken = True
         string += ' & {} seconds more'.format(data['Delay'])
@@ -298,6 +349,7 @@ class Sequence_builder(Window_ui):
 
     def parse_set_field(self, data):
         return 'Set Field to {Field} at {rate}T/min (rate is only a wish...)'.format(**data)
+
 
     def addWaiting(self, data):
         string = self.parse_waiting(data)
@@ -313,12 +365,10 @@ class Sequence_builder(Window_ui):
         self.model.addItem(data)
         QTimer.singleShot(1, lambda: self.listSequence.repaint())
 
-    def addChainSequence(self, data):
-        new_file_seq, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As', 
-           'c:\\',"Sequence files (*.seq)")        
 
     def addChangeDataFile(self, data):
         pass
+
 
 
     def printing(self, data):
@@ -329,7 +379,7 @@ class Sequence_builder(Window_ui):
             for entry in data:
                 print(entry)
                 if entry['typ'] == 'scan_T':
-                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {RampCondition} 0\n'.format(**entry))# make sure Rampcondition is actually where it is! 
+                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {RampCondition} 0\n'.format(**entry))# TODO: make sure Rampcondition is actually where it is!
                     f.write('{measuretype} 00 00 00 11 11 00\n'.format(**entry))
                     f.write('ENT EOS\n')
                 if entry['typ'] == 'Wait':
@@ -340,6 +390,7 @@ class Sequence_builder(Window_ui):
     def initialize_all_windows(self):
         self.initialise_window_waiting()
         self.initialise_window_Tscan()
+        self.initialise_window_ChangeDataFile()
 
     def initialise_window_waiting(self):
         self.window_waiting = Window_waiting()
@@ -349,13 +400,17 @@ class Sequence_builder(Window_ui):
         self.window_Tscan = Window_Tscan()
         self.window_Tscan.sig_accept.connect(lambda value: self.addTscan(value))
 
+    def initialise_window_ChangeDataFile(self):
+        self.Window_ChangeDataFile = Window_ChangeDataFile()
+        self.Window_ChangeDataFile.sig_accept.connect(lambda value: self.addChangeDataFile(value))
+
     def window_FileDialogSave(self):
-        self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As', 
+        self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As',
            'c:\\',"Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
 
     def window_FileDialogOpen(self):
-        self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As', 
+        self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As',
            'c:\\',"Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
         self.initialize_sequence(self.sequence_file)
@@ -364,36 +419,36 @@ class Sequence_builder(Window_ui):
     def change_file_location(self, fname):
         self.sequence_file = fname
 
-    def update_filelocation(self):
-        try: 
-            self.lineFileLocation.setText(self.sequence_file)
-        finally: 
-            QTimer.singleShot(0, update_filelocation)
+    # def update_filelocation(self):
+    #     try:
+    #         self.lineFileLocation.setText(self.sequence_file)
+    #     finally:
+            # QTimer.singleShot(0, update_filelocation)
 
 
     def initialize_sequence(self, sequence_file):
-        if sequence_file: 
+        if sequence_file:
             self.change_file_location(sequence_file)
             def construct_pattern(expressions):
                 pat = ''
-                for e in exp: 
+                for e in exp:
                     pat = pat + r'|' + e
                 return pat[1:]
                 # set temp,            set field,       scan Something,  Wait for something, chain sequence, change data file
             exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)EOS$', r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
             self.p = re.compile(construct_pattern(exp), re.DOTALL|re.M) # '(.*?)[^\S]* EOS'
-            self.number = re.compile(r'([0-9]+[.]*[0-9]*)') 
+            self.number = re.compile(r'([0-9]+[.]*[0-9]*)')
 
-            sequence = self.read_sequence(sequence_file)       
-            for command in sequence: 
+            sequence = self.read_sequence(sequence_file)
+            for command in sequence:
                 # print(command)
                 self.model.addItem(command)
-        else: 
+        else:
             self.sequence_file = ['']
 
 
 
-    def read_sequence(self, file): 
+    def read_sequence(self, file):
         with open(file, 'r') as myfile:
             data=myfile.read()#.replace('\n', '')
 
@@ -401,10 +456,10 @@ class Sequence_builder(Window_ui):
 
         sequence_raw = self.p.findall(data)
         commands = []
-        for part in sequence_raw: 
+        for part in sequence_raw:
             # dic = dict()
             # print(part)
-            if part[0]: 
+            if part[0]:
                 # set temperature
                 comm = part[0]
                 nums = [float(x) for x in self.number.findall(comm)]
@@ -412,36 +467,36 @@ class Sequence_builder(Window_ui):
 
                 dic['DisplayText']=self.parse_set_temp(dic)
 
-            elif part[1]: 
+            elif part[1]:
                 # set field
                 comm = part[1]
                 nums = [float(x) for x in self.number.findall(comm)]
                 dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1] )
                 dic['DisplayText']=self.parse_set_field(dic)
 
-            elif part[2]: 
+            elif part[2]:
                 # scan temperature
                 comm = part[2]
-                if comm[0] == 'T': 
+                if comm[0] == 'T':
                     templine = comm.splitlines()[0]
                     temps = [float(x) for x in self.number.findall(templine)]
-                    dic = dict(typ='scan_T', start=temps[0], 
-                                                    end=temps[1], 
+                    dic = dict(typ='scan_T', start=temps[0],
+                                                    end=temps[1],
                                                     SweepRate=temps[2],
-                                                    Nsteps = temps[3], 
+                                                    Nsteps = temps[3],
                                                     RampCondition=temps[4])
                 measureline = comm.splitlines()[1]
-                if measureline[:3] == 'RES': 
+                if measureline[:3] == 'RES':
                     nums = [float(x) for x in self.number.findall(measureline)]
-                dic.update(dict(measuretype='RES', 
-                                RES_arbnum1 = nums[0], 
-                                RES_arbnum2 = nums[1], 
+                dic.update(dict(measuretype='RES',
+                                RES_arbnum1 = nums[0],
+                                RES_arbnum2 = nums[1],
                                 DisplayText = self.parse_Tscan(dic)))
-            elif part[3]: 
+            elif part[3]:
                 # waiting
                 comm = part[3]
                 nums = [float(x) for x in self.number.findall(comm)]
-                seconds = nums[0] 
+                seconds = nums[0]
                 Field = True if int(nums[2]) == 1 else False
                 Temp = True if int(nums[1]) == 1 else False
 
@@ -451,22 +506,22 @@ class Sequence_builder(Window_ui):
             elif part[4]:
                 # chain sequence
                 comm = part[4]
-                dic = dict(typ='chain sequence', new_seq_file=comm, 
+                dic = dict(typ='chain sequence', new_file_seq=comm,
                             DisplayText='Chain sequence: {}'.format(comm))
                 print('CHN', comm)
             elif part[5]:
                 # change data file
                 comm = part[5]
-                fiel = exp_datafile.findall(comm)[0]
+                file = exp_datafile.findall(comm)[0]
                 dic = dict(typ='change datafile', new_file_data=file,
-                            mode='a' if comm[-1]=='1' else 'w', 
+                            mode='a' if comm[-1]=='1' else 'w',
                             # a - appending, w - writing, can be inserted directly into opening statement
                             DisplayText='Change data file: {}'.format(file))
                 print('CDF',comm)
 
 
             commands.append(dic)
-        # for x in commands: 
+        # for x in commands:
         #     print(x)
         return commands
 

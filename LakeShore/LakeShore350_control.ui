@@ -6,69 +6,93 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>666</width>
-    <height>281</height>
+    <width>1003</width>
+    <height>530</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>LakeShore 350 Control</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_6">
-   <item row="0" column="0">
-    <widget class="QGroupBox" name="groupSettings">
+   <item row="1" column="2">
+    <widget class="QGroupBox" name="groupReadingsStatus">
      <property name="title">
-      <string>Settings</string>
+      <string>Status Readings</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4" rowstretch="2,0,0,0,0,0">
-      <item row="5" column="0" colspan="3">
-       <widget class="QGroupBox" name="groupPID_set">
+     <layout class="QGridLayout" name="gridLayout_5" rowstretch="1">
+      <item row="0" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupPID">
         <property name="title">
          <string>PID Values</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="0">
-          <widget class="QLabel" name="label_13">
+          <widget class="QLabel" name="label_10">
            <property name="text">
             <string>P</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="label_14">
+          <widget class="QLabel" name="label_11">
            <property name="text">
             <string>I</string>
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="QLCDNumber" name="lcdLoopP_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="label_15">
+          <widget class="QLabel" name="label_12">
            <property name="text">
             <string>D</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="spinBox"/>
-         </item>
          <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox_2"/>
+          <widget class="QLCDNumber" name="lcdLoopI_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QSpinBox" name="spinBox_3"/>
+          <widget class="QLCDNumber" name="lcdLoopD_Param">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" rowspan="2">
+    <widget class="QGroupBox" name="groupSettings">
+     <property name="title">
+      <string>Settings</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4" rowstretch="2,0,0,0,0,0">
       <item row="0" column="0" rowspan="2" colspan="3">
        <widget class="QWidget" name="widget" native="true">
         <layout class="QGridLayout" name="gridLayout_7">
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="spinSetTemp_K">
            <property name="decimals">
-            <number>4</number>
+            <number>3</number>
            </property>
            <property name="maximum">
             <double>300.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>4.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -85,12 +109,19 @@
             <number>3</number>
            </property>
            <property name="maximum">
-            <double>100.000000000000000</double>
+            <double>5.000000000000000</double>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QLCDNumber" name="lcdSetTemp_K"/>
+          <widget class="QLCDNumber" name="lcdSetTemp_K">
+           <property name="digitCount">
+            <number>7</number>
+           </property>
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_4">
@@ -124,7 +155,11 @@
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin"/>
+          <widget class="QLCDNumber" name="lcdSetRampRate_Kpmin">
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
          </item>
          <item row="4" column="0">
           <widget class="QLabel" name="label_8">
@@ -143,128 +178,357 @@
         </layout>
        </widget>
       </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QGroupBox" name="groupReadings">
-     <property name="title">
-      <string>Readings</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="2" column="1">
-       <widget class="QLCDNumber" name="lcdSensor3_K"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Sens 4</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLCDNumber" name="lcdSensor2_K"/>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLCDNumber" name="lcdSensor1_K"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Sens 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Sens 1 - Probe Head</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Sens 3</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QProgressBar" name="progressHeaterOutput_percentage">
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Heater Output [%]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLCDNumber" name="lcdSensor4_K"/>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLCDNumber" name="lcdHeaterOutput_mW"/>
-      </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Heater Output [mW]</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QGroupBox" name="groupReadingsStatus">
-     <property name="title">
-      <string>Status Readings</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_5" rowstretch="1,4">
-      <item row="0" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupPID">
+       <widget class="QGroupBox" name="groupPID_set">
         <property name="title">
          <string>PID Values</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
-          <widget class="QLabel" name="label_10">
+          <widget class="QLabel" name="label_13">
            <property name="text">
             <string>P</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="label_11">
+          <widget class="QLabel" name="label_14">
            <property name="text">
             <string>I</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLCDNumber" name="lcdLoopP_Param"/>
-         </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="label_12">
+          <widget class="QLabel" name="label_15">
            <property name="text">
             <string>D</string>
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="spinBox">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="1">
-          <widget class="QLCDNumber" name="lcdLoopI_Param"/>
+          <widget class="QSpinBox" name="spinBox_2">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QLCDNumber" name="lcdLoopD_Param"/>
+          <widget class="QSpinBox" name="spinBox_3">
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Measuring Interval</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <item row="1" column="0">
+          <widget class="QDoubleSpinBox" name="spin_threadinterval">
+           <property name="maximum">
+            <double>3600.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Defines the time to wait [s] 
+between two runs of 
+all performed queries</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QGroupBox" name="groupReadings">
+     <property name="title">
+      <string>Readings</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,1,1">
+      <item row="2" column="1">
+       <widget class="QLCDNumber" name="lcdSensor2_K">
+        <property name="digitCount">
+         <number>7</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Sens 4</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Sens 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Heater Output [%]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLCDNumber" name="lcdSensor1_K">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="digitCount">
+         <number>7</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLCDNumber" name="lcdHeaterOutput_mW">
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Heater Output [mW]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLCDNumber" name="lcdSensor4_K">
+        <property name="digitCount">
+         <number>7</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>[Kelvin]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>[Kelvin/min]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLCDNumber" name="lcdSensor3_K">
+        <property name="digitCount">
+         <number>7</number>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QProgressBar" name="progressHeaterOutput_percentage">
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Sens 3</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Sens 1 - Probe Head</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QComboBox" name="comboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>Off</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Range 4</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QTextEdit" name="textSensor4_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QTextEdit" name="textSensor1_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="inputMethodHints">
+         <set>Qt::ImhNone</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QTextEdit" name="textSensor2_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QTextEdit" name="textSensor3_Kpmin">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="minimumSize">
+      <size>
+       <width>731</width>
+       <height>71</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>71</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="html">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:24pt;&quot;&gt;LakeShore350 - settings for&lt;/span&gt;&lt;span style=&quot; font-size:24pt; font-weight:600;&quot;&gt; probe head&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
     </widget>
    </item>
   </layout>

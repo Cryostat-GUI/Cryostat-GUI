@@ -1,6 +1,3 @@
-import threading
-
-import visa
 from pyvisa.errors import VisaIOError
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
@@ -31,18 +28,19 @@ class ilm211(AbstractSerialDeviceDriver):
         self.write("$C{}".format(state))
 
     def getValue(self, variable=2):
+
         """Read the variable defined by the index.
-        
+
         There are values 11-13 but useless for
         general use. These are omitted.
-        
+
         1: CHANNEL 1 LEVEL           6: CHANNEL 1 WIRE CURRENT
         2: CHANNEL 2 LEVEL           7: CHANNEL 2 WIRE CURRENT
         3: CHANNEL 3 LEVEL           8: not in use
         4:  not in use               9: not in use
         5:  not in use              10: NEEDLE VALVE POSITION
         5:  not in use
-        
+
         Args:
             variable: Index of variable to read.
         """
@@ -50,11 +48,12 @@ class ilm211(AbstractSerialDeviceDriver):
             raise AssertionError('ILM: getValue: Argument must be integer')
         if variable not in range(0,11):
             raise AssertionError('ILM: getValue: Argument is not a valid number.')
-        
-        self.clear_buffers()
+
+        # self.clear_buffers()
+
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
-        
+
         if value == "" or None:
             # raise AssertionError('ILM: getValue: bad reply: empty string')
             # print('ILM: Assertion: empty')
@@ -74,23 +73,24 @@ class ilm211(AbstractSerialDeviceDriver):
                 if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
+
         return float(value.strip('R+'))
 
     def _converting_status_channel(self, i):
         i = int(i)
-        if i == 0: 
+        if i == 0:
             return 'not in use'
-        elif i == 1: 
+        elif i == 1:
             return 'Nitrogen'
-        elif i == 2: 
+        elif i == 2:
             return 'Helium pulsed'
-        elif i == 3: 
+        elif i == 3:
             return 'Helium continuous'
         elif i == 9:
-            return 'Error - probe unplugged' 
+            return 'Error - probe unplugged'
 
     def getStatus(self):
-        """query status of the machine, 
+        """query status of the machine,
             interprete it, and return it
         """
 
@@ -100,27 +100,27 @@ class ilm211(AbstractSerialDeviceDriver):
         stat_channel.append(status[5:6])
         stat_channel.append(status[7:8])
         stat_channel.append(status[9:10])
-        # TODO: extract information from the hexadecimal numbers 
+        # TODO: extract information from the hexadecimal numbers
 
-        return [self._converting_status_channel(status[1]), self._converting_status_channel(status[2]), 
+        return [self._converting_status_channel(status[1]), self._converting_status_channel(status[2]),
                 stat_channel[0], stat_channel[1], stat_channel[2]]
 
 
     def setSlow(self, channel):
         """put channel 'channel' into slow sample rate"""
-        if not isinstance(channel, int): 
+        if not isinstance(channel, int):
             raise AssertionError('ILM: setSlow: Argument must be integer')
         if channel not in [1,2]:
-            raise AssertionError('ILM: setSlow: Argument is not a valid number.')         
+            raise AssertionError('ILM: setSlow: Argument is not a valid number.')
 
         self.write('$S{}'.format(channel))
 
     def setFast(self, channel):
         """put channel 'channel' into fast sample rate"""
-        if not isinstance(channel, int): 
+        if not isinstance(channel, int):
             raise AssertionError('ILM: setFast: Argument must be integer')
         if channel not in [1,2]:
-            raise AssertionError('ILM: setFast: Argument is not a valid number.')         
+            raise AssertionError('ILM: setFast: Argument is not a valid number.')
 
-        self.write('$T{}'.format(channel))       
-        
+        self.write('$T{}'.format(channel))
+
