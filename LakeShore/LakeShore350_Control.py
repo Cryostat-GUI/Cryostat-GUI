@@ -10,7 +10,6 @@ from copy import deepcopy
 # from util import AbstractThread
 from util import AbstractLoopThread
 
-
 class LakeShore350_Updater(AbstractLoopThread):
     """This is the worker thread, which updates all instrument data of the self.ITC 503.
 
