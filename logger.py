@@ -57,6 +57,7 @@ def sql_buildDictTableString(dictname):
     for key in dictname.keys():
         string += ''',{key} {typ}'''.format(key=key, typ=typeof(dictname[key]))
     string += ''')'''
+    # print(string)
     return string
 
 
@@ -263,15 +264,18 @@ class main_Logger(AbstractLoopThread):
 
         sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
         sql += sql_buildDictTableString(dictname)
+        # print(sql)
         self.mycursor.execute(sql)
 
         #We should try to find a nicer a solution without try and except
         # #try:
         for key in dictname.keys():
             try:
-                sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(tablename,key,dictname[key])
+                sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(tablename,key,typeof(dictname[key]))
+                # print(sql)
                 self.mycursor.execute(sql)
             except OperationalError as err:
+                # print(err)
                 pass  # Logger: probably the column already exists, no problem.
         #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
@@ -377,6 +381,7 @@ class main_Logger(AbstractLoopThread):
         names = ['ITC', 'ILM', 'IPS', 'LakeShore350']
         for name in names:
             try:
+                # print(name)
                 data[name].update(timedict)
                 # sql = change_to_correct_types(name, data[name])
                 # for ct, command in enumerate(sql):

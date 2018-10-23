@@ -705,7 +705,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             logger = self.running_thread(main_Logger(self), None, 'logger')
-            logger.sig_log.connect(lambda : self.sig_logging.emit(self.data))
+            logger.sig_log.connect(lambda : self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
             self.logging_running_logger = True
 
