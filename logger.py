@@ -22,6 +22,20 @@ from util import Window_ui
 from sqlite3 import OperationalError
 
 
+def testing_NaN(variable):
+    try:
+        if variable is not None:
+            var = float(variable)
+            bo = math.isnan(var)
+        else:
+            var = 0
+            bo = True
+    except ValueError:
+        var = variable
+        bo = False
+    return var, bo
+
+
 def SQLFormatting(variable):
     if isinstance(variable, (float, int)):
         return variable
@@ -30,9 +44,9 @@ def SQLFormatting(variable):
 
 
 def typeof(dictkey):
-    if isinstance(dictkey,float):
+    if isinstance(dictkey, float):
         return "REAL"
-    elif isinstance(dictkey,int):
+    elif isinstance(dictkey, int):
         return "INTEGER"
     else:
         return "TEXT"
@@ -82,32 +96,42 @@ class Logger_configuration(Window_ui):
     sig_send_conf = pyqtSignal(dict)
 
     ITC_sensors = dict(
-        set_temperature = False,
-        sensor_1_temperature = False,
-        sensor_2_temperature = False,
-        sensor_3_temperature = False,
-        temperature_error = False,
-        heater_output_as_percent = False,
-        heater_output_as_voltage = False,
-        gas_flow_output = False,
-        proportional_band = False,
-        integral_action_time = False,
-        derivative_action_time = False)
+        set_temperature=False,
+        sensor_1_temperature=False,
+        sensor_2_temperature=False,
+        sensor_3_temperature=False,
+        temperature_error=False,
+        heater_output_as_percent=False,
+        heater_output_as_voltage=False,
+        gas_flow_output=False,
+        proportional_band=False,
+        integral_action_time=False,
+        derivative_action_time=False)
 
     def __init__(self, parent=None, **kwargs):
-        super(Logger_configuration, self).__init__(ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
+        super(Logger_configuration, self).__init__(
+            ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
 
-        self.general_threads_ITC.toggled.connect(lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(lambda b: self.ITC_thread_running.setChecked(b))
-        self.general_threads_ILM.toggled.connect(lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(lambda b: self.ILM_thread_running.setChecked(b))
-        self.general_threads_PS.toggled.connect(lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(lambda b: self.PS_thread_running.setChecked(b))
-        self.general_threads_Lakeshore350.toggled.connect(lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(lambda b: self.Lakeshore350_thread_running.setChecked(b))
-        self.general_spinSetInterval.valueChanged.connect(lambda value: self.setValue('general','interval', value) )
+        self.general_threads_ITC.toggled.connect(
+                lambda value: self.setValue('ITC', 'thread', value))
+        self.general_threads_ITC.toggled.connect(
+                lambda b: self.ITC_thread_running.setChecked(b))
+        self.general_threads_ILM.toggled.connect(
+                lambda value: self.setValue('ILM', 'thread', value))
+        self.general_threads_ILM.toggled.connect(
+                lambda b: self.ILM_thread_running.setChecked(b))
+        self.general_threads_PS.toggled.connect(
+                lambda value: self.setValue('PS', 'thread', value))
+        self.general_threads_PS.toggled.connect(
+                lambda b: self.PS_thread_running.setChecked(b))
+        self.general_threads_Lakeshore350.toggled.connect(
+                lambda value: self.setValue('Lakeshore350', 'thread', value))
+        self.general_threads_Lakeshore350.toggled.connect(
+                lambda b: self.Lakeshore350_thread_running.setChecked(b))
+        self.general_spinSetInterval.valueChanged.connect(
+                lambda value: self.setValue('general', 'interval', value))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
@@ -123,10 +147,10 @@ class Logger_configuration(Window_ui):
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
-        self.buttonBox_finish.accepted.connect(lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
+        self.buttonBox_finish.accepted.connect(
+            lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
         self.buttonBox_finish.accepted.connect(self.close_and_safe)
         self.buttonBox_finish.rejected.connect(self.close)
-
 
     def close_and_safe(self):
         """save the configuration dict to a file, close the window afterwards"""
@@ -134,7 +158,6 @@ class Logger_configuration(Window_ui):
         with open('configurations/log_conf.pickle', 'wb') as handle:
             pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
         self.close()
-
 
     def setValue(self, instrument, value, bools):
         """set a bool value according to the instrument and specific"""
@@ -157,7 +180,11 @@ class Logger_configuration(Window_ui):
         return conf
 
     def read_configuration(self):
-        '''search for configuration file, load it if found, initialise new dict if not found'''
+        '''
+            search for configuration file,
+            load it if found,
+            initialise new dict if not found
+        '''
         configurations = os.listdir(r'.\\configurations')
         if 'log_conf.pickle' in configurations:
             with open('configurations/log_conf.pickle', 'rb') as handle:
@@ -165,10 +192,10 @@ class Logger_configuration(Window_ui):
         else:
             self.conf = self.initialise_dicts()
 
-
     def window_FileDialogSave(self):
-        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Database File Location',
-           'c:\\',"Database Files - SQLite3 (*.db)")
+        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
+           self, 'Choose Database File Location',
+           'c:\\', "Database Files - SQLite3 (*.db)")
         self.lineFilelocation.setText(dbname)
         self.setValue('general', 'logfile_location', dbname)
 
@@ -180,13 +207,11 @@ class main_Logger(AbstractLoopThread):
     sig_configuring = pyqtSignal(bool)
     sig_log = pyqtSignal()
 
-
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
-        self.interval = 5 # 5s interval for logging as initialisation
-
+        self.interval = 5  # 5s interval for logging as initialisation
 
         self.mainthread.sig_logging.connect(self.store_data)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -195,9 +220,6 @@ class main_Logger(AbstractLoopThread):
         self.configuration_done = False
         self.conf_done_layer2 = False
 
-        # self.dbname = 'He_first_cooldown.db'
-
-        # QTimer.singleShot(1e3, self.initialise)
         self.not_yet_initialised = False
 
     def running(self):
@@ -266,7 +288,8 @@ class main_Logger(AbstractLoopThread):
         if not dictname:
             # print('no column like this!!!')
             raise AssertionError('Logger: dict does not yet exist')
-        sql = """INSERT INTO {} ({}) VALUES ({})""".format(tablename, 'timeseconds', dictname['timeseconds'])
+        sql = """INSERT INTO {} ({}) VALUES ({})""".format(
+                    tablename, 'timeseconds', dictname['timeseconds'])
         self.mycursor.execute(sql)
 
         # for key in dictname.keys():
@@ -277,23 +300,12 @@ class main_Logger(AbstractLoopThread):
         #                                                 sec_now=dictname['timeseconds'])
         #     self.mycursor.execute(sql)
         # print('vor testing')
-        def testing(variable):
-            try:
-                if variable is not None:
-                    var = float(variable)
-                    bo = math.isnan(var)
-                else:
-                    var = 0
-                    bo = True
-            except ValueError:
-                var = variable
-                bo = False
-            return var, bo
+
         # print('nach testing')
         try:
             for key in dictname:
                 # print(key, 'key')
-                var, bools = testing(dictname[key])
+                var, bools = testing_NaN(dictname[key])
                 # print(var, bools, type(var))
                 if not bools:
                     # print('ich arbeite')
