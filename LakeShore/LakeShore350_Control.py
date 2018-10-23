@@ -86,7 +86,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         """
         try:
             self.sensor_values[0] = self.LakeShore350.HeaterOutputQuery(1)
-            self.sensor_values[1] = self.sensor_values[0]*994.5
+            self.sensor_values[1] = self.sensor_values[0]*0.9945
             self.sensor_values[2] = self.LakeShore350.ControlSetpointQuery(1)
             self.sensor_values[3] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
             temp_list = self.LakeShore350.KelvinReadingQuery(0)

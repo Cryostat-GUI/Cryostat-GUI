@@ -304,6 +304,7 @@ class main_Logger(AbstractLoopThread):
                                                             sec_now=dictname['timeseconds'])
                     self.mycursor.execute(sql)
         except OperationalError as err:
+            print(err)
             raise AssertionError(err.args[0])# do not know whether this will work
         self.conn.commit()
 
