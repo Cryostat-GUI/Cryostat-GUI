@@ -265,7 +265,11 @@ class main_Logger(AbstractLoopThread):
         sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
         sql += sql_buildDictTableString(dictname)
         # print(sql)
-        self.mycursor.execute(sql)
+        try:
+            self.mycursor.execute(sql)
+        except OperationalError as err:
+            # print(err)
+            pass
 
         #We should try to find a nicer a solution without try and except
         # #try:
