@@ -1,3 +1,7 @@
+"""
+Driver for the LakeShore 350 Cryogenic Temperature Controller
+"""
+
 # coding=utf-8
 # Commands for dealing with the LakeShore 350
 
