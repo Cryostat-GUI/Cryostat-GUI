@@ -5,3 +5,4 @@ __pycache__
 *archiv*
 *.DS_Store*
 *.db*
+*.pickle
