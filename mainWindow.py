@@ -655,15 +655,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             if not co == 0:
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
-        # if not coeffs['Sensor_1_Kpmin'] == 0:
-        #     self.LakeShore350_window.textSensor1_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_1_Kpmin']))
-        # if not coeffs['Sensor_2_Kpmin'] == 0:
-        #     self.LakeShore350_window.textSensor2_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_2_Kpmin']))
-        # if not coeffs['Sensor_3_Kpmin'] == 0:
-        #     self.LakeShore350_window.textSensor3_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_3_Kpmin']))
-        # if not coeffs['Sensor_4_Kpmin'] == 0:
-        #     self.LakeShore350_window.textSensor4_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_4_Kpmin']))
-
         data['date'] = convert_time(time.time())
         with self.dataLock:
             self.data['LakeShore350'].update(data)
