@@ -16,13 +16,13 @@ from copy import deepcopy
 import sqlite3
 import matplotlib.pyplot as plt
 
-# import mainWindow_ui
+import mainWindow_ui
 
-# from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-#from Oxford.ITC_control import ITC_Updater
-#from Oxford.ILM_control import ILM_Updater
-#from Oxford.IPS_control import IPS_Updater
-#from LakeShore.LakeShore350_Control import LakeShore350_Updater
+from Oxford.ITCcontrol_ui import Ui_ITCcontrol
+from Oxford.ITC_control import ITC_Updater
+from Oxford.ILM_control import ILM_Updater
+from Oxford.IPS_control import IPS_Updater
+from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
 
