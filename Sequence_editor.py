@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -11,7 +11,7 @@ from copy import deepcopy
 import sys
 # import datetime
 # import pickle
-import os
+# import os
 import re
 import threading
 
@@ -35,7 +35,7 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
         loadUi(ui_file, self)
 
         self.conf = dict(typ='change datafile', new_file_data='',
-                            mode='a' if comm[-1]=='1' else 'w', 
+                            mode='a' if comm[-1]=='1' else 'w',
                             DisplayText='')
         self.lineFileLocation.setText(self.conf['new_file_data'])
         self.lineFileLocation.textChanged.connect(lambda value: self.setValue('new_file_data', value))
@@ -66,8 +66,6 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
 
     def setMode(self, modeint):
         pass
-
-
 
 
 class Window_waiting(QtWidgets.QDialog):
@@ -204,13 +202,13 @@ class Window_Tscan(QtWidgets.QDialog):
     def setN(self, N):
         with self.dictlock:
             self.__scanconf['Nsteps'] = N
-        self.putin_N = True
+        # self.putin_N = True
         self.conf.update(self.__scanconf)
 
     def setSizeSteps(self, stepsize):
         with self.dictlock:
             self.__scanconf['SizeSteps'] = stepsize
-        self.putin_Size = True
+        # self.putin_Size = True
         self.conf.update(self.__scanconf)
 
     def setLCDstepsize(self, value):
@@ -251,11 +249,10 @@ class Window_Tscan(QtWidgets.QDialog):
     def acc(self):
         """if not rejected, emit signal with configuration and accept"""
 
-        self.conf['sequence'] = self.model.pass_data()
+        self.conf['sequence_temperature'] = self.model.pass_data()
 
         self.sig_accept.emit(deepcopy(self.conf))
         self.accept()
-
 
 
 class Sequence_builder(Window_ui):
@@ -515,7 +512,7 @@ class Sequence_builder(Window_ui):
             elif part[5]:
                 # change data file
                 comm = part[5]
-                fiel = exp_datafile.findall(comm)[0]
+                file = exp_datafile.findall(comm)[0]
                 dic = dict(typ='change datafile', new_file_data=file,
                             mode='a' if comm[-1]=='1' else 'w',
                             # a - appending, w - writing, can be inserted directly into opening statement

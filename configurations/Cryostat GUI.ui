@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>912</width>
-    <height>665</height>
+    <width>464</width>
+    <height>229</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>912</width>
+     <width>464</width>
      <height>21</height>
     </rect>
    </property>
@@ -92,6 +92,9 @@
      <addaction name="action_run_IPS"/>
     </widget>
     <widget class="QMenu" name="menuKeithley">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
       <string>Keithley</string>
      </property>
@@ -481,6 +484,9 @@
    </property>
   </action>
   <action name="action_run_Nanovolts">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Nanovoltmeters</string>
    </property>
@@ -549,6 +555,9 @@
    </property>
   </action>
   <action name="actionLogging_LIVE">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Logging LIVE</string>
    </property>

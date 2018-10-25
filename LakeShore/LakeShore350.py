@@ -1,5 +1,7 @@
-# coding=utf-8
-# Commands for dealing with the LakeShore 350
+# -*- coding: utf-8 -*-
+"""
+Driver for the LakeShore 350 Cryogenic Temperature Controller
+"""
 
 import threading, visa
 
@@ -1665,8 +1667,7 @@ class LakeShore350(object):
         if input_value not in ['A', 'B', 'C', 'D', 0]:
             raise AssertionError("LakeShore:SensorUnitsInputReadingQuery: Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
-        return answer
+        return self.query('SRDG? ' + '{0:1}'.format(input_value))
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
@@ -1807,7 +1808,7 @@ class LakeShore350(object):
 
         :param output: Specifies which heater output to configure: 1 – 4.
         :type output: int
-        :param zone: Specifies which zone in the table to configure. Valid entries are: 1–10.
+        :param zone: Specifies which zone in the table to configure. Valid entries are: 1–10.
         :type zone: int
         :param upper_bound: Specifies the upper Setpoint boundary of this zone in kelvin.
         :type upper_bound: float
