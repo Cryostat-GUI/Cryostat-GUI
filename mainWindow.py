@@ -16,13 +16,13 @@ from copy import deepcopy
 import sqlite3
 import matplotlib.pyplot as plt
 
-import mainWindow_ui
+#import mainWindow_ui
 
-from Oxford.ITCcontrol_ui import Ui_ITCcontrol
-from Oxford.ITC_control import ITC_Updater
-from Oxford.ILM_control import ILM_Updater
-from Oxford.IPS_control import IPS_Updater
-from LakeShore.LakeShore350_Control import LakeShore350_Updater
+#from Oxford.ITCcontrol_ui import Ui_ITCcontrol
+#from Oxford.ITC_control import ITC_Updater
+#from Oxford.ILM_control import ILM_Updater
+#from Oxford.IPS_control import IPS_Updater
+#from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
 
 
@@ -65,13 +65,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     
     #these will hold the strings which the user selects to extract the data from db with the sql query and plot it
     #x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
-    x=0
-    y1=0
-    y2=0
+    instrument_for_x=0
+    instrument_for_y1=0
+    instrument_for_y2=0
 
-    x_plot=0
-    y1_plot=0
-    y2_plot=0
+    data_x_plot=0
+    data_y1_plot=0
+    data_y2_plot=0
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -170,23 +170,23 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
         axis2=mycursor.fetchall()
 
-        self.dataplot.comboAxis_Y4_11.clear()
-        self.dataplot.comboAxis_Y4_10.clear()
-        self.dataplot.comboAxis_Y4_9.clear()
-        self.dataplot.comboAxis_Y4_8.clear()
-        self.dataplot.comboAxis_Y4_7.clear()
-        self.dataplot.comboAxis_Y4.clear()
+        self.dataplot.instrument_X.clear()
+        self.dataplot.instrument_y1.clear()
+        self.dataplot.instrument_y2.clear()
+        self.dataplot.instrument_y3.clear()
+        self.dataplot.instrument_y4.clear()
+        self.dataplot.instrument_y5.clear()
 
         for i in axis2:
-        	self.dataplot.comboAxis_Y4_11.addItems(i) 
-        	self.dataplot.comboAxis_Y4_10.addItems(i)
-        	self.dataplot.comboAxis_Y4_9.addItems(i)
-        	self.dataplot.comboAxis_Y4_8.addItems(i)
-        	self.dataplot.comboAxis_Y4_7.addItems(i)
-        	self.dataplot.comboAxis_Y4.addItems(i)    
-        self.dataplot.comboAxis_Y4_11.activated.connect(self.selection_x)
-        self.dataplot.comboAxis_Y4_10.activated.connect(self.selection_y1)
-        self.dataplot.buttonBox.clicked.connect(self.plotstart)   
+        	self.dataplot.instrument_X.addItems(i) 
+        	self.dataplot.instrument_y1.addItems(i)
+        	self.dataplot.instrument_y2.addItems(i)
+        	self.dataplot.instrument_y3.addItems(i)
+        	self.dataplot.instrument_y4.addItems(i)
+        	self.dataplot.instrument_y5.addItems(i)    
+        self.dataplot.instrument_X.activated.connect(self.selection_x)
+        self.dataplot.instrument_y1.activated.connect(self.selection_y1)
+        self.dataplot.buttonBox.clicked.connect(self.plotstart)    
 
     def show_dataplotlive(self):
         self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
@@ -194,61 +194,63 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
         axis2=mycursor.fetchall()
-        self.dataplot.comboAxis_Y4_11.clear()
-        self.dataplot.comboAxis_Y4_10.clear()
-        self.dataplot.comboAxis_Y4_9.clear()
-        self.dataplot.comboAxis_Y4_8.clear()
-        self.dataplot.comboAxis_Y4_7.clear()
-        self.dataplot.comboAxis_Y4.clear()
+        self.dataplot.instrument_X.clear()
+        self.dataplot.instrument_y1.clear()
+        self.dataplot.instrument_y2.clear()
+        self.dataplot.instrument_y3.clear()
+        self.dataplot.instrument_y4.clear()
+        self.dataplot.instrument_y5.clear()
 
         for i in axis2:
-        	self.dataplot.comboAxis_Y4_11.addItems(i) 
-        	self.dataplot.comboAxis_Y4_10.addItems(i)
-        	self.dataplot.comboAxis_Y4_9.addItems(i)
-        	self.dataplot.comboAxis_Y4_8.addItems(i)
-        	self.dataplot.comboAxis_Y4_7.addItems(i)
-        	self.dataplot.comboAxis_Y4.addItems(i)
-        self.dataplot.comboAxis_Y4_11.activated.connect(self.selection_x)
-        self.dataplot.comboAxis_Y4_10.activated.connect(self.selection_y1)
+        	self.dataplot.instrument_X.addItems(i) 
+        	self.dataplot.instrument_y1.addItems(i)
+        	self.dataplot.instrument_y2.addItems(i)
+        	self.dataplot.instrument_y3.addItems(i)
+        	self.dataplot.instrument_y4.addItems(i)
+        	self.dataplot.instrument_y5.addItems(i)
+        self.dataplot.instrument_X.activated.connect(self.selection_x)
+        self.dataplot.instrument_y1.activated.connect(self.selection_y1)
         self.dataplot.buttonBox.clicked.connect(self.plotstart)
 
     def selection_x(self):
-        self.dataplot.comboBox.clear()
-        self.x=self.dataplot.comboAxis_Y4_11.currentText()
-        print("x was set to: ",self.x)
+        self.dataplot.data_X.clear()
+        self.instrument_for_x=self.dataplot.instrument_X.currentText()
+        print("instrument for x was set to: ",self.instrument_for_x)
         axis=[]
-        mycursor.execute("SELECT * FROM {}".format(self.x))
+        mycursor.execute("SELECT * FROM {}".format(self.instrument_for_x))
         colnames= mycursor.description
         for row in colnames:
             axis.append(row[0])
-        self.dataplot.comboBox.addItems(axis) 
-        self.dataplot.comboBox.activated.connect(self.x_changed)
+        self.dataplot.data_X.addItems(axis) 
+        self.dataplot.data_X.activated.connect(self.x_changed)
            
     def x_changed(self):
-        self.x_plot=self.dataplot.comboBox.currentText()
+        self.data_x_plot=self.dataplot.data_X.currentText()
 
     def selection_y1(self):
-        self.dataplot.comboBox_2.clear()
-        self.y1=self.dataplot.comboAxis_Y4_10.currentText()
-        print("y1 was set to: ",self.y1)
+        self.dataplot.data_y1.clear()
+        self.instrument_for_y1=self.dataplot.instrument_y1.currentText()
+        
+        print("instrument for y1 was set to: ",self.instrument_for_y1)
+        
         axis=[]
-        mycursor.execute("SELECT * FROM {}".format(self.y1))
+        mycursor.execute("SELECT * FROM {}".format(self.instrument_for_y1))
         colnames= mycursor.description
         for row in colnames:
             axis.append(row[0])
-        self.dataplot.comboBox_2.addItems(axis)
-        self.dataplot.comboBox_2.activated.connect(self.y1_changed)
+        self.dataplot.data_y1.addItems(axis)
+        self.dataplot.data_y1.activated.connect(self.y1_changed)
         
     def y1_changed(self):
-    	self.y1_plot=self.dataplot.comboBox_2.currentText()
+    	self.data_y1_plot=self.dataplot.data_y1.currentText()
 
     #gotta have an if statement for the case when x and y values are from different tables
     def plotstart(self):
-        print(self.x_plot,self.y1_plot, self.x)
+        print(self.data_x_plot,self.data_y1_plot, self.instrument_for_x)
         array1=[]
         array2=[]
-        if self.x==self.y:
-            sql="SELECT {},{} from {} ".format(self.x_plot,self.y1_plot,self.x)
+        if self.instrument_for_x==self.instrument_for_y1:
+            sql="SELECT {},{} from {} ".format(self.data_x_plot,self.data_y1_plot,self.instrument_for_x)
             mycursor.execute(sql)
             data =mycursor.fetchall()
 
@@ -256,18 +258,27 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 array1.append(list(row))
             
             #this is for is for omiting 'None' values from the array, skipping this step would cause the plot to break!
-
+            
             nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]   
-            nparray_x = nparray[:,[0]]
-            nparray_y = nparray[:,[1]]
+            
+            #After renaming x to instrument_for_x and y1 to instrument_for_y1, the nparray became 1 dimensional, so the
+            #original code:nparray_x = nparray[:,[0]] did not work, this is a workaround, i have no idea what caused it.
+            #selecting different instruments for x and y doesn't have this problem as the data is stored in separate arrays.
+
+            nparray_x = nparray[0::2]
+            nparray_y = nparray[1::2]
+
             plt.plot(nparray_x,nparray_y)
             #labels:
-            plt.xlabel(self.x_plot)
-            plt.ylabel(self.y1_plot)
+            plt.xlabel(self.data_x_plot)
+            plt.ylabel(self.data_y1_plot)
 
-            plt.show() 
+            plt.figure()
+            plt.draw() 
+            
+            plt.show()
         else:
-            sql="SELECT {} FROM {}".format(self.x_plot,self.x)
+            sql="SELECT {} FROM {}".format(self.data_x_plot,self.instrument_for_x)
             mycursor.execute(sql)
             data=mycursor.fetchall()
 
@@ -275,7 +286,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 array1.append(list(row))
             nparray_x=np.asarray(array1)[np.asarray(array1) != np.array(None)]
             
-            sql="SELECT {} FROM {}".format(self.y1_plot,self.y1)
+            sql="SELECT {} FROM {}".format(self.data_y1_plot,self.instrument_for_y1)
             mycursor.execute(sql)
             data=mycursor.fetchall()
 
@@ -291,12 +302,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             plt.plot(nparray_x,nparray_y)
             #labels:
-            plt.xlabel(self.x_plot+" from table: "+str(self.x))
-            plt.ylabel(self.y1_plot+" from table: "+str(self.y1))
+            plt.xlabel(self.data_x_plot+" from table: "+str(self.instrument_for_x))
+            plt.ylabel(self.data_y1_plot+" from table: "+str(self.instrument_for_y1))
 
-            plt.show() 
-
-
+            plt.figure()
+            plt.draw() 
+            
+            plt.show()
     @pyqtSlot(bool)
     
     

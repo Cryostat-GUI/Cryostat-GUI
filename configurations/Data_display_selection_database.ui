@@ -50,7 +50,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,1">
       <item row="2" column="2">
-       <widget class="QComboBox" name="comboBox"/>
+       <widget class="QComboBox" name="data_X"/>
       </item>
       <item row="1" column="2">
        <widget class="QLabel" name="label_16">
@@ -60,16 +60,16 @@
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="QComboBox" name="comboBox_2"/>
+       <widget class="QComboBox" name="data_y1"/>
       </item>
       <item row="4" column="2">
-       <widget class="QComboBox" name="comboBox_3"/>
+       <widget class="QComboBox" name="data_y2"/>
       </item>
       <item row="7" column="2">
-       <widget class="QComboBox" name="comboBox_6"/>
+       <widget class="QComboBox" name="data_y5"/>
       </item>
       <item row="7" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4">
+       <widget class="QComboBox" name="instrument_y5">
         <item>
          <property name="text">
           <string>None</string>
@@ -105,10 +105,10 @@
        </widget>
       </item>
       <item row="5" column="2">
-       <widget class="QComboBox" name="comboAxis_Y3"/>
+       <widget class="QComboBox" name="data_y3"/>
       </item>
       <item row="6" column="2">
-       <widget class="QComboBox" name="comboAxis_Y5"/>
+       <widget class="QComboBox" name="data_y4"/>
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_3">
@@ -160,7 +160,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_11">
+       <widget class="QComboBox" name="instrument_X">
         <item>
          <property name="text">
           <string>None</string>
@@ -189,7 +189,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_10">
+       <widget class="QComboBox" name="instrument_y1">
         <item>
          <property name="text">
           <string>None</string>
@@ -218,7 +218,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_9">
+       <widget class="QComboBox" name="instrument_y2">
         <item>
          <property name="text">
           <string>None</string>
@@ -247,7 +247,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_8">
+       <widget class="QComboBox" name="instrument_y3">
         <item>
          <property name="text">
           <string>None</string>
@@ -276,7 +276,7 @@
        </widget>
       </item>
       <item row="6" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_7">
+       <widget class="QComboBox" name="instrument_y4">
         <item>
          <property name="text">
           <string>None</string>
