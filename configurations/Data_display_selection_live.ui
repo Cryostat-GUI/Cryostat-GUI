@@ -43,270 +43,6 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupDataSelection">
-     <property name="title">
-      <string>Data Selection</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,1">
-      <item row="2" column="2">
-       <widget class="QComboBox" name="comboBox"/>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_16">
-        <property name="text">
-         <string>Data</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QComboBox" name="comboBox_2"/>
-      </item>
-      <item row="4" column="2">
-       <widget class="QComboBox" name="comboBox_3"/>
-      </item>
-      <item row="7" column="2">
-       <widget class="QComboBox" name="comboBox_6"/>
-      </item>
-      <item row="7" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Instrument</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QComboBox" name="comboAxis_Y3"/>
-      </item>
-      <item row="6" column="2">
-       <widget class="QComboBox" name="comboAxis_Y5"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Y 1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Y 2</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Y 3</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Axis</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>X</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Y 5</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Y 4</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_11">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_10">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_9">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_8">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QComboBox" name="comboAxis_Y4_7">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford VTI Temp</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Cryo-levels</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Oxford Magnet Power</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>LakeShore350 Temp</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="2" column="0">
     <widget class="QGroupBox" name="groupTimeFormat">
      <property name="enabled">
@@ -316,13 +52,10 @@
       <string>Show Time in </string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="2">
-       <widget class="QRadioButton" name="radioTimeformat_sec">
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioTimeFormat_h">
         <property name="text">
-         <string>Seconds</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Hours</string>
         </property>
        </widget>
       </item>
@@ -333,10 +66,13 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QRadioButton" name="radioTimeFormat_h">
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="radioTimeformat_sec">
         <property name="text">
-         <string>Hours</string>
+         <string>Seconds</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -497,6 +233,270 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:36pt; font-weight:600;&quot;&gt;LIVE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupDataSelection">
+     <property name="title">
+      <string>Data Selection</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5" columnstretch="0,0,0,1">
+      <item row="0" column="3">
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>Data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_Y5">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="11" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_Y5"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Axis</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Instrument</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>X</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Y 4</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_X">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_X"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Y 3</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Y 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Y 2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_Y"/>
+      </item>
+      <item row="3" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_Y2"/>
+      </item>
+      <item row="4" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_Y3"/>
+      </item>
+      <item row="5" column="3">
+       <widget class="QComboBox" name="comboValue_Axis_Y4"/>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Y 5</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_Y4">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_Y3">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_Y2">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="comboInstr_Axis_Y1">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford VTI Temp</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Cryo-levels</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Oxford Magnet Power</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LakeShore350 Temp</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
