@@ -362,7 +362,7 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y1"/>
       </item>
       <item row="3" column="3">
        <widget class="QComboBox" name="comboValue_Axis_Y2"/>
