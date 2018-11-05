@@ -35,8 +35,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     timeouterror = VisaIOError(-1073807339)
 
     sensors =  dict(
-    	Voltage_DC = None,
-    	Temperature_K = None)
+    	Voltage_DC = None)
 
 
     def __init__(self, InstrumentAddress='', **kwargs):
@@ -61,7 +60,6 @@ class Keithley2182_Updater(AbstractLoopThread):
         """
         try:
             self.sensors['Voltage_DC'] = self.Keithley2182.measureVoltage()
-            self.sensors['Temperature_K'] = self.Keithley2182.measureTemperatre()
 
             self.sig_Infodata.emit(deepcopy(sensors))
 
