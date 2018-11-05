@@ -1,3 +1,28 @@
+"""  -----------------------------------------------------------------------------------
+    Main Module of the Cryostat-GUI built for a custom setup PPMS at TU Wien, Austria
+    (Technical University of Vienna, Austria)
+     The cryostat is an Oxford Spectromag, controlled by:
+        - Oxford:
+            - Intelligent Temperature Controller (ITC) 503
+            - Intelligent Level Meter (ILM) 211
+            - Intelligent Power Supply (IPS) 120-10
+        - LakeShore 350 Temperature Controller
+     Measurements will be performed with:
+    - Keithley:
+        - 2182A Nanovoltmeter (x3)
+        - 6221 Current Source (AC and DC)
+        - DMM7510 7 1/2 Digital Multimeter
+        - 2700 Multimeter / Data Acquisition System
+ Classes:
+    mainWindow:
+        The main GUI class for the PyQt application
+     Author(s):
+        bklebel (Benjamin Klebel)
+        adtera
+        Acronis
+----------------------------------------------------------------------------------------
+"""
+
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -734,4 +759,4 @@ if __name__ == '__main__':
     form = mainWindow(app=app)
     form.show()
     print(time.time()-a)
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
