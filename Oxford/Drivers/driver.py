@@ -19,8 +19,6 @@ except OSError:
 
 from visa import constants as vconst
 
-
-
 # import functools
 # def do_check(func):
 #     @functools.wraps(func)
@@ -36,9 +34,11 @@ from visa import constants as vconst
 #         return value
 #     return wrapper_do_check
 
+
 class AbstractSerialDeviceDriver(object):
     """Abstract Device driver class"""
     timeouterror = VisaIOError(-1073807339)
+
     def __init__(self, InstrumentAddress):
         super(AbstractSerialDeviceDriver, self).__init__()
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
@@ -53,17 +53,15 @@ class AbstractSerialDeviceDriver(object):
         self.ComLock = threading.Lock()
         self.delay = 0.0
 
-
-    def res_open(self):
-        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
-        # self._visa_resource.query_delay = 0.
-        self._visa_resource.timeout = 500
-        self._visa_resource.read_termination = '\r'
-        self._visa_resource.write_termination = '\r'
+    # def res_open(self):
+    #     self._visa_resource = resource_manager.open_resource(InstrumentAddress)
+    #     # self._visa_resource.query_delay = 0.
+    #     self._visa_resource.timeout = 500
+    #     self._visa_resource.read_termination = '\r'
+    #     self._visa_resource.write_termination = '\r'
 
     def res_close(self):
         self._visa_resource.close()
-
 
     def write(self, command):
         """
