@@ -1,6 +1,5 @@
-import sys
 from PyQt5 import QtWidgets
-import random
+
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -27,29 +26,29 @@ class Window_plotting(QtWidgets.QDialog):
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Just some button connected to `plot` method
-        self.button = QtWidgets.QPushButton('Plot')
-        self.button.clicked.connect(self.plot)
+        # self.button = QtWidgets.QPushButton('Plot')
+        # self.button.clicked.connect(self.plot)
 
         # set the layout
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
-        layout.addWidget(self.button)
+        # layout.addWidget(self.button)
         self.setLayout(layout)
+        self.plot()
 
     def plot(self):
-        ''' plot some random stuff '''
-        # random data
-        data = self.data # [random.random() for i in range(10)]
-
+        ''' plot some not so random stuff '''
         # create an axis
         ax = self.figure.add_subplot(111)
 
         # discards the old graph
         ax.clear()
+        if not isinstance(self.data, list):
+            self.data = [self.data]
 
-        # plot data
-        ax.plot(data, '*-')
+        for entry in self.data:
+            ax.plot(entry[0], entry[1], '*-')
         ax.set_title(self.title)
         ax.set_xlabel(self.label_x)
         ax.set_ylabel(self.label_y)
@@ -59,8 +58,25 @@ class Window_plotting(QtWidgets.QDialog):
 
 
 if __name__ == '__main__':
+    import numpy as np
+    import random
+    import sys
+
+    start_time = 0
+    stop_time = 60*2
+
+    num = stop_time-start_time+1
+
+    start_temp = 1
+    stop_temp = 3
+
+    time = np.linspace(start_time, stop_time, num)
+    temps = np.linspace(start_temp, stop_temp, num)
+
+    data = np.column_stack((time, temps)).transpose()
+
     app = QtWidgets.QApplication(sys.argv)
-    info = dict(data = [random.random() for i in range(10)],
+    info = dict(data=data,  # [random.random() for i in range(10)],
                 title = 'random data',
                 label_x = 'x-axis',
                 label_y='y-axis')

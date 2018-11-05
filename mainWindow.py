@@ -71,9 +71,6 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
 
-    #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
-    #  x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
@@ -155,6 +152,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_plotDatabase.triggered.connect(self.show_dataplotdb_configuration)
         self.action_plotLive.triggered.connect(self.show_dataplotlive_configuration)
 
+        #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
+        #  x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
         self.plotting_instrument_for_x = 0
         self.plotting_instrument_for_y1 = 0
         self.plotting_instrument_for_y2 = 0
@@ -193,9 +192,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live = Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
         self.dataplot_live.show()
 
-        self.mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
-        axis2 = self.mycursor.fetchall()
-        axis2.insert(0,tuple("-"))
+        # self.mycursor.execute("SELECT name FROM sqlite_master where type='table'")       #("SELECT * FROM ITC")
+        # axis2 = self.mycursor.fetchall()
+        if not self.data_live:
+            self.show_error_textBrowser('no live data to plot!')
+            self.show_error_textBrowser('If you want to see live data, start the live logger!')
+            return
+        axis_instrument = list(self.data_live)  # all the dictionary keys
+        axis_instrument.insert(0, ("-",))
         self.dataplot_live.comboInstr_Axis_X.clear()
         self.dataplot_live.comboInstr_Axis_Y1.clear()
         self.dataplot_live.comboInstr_Axis_Y2.clear()
@@ -203,43 +207,47 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live.comboInstr_Axis_Y4.clear()
         self.dataplot_live.comboInstr_Axis_Y5.clear()
 
-        for i in axis2:
+        for i in axis_instrument:
             self.dataplot_live.comboInstr_Axis_X.addItems(i)
             self.dataplot_live.comboInstr_Axis_Y1.addItems(i)
             self.dataplot_live.comboInstr_Axis_Y2.addItems(i)
             self.dataplot_live.comboInstr_Axis_Y3.addItems(i)
             self.dataplot_live.comboInstr_Axis_Y4.addItems(i)
             self.dataplot_live.comboInstr_Axis_Y5.addItems(i)
-        self.dataplot_live.comboInstr_Axis_X.activated.connect(self.selection_x)
+        self.dataplot_live.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_x(self.dataplot_live, livevsdb="LIVE"))
         self.dataplot_live.comboInstr_Axis_Y1.activated.connect(self.selection_y1)
         self.dataplot_live.buttonBox.clicked.connect(self.plotstart)
 
-    def selection_x(self):
-        self.dataplot.comboValue_Axis_X.addItems(tuple("-"))
-        self.plotting_instrument_for_x=self.dataplot.comboInstr_Axis_X.currentText()
-        print("instrument for x was set to: ",self.plotting_instrument_for_x)
-        axis=[]
-        self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
-        colnames= self.mycursor.description
-        for row in colnames:
-            axis.append(row[0])
-        self.dataplot.comboValue_Axis_X.addItems(axis)
-        self.dataplot.comboValue_Axis_X.activated.connect(self.x_changed)
+    def plotting_selection_x(self, dataplot, livevsdb):
+        dataplot.comboValue_Axis_X.addItems(tuple("-"))
+        instrument_for_x = dataplot.comboInstr_Axis_X.currentText()
+        # print("instrument for x was set to: ",self.plotting_instrument_for_x)
+        axis = []
+        if livevsdb == "LIVE":
+            axis = list(self.data_live[instrument_for_x])
+        # elif livevsdb == "DB":
+        #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
+        #     colnames= self.mycursor.description
+            # for row in colnames:
+            #     axis.append(row[0])
+        dataplot.comboValue_Axis_X.addItems(axis)
+        dataplot.comboValue_Axis_X.activated.connect(self.x_changed)
 
     def x_changed(self):
         self.plotting_comboValue_Axis_X_plot=self.dataplot.comboValue_Axis_X.currentText()
 
-    def selection_y1(self):
-        self.dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
-        self.plotting_instrument_for_y1=self.dataplot.comboInstr_Axis_Y1.currentText()
-
-        print("instrument for y1 was set to: ",self.plotting_instrument_for_y1)
+    def selection_y1(self, dataplot, livevsdb):
+        dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
+        instrument_for_y1 = self.dataplot.comboInstr_Axis_Y1.currentText()
 
         axis=[]
-        self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_y1))
-        colnames= self.mycursor.description
-        for row in colnames:
-            axis.append(row[0])
+        if livevsdb == "LIVE":
+            axis = list(self.data_live[instrument_for_y1])
+        # elif livevsdb == "DB":
+        #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_y1))
+        #     colnames= self.mycursor.description
+            # for row in colnames:
+            #     axis.append(row[0])
         self.dataplot.comboValue_Axis_Y1.addItems(axis)
         self.dataplot.comboValue_Axis_Y1.activated.connect(self.y1_changed)
 

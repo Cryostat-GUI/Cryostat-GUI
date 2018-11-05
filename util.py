@@ -157,15 +157,16 @@ class Window_plotting(QtWidgets.QDialog):
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Just some button connected to `plot` method
-        self.button = QtWidgets.QPushButton('Plot')
-        self.button.clicked.connect(self.plot)
+        # self.button = QtWidgets.QPushButton('Plot')
+        # self.button.clicked.connect(self.plot)
 
         # set the layout
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
-        layout.addWidget(self.button)
+        # layout.addWidget(self.button)
         self.setLayout(layout)
+        self.plot()
 
     def plot(self):
         ''' plot some random stuff '''
