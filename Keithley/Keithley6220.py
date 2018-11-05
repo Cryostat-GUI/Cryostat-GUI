@@ -11,8 +11,8 @@ from __future__ import division
 
 import quantities as pq
 
-from Keithley.lib import power_supply
-from Keithley.lib import scpi_instrument
+from Keithley.lib import PowerSupply
+from Keithley.lib import SCPIInstrument
 
 # CLASSES #####################################################################
 
