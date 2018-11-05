@@ -1,11 +1,11 @@
 import sys
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
+import random
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-import random
 
 class Window_plotting(QtWidgets.QDialog):
     def __init__(self, data, label_x, label_y, title, parent=None):
@@ -57,13 +57,13 @@ class Window_plotting(QtWidgets.QDialog):
         # refresh canvas
         self.canvas.draw()
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     info = dict(data = [random.random() for i in range(10)],
                 title = 'random data',
                 label_x = 'x-axis',
                 label_y='y-axis')
-
 
     main = Window_plotting(**info)
     main.show()

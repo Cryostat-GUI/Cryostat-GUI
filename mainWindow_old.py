@@ -186,12 +186,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.dataplot.comboInstr_Axis_Y5.clear()
 
         for i in axis2:
-        	self.dataplot.comboInstr_Axis_X.addItems(i) 
-        	self.dataplot.comboInstr_Axis_Y1.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y2.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y3.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y4.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y5.addItems(i)    
+            self.dataplot.comboInstr_Axis_X.addItems(i) 
+            self.dataplot.comboInstr_Axis_Y1.addItems(i)
+            self.dataplot.comboInstr_Axis_Y2.addItems(i)
+            self.dataplot.comboInstr_Axis_Y3.addItems(i)
+            self.dataplot.comboInstr_Axis_Y4.addItems(i)
+            self.dataplot.comboInstr_Axis_Y5.addItems(i)    
         self.dataplot.comboInstr_Axis_X.activated.connect(self.selection_x)
         self.dataplot.comboInstr_Axis_Y1.activated.connect(self.selection_y1)
         self.dataplot.buttonBox.clicked.connect(self.plotstart)    
@@ -212,12 +212,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         
 
         for i in axis2:
-        	self.dataplot.comboInstr_Axis_X.addItems(i) 
-        	self.dataplot.comboInstr_Axis_Y1.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y2.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y3.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y4.addItems(i)
-        	self.dataplot.comboInstr_Axis_Y5.addItems(i)
+            self.dataplot.comboInstr_Axis_X.addItems(i) 
+            self.dataplot.comboInstr_Axis_Y1.addItems(i)
+            self.dataplot.comboInstr_Axis_Y2.addItems(i)
+            self.dataplot.comboInstr_Axis_Y3.addItems(i)
+            self.dataplot.comboInstr_Axis_Y4.addItems(i)
+            self.dataplot.comboInstr_Axis_Y5.addItems(i)
         self.dataplot.comboInstr_Axis_X.activated.connect(self.selection_x)
         self.dataplot.comboInstr_Axis_Y1.activated.connect(self.selection_y1)
         self.dataplot.buttonBox.clicked.connect(self.plotstart)
@@ -252,7 +252,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.dataplot.comboValue_Axis_Y1.activated.connect(self.y1_changed)
         
     def y1_changed(self):
-    	self.comboValue_Axis_Y1_plot=self.dataplot.comboValue_Axis_Y1.currentText()
+        self.comboValue_Axis_Y1_plot=self.dataplot.comboValue_Axis_Y1.currentText()
 
     #gotta have an if statement for the case when x and y values are from different tables
     def plotstart(self):
@@ -302,14 +302,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             data=mycursor.fetchall()
 
             for row in data:
-            	array2.append(list(row))
+                array2.append(list(row))
             nparray_y=np.asarray(array2)[np.asarray(array2) != np.array(None)]
             
             #there can be still some problems if the dimensions don't match so:
             if len(nparray_x)>len(nparray_y):
-            	nparray_x=nparray_x[0:len(nparray_y)]
+                nparray_x=nparray_x[0:len(nparray_y)]
             else:
-            	nparray_y=nparray_y[0:len(nparray_x)]
+                nparray_y=nparray_y[0:len(nparray_x)]
 
             plt.figure()
             plt.plot(nparray_x,nparray_y)
