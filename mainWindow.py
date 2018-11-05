@@ -495,22 +495,22 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     def func_LakeShore350_setKpminLength(self, length):
         """set the number of measurements the calculation should be conducted over"""
-        if not self.LakeShore350_Kpmin: 
-            self.LakeShore350_Kpmin = dict( newtime = [time.time()]*length,
+        if not self.LakeShore350_Kpmin:
+            self.LakeShore350_Kpmin = dict( newtime=[time.time()]*length,
                                             Sensors=dict(
-                                                Sensor_1_K = [0]*length,
-                                                Sensor_2_K = [0]*length,
-                                                Sensor_3_K = [0]*length,
-                                                Sensor_4_K = [0]*length), 
+                                                Sensor_1_K=[0]*length,
+                                                Sensor_2_K=[0]*length,
+                                                Sensor_3_K=[0]*length,
+                                                Sensor_4_K=[0]*length),
                                             length=length)
-        elif self.LakeShore350_Kpmin['length'] > length: 
+        elif self.LakeShore350_Kpmin['length'] > length:
             self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
-            for sensor in self.LakeShore350_Kpmin['Sensors']: 
-                sensor = seensor[:length]
+            for sensor in self.LakeShore350_Kpmin['Sensors']:
+                sensor = sensor[:length]
             self.LakeShore350_Kpmin['length'] = length
-        elif self.LakeShore350_Kpmin['length'] < length: 
+        elif self.LakeShore350_Kpmin['length'] < length:
             self.LakeShore350_Kpmin['newtime'] += [time.time()]*(length-self.LakeShore350_Kpmin['length'])
-            for sensor in self.LakeShore350_Kpmin['Sensors']: 
+            for sensor in self.LakeShore350_Kpmin['Sensors']:
                 sensor += [0]*(length-self.LakeShore350_Kpmin['length'])
             self.LakeShore350_Kpmin['length'] = length
 
@@ -540,37 +540,37 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
                 # allows to choose from different inputs to connect to output 1 control loop. default is input 1.
-                
+
                 self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
 
                 """ NEW GUI controls P, I and D values for Control Loop PID Values Command
-                """
-                self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
-                self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
-               
-                self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
-                self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
-               
-                self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
-                self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
+                # """
+                # self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
+                # self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
+
+                # self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
+                # self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
+
+                # self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
+                # self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
 
                 """ NEW GUI Heater Range and Ouput Zone
                 """
-                
-                self.LakeShore350_window.comboSetHeater_Range.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setHeater_Range(value))
+
+                # self.LakeShore350_window.comboSetHeater_Range.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setHeater_Range(value))
 
                 #self.LakeShore350_window.spinSetHeater_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_Range(value))
                 #self.LakeShore350_window.spinSetHeater_Range.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setHeater_Range())
 
-                self.LakeShore350_window.spinSetUpper_Bound.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Upper_Bound(value))
-                self.LakeShore350_window.spinSetZoneP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneP_Param(value))
-                self.LakeShore350_window.spinSetZoneI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneI_Param(value))
-                self.LakeShore350_window.spinSetZoneD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneD_Param(value))
-                self.LakeShore350_window.spinSetZoneMout.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneMout(value))
-                self.LakeShore350_window.spinSetZone_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Range(value))
-                self.LakeShore350_window.spinSetZone_Rate.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Rate(value))
+                # self.LakeShore350_window.spinSetUpper_Bound.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Upper_Bound(value))
+                # self.LakeShore350_window.spinSetZoneP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneP_Param(value))
+                # self.LakeShore350_window.spinSetZoneI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneI_Param(value))
+                # self.LakeShore350_window.spinSetZoneD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneD_Param(value))
+                # self.LakeShore350_window.spinSetZoneMout.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneMout(value))
+                # self.LakeShore350_window.spinSetZone_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Range(value))
+                # self.LakeShore350_window.spinSetZone_Rate.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Rate(value))
 
 
                 self.LakeShore350_window.spin_threadinterval.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
@@ -580,7 +580,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                self.show_error_textBrowser('running: {}'.format(e)) 
+                self.show_error_textBrowser('running: {}'.format(e))
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
@@ -602,7 +602,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def calculate_Kpmin(self, data):
         """calculate the rate of change of Temperature"""
         coeffs = []
-        for sensordata in self.LakeShore350_Kpmin['Sensors'].values(): 
+        for sensordata in self.LakeShore350_Kpmin['Sensors'].values():
             coeffs.append(np.polynomial.polynomial.polyfit(self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
 
         integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1]*60,
@@ -610,25 +610,31 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                 Sensor_3_Kpmin=coeffs[2][1]*60,
                                 Sensor_4_Kpmin=coeffs[3][1]*60)
 
+        data.update(integrated_diff)
+
+
         # advancing entries to the next slot
         for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
             self.LakeShore350_Kpmin['newtime'][i+1] = entry
-            self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][i]
-            self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i]
-            self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i]
-            self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i]
+            self.LakeShore350_Kpmin['newtime'][0] = time.time()
+            for key in self.LakeShore350_Kpmin['Sensors'].keys(): 
+                self.LakeShore350_Kpmin['Sensors'][key][i+1] = self.LakeShore350_Kpmin['Sensors'][key][i]
+                self.LakeShore350_Kpmin['Sensors'][key][0] = deepcopy(data[key])
+
+
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i]
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i]
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][i]
 
             # including the new values
-            self.LakeShore350_Kpmin['newtime'][0] = time.time()
-            self.LakeShore350_Kpmin['Sensors']['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
-            self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
-            self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
-            self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+            # self.LakeShore350_Kpmin['Sensors']['Sensor_4_K'][0] = deepcopy(data['Sensor_4_K'])
 
-        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
-                            Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
-                            Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin'], 
-                            Sensor_4_Kpmin=integrated_diff['Sensor_4_Kpmin']))
+        # data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
+        #                     Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
+        #                     Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin'],
+        #                     Sensor_4_Kpmin=integrated_diff['Sensor_4_Kpmin']))
 
         return integrated_diff, data
 
@@ -638,43 +644,16 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             Calculate the rate of change of Temperature on the sensors [K/min]
             Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
-        # integration_length = 1
-        # building lists of differences
-        # timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+integration_length]) for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-integration_length])]# -self.LakeShore350_Kpmin['newtime'])/60
-        # tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-integration_length])],
-        #                     Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-integration_length])],
-        #                     Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-integration_length])],
-        #                     Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+integration_length] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-integration_length])])
-        #integrating over the lists, to get an integrated rate of Kelvin/min
-
-        # timemean = np.mean(timediffs)
-        # print(timemean*60)
-        # print(c1, tiymediffs[0])
-
-                                    # np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
-
-        # if not integrated_diff['Sensor_1_Kpmin'] == 0:
-        #     self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
-        # if not integrated_diff['Sensor_2_Kpmin'] == 0:
-        #     self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
-        # if not integrated_diff['Sensor_3_Kpmin'] == 0:
-        #     self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
-        # if not integrated_diff['Sensor_4_Kpmin'] == 0:
-        #     self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
-
-
-
 
         coeffs, data = self.calculate_Kpmin(data)
 
-        if not coeffs['Sensor_1_Kpmin'] == 0:
-            self.LakeShore350_window.textSensor1_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_1_Kpmin']))
-        if not coeffs['Sensor_2_Kpmin'] == 0:
-            self.LakeShore350_window.textSensor2_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_2_Kpmin']))
-        if not coeffs['Sensor_3_Kpmin'] == 0:
-            self.LakeShore350_window.textSensor3_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_3_Kpmin']))
-        if not coeffs['Sensor_4_Kpmin'] == 0:
-            self.LakeShore350_window.textSensor4_Kpmin.setText('{num:=+10.4f}'.format(num=coeffs['Sensor_4_Kpmin']))
+        for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
+                                    self.LakeShore350_window.textSensor2_Kpmin,
+                                    self.LakeShore350_window.textSensor3_Kpmin,
+                                    self.LakeShore350_window.textSensor4_Kpmin],
+                                   coeffs.values()):
+            if not co == 0:
+                GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
         data['date'] = convert_time(time.time())
         with self.dataLock:
@@ -685,7 +664,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.LakeShore350_window.progressHeaterOutput_percentage.setValue(self.data['LakeShore350']['Heater_Output_percentage'])
             self.LakeShore350_window.lcdHeaterOutput_mW.display(self.data['LakeShore350']['Heater_Output_mW'])
             self.LakeShore350_window.lcdSetTemp_K.display(self.data['LakeShore350']['Temp_K'])
-            self.LakeShore350_window.lcdRampeRate_Status.display(self.data['LakeShore350']['RampRate_Status'])
+            # self.LakeShore350_window.lcdRampeRate_Status.display(self.data['LakeShore350']['RampRate_Status'])
             self.LakeShore350_window.lcdSetRampRate_Kpmin.display(self.data['LakeShore350']['Ramp_Rate'])
 
             self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(int(self.data['LakeShore350']['Input_Sensor'])-1)
@@ -696,11 +675,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             """NEW GUI to display P,I and D Parameters
             """
-            self.LakeShore350_window.lcdLoopP_Param.display(self.data['LakeShore350']['Loop_P_Param'])
-            self.LakeShore350_window.lcdLoopI_Param.display(self.data['LakeShore350']['Loop_I_Param'])
-            self.LakeShore350_window.lcdLoopD_Param.display(self.data['LakeShore350']['Loop_D_Param'])
+            # self.LakeShore350_window.lcdLoopP_Param.display(self.data['LakeShore350']['Loop_P_Param'])
+            # self.LakeShore350_window.lcdLoopI_Param.display(self.data['LakeShore350']['Loop_I_Param'])
+            # self.LakeShore350_window.lcdLoopD_Param.display(self.data['LakeShore350']['Loop_D_Param'])
 
-            self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])       
+            # self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
 
 
 

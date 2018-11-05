@@ -222,6 +222,7 @@ class main_Logger(AbstractLoopThread):
         self.conf_done_layer2 = False
 
         self.not_yet_initialised = False
+        self.local_list = []
 
     def running(self):
 
@@ -254,8 +255,11 @@ class main_Logger(AbstractLoopThread):
         """connect to the sqlite database"""
         try:
             self.conn = sqlite3.connect(dbname)
+            return True
         except sqlite3.connect.Error as err:
-            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+            # raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+            self.sig_assertion.emit('Logger: Couldn\'t establish connection: {}'.format(err))
+            return False
 
     def createtable(self,tablename,dictname):
         """create the sql table if it does not exist,
@@ -265,7 +269,11 @@ class main_Logger(AbstractLoopThread):
         sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
         sql += sql_buildDictTableString(dictname)
         # print(sql)
-        self.mycursor.execute(sql)
+        try:
+            self.mycursor.execute(sql)
+        except OperationalError as err:
+            # print(err)
+            pass
 
         #We should try to find a nicer a solution without try and except
         # #try:
@@ -322,7 +330,6 @@ class main_Logger(AbstractLoopThread):
         except OperationalError as err:
             print(err)
             raise AssertionError(err.args[0])# do not know whether this will work
-        self.conn.commit()
 
     def printtable(self, tablename, dictname, date1, date2):
         """ print the data of one table between two dates
@@ -362,6 +369,37 @@ class main_Logger(AbstractLoopThread):
         nparray = np.asarray(array)
         return nparray
 
+    def correcting_database_types(self, name, data):
+        """
+            correct the types of the database entries,
+            in case something was overlooked
+            NOT OPERATIONAL, there is a bug somehwere...
+        """
+        sql = change_to_correct_types(name, data[name])
+        for ct, command in enumerate(sql):
+            print(command)
+            if ct >= 2:
+                sq = """SELECT id from python_temp_{}""".format(name)
+                self.mycursor.execute(sq)
+                # print(self.mycursor.fetchall()[-5:])
+            self.mycursor.execute(command)
+
+    def storing_to_database(self, data, names):
+        """store data to the database"""
+        for name in names:
+            try:
+                # self.correcting_database_types(name, data)
+
+                self.createtable(name, data[name])
+
+                # inserting in the measured values:
+                self.updatetable(name, data[name])
+
+            except AssertionError as assertion:
+                self.sig_assertion.emit(assertion.args[0])
+            except KeyError as key:
+                self.sig_assertion.emit(key.args[0])
+
     @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
@@ -370,36 +408,32 @@ class main_Logger(AbstractLoopThread):
         """
         if self.not_yet_initialised:
             return
-        self.connectdb(self.conf['general']['logfile_location'])
-        self.mycursor = self.conn.cursor()
 
+        names = ['ITC', 'ILM', 'IPS', 'LakeShore350']
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time())}
 
-        data.update(timedict)
-
-        names = ['ITC', 'ILM', 'IPS', 'LakeShore350']
         for name in names:
-            try:
-                # print(name)
-                data[name].update(timedict)
-                # sql = change_to_correct_types(name, data[name])
-                # for ct, command in enumerate(sql):
-                    # print(command)
-                    # if ct >=2:
-                    #     sq="""SELECT id from python_temp_{}""".format(name)
-                    #     self.mycursor.execute(sq)
-                        # print(self.mycursor.fetchall()[-5:])
-                    # self.mycursor.execute(command)
-                self.createtable(name, data[name])
+            data[name].update(timedict)
 
-                #inserting in the measured values:
-                self.updatetable(name, data[name])
+        self.connected = self.connectdb(self.conf['general']['logfile_location'])
+        if not self.connected:
+            self.sig_assertion.emit('no connection, storing locally')
+            self.local_list.append(data)
+            return
 
-            except AssertionError as assertion:
-                self.sig_assertion.emit(assertion.args[0])
-            except KeyError as key:
-                self.sig_assertion.emit(key.args[0])
+        self.mycursor = self.conn.cursor()
+
+        if len(self.local_list) > 0:
+            for entry in self.local_list:
+                self.storing_to_database(entry, names)
+            self.local_list = []
+
+        self.storing_to_database(data, names)
+
+        self.conn.commit()
+
+        # data.update(timedict)
 
 
 class live_Logger(AbstractLoopThread):

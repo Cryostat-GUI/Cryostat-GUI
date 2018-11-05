@@ -44,11 +44,11 @@ class Keithley2182(object):
 
     def measureTemperature(self):
         self.sendcmd("SENS:CHAN 1")
-        self.sendcmd("SENS:FUNC 'VOLT:DC'")
+        self.sendcmd("SENS:FUNC 'TEMP'")
         return self.query("SENS:DATA:FRES?")[0]
 
     def measureVoltage(self):
 
         self.sendcmd("SENS:CHAN 2")
-        self.sendcmd("SENS:FUNC 'TEMP'")
+        self.sendcmd("SENS:FUNC 'VOLT:DC'")
         return self.query("SENS:DATA:FRES?")[0]
