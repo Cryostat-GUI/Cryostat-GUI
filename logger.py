@@ -482,10 +482,11 @@ class live_Logger(AbstractLoopThread):
         """
         try:
             with self.mainthread.dataLock:
-                for instr in self.mainthread.data:
-                    for varkey in self.mainthread.data[instr]:
-                        self.mainthread.data_live[instr][varkey].append(
-                            self.mainthread.data[instr][varkey])
+                with self.mainthread.dataLock_live:
+                    for instr in self.mainthread.data:
+                        for varkey in self.mainthread.data[instr]:
+                            self.mainthread.data_live[instr][varkey].append(
+                                self.mainthread.data[instr][varkey])
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -495,10 +496,11 @@ class live_Logger(AbstractLoopThread):
     def initialisation(self):
         """copy the current data-dict, insert empty lists in all values"""
         with self.mainthread.dataLock:
-            self.mainthread.data_live = self.mainthread.data
-            for instrument in self.mainthread.data:
-                for variablekey in self.mainthread.data[instrument]:
-                    self.mainthread.data_live[instrument][variablekey] = []
+            with self.mainthread.dataLock_live:
+                self.mainthread.data_live = self.mainthread.data
+                for instrument in self.mainthread.data:
+                    for variablekey in self.mainthread.data[instrument]:
+                        self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
 
 
