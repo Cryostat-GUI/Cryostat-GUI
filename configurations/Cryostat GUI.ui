@@ -93,13 +93,17 @@
     </widget>
     <widget class="QMenu" name="menuKeithley">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Keithley</string>
      </property>
-     <addaction name="action_run_Nanovolts"/>
-     <addaction name="action_run_Current_sources"/>
+     <addaction name="action_run_Nanovolt_1"/>
+     <addaction name="action_run_Nanovolt_2"/>
+     <addaction name="action_run_Nanovolt_3"/>
+     <addaction name="separator"/>
+     <addaction name="action_run_Current_1"/>
+     <addaction name="action_run_Current_2"/>
     </widget>
     <addaction name="menuOxford_Cryostat"/>
     <addaction name="separator"/>
@@ -483,17 +487,17 @@
     <string>Powersupply</string>
    </property>
   </action>
-  <action name="action_run_Nanovolts">
+  <action name="action_run_Nanovolt_1">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Nanovoltmeters</string>
+    <string>Nanovoltmeter 1</string>
    </property>
   </action>
-  <action name="action_run_Current_sources">
+  <action name="action_run_Current_1">
    <property name="text">
-    <string>Current sources</string>
+    <string>Current source 1</string>
    </property>
   </action>
   <action name="action_Logging">
@@ -556,10 +560,25 @@
   </action>
   <action name="actionLogging_LIVE">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Logging LIVE</string>
+   </property>
+  </action>
+  <action name="action_run_Nanovolt_2">
+   <property name="text">
+    <string>Nanovoltmeter 2</string>
+   </property>
+  </action>
+  <action name="action_run_Nanovolt_3">
+   <property name="text">
+    <string>Nanovoltmeter 3</string>
+   </property>
+  </action>
+  <action name="action_run_Current_2">
+   <property name="text">
+    <string>Current source 2</string>
    </property>
   </action>
  </widget>
