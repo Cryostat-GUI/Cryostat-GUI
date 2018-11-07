@@ -60,7 +60,7 @@ from util import Window_ui
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
-LakeShore_InstrumentAddress = 'GPIB0::12::INSTR'
+LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
 
 
 def convert_time(ts):
