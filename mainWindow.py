@@ -71,7 +71,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
 
-    def __init__(self, **kwargs):
+    def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
