@@ -13,7 +13,7 @@ import abc
 
 from future.utils import with_metaclass
 
-from Keithley.lib import Instrument
+from . import Instrument
 
 # CLASSES #####################################################################
 
