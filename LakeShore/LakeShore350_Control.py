@@ -106,39 +106,42 @@ class LakeShore350_Updater(AbstractLoopThread):
             in a way no errors occur)
 
         """
-        try:
-            self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
-            self.sensors['Heater_Output_mW'] = (self.sensors['Heater_Output_percentage']/100)*994.5
-            self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
-            self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
-            self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-            self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
-            temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            self.sensors['Sensor_1_K'] = temp_list[0]
-            self.sensors['Sensor_2_K'] = temp_list[1]
-            self.sensors['Sensor_3_K'] = temp_list[2]
-            self.sensors['Sensor_4_K'] = temp_list[3]
-            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-            self.sensors['Loop_P_Param'] = temp_list2[0]
-            self.sensors['Loop_I_Param'] = temp_list2[1]
-            self.sensors['Loop_D_Param'] = temp_list2[2]
-            self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)[0]
-            temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
-            self.sensors['Sensor_1_Ohm'] = temp_list3[0]
-            self.sensors['Sensor_2_Ohm'] = temp_list3[1]
-            self.sensors['Sensor_3_Ohm'] = temp_list3[2]
-            self.sensors['Sensor_4_Ohm'] = temp_list3[3]
-            self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
+        if self.loop:
+            try:
+                self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
+                self.sensors['Heater_Output_mW'] = (self.sensors['Heater_Output_percentage']/100)*994.5
+                self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
+                self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+                self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+                self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
+                temp_list = self.LakeShore350.KelvinReadingQuery(0)
+                self.sensors['Sensor_1_K'] = temp_list[0]
+                self.sensors['Sensor_2_K'] = temp_list[1]
+                self.sensors['Sensor_3_K'] = temp_list[2]
+                self.sensors['Sensor_4_K'] = temp_list[3]
+                temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+                self.sensors['Loop_P_Param'] = temp_list2[0]
+                self.sensors['Loop_I_Param'] = temp_list2[1]
+                self.sensors['Loop_D_Param'] = temp_list2[2]
+                self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)[0]
+                temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
+                self.sensors['Sensor_1_Ohm'] = temp_list3[0]
+                self.sensors['Sensor_2_Ohm'] = temp_list3[1]
+                self.sensors['Sensor_3_Ohm'] = temp_list3[2]
+                self.sensors['Sensor_4_Ohm'] = temp_list3[3]
+                self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
 
-            self.sig_Infodata.emit(deepcopy(self.sensors))
+                self.sig_Infodata.emit(deepcopy(self.sensors))
 
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+            except AssertionError as e_ass:
+                self.sig_assertion.emit(e_ass.args[0])
+            except VisaIOError as e_visa:
+                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                    self.sig_visatimeout.emit()
+                else:
+                    self.sig_visaerror.emit(e_visa.args[0])
+        else:
+            pass
 
     # def control_checks(func):
     #     @functools.wraps(func)
