@@ -154,6 +154,7 @@ class mainWindow(QtWidgets.QMainWindow):
         """connect GUI signals for plotting, setting up some of the needs of plotting"""
         self.action_plotDatabase.triggered.connect(self.show_dataplotdb_configuration)
         self.action_plotLive.triggered.connect(self.show_dataplotlive_configuration)
+        self.windows_plotting = []
 
         #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
         #  x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
@@ -199,6 +200,7 @@ class mainWindow(QtWidgets.QMainWindow):
         """
         self.dataplot_live_conf = Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
         self.dataplot_live_conf.show()
+        # initialize some "storage space" for data
         self.dataplot_live_conf.axes = dict()
         self.dataplot_live_conf.data = dict()
 
@@ -206,9 +208,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_textBrowser('no live data to plot!')
             self.show_error_textBrowser('If you want to see live data, start the live logger!')
             return
-        with self.dataLock_live: 
+
+        with self.dataLock_live:
             axis_instrument = list(self.data_live)  # all the dictionary keys
-        axis_instrument.insert(0, ("-",))
+        axis_instrument.insert(0, ("-",))  # for no chosen value by default
         self.dataplot_live_conf.comboInstr_Axis_X.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y1.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y2.clear()
@@ -216,45 +219,132 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.comboInstr_Axis_Y4.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y5.clear()
 
-        for i in axis_instrument:
+        for i in axis_instrument:  # filling the comboboxes for the instrument
             self.dataplot_live_conf.comboInstr_Axis_X.addItems(i)
             self.dataplot_live_conf.comboInstr_Axis_Y1.addItems(i)
             self.dataplot_live_conf.comboInstr_Axis_Y2.addItems(i)
             self.dataplot_live_conf.comboInstr_Axis_Y3.addItems(i)
             self.dataplot_live_conf.comboInstr_Axis_Y4.addItems(i)
             self.dataplot_live_conf.comboInstr_Axis_Y5.addItems(i)
-        self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_x(self.dataplot_live_conf, livevsdb="LIVE"))
-        self.dataplot_live_conf.comboInstr_Axis_Y1.activated.connect(lambda: self.selection_y1(self.dataplot_live_conf, livevsdb="LIVE"))
-        self.dataplot_live_conf.buttonBox.clicked.connect(self.plotstart)
+        # actions in case instruments are chosen in comboboxes
+        self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_X,
+                                                                                                               GUI_instr=self.dataplot_live_conf.comboInstr_Axis_X,
+                                                                                                               livevsdb="LIVE",
+                                                                                                               axis='X', 
+                                                                                                               dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y1.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y1,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y1,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y1', 
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y2.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y2,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y2,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y2', 
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y3.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y3,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y3,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y3', 
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y4.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y4,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y4,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y4', 
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y5.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y5,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y5', 
+                                                                                                                dataplot=self.dataplot_live_conf))
 
-    def plotting_selection_x(self, dataplot, livevsdb):
-        dataplot.comboValue_Axis_X.addItems(("-",))
-        instrument_for_x = dataplot.comboInstr_Axis_X.currentText()
+        self.dataplot_live_conf.buttonBox.clicked.connect(lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
+
+    def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
+        """
+           filling the Value column combobox in case the corresponding
+           element of the instrument column combobox was chosen
+           thus:
+                - check for the chosen instrument,
+                - get the data for the new combobox
+                - chose the action
+        """
+        GUI_value.addItems(("-",))
+        instrument_name = GUI_instr.currentText()
         # print("instrument for x was set to: ",self.plotting_instrument_for_x)
-        axis = []
         if livevsdb == "LIVE":
-            with self.dataLock_live: 
-                axis = list(self.data_live[instrument_for_x])
+            with self.dataLock_live:
+                value_names = list(self.data_live[instrument_name])
         # elif livevsdb == "DB":
+        #     axis = []
         #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
         #     colnames= self.mycursor.description
             # for row in colnames:
             #     axis.append(row[0])
-        dataplot.comboValue_Axis_X.addItems(axis)
-        dataplot.comboValue_Axis_X.activated.connect(lambda: self.plotting_changed_axis(dataplot,
-                                                                                        instr=dataplot.comboInstr_Axis_X.currentText(),
-                                                                                        value=dataplot.comboValue_Axis_X.currentText(),
-                                                                                        axis="X",
-                                                                                        livevsdb="LIVE"))
+        GUI_value.addItems(value_names)
+        GUI_value.activated.connect(lambda: self.plotting_selection_value(GUI_instr=GUI_instr,
+                                                                          GUI_value=GUI_value,
+                                                                          livevsdb="LIVE",
+                                                                          axis=axis,
+                                                                          dataplot=dataplot))
 
     def x_changed(self):
         self.plotting_comboValue_Axis_X_plot=self.dataplot.comboValue_Axis_X.currentText()
 
-    def plotting_changed_axis(self, dataplot, instr, value, livevsdb, axis):
-        dataplot.axes[axis] = dataplot_element.currentText()
+    def plotting_selection_value(self, GUI_instr, GUI_value, livevsdb, axis, dataplot):
+        value_name = GUI_value.currentText()
+        instrument_name = GUI_instr.currentText()
+        dataplot.axes[axis] = value_name
+
         if livevsdb == 'LIVE':
             with self.dataLock_live:
-                dataplot.data[axis] = self.data_live[]
+                dataplot.data[axis] = self.data_live[instrument_name][value_name]
+
+    def plotting_display(self, dataplot):
+        y = None
+        try:
+            x = dataplot.data['X']
+            y = [dataplot.data[key] for key in dataplot.data if key != 'X' ]
+        except KeyError:
+            self.show_error_textBrowser('Plotting: You certainly did not choose an X axis, try again!')
+            return
+        if y is None:
+            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            return
+        data = [[x, yn] for yn in y]
+        label_y = None
+        try:
+            label_y = dataplot.axes['Y1']
+        except KeyError:
+            for key in dataplot.axes:
+                try:
+                    label_y = dataplot.axes[key]
+                except KeyError:
+                    pass
+        if label_y is None:
+            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            return
+        window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
+        window.show()
+        self.windows_plotting.append(window)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def selection_y1(self, dataplot, livevsdb):
         dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
@@ -341,7 +431,6 @@ class mainWindow(QtWidgets.QMainWindow):
             plt.draw()
 
             plt.show()
-
 
 
     # ------- Oxford Instruments

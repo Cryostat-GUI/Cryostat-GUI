@@ -169,18 +169,17 @@ class Window_plotting(QtWidgets.QDialog):
         self.plot()
 
     def plot(self):
-        ''' plot some random stuff '''
-        # random data
-        data = self.data  # [random.random() for i in range(10)]
-
+        ''' plot some not so random stuff '''
         # create an axis
         ax = self.figure.add_subplot(111)
 
         # discards the old graph
         ax.clear()
+        if not isinstance(self.data, list):
+            self.data = [self.data]
 
-        # plot data
-        ax.plot(data, '*-')
+        for entry in self.data:
+            ax.plot(entry[0], entry[1], '*-')
         ax.set_title(self.title)
         ax.set_xlabel(self.label_x)
         ax.set_ylabel(self.label_y)
