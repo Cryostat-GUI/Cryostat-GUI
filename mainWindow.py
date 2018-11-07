@@ -295,9 +295,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         # including the new values
         self.ITC_Kpmin['newtime'][0] = time.time()
-        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
-        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
-        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K']) if not data['Sensor_1_K'] == None else 0
+        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data['Sensor_1_K'] == None else 0
+        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data['Sensor_1_K'] == None else 0
         data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
                             Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
                             Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
