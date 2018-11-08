@@ -91,6 +91,11 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
+def convert_time_searchable(ts):
+    """converts timestamps from time.time() into reasonably searchable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+
+
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
@@ -457,6 +462,10 @@ class live_Logger(AbstractLoopThread):
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
         self.mainthread.sig_running_new_thread.connect(self.initialisation)
+
+        self.time_names = ['logging_timeseconds', 'timeseconds',
+                           'logging_ReadableTime', 'ReadableTime',
+                           'logging_SearchableTime', 'SearchableTime']
         # buggy because it will erase all previous data! 
 
         # QTimer.singleShot(*1e3, self.worker)
@@ -502,10 +511,14 @@ class live_Logger(AbstractLoopThread):
                 with self.mainthread.dataLock_live:
                     # print(self.mainthread.data_live)
                     for instr in self.mainthread.data:
-                        for varkey in self.mainthread.data[instr]:
-                            self.mainthread.data_live[instr][varkey].append(
-                                self.mainthread.data[instr][varkey])
-                            if len(self.mainthread.data_live[instr][varkey]) > 1800:
+                        timedict = dict(logging_timeseconds=time.time()-self.startingtime,
+                                        logging_ReadableTime=convert_time(time.time()),
+                                        logging_SearchableTime=convert_time_searchable(time.time()))
+                        dic = deepcopy(self.mainthread.data[instr])
+                        dic.update(timedict)
+                        for varkey in dic:
+                            self.mainthread.data_live[instr][varkey].append(dic[varkey])
+                            if len(self.mainthread.data_live[instr][varkey]) > 1000:
                                 self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
@@ -517,12 +530,23 @@ class live_Logger(AbstractLoopThread):
         self.initialised = False
 
     def initialisation(self):
-        """copy the current data-dict, insert empty lists in all values"""
+        """
+           copy the current data-dict,
+           update for logging times,
+           insert empty lists in all values
+        """
+        self.startingtime = time.time()
+        timedict = dict(logging_timeseconds=0,
+                        logging_ReadableTime=0,
+                        logging_SearchableTime=0)
         with self.mainthread.dataLock:
             with self.mainthread.dataLock_live:
                 self.mainthread.data_live = deepcopy(self.mainthread.data)
                 for instrument in self.mainthread.data:
-                    for variablekey in self.mainthread.data[instrument]:
+                    dic = self.mainthread.data[instrument]
+                    dic.update(timedict)
+                    self.mainthread.data_live[instrument].update(timedict)
+                    for variablekey in dic:
                         self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
 
