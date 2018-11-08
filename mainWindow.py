@@ -64,6 +64,11 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
+def convert_time_searchable(ts):
+    """converts timestamps from time.time() into reasonably searchable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+
+
 class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
 
@@ -562,10 +567,11 @@ class mainWindow(QtWidgets.QMainWindow):
         tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
                             Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
                             Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
-        # integrating over the lists, to get an integrated rate of Kelvin/min
+        #integrating over the lists, to get an integrated rate of Kelvin/min
         integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
                                 Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
                                 Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
+
 
         if not integrated_diff['Sensor_1_Kpmin'] == 0:
             self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
@@ -573,6 +579,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
         if not integrated_diff['Sensor_3_Kpmin'] == 0:
             self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
+
 
         # advancing entries to the next slot
         for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
@@ -590,7 +597,10 @@ class mainWindow(QtWidgets.QMainWindow):
                             Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
                             Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
 
-        data['date'] = convert_time(time.time())
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()), 
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data['ITC'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
@@ -620,6 +630,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
             if not self.data['ITC']['derivative_action_time'] == None:
                 self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+
 
 
     # ------- ------- ILM
@@ -673,8 +684,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ilm(self, data):
         """Store ILM data in self.data['ILM'], update ILM_window"""
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
-            data['date'] = convert_time(time.time())
+            # data['date'] = convert_time(time.time())
             self.data['ILM'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -752,8 +767,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ips(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)        
         with self.dataLock:
-            data['date'] = convert_time(time.time())
+            # data['date'] = convert_time(time.time())
             self.data['IPS'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -778,7 +797,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.IPS_window.labelStatusActivity.setText(self.data['IPS']['status_activity'])
             self.IPS_window.labelStatusLocRem.setText(self.data['IPS']['status_locrem'])
             self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])
-
 
     # ------- LakeShore 350 -------
     def initialize_window_LakeShore350(self):
@@ -812,7 +830,6 @@ class mainWindow(QtWidgets.QMainWindow):
             for sensor in self.LakeShore350_Kpmin['Sensors']:
                 sensor += [0]*(length-self.LakeShore350_Kpmin['length'])
             self.LakeShore350_Kpmin['length'] = length
-
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -954,7 +971,11 @@ class mainWindow(QtWidgets.QMainWindow):
             if not co == 0:
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
-        data['date'] = convert_time(time.time())
+        # data['date'] = convert_time(time.time())
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
@@ -980,10 +1001,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             # self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
 
-
-
     # ------- MISC -------
-
     def printing(self,b):
         """arbitrary example function"""
         print(b)

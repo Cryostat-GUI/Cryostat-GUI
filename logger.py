@@ -411,12 +411,12 @@ class main_Logger(AbstractLoopThread):
             return
 
         names = ['ITC', 'ILM', 'IPS', 'LakeShore350']
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time())}
+        # timedict = {'timeseconds': time.time(),
+        #             'ReadableTime': convert_time(time.time())}
 
-        for name in names:
-            if name in data:
-                data[name].update(timedict)
+        # for name in names:
+        #     if name in data:
+        #         data[name].update(timedict)
 
         self.connected = self.connectdb(self.conf['general']['logfile_location'])
         if not self.connected:
