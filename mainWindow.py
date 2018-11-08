@@ -56,7 +56,7 @@ from util import Window_ui, Window_plotting
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
-LakeShore_InstrumentAddress = 'GPIB0::12::INSTR'
+LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
 
 
 def convert_time(ts):
@@ -70,6 +70,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_arbitrary = pyqtSignal()
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
+    sig_running_new_thread = pyqtSignal()
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -128,6 +129,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         thread.started.connect(worker.work)
         thread.start()
+        self.sig_running_new_thread.emit()
         return worker
 
     def stopping_thread(self, threadname):
@@ -1010,17 +1012,17 @@ class mainWindow(QtWidgets.QMainWindow):
         """method to start/stop the thread which controls the Oxford ITC"""
 
         if boolean:
-            try:
+            # try:
 
-                getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+            getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
+            getInfodata.sig_assertion.connect(self.show_error_textBrowser)
 
-                self.actionLogging_LIVE.setChecked(True)
-            except VisaIOError as e:
-                self.action_run_ITC.setChecked(False)
-                self.show_error_textBrowser(e)
+            self.actionLogging_LIVE.setChecked(True)
+            print('logging live online')
+            # except VisaIOError as e:
+            #     self.actionLogging_LIVE.setChecked(False)
+            #     self.show_error_textBrowser(e)
                 # print(e) # TODO: open window displaying the error message
-
         else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)

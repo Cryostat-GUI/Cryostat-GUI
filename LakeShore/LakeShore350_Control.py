@@ -1,6 +1,7 @@
 # import time
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QTimer
 
 from LakeShore.LakeShore350 import LakeShore350
 from pyvisa.errors import VisaIOError
@@ -60,17 +61,13 @@ class LakeShore350_Updater(AbstractLoopThread):
             self.LakeShore350 = LakeShore350(InstrumentAddress=InstrumentAddress)
         except VisaIOError as e: 
             self.sig_assertion.emit('running in control: {}'.format(e))
+            return
+            # need to quit the THREAD!!
 
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0
         self.Input_value = 1
-
-        temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-        self.LoopP_value = temp_list0[0]
-        self.LoopI_value = temp_list0[1]
-        self.LoopD_value = temp_list0[2]
-
 
         self.Upper_Bound_value = 300
         """proper P, I, D values needed
@@ -86,6 +83,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         """
         self.configHeater()
         self.configTempLimit()
+        self.initiating_PID()
 
 #        self.setControlLoopZone()
 #        self.startHeater()
@@ -95,6 +93,12 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.interval = 0
       # self.setControl()
       # self.__isRunning = True
+
+    def initiating_PID(self):
+        temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+        self.LoopP_value = temp_list0[0]
+        self.LoopI_value = temp_list0[1]
+        self.LoopD_value = temp_list0[2]
 
     # @control_checks
     def running(self):
