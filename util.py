@@ -166,7 +166,9 @@ class Window_plotting(QtWidgets.QDialog):
         layout.addWidget(self.canvas)
         # layout.addWidget(self.button)
         self.setLayout(layout)
+
         self.plot_base()
+        self.lines = []
         self.plot()
 
     def plot_base(self):
@@ -176,17 +178,24 @@ class Window_plotting(QtWidgets.QDialog):
         self.ax.set_xlabel(self.label_x)
         self.ax.set_ylabel(self.label_y)
 
-
-    def plot(self):
-        ''' plot some not so random stuff '''
-        # create an axis
-
         # discards the old graph
         if not isinstance(self.data, list):
             self.data = [self.data]
         self.ax.clear()
         for entry in self.data:
-            self.ax.plot(entry[0], entry[1], '*-')
+            self.lines.append(self.ax.plot(entry[0], entry[1], '*-')[0])
+
+
+    def plot(self):
+        ''' plot some not so random stuff '''
+        # create an axis
+
+        for ct, entry in enumerate(self.data):
+            self.lines[ct].set_xdata(entry[0])
+            self.lines[ct].set_ydata(entry[1])
+
+        self.ax.relim()
+        self.ax.autoscale_view()
 
 
         # refresh canvas

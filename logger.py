@@ -495,6 +495,8 @@ class live_Logger(AbstractLoopThread):
                         for varkey in self.mainthread.data[instr]:
                             self.mainthread.data_live[instr][varkey].append(
                                 self.mainthread.data[instr][varkey])
+                            if len(self.mainthread.data_live[instr][varkey]) > 1800:
+                                self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
