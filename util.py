@@ -138,10 +138,8 @@ class Window_ui(QtWidgets.QWidget):
 #         event.accept()
 
 
-class Window_plotting(QtWidgets.QDialog, Window_ui):
+class Window_plotting(QtWidgets.QDialog):
     
-    # sig_closing = pyqtSignal()
-
     def __init__(self, data, label_x, label_y, title, parent=None):
         super().__init__()
         self.data = data

@@ -332,7 +332,7 @@ class mainWindow(QtWidgets.QMainWindow):
             return
         window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
         window.show()
-        window.sig_closing.connect(lambda: self.deleting_object(dataplot))
+        # window.sig_closing.connect(lambda: self.deleting_object(dataplot))
         self.windows_plotting.append(window)
 
     def deleting_object(self, object_to_delete):
