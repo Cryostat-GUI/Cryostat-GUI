@@ -38,17 +38,17 @@ class ITC_Updater(AbstractLoopThread):
 
 
     sensors = dict(
-            set_temperature = 0,
-            Sensor_1_K = 1,
-            Sensor_2_K = 2,
-            Sensor_3_K = 3,
-            temperature_error = 4,
-            heater_output_as_percent = 5,
-            heater_output_as_voltage = 6,
-            gas_flow_output = 7,
-            proportional_band = 8,
-            integral_action_time = 9,
-            derivative_action_time = 10)
+            set_temperature=0,
+            Sensor_1_K=1,
+            Sensor_2_K=2,
+            Sensor_3_K=3,
+            temperature_error=4,
+            heater_output_as_percent=5,
+            heater_output_as_voltage=6,
+            gas_flow_output=7,
+            proportional_band=8,
+            integral_action_time=9,
+            derivative_action_time=10)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -87,6 +87,7 @@ class ITC_Updater(AbstractLoopThread):
         data = dict()
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
+        # starttime = time.time()
         for key in self.sensors.keys():
             try:
 
@@ -103,6 +104,7 @@ class ITC_Updater(AbstractLoopThread):
                 else: 
 
                     self.sig_visaerror.emit(e_visa.args[0])
+        # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         self.sig_Infodata.emit(deepcopy(data))
 
 

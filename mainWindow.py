@@ -206,7 +206,7 @@ class mainWindow(QtWidgets.QMainWindow):
             connect to actions being taken in this configuration window
         """
         self.dataplot_live_conf = Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
-        
+
         # initialize some "storage space" for data
         self.dataplot_live_conf.axes = dict()
         self.dataplot_live_conf.data = dict()
@@ -239,32 +239,32 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_X,
                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_X,
                                                                                                                livevsdb="LIVE",
-                                                                                                               axis='X', 
+                                                                                                               axis='X',
                                                                                                                dataplot=self.dataplot_live_conf))
         self.dataplot_live_conf.comboInstr_Axis_Y1.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y1,
                                                                                                                 GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y1,
                                                                                                                 livevsdb="LIVE",
-                                                                                                                axis='Y1', 
+                                                                                                                axis='Y1',
                                                                                                                 dataplot=self.dataplot_live_conf))
         self.dataplot_live_conf.comboInstr_Axis_Y2.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y2,
                                                                                                                 GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y2,
                                                                                                                 livevsdb="LIVE",
-                                                                                                                axis='Y2', 
+                                                                                                                axis='Y2',
                                                                                                                 dataplot=self.dataplot_live_conf))
         self.dataplot_live_conf.comboInstr_Axis_Y3.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y3,
                                                                                                                 GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y3,
                                                                                                                 livevsdb="LIVE",
-                                                                                                                axis='Y3', 
+                                                                                                                axis='Y3',
                                                                                                                 dataplot=self.dataplot_live_conf))
         self.dataplot_live_conf.comboInstr_Axis_Y4.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y4,
                                                                                                                 GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y4,
                                                                                                                 livevsdb="LIVE",
-                                                                                                                axis='Y4', 
+                                                                                                                axis='Y4',
                                                                                                                 dataplot=self.dataplot_live_conf))
         self.dataplot_live_conf.comboInstr_Axis_Y5.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y5,
                                                                                                                 GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
                                                                                                                 livevsdb="LIVE",
-                                                                                                                axis='Y5', 
+                                                                                                                axis='Y5',
                                                                                                                 dataplot=self.dataplot_live_conf))
 
         self.dataplot_live_conf.buttonBox.clicked.connect(lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
@@ -501,6 +501,8 @@ class mainWindow(QtWidgets.QMainWindow):
                                                 Sensor_3_K = [0]*integration_length,
                                                 Sensor_4_K = [0]*integration_length)
 
+                # self.time_itc = [0]
+
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
                 self.ITC_window.spinsetTemp.editingFinished.connect(lambda: self.threads['control_ITC'][0].setTemperature())
@@ -600,17 +602,19 @@ class mainWindow(QtWidgets.QMainWindow):
         # including the new values
         self.ITC_Kpmin['newtime'][0] = time.time()
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K']) if not data['Sensor_1_K'] == None else 0
-        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data['Sensor_1_K'] == None else 0
-        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data['Sensor_1_K'] == None else 0
+        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data['Sensor_2_K'] == None else 0
+        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data['Sensor_3_K'] == None else 0
         data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
                             Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
                             Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
 
         timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()), 
+                    'ReadableTime': convert_time(time.time()),
                     'SearchableTime': convert_time_searchable(time.time())}
         data.update(timedict)
         with self.dataLock:
+            # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
+            # self.time_itc.append(time.time())
             self.data['ITC'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -779,7 +783,7 @@ class mainWindow(QtWidgets.QMainWindow):
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time()),
                     'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)        
+        data.update(timedict)
         with self.dataLock:
             # data['date'] = convert_time(time.time())
             self.data['IPS'].update(data)
