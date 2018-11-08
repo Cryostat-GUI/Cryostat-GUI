@@ -171,7 +171,7 @@ class Window_plotting(QtWidgets.QDialog):
 
     def plot_base(self):
         self.ax = self.figure.add_subplot(111)
-        self.ax.clear()
+        
         self.ax.set_title(self.title)
         self.ax.set_xlabel(self.label_x)
         self.ax.set_ylabel(self.label_y)
@@ -184,9 +184,9 @@ class Window_plotting(QtWidgets.QDialog):
         # discards the old graph
         if not isinstance(self.data, list):
             self.data = [self.data]
-
+        self.ax.clear()
         for entry in self.data:
-            self.ax.plot(entry[0], entry[1], 'b*-')
+            self.ax.plot(entry[0], entry[1], '*-')
 
 
         # refresh canvas
