@@ -594,19 +594,32 @@ class mainWindow(QtWidgets.QMainWindow):
             self.data['ITC'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
-            self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
-            self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+            if not self.data['ITC']['Sensor_1_K'] == None:
+                self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
+            if not self.data['ITC']['Sensor_2_K'] == None:
+                self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
+            if not self.data['ITC']['Sensor_3_K'] == None:
+                self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
 
-            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
-            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
-            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
-            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
-            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
-            self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
-            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
-            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
-            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+            if not self.data['ITC']['set_temperature'] == None:
+                self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
+            if not self.data['ITC']['temperature_error'] == None:
+                self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
+            if not self.data['ITC']['heater_output_as_percent'] == None:
+                self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
+            if not self.data['ITC']['heater_output_as_voltage'] == None:
+                self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
+            if not self.data['ITC']['gas_flow_output'] == None:
+                self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            if not self.data['ITC']['gas_flow_output'] == None:
+                self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
+            if not self.data['ITC']['proportional_band'] == None:
+                self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
+            if not self.data['ITC']['integral_action_time'] == None:
+                self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
+            if not self.data['ITC']['derivative_action_time'] == None:
+                self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+
 
 
     # ------- ------- ILM
