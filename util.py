@@ -186,7 +186,8 @@ class Window_plotting(QtWidgets.QDialog):
 
         # refresh canvas
         self.canvas.draw()
-        self.redrawing()
+        QTimer.singleShot(1*1e2, self.plot)
+
 
     def redrawing(self):
         try:
