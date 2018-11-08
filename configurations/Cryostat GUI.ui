@@ -555,6 +555,9 @@
    </property>
   </action>
   <action name="actionLogging_LIVE">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>true</bool>
    </property>
