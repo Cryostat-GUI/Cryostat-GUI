@@ -490,7 +490,7 @@ class live_Logger(AbstractLoopThread):
             # print("live logger trying to log")
             with self.mainthread.dataLock:
                 with self.mainthread.dataLock_live:
-                    print(self.mainthread.data_live)
+                    # print(self.mainthread.data_live)
                     for instr in self.mainthread.data:
                         for varkey in self.mainthread.data[instr]:
                             self.mainthread.data_live[instr][varkey].append(

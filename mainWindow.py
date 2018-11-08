@@ -214,7 +214,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         with self.dataLock_live:
             axis_instrument = list(self.data_live)  # all the dictionary keys
-        axis_instrument.insert(0, ("-",))  # for no chosen value by default
+        axis_instrument.insert(0, "-")  # for no chosen value by default
         self.dataplot_live_conf.comboInstr_Axis_X.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y1.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y2.clear()
@@ -222,13 +222,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.comboInstr_Axis_Y4.clear()
         self.dataplot_live_conf.comboInstr_Axis_Y5.clear()
 
-        for i in axis_instrument:  # filling the comboboxes for the instrument
-            self.dataplot_live_conf.comboInstr_Axis_X.addItems(i)
-            self.dataplot_live_conf.comboInstr_Axis_Y1.addItems(i)
-            self.dataplot_live_conf.comboInstr_Axis_Y2.addItems(i)
-            self.dataplot_live_conf.comboInstr_Axis_Y3.addItems(i)
-            self.dataplot_live_conf.comboInstr_Axis_Y4.addItems(i)
-            self.dataplot_live_conf.comboInstr_Axis_Y5.addItems(i)
+        # for i in axis_instrument:  # filling the comboboxes for the instrument
+            # print(i, type(i))
+        self.dataplot_live_conf.comboInstr_Axis_X.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y1.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y2.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y3.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y4.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y5.addItems(axis_instrument)
         # actions in case instruments are chosen in comboboxes
         self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_X,
                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_X,
