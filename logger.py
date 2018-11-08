@@ -442,7 +442,7 @@ class live_Logger(AbstractLoopThread):
     def __init__(self, mainthread, **kwargs):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
-        self.interval = 2
+        self.interval = 5
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)

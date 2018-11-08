@@ -166,32 +166,29 @@ class Window_plotting(QtWidgets.QDialog):
         layout.addWidget(self.canvas)
         # layout.addWidget(self.button)
         self.setLayout(layout)
+        self.plot_base()
         self.plot()
+
+    def plot_base(self):
+        self.ax = self.figure.add_subplot(111)
+        self.ax.clear()
+        self.ax.set_title(self.title)
+        self.ax.set_xlabel(self.label_x)
+        self.ax.set_ylabel(self.label_y)
+
 
     def plot(self):
         ''' plot some not so random stuff '''
         # create an axis
-        ax = self.figure.add_subplot(111)
 
         # discards the old graph
-        ax.clear()
         if not isinstance(self.data, list):
             self.data = [self.data]
 
         for entry in self.data:
-            ax.plot(entry[0], entry[1], '*-')
-        ax.set_title(self.title)
-        ax.set_xlabel(self.label_x)
-        ax.set_ylabel(self.label_y)
+            self.ax.plot(entry[0], entry[1], 'b*-')
+
 
         # refresh canvas
         self.canvas.draw()
-        QTimer.singleShot(1*1e2, self.plot)
-
-
-    def redrawing(self):
-        try:
-            self.canvas.draw()
-            self.canvas.flush_events()
-        finally:
-            QTimer.singleShot(2*1e3, self.redrawing)
+        QTimer.singleShot(3*1e3, self.plot)
