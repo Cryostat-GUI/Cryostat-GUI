@@ -285,7 +285,12 @@ class mainWindow(QtWidgets.QMainWindow):
         # print("instrument for x was set to: ",self.plotting_instrument_for_x)
         if livevsdb == "LIVE":
             with self.dataLock_live:
-                value_names = list(self.data_live[instrument_name])
+                try:
+                    value_names = list(self.data_live[instrument_name])
+                except KeyError:
+                    self.show_error_textBrowser('plotting: do not choose "-" '
+                                      'please, there is nothing behind it!')
+                    return
         # elif livevsdb == "DB":
         #     axis = []
         #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
@@ -309,8 +314,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if livevsdb == 'LIVE':
             with self.dataLock_live:
-                dataplot.data[axis] = self.data_live[instrument_name][value_name]
-
+                try:
+                    dataplot.data[axis] = self.data_live[instrument_name][value_name]
+                except KeyError:
+                    self.show_error_textBrowser('plotting: do not choose "-" '
+                                      'please, there is nothing behind it!')
+                    return
     def plotting_display(self, dataplot):
         y = None
         try:
@@ -337,7 +346,7 @@ class mainWindow(QtWidgets.QMainWindow):
             return
         window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
         window.show()
-        # window.sig_closing.connect(lambda: self.deleting_object(dataplot))
+        window.sig_closing.connect(lambda: window.setParent(None))
         self.windows_plotting.append(window)
 
     def deleting_object(self, object_to_delete):

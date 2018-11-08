@@ -138,8 +138,10 @@ class Window_ui(QtWidgets.QWidget):
 #         event.accept()
 
 
-class Window_plotting(QtWidgets.QDialog):
-    
+class Window_plotting(QtWidgets.QDialog, Window_ui):
+    """Small window containing a plot, which can be udpated every so often"""
+    sig_closing = pyqtSignal()
+
     def __init__(self, data, label_x, label_y, title, parent=None):
         super().__init__()
         self.data = data
