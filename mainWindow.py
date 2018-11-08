@@ -199,15 +199,16 @@ class mainWindow(QtWidgets.QMainWindow):
             connect to actions being taken in this configuration window
         """
         self.dataplot_live_conf = Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
-        self.dataplot_live_conf.show()
+        
         # initialize some "storage space" for data
         self.dataplot_live_conf.axes = dict()
         self.dataplot_live_conf.data = dict()
 
-        if hasattr(self, "data_live"):
+        if not hasattr(self, "data_live"):
             self.show_error_textBrowser('no live data to plot!')
             self.show_error_textBrowser('If you want to see live data, start the live logger!')
             return
+        self.dataplot_live_conf.show()
 
         with self.dataLock_live:
             axis_instrument = list(self.data_live)  # all the dictionary keys
