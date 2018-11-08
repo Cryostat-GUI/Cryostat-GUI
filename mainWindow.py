@@ -204,7 +204,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.axes = dict()
         self.dataplot_live_conf.data = dict()
 
-        if not self.data_live:
+        if hasattr(self, "data_live"):
             self.show_error_textBrowser('no live data to plot!')
             self.show_error_textBrowser('If you want to see live data, start the live logger!')
             return
