@@ -562,11 +562,10 @@ class mainWindow(QtWidgets.QMainWindow):
         tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
                             Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
                             Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
-        #integrating over the lists, to get an integrated rate of Kelvin/min
+        # integrating over the lists, to get an integrated rate of Kelvin/min
         integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
                                 Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
                                 Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
-
 
         if not integrated_diff['Sensor_1_Kpmin'] == 0:
             self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
@@ -574,7 +573,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.lcdTemp_sens2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
         if not integrated_diff['Sensor_3_Kpmin'] == 0:
             self.ITC_window.lcdTemp_sens3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
-
 
         # advancing entries to the next slot
         for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
@@ -591,7 +589,6 @@ class mainWindow(QtWidgets.QMainWindow):
         data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
                             Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
                             Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
-
 
         data['date'] = convert_time(time.time())
         with self.dataLock:
@@ -623,7 +620,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
             if not self.data['ITC']['derivative_action_time'] == None:
                 self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
-
 
 
     # ------- ------- ILM

@@ -406,6 +406,7 @@ class main_Logger(AbstractLoopThread):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
+        self.operror = False
         if self.not_yet_initialised:
             return
 
@@ -414,7 +415,8 @@ class main_Logger(AbstractLoopThread):
                     'ReadableTime': convert_time(time.time())}
 
         for name in names:
-            data[name].update(timedict)
+            if name in data:
+                data[name].update(timedict)
 
         self.connected = self.connectdb(self.conf['general']['logfile_location'])
         if not self.connected:
@@ -422,16 +424,24 @@ class main_Logger(AbstractLoopThread):
             self.local_list.append(data)
             return
 
-        self.mycursor = self.conn.cursor()
+        try:
+            with self.conn:
+                self.mycursor = self.conn.cursor()
+                if len(self.local_list) > 0:
+                    for entry in self.local_list:
+                        self.storing_to_database(entry, names)
+                    self.local_list = []
 
-        if len(self.local_list) > 0:
-            for entry in self.local_list:
-                self.storing_to_database(entry, names)
-            self.local_list = []
-
-        self.storing_to_database(data, names)
-
-        self.conn.commit()
+                self.storing_to_database(data, names)
+        except OperationalError as e:
+            self.operror = True
+            self.local_list.append(data)
+            self.sig_assertion.emit(e.args[0])
+        except sqlite3.Error as er:
+            if not self.operror:
+                self.local_list.append(data)
+            self.sig_assertion.emit(er.args[0])
+            print(er)
 
         # data.update(timedict)
 
