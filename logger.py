@@ -452,8 +452,12 @@ class live_Logger(AbstractLoopThread):
     def __init__(self, mainthread, **kwargs):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
-        self.interval = 2
-        self.initialised = False
+        self.interval = 5
+        self.pre_init()
+        self.initialisation()
+        self.mainthread.sig_running_new_thread.connect(self.pre_init)
+        self.mainthread.sig_running_new_thread.connect(self.initialisation)
+        # buggy because it will erase all previous data! 
 
         # QTimer.singleShot(*1e3, self.worker)
 
@@ -465,7 +469,7 @@ class live_Logger(AbstractLoopThread):
         """
         try:
             while not self.initialised:
-                pass
+                time.sleep(0.02)
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -479,6 +483,8 @@ class live_Logger(AbstractLoopThread):
             while the thread is running, keeping the event loop busy
         """
         try:
+            while not self.initialised:
+                time.sleep(0.02)
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -491,24 +497,33 @@ class live_Logger(AbstractLoopThread):
             and append them to the list which will be plotted
         """
         try:
+            # print("live logger trying to log")
             with self.mainthread.dataLock:
-                for instr in self.mainthread.data:
-                    for varkey in self.mainthread.data[instr]:
-                        self.mainthread.data_live[instr][varkey].append(
-                            self.mainthread.data[instr][varkey])
+                with self.mainthread.dataLock_live:
+                    # print(self.mainthread.data_live)
+                    for instr in self.mainthread.data:
+                        for varkey in self.mainthread.data[instr]:
+                            self.mainthread.data_live[instr][varkey].append(
+                                self.mainthread.data[instr][varkey])
+                            if len(self.mainthread.data_live[instr][varkey]) > 1800:
+                                self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
-            self.sig_assertion.emit(key.args[0])
+            self.sig_assertion.emit("live logger"+key.args[0])
+
+    def pre_init(self):
+        self.initialised = False
 
     def initialisation(self):
         """copy the current data-dict, insert empty lists in all values"""
         with self.mainthread.dataLock:
-            self.mainthread.data_live = self.mainthread.data
-            for instrument in self.mainthread.data:
-                for variablekey in self.mainthread.data[instrument]:
-                    self.mainthread.data_live[instrument][variablekey] = []
+            with self.mainthread.dataLock_live:
+                self.mainthread.data_live = deepcopy(self.mainthread.data)
+                for instrument in self.mainthread.data:
+                    for variablekey in self.mainthread.data[instrument]:
+                        self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
 
 

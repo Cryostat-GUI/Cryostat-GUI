@@ -350,7 +350,6 @@ class Sequence_builder(Window_ui):
     def parse_set_field(self, data):
         return 'Set Field to {Field} at {rate}T/min (rate is only a wish...)'.format(**data)
 
-
     def addWaiting(self, data):
         string = self.parse_waiting(data)
         data.update(dict(DisplayText=string))
@@ -365,11 +364,8 @@ class Sequence_builder(Window_ui):
         self.model.addItem(data)
         QTimer.singleShot(1, lambda: self.listSequence.repaint())
 
-
     def addChangeDataFile(self, data):
         pass
-
-
 
     def printing(self, data):
         print(data)
@@ -415,7 +411,6 @@ class Sequence_builder(Window_ui):
         self.lineFileLocation.setText(self.sequence_file)
         self.initialize_sequence(self.sequence_file)
 
-
     def change_file_location(self, fname):
         self.sequence_file = fname
 
@@ -424,7 +419,6 @@ class Sequence_builder(Window_ui):
     #         self.lineFileLocation.setText(self.sequence_file)
     #     finally:
             # QTimer.singleShot(0, update_filelocation)
-
 
     def initialize_sequence(self, sequence_file):
         if sequence_file:
@@ -445,8 +439,6 @@ class Sequence_builder(Window_ui):
                 self.model.addItem(command)
         else:
             self.sequence_file = ['']
-
-
 
     def read_sequence(self, file):
         with open(file, 'r') as myfile:
@@ -517,29 +509,12 @@ class Sequence_builder(Window_ui):
                             mode='a' if comm[-1]=='1' else 'w',
                             # a - appending, w - writing, can be inserted directly into opening statement
                             DisplayText='Change data file: {}'.format(file))
-                print('CDF',comm)
-
+                print('CDF', comm)
 
             commands.append(dic)
         # for x in commands:
         #     print(x)
         return commands
-
-
-
-
-
-
-
-# class sequence_listwidget(QtWidgets.QListWidget):
-#     """docstring for Sequence_ListWidget"""
-#     sig_dropped = pyqtSignal()
-#     def __init__(self, **kwargs):
-#         super(Sequence_ListWidget, self).__init__(**kwargs)
-
-#     def dropEvent(self, event):
-#         self.sig_dropped.emit(event)
-#         event.accept()
 
 
 if __name__ == '__main__':
