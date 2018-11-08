@@ -115,9 +115,10 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file=None, parent=None,**kwargs):
+    def __init__(self, ui_file=None, parent=None, **kwargs):
         super().__init__(**kwargs)
-        loadUi(ui_file, self)
+        if ui_file is not None:
+            loadUi(ui_file, self)
 
     def closeEvent(self, event):
         # do stuff
@@ -137,7 +138,10 @@ class Window_ui(QtWidgets.QWidget):
 #         event.accept()
 
 
-class Window_plotting(QtWidgets.QDialog):
+class Window_plotting(QtWidgets.QDialog, Window_ui):
+    
+    # sig_closing = pyqtSignal()
+
     def __init__(self, data, label_x, label_y, title, parent=None):
         super().__init__()
         self.data = data
@@ -166,14 +170,14 @@ class Window_plotting(QtWidgets.QDialog):
         layout.addWidget(self.canvas)
         # layout.addWidget(self.button)
         self.setLayout(layout)
-
-        self.plot_base()
         self.lines = []
+        self.plot_base()
+
         self.plot()
 
     def plot_base(self):
         self.ax = self.figure.add_subplot(111)
-        
+
         self.ax.set_title(self.title)
         self.ax.set_xlabel(self.label_x)
         self.ax.set_ylabel(self.label_y)
@@ -184,7 +188,6 @@ class Window_plotting(QtWidgets.QDialog):
         self.ax.clear()
         for entry in self.data:
             self.lines.append(self.ax.plot(entry[0], entry[1], '*-')[0])
-
 
     def plot(self):
         ''' plot some not so random stuff '''
