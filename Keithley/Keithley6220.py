@@ -6,6 +6,21 @@ Provides support for the Keithley 6220 constant current supply
 
 # IMPORTS #####################################################################
 
+import threading, visa
+
+import logging
+
+# create a logger object for this module
+logger = logging.getLogger(__name__)
+# added so that log messages show up in Jupyter notebooks
+logger.addHandler(logging.StreamHandler())
+
+try:
+    # the pyvisa manager we'll use to connect to the GPIB resources
+    resource_manager = visa.ResourceManager('C:\\Windows\\System32\\agvisa32.dll')
+except OSError:
+    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+
 from __future__ import absolute_import
 from __future__ import division
 
@@ -25,132 +40,11 @@ class Keithley6220(SCPIInstrument, PowerSupply):
     Because this is a constant current supply, most features that a regular
     power supply have are not present on the 6220.
 
-    Example usage:
-
-    >>> import quantities as pq
-    >>> import instruments as ik
-    >>> ccs = ik.keithley.Keithley6220.open_gpibusb("/dev/ttyUSB0", 10)
-    >>> ccs.current = 10 * pq.milliamp # Sets current to 10mA
-    >>> ccs.disable() # Turns off the output and sets the current to 0A
     """
+    def go(self, command):
+        with self.CommunicationLock:
+            self.device.write(command)
 
-
-
-    def bounded_unitful_property(command, units, min_fmt_str="{}:MIN?",
-                                 max_fmt_str="{}:MAX?",
-                                 valid_range=("query", "query"), **kwargs):
-        """
-        Called inside of SCPI classes to instantiate properties with unitful numeric
-        values which have upper and lower bounds. This function in turn calls
-        `unitful_property` where all kwargs for this function are passed on to.
-        See `unitful_property` documentation for information about additional
-        parameters that will be passed on.
-    
-        Compared to `unitful_property`, this function will return 3 properties:
-        the one created by `unitful_property`, one for the minimum value, and one
-        for the maximum value.
-    
-        :param str command: Name of the SCPI command corresponding to this property.
-            If parameter set_cmd is not specified, then this parameter is also used
-            for both getting and setting.
-        :param str set_cmd: If not `None`, this parameter sets the command string
-            to be used when sending commands with no return values to the
-            instrument. This allows for non-symmetric properties that have different
-            strings for getting vs setting a property.
-        :param units: Units to assume in sending and receiving magnitudes to and
-            from the instrument.
-        :param str min_fmt_str: Specify the string format to use when sending a
-            minimum value query. The default is ``"{}:MIN?"`` which will place
-            the property name in before the colon. Eg: ``"MOCK:MIN?"``
-        :param str max_fmt_str: Specify the string format to use when sending a
-            maximum value query. The default is ``"{}:MAX?"`` which will place
-            the property name in before the colon. Eg: ``"MOCK:MAX?"``
-        :param valid_range: Tuple containing min & max values when setting
-            the property. Index 0 is minimum value, index 1 is maximum value.
-            Setting `None` in either disables bounds checking for that end of the
-            range. The default of ``("query", "query")`` will query the instrument
-            for min and max parameter values. The valid set is inclusive of
-            the values provided.
-        :type valid_range: `list` or `tuple` of `int`, `float`, `None`, or the
-            string ``"query"``.
-        :param kwargs: All other keyword arguments are passed onto
-            `unitful_property`
-        :return: Returns a `tuple` of 3 properties: first is as returned by
-            `unitful_property`, second is a property representing the minimum
-            value, and third is a property representing the maximum value
-        """
-    
-        def _min_getter(self):
-            if valid_range[0] == "query":
-                return pq.Quantity(*split_unit_str(self.query(min_fmt_str.format(command)), units))
-    
-            return assume_units(valid_range[0], units).rescale(units)
-    
-        def _max_getter(self):
-            if valid_range[1] == "query":
-                return pq.Quantity(*split_unit_str(self.query(max_fmt_str.format(command)), units))
-    
-            return assume_units(valid_range[1], units).rescale(units)
-    
-        new_range = (
-            None if valid_range[0] is None else _min_getter,
-            None if valid_range[1] is None else _max_getter
-        )
-    
-        return (
-            unitful_property(command, units, valid_range=new_range, **kwargs),
-            property(_min_getter) if valid_range[0] is not None else None,
-            property(_max_getter) if valid_range[1] is not None else None
-        )
-
-
-        def go(self, command):
-            with self.CommunicationLock:
-                self.device.write(command)
-
-    # PROPERTIES ##
-
-    @property
-    def channel(self):
-        """
-        For most power supplies, this would return a channel specific object.
-        However, the 6220 only has a single channel, so this function simply
-        returns a tuple containing itself. This is for compatibility reasons
-        if a multichannel supply is replaced with the single-channel 6220.
-
-        For example, the following commands are the same and both set the
-        current to 10mA:
-
-        >>> ccs.channel[0].current = 0.01
-        >>> ccs.current = 0.01
-        """
-        return self,
-
-    @property
-    def voltage(self):
-        """
-        This property is not supported by the Keithley 6220.
-        """
-        raise NotImplementedError("The Keithley 6220 does not support voltage "
-                                  "settings.")
-
-    @voltage.setter
-    def voltage(self, newval):
-        raise NotImplementedError("The Keithley 6220 does not support voltage "
-                                  "settings.")
-
-    current, current_min, current_max = bounded_unitful_property(
-        "SOUR:CURR",
-        pq.amp,
-        valid_range=(-105 * pq.milliamp, +105 * pq.milliamp),
-        doc="""
-        Gets/sets the output current of the source. Value must be between
-        -105mA and +105mA.
-
-        :units: As specified, or assumed to be :math:`\\text{A}` otherwise.
-        :type: `float` or `~quantities.Quantity`
-        """
-    )
 
     # METHODS #
 
@@ -159,6 +53,13 @@ class Keithley6220(SCPIInstrument, PowerSupply):
         Set the output current to zero and disable the output.
         """
         self.go('SOUR:CLE:IMM')
+
+    def SetCurrent(self, current_value):
+    	"""Sets Current
+    	"""
+        if 0.105 < current_value < - 0.105:
+            raise AssertionError("Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
+    	self.go('CURR ' + '{0:e}'.format(current_value))
 
 
     def ConfigSourceFunctions(self, bias_current = 1e-4, compliance = 1):

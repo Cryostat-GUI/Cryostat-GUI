@@ -49,6 +49,8 @@ from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
 from LakeShore.LakeShore350_Control import LakeShore350_Updater
+from Keithley.Keithley2182_Control import Keithley2182_Updater
+from Keithley.Keithley6220_Control import Keithley6220_Updater
 
 from pyvisa.errors import VisaIOError
 
@@ -61,6 +63,11 @@ ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
 LakeShore_InstrumentAddress = 'GPIB0::12::INSTR'
+Keithley2181_1_InstrumentAddress = 'GPIB0::2::INSTR' 
+Keithley2181_2_InstrumentAddress = 'GPIB0::3::INSTR'
+Keithley2181_3_InstrumentAddress = 'GPIB0::4::INSTR'
+Keithley6220_1_InstrumentAddress = 'GPIB0::5::INSTR'
+Keithley6220_2_InstrumentAddress = 'GPIB0::6::INSTR'
 
 
 def convert_time(ts):
@@ -104,6 +111,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.initialize_window_IPS()
         self.initialize_window_Log_conf()
         self.initialize_window_LakeShore350()
+        self.initialize_window_Keithley()
         self.initialize_window_Errors()
 
 
@@ -680,6 +688,120 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # self.LakeShore350_window.lcdLoopD_Param.display(self.data['LakeShore350']['Loop_D_Param'])
 
             # self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
+
+
+
+   # ------- Keithley 2182 + Keithley 6220 -------
+    def initialize_window_Keithley(self):
+        """initialize Keithley Window"""
+        self.Keithley_window = Window_ui(ui_file='.\\Keithley\\Keithley_control.ui')
+        self.Keithley_window.sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
+
+        self.action_run_Keithley.triggered['bool'].connect(self.run_Keithley)
+        self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
+
+
+    @pyqtSlot(bool)
+    def run_Keithley(self, boolean):
+        """start/stop the Keithley thread"""
+
+        if boolean:
+            try:
+                # setting first Keithley6220 
+                getInfodata1 = self.running_thread(Keithley6220_Updater(InstrumentAddress=Keithley6220_1_InstrumentAddress),'Keithley6220_1', 'control_Keithley6220_1')
+
+                getInfodata1.sig_Infodata.connect(self.store_data_Keithley)
+                getInfodata1.sig_visaerror.connect(self.show_error_textBrowser)
+                getInfodata1.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata1.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley6220_1: timeout'))
+
+                # setting second Keithley6220 
+                getInfodata2 = self.running_thread(Keithley6220_Updater(InstrumentAddress=Keithley6220_2_InstrumentAddress),'Keithley6220_2', 'control_Keithley6220_2')
+
+                getInfodata2.sig_Infodata.connect(self.store_data_Keithley)
+                getInfodata2.sig_visaerror.connect(self.show_error_textBrowser)
+                getInfodata2.sig_assertion.connect(self.show_error_textBrowser)
+                getInfodata2.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley6220_2: timeout'))
+
+                ## setting first Keithley2182 
+                #getInfodata3 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_1_InstrumentAddress),'Keithley2182_1', 'control_Keithley2182_1')
+#
+                #getInfodata3.sig_Infodata.connect(self.store_data_Keithley)
+                #getInfodata3.sig_visaerror.connect(self.show_error_textBrowser)
+                #getInfodata3.sig_assertion.connect(self.show_error_textBrowser)
+                #getInfodata3.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_1: timeout'))
+#
+                ## setting second Keithley2182 
+                #getInfodata4 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_2_InstrumentAddress),'Keithley2182_2', 'control_Keithley2182_2')
+#
+                #getInfodata4.sig_Infodata.connect(self.store_data_Keithley)
+                #getInfodata4.sig_visaerror.connect(self.show_error_textBrowser)
+                #getInfodata4.sig_assertion.connect(self.show_error_textBrowser)
+                #getInfodata4.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_2: timeout'))
+#
+                ## setting third Keithley2182 
+                #getInfodata5 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_3_InstrumentAddress),'Keithley2182_3', 'control_Keithley2182_3')
+#
+                #getInfodata5.sig_Infodata.connect(self.store_data_Keithley)
+                #getInfodata5.sig_visaerror.connect(self.show_error_textBrowser)
+                #getInfodata5.sig_assertion.connect(self.show_error_textBrowser)
+                #getInfodata5.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_3: timeout'))
+
+
+                # setting Keithley values by GUI LakeShore window
+                self.Keithley_window.spinSetCurrent1_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_1'][0].gettoset_Current_A(value))
+                self.Keithley_window.spinSetCurrent1_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_1'][0].setCurrent_A())
+
+                self.Keithley_window.pushButton1.clicked.connect(lambda: self.threads['control_Keithley6220_1'][0].disable())
+
+                self.Keithley_window.spinSetCurrent2_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_2'][0].gettoset_Current_A(value))
+                self.Keithley_window.spinSetCurrent2_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_2'][0].setCurrent_A())                
+
+                self.Keithley_window.pushButton2.clicked.connect(lambda: self.threads['control_Keithley6220_2'][0].disable())
+
+
+                self.action_run_Keithley.setChecked(True)
+
+            except VisaIOError as e:
+                self.action_run_Keithley.setChecked(False)
+                self.show_error_textBrowser('running: {}'.format(e))
+        else:
+            self.action_run_Keithley.setChecked(False)
+            self.stopping_thread('control_Keithley6220_1')
+            self.stopping_thread('control_Keithley6220_2')
+
+            self.Keithley_window.spinSetCurrent1_mA.valueChanged.disconnect()
+            self.Keithley_window.spinSetCurrent1_mA.editingFinished.disconnect()
+            self.Keithley_window.spinSetCurrent2_mA.valueChanged.disconnect()
+            self.Keithley_window.spinSetCurrent2_mA.editingFinished.disconnect()
+
+            self.Keithley_window.pushButton1.clicked.disconnect()
+            self.Keithley_window.pushButton2.clicked.disconnect()
+
+    @pyqtSlot(bool)
+    def show_Keithley(self, boolean):
+        """display/close the ILM data & control window"""
+        if boolean:
+            self.Keithley_window.show()
+        else:
+            self.Keithley_window.close()
+
+
+    @pyqtSlot(dict)
+    def store_data_Keithley(self, data):
+        """
+            Store Keithley data in self.data['Keithley'], update Keithley_window
+        """
+
+        with self.dataLock:
+            self.data['Keithley'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+            # since the command failed in the communication with the device, the last value is retained
+
+            self.Keithley_window.lcdSensor1_nV.display(self.data['Keithley2182_1']['Voltage_nV'])
+            self.Keithley_window.lcdSensor2_nV.display(self.data['Keithley2182_2']['Voltage_nV'])
+            self.Keithley_window.lcdSensor3_nV.display(self.data['Keithley2182_3']['Voltage_nV'])
+
 
 
 

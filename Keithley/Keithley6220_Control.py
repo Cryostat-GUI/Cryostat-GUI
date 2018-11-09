@@ -36,9 +36,10 @@ class Keithley6220_Updater(AbstractLoopThread):
 
     sensors =  dict(
     	Current_A = None,
-        Start_Current = None,
-        Step_Current = None,
-        Stop_Current = None)
+#        Start_Current = None,
+#        Step_Current = None,
+#        Stop_Current = None
+        )
 
 
     def __init__(self, InstrumentAddress='', **kwargs):
@@ -46,10 +47,10 @@ class Keithley6220_Updater(AbstractLoopThread):
 
         self.Keithley6220 = Keithley6220(InstrumentAddress=InstrumentAddress)
 
-        self.Current_A_value = 0
-        self.Start_Current_value = 0
-        self.Step_Current_value = 0
-        self.Stop_Current_value = 0
+        self.Current_A_value = None
+#        self.Start_Current_value = 0
+#        self.Step_Current_value = 0
+#        self.Stop_Current_value = 0
 
 
 #        self.delay1 = 1
@@ -57,7 +58,7 @@ class Keithley6220_Updater(AbstractLoopThread):
       # self.setControl()
       # self.__isRunning = True
 
-        self.Keithley6220.ConfigSourceFunctions()
+#        self.Keithley6220.ConfigSourceFunctions()
 
     # @control_checks
     def running(self):
@@ -70,10 +71,10 @@ class Keithley6220_Updater(AbstractLoopThread):
 
         """
         try:
-#            self.sensors['Current_A'] = self.Keithley6220.measureVoltage()
-            self.sensors['Start_Current'] = self.Start_Current_value
-            self.sensors['Step_Current'] = self.Step_Current_value
-            self.sensors['Stop_Current'] = self.Stop_Current_value
+            self.sensors['Current_A'] = self.Keithley6220.measureVoltage()
+#            self.sensors['Start_Current'] = self.Start_Current_value
+#            self.sensors['Step_Current'] = self.Step_Current_value
+#            self.sensors['Stop_Current'] = self.Stop_Current_value
 
             self.sig_Infodata.emit(deepcopy(sensors))
 
@@ -99,6 +100,32 @@ class Keithley6220_Updater(AbstractLoopThread):
 #                self.sig_visatimeout.emit()
 #            else:
 #                self.sig_visaerror.emit(e_visa.args[0])
+
+    def disable():
+        try:
+            self.Keithley6220.disable()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])      
+
+
+
+    def setCurrent_A(self):
+
+        try:
+            self.Keithley6220.setCurrent(self.Current_A_value)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
 
 
     def setSweep(self):
@@ -128,7 +155,7 @@ class Keithley6220_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     def gettoset_Current_A(self, value):
-        self.Current_A_value = value
+        self.Current_A_value = value/1000
 
     @pyqtSlot()
     def gettoset_Start_Current(self, value):
@@ -141,3 +168,4 @@ class Keithley6220_Updater(AbstractLoopThread):
     @pyqtSlot()
     def gettoset_Stop_Current(self, value):
         self.Stop_Current_value = value
+
