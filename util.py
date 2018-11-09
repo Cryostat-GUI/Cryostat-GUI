@@ -57,12 +57,15 @@ class AbstractLoopThread(AbstractThread):
         # self.__isRunning = True
         self.loop = True
 
-    @pyqtSlot() # int
+    @pyqtSlot()  # int
     def work(self):
         """class method which is working all the time while the thread is running. """
         # while self.__isRunning:
         try:
-            self.running()
+            if self.loop:
+                self.running()
+            else:
+                pass
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
