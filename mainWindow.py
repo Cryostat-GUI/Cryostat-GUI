@@ -280,7 +280,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 - get the data for the new combobox
                 - chose the action
         """
-        GUI_value.addItems(("-",))
+        
         instrument_name = GUI_instr.currentText()
         # print("instrument for x was set to: ",self.plotting_instrument_for_x)
         if livevsdb == "LIVE":
@@ -297,6 +297,8 @@ class mainWindow(QtWidgets.QMainWindow):
         #     colnames= self.mycursor.description
             # for row in colnames:
             #     axis.append(row[0])
+        GUI_value.clear()
+        GUI_value.addItems(("-",))
         GUI_value.addItems(value_names)
         GUI_value.activated.connect(lambda: self.plotting_selection_value(GUI_instr=GUI_instr,
                                                                           GUI_value=GUI_value,
