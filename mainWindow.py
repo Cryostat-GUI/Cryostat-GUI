@@ -697,39 +697,45 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.Keithley_window = Window_ui(ui_file='.\\Keithley\\Keithley_control.ui')
         self.Keithley_window.sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
 
+        confdict2182_1 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_1_InstrumentAddress, dataname='Keithley2182_1', threadname='control_Keithley2182_1', GUI_number1=self.Keithley_window.lcdSensor1_nV)
+        confdict2182_2 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2', GUI_number1=self.Keithley_window.lcdSensor2_nV)
+        confdict2182_3 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3', GUI_number1=self.Keithley_window.lcdSensor3_nV)
 
-        confidict2182_1 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_1_InstrumentAddress, dataname='Keithley2182_1', threadname='control_Keithley2182_1', GUI_number=self.Keithley_window.lcdSensor1_nV)
+        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton1)
+        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton2)
+
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
-        self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2'))
-        self.action_run_Nanovolt_3.triggered['bool'].connect(lambda value: self.run_Keithley(value, clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3'))
+        self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_2))
+        self.action_run_Nanovolt_3.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_3))
 
-        self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1'))
-        self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2'))
+        self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_1))
+        self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_2))
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
 
 
     @pyqtSlot(bool)
-    def run_Keithley(self, boolean, clas, instradress, dataname, threadname):
+    def run_Keithley(self, boolean, clas, instradress, dataname, threadname, **kwargs):
         """start/stop the Keithley thread"""
 
         if boolean:
             try:
                 # setting first Keithley6220 
-                getInfodata1 = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
+                getInfodata = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
 
-                getInfodata1.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, ))
-                getInfodata1.sig_visaerror.connect(self.show_error_textBrowser)
-                getInfodata1.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata1.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                if 'GUI_number1' in kwargs:
+                    getInfodata.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs['GUI_number1']))
+                    getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
+                    getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+                    getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
 
                 # setting second Keithley6220 
-                getInfodata2 = self.running_thread(Keithley6220_Updater(InstrumentAddress=Keithley6220_2_InstrumentAddress),'Keithley6220_2', 'control_Keithley6220_2')
-
-                getInfodata2.sig_Infodata.connect(self.store_data_Keithley)
-                getInfodata2.sig_visaerror.connect(self.show_error_textBrowser)
-                getInfodata2.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata2.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley6220_2: timeout'))
+#                getInfodata2 = self.running_thread(Keithley6220_Updater(InstrumentAddress=Keithley6220_2_InstrumentAddress),'Keithley6220_2', 'control_Keithley6220_2')
+#
+#                getInfodata2.sig_Infodata.connect(self.store_data_Keithley)
+#                getInfodata2.sig_visaerror.connect(self.show_error_textBrowser)
+#                getInfodata2.sig_assertion.connect(self.show_error_textBrowser)
+#                getInfodata2.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley6220_2: timeout'))
 
                 ## setting first Keithley2182 
                 #getInfodata3 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_1_InstrumentAddress),'Keithley2182_1', 'control_Keithley2182_1')
@@ -756,18 +762,19 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 #getInfodata5.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_3: timeout'))
 
 
-                # setting Keithley values by GUI LakeShore window
-                if dataname == "Keithley6220_1":
+                # setting Keithley values by GUI Keithley window
+            
+                if 'GUI_number2' in kwargs:
+                    kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.threads[threadname][0].setCurrent_A())
 
-                    self.Keithley_window.spinSetCurrent1_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_1'][0].gettoset_Current_A(value))
-                    self.Keithley_window.spinSetCurrent1_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_1'][0].setCurrent_A())
+                if 'GUI_push' in kwargs:
+                    kwargs['GUI_push'].clicked.connect(lambda: self.threads[threadname][0].disable())
 
-                self.Keithley_window.pushButton1.clicked.connect(lambda: self.threads['control_Keithley6220_1'][0].disable())
+#                self.Keithley_window.spinSetCurrent2_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_2'][0].gettoset_Current_A(value))
+#                self.Keithley_window.spinSetCurrent2_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_2'][0].setCurrent_A())                
 
-                self.Keithley_window.spinSetCurrent2_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_2'][0].gettoset_Current_A(value))
-                self.Keithley_window.spinSetCurrent2_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_2'][0].setCurrent_A())                
-
-                self.Keithley_window.pushButton2.clicked.connect(lambda: self.threads['control_Keithley6220_2'][0].disable())
+#                self.Keithley_window.pushButton2.clicked.connect(lambda: self.threads['control_Keithley6220_2'][0].disable())
 
 
                 self.action_run_Keithley.setChecked(True)
@@ -777,8 +784,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.show_error_textBrowser('running: {}'.format(e))
         else:
             self.action_run_Keithley.setChecked(False)
-            self.stopping_thread('control_Keithley6220_1')
-            self.stopping_thread('control_Keithley6220_2')
+            self.stopping_thread(threadname)
+            self.stopping_thread(threadname)
 
             self.Keithley_window.spinSetCurrent1_mA.valueChanged.disconnect()
             self.Keithley_window.spinSetCurrent1_mA.editingFinished.disconnect()
@@ -798,7 +805,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
     @pyqtSlot(dict)
-    def store_data_Keithley(self, data, dataname, GUI_number):
+    def store_data_Keithley(self, data, dataname, GUI_number1):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
@@ -808,11 +815,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
 
-            GUI_number.display(self.data[dataname][])
-
-            self.Keithley_window.lcdSensor1_nV.display(self.data['Keithley2182_1']['Voltage_nV'])
-            self.Keithley_window.lcdSensor2_nV.display(self.data['Keithley2182_2']['Voltage_nV'])
-            self.Keithley_window.lcdSensor3_nV.display(self.data['Keithley2182_3']['Voltage_nV'])
+            GUI_number1.display(self.data[dataname]['Voltage_nV'])
+#            self.Keithley_window.lcdSensor2_nV.display(self.data['Keithley2182_2']['Voltage_nV'])
+#            self.Keithley_window.lcdSensor3_nV.display(self.data['Keithley2182_3']['Voltage_nV'])
 
 
 
