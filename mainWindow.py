@@ -787,14 +787,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.stopping_thread(threadname)
             self.stopping_thread(threadname)
 
-            self.Keithley_window.spinSetCurrent1_mA.valueChanged.disconnect()
-            self.Keithley_window.spinSetCurrent1_mA.editingFinished.disconnect()
-            self.Keithley_window.spinSetCurrent2_mA.valueChanged.disconnect()
-            self.Keithley_window.spinSetCurrent2_mA.editingFinished.disconnect()
+            if 'GUI_number2' in kwargs:
+                kwargs['GUI_number2'].valueChanged.disconnect()
+                kwargs['GUI_number2'].editingFinished.disconnect()
 
-            self.Keithley_window.pushButton1.clicked.disconnect()
-            self.Keithley_window.pushButton2.clicked.disconnect()
-
+            if 'GUI_push' in kwargs:
+                kwargs['GUI_push'].clicked.disonnect()
+            
+            
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
         """display/close the ILM data & control window"""
