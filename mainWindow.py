@@ -63,9 +63,9 @@ ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
 LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
-Keithley2181_1_InstrumentAddress = 'GPIB0::2::INSTR' 
-Keithley2181_2_InstrumentAddress = 'GPIB0::3::INSTR'
-Keithley2181_3_InstrumentAddress = 'GPIB0::4::INSTR'
+Keithley2182_1_InstrumentAddress = 'GPIB0::2::INSTR' 
+Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
+Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6220_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6220_2_InstrumentAddress = 'GPIB0::6::INSTR'
 
@@ -794,7 +794,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             if 'GUI_push' in kwargs:
                 kwargs['GUI_push'].clicked.disonnect()
             
-            
+
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
         """display/close the ILM data & control window"""
