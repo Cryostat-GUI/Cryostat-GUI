@@ -40,7 +40,7 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
-
+        self.instr = InstrumentAddress
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
 
 #        self.delay1 = 1
@@ -66,6 +66,8 @@ class Keithley2182_Updater(AbstractLoopThread):
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()

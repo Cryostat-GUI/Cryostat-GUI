@@ -82,5 +82,5 @@ class Keithley2182(object):
 #        self.sendcmd("SENS:CHAN 1")
 #        self.sendcmd("SENS:FUNC 'VOLT:DC'")
 #        return self.query("SENS:DATA:FRES?")[0]
-        return self.query(":READ?")[0]
+        return float(self.query(":READ?")[0])
 
