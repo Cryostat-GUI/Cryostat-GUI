@@ -61,7 +61,7 @@ class Keithley2182_Updater(AbstractLoopThread):
         try:
             self.sensors['Voltage_nV'] = self.Keithley2182.measureVoltage() * 10**9
 
-            self.sig_Infodata.emit(deepcopy(sensors))
+            self.sig_Infodata.emit(deepcopy(self.sensors))
 
             # time.sleep(self.delay1)
         except AssertionError as e_ass:
