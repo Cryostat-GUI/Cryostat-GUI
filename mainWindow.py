@@ -785,7 +785,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             GUI_menu_action.setChecked(False)
             self.stopping_thread(threadname)
-            self.stopping_thread(threadname)
 
             if 'GUI_number2' in kwargs:
                 kwargs['GUI_number2'].valueChanged.disconnect()
