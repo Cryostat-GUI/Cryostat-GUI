@@ -701,8 +701,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         confdict2182_2 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2', GUI_number1=self.Keithley_window.lcdSensor2_nV)
         confdict2182_3 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3', GUI_number1=self.Keithley_window.lcdSensor3_nV)
 
-        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.Keithley_window.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton1)
-        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.Keithley_window.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton2)
+        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.Keithley_window.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton_1)
+        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.Keithley_window.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton_2)
 
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
         self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_2))
