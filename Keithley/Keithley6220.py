@@ -21,18 +21,18 @@ try:
 except OSError:
     logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
-from __future__ import absolute_import
-from __future__ import division
+#from __future__ import absolute_import
+#from __future__ import division
 
-import quantities as pq
+#import quantities as pq
 
-from Keithley.lib import PowerSupply
-from Keithley.lib import SCPIInstrument
+#from Keithley.lib import PowerSupply
+#from Keithley.lib import SCPIInstrument
 
 # CLASSES #####################################################################
 
 
-class Keithley6220(SCPIInstrument, PowerSupply):
+class Keithley6220(object):
 
     """
     The Keithley 6220 is a single channel constant current supply.
@@ -55,11 +55,11 @@ class Keithley6220(SCPIInstrument, PowerSupply):
         self.go('SOUR:CLE:IMM')
 
     def SetCurrent(self, current_value):
-    	"""Sets Current
-    	"""
-        if 0.105 < current_value < - 0.105:
+        """Sets Current
+        """
+        if -0.105 > current_value > 0.105:
             raise AssertionError("Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
-    	self.go('CURR ' + '{0:e}'.format(current_value))
+        self.go('CURR ' + '{0:e}'.format(current_value))
 
 
     def ConfigSourceFunctions(self, bias_current = 1e-4, compliance = 1):
