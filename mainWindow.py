@@ -697,12 +697,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.Keithley_window = Window_ui(ui_file='.\\Keithley\\Keithley_control.ui')
         self.Keithley_window.sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
 
-        confdict2182_1 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_1_InstrumentAddress, dataname='Keithley2182_1', threadname='control_Keithley2182_1', GUI_number1=self.Keithley_window.lcdSensor1_nV)
-        confdict2182_2 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2', GUI_number1=self.Keithley_window.lcdSensor2_nV)
-        confdict2182_3 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3', GUI_number1=self.Keithley_window.lcdSensor3_nV)
+        confdict2182_1 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_1_InstrumentAddress, dataname='Keithley2182_1', threadname='control_Keithley2182_1', GUI_number1=self.Keithley_window.lcdSensor1_nV, GUI_menu_action=self.action_run_Nanovolt_1)
+        confdict2182_2 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2', GUI_number1=self.Keithley_window.lcdSensor2_nV, GUI_menu_action=self.action_run_Nanovolt_2)
+        confdict2182_3 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3', GUI_number1=self.Keithley_window.lcdSensor3_nV, GUI_menu_action=self.action_run_Nanovolt_3)
 
-        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.Keithley_window.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton_1)
-        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.Keithley_window.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton_2)
+        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.Keithley_window.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton_1, GUI_menu_action=self.action_run_Current_1)
+        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.Keithley_window.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton_2, GUI_menu_action=self.action_run_Current_2)
 
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
         self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_2))
@@ -715,7 +715,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
     @pyqtSlot(bool)
-    def run_Keithley(self, boolean, clas, instradress, dataname, threadname, **kwargs):
+    def run_Keithley(self, boolean, clas, instradress, dataname, threadname, GUI_menu_action, **kwargs):
         """start/stop the Keithley thread"""
 
         if boolean:
@@ -777,13 +777,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 #                self.Keithley_window.pushButton2.clicked.connect(lambda: self.threads['control_Keithley6220_2'][0].disable())
 
 
-                self.action_run_Keithley.setChecked(True)
+                GUI_menu_action.setChecked(True)
 
             except VisaIOError as e:
-                self.action_run_Keithley.setChecked(False)
+                GUI_menu_action.setChecked(False)
                 self.show_error_textBrowser('running: {}'.format(e))
         else:
-            self.action_run_Keithley.setChecked(False)
+            GUI_menu_action.setChecked(False)
             self.stopping_thread(threadname)
             self.stopping_thread(threadname)
 
