@@ -490,6 +490,9 @@
    </property>
   </action>
   <action name="action_run_Nanovolt_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -498,6 +501,9 @@
    </property>
   </action>
   <action name="action_run_Current_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Current source 1</string>
    </property>
@@ -569,21 +575,33 @@
    </property>
   </action>
   <action name="action_run_Nanovolt_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Nanovoltmeter 2</string>
    </property>
   </action>
   <action name="action_run_Nanovolt_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Nanovoltmeter 3</string>
    </property>
   </action>
   <action name="action_run_Current_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Current source 2</string>
    </property>
   </action>
   <action name="action_show_Keithley">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Keithley Resistance</string>
    </property>
