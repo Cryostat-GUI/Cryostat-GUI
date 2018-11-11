@@ -38,7 +38,8 @@ def measure_resistance(conf):
     for idx in range(conf['n_measurements']):
         # as first time, apply positive current --> pos voltage (correct)
         for currentfactor in [1, -1]:
-            # set current with factor "currentfactor"
+            conf['threads'][conf['threadname_CURR']].getto_setCurrent_A(conf['current_applied']*currentfactor)
+            conf['threads'][conf['threadname_CURR']].setCurrent_A(conf['current_applied']*currentfactor)
             voltage = conf['threads'][conf['threadname_RES']].read_Voltage()*currentfactor
             resistances.append(voltage/(conf['current_applied']*currentfactor))
 
@@ -162,6 +163,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
                          threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=None,
+                         threadname_CURR=None,
                          current_applied=None,  # needs to be set - thus communicated!
                          n_measurements=10,)
 
