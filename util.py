@@ -19,6 +19,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
+import functools
+import inspect
+from visa import VisaIOError
+
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
@@ -45,6 +49,26 @@ def loopcontrol_threads(threads, loopcondition):
         except AttributeError:
             pass
             # eventhandlingThread somewhere....
+
+
+def ExceptionHandling(func):
+    @functools.wraps(func)
+    def wrapper_ExceptionHandling(*args, **kwargs):
+        if inspect.isclass(type(args[0])):
+            try:
+                return func(*args, **kwargs)
+            except AssertionError as e_ass:
+                args[0].sig_assertion.emit(e_ass.args[0])
+            except ValueError as e_val:
+                args[0].sig_assertion.emit('{}: {}: {}'.format(args[0].__name__, func.__name__, e_val.args[0]))
+            except VisaIOError as e_visa:
+                if isinstance(e_visa, args[0].timeouterror) and e_visa.args == args[0].timeouterror.args:
+                    args[0].sig_visatimeout.emit()
+                else:
+                    args[0].sig_visaerror.emit('{}: {}: {}'.format(args[0].__name__, func.__name__, e_visa.args[0]))
+        else:
+            print('There is a bug!! ' + func.__name__)
+    return wrapper_ExceptionHandling
 
 
 class AbstractThread(QObject):
@@ -75,6 +99,7 @@ class AbstractLoopThread(AbstractThread):
         self._loop = True
 
     @pyqtSlot()  # int
+    @ExceptionHandling
     def work(self):
         """class method which is working all the time while the thread is running. """
         # while self.__isRunning:
@@ -83,8 +108,6 @@ class AbstractLoopThread(AbstractThread):
                 self.running()
             else:
                 pass
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
         finally:
             QTimer.singleShot(self.interval*1e3, self.work)
 
