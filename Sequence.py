@@ -7,8 +7,6 @@
 """
 
 
-
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 
@@ -21,8 +19,7 @@ import time
 from copy import deepcopy
 
 from util import AbstractEventhandlingThread
-from util import Window_ui
-
+from util import loopcontrol_threads
 
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
@@ -127,15 +124,35 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.temp_VTI_offset = offset
 
 
-class Pure_measurement_Thread(AbstractEventhandlingThread):
+class OneShot_Thread(AbstractEventhandlingThread):
     """docstring for Pure_measurement_Thread"""
     def __init__(self, mainthread):
-        super(Pure_measurement_Thread, self).__init__()
+        super(OneShot_Thread, self).__init__()
         self.mainthread = mainthread
 
-        self.mainthread.sig_measure_oneshot.connect(self.measure)
+        self.mainthread.sig_measure_oneshot.connect(lambda value: self.measure(self.conf))
+        self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
+                         threads=self.mainthread.threads,
+                         threadname_Temp='control_LakeShore350',
+                         threadname_RES=None,
+                         current_applied=None,
+                         n_measurements=10,)
 
-    @pyqtSlot()
-    def measure(self):
-       data = dict()
-       self.mainthread.sig_log_measurement.emit(deepcopy(data))
+    def update_conf(self, key, value):
+        self.conf[key] = value
+
+
+
+    @pyqtSlot(dict)
+    def measure(self, conf):
+        data = dict()
+        temps = []
+        voltages = []
+        loopcontrol_threads(conf['threads'], False)
+        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+        for idx in range(conf['n_measurements']):
+            voltages.append(conf['threads'][conf['threadname_RES']].)
+
+        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+
+        conf['store_signal'].emit(deepcopy(data))

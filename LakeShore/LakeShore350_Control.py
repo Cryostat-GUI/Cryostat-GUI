@@ -182,6 +182,21 @@ class LakeShore350_Updater(AbstractLoopThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    def read_Temperatures(self):
+        sensors = dict()
+        sensor_names = ['Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
+        try:
+            temp_list = self.LakeShore350.KelvinReadingQuery(0)
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])     
+        for idx, sens in enumerate(sensor_names):
+            sensors[sens] = temp_list[idx]
+        return sensors
 
 #    @pyqtSlot()
 #    def setHeater_mW(self):

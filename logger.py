@@ -19,6 +19,9 @@ import math
 from util import AbstractLoopThread
 from util import AbstractEventhandlingThread
 from util import Window_ui
+from util import convert_time
+from util import convert_time_searchable
+
 
 from sqlite3 import OperationalError
 
@@ -85,16 +88,6 @@ def change_to_correct_types(tablename, dictname):
     sql.append('''DROP TABLE python_temp_{table}'''.format(table=tablename))
     sql.append('''PRAGMA foreign_keys = 1''')
     return sql
-
-
-def convert_time(ts):
-    """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-
-def convert_time_searchable(ts):
-    """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
 
 class Logger_configuration(Window_ui):
@@ -568,7 +561,7 @@ class Logger_measurement_configuration(Window_ui):
             ui_file='.\\configurations\\Log_meas_conf.ui', **kwargs)
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
-        self.initialise_dicts()
+        self.conf = self.initialise_dicts()
 
         # self.buttonBox_finish.accepted.connect(
         #     lambda: self.sig_send_conf.emit(deepcopy(self.conf)))

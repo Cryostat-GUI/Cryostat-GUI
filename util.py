@@ -28,6 +28,25 @@ from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 
 
+def convert_time(ts):
+    """converts timestamps from time.time() into reasonable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def convert_time_searchable(ts):
+    """converts timestamps from time.time() into reasonably searchable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+
+
+def loopcontrol_threads(threads, loopcondition):
+    for thread in threads:
+        try:
+            thread.loop = loopcondition
+        except AttributeError:
+            pass
+            # eventhandlingThread somewhere....
+
+
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
 

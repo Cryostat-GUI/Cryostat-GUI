@@ -51,22 +51,13 @@ from pyvisa.errors import VisaIOError
 from logger import main_Logger, live_Logger
 from logger import Logger_configuration
 from util import Window_ui, Window_plotting
-
+from util import convert_time
+from util import convert_time_searchable
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
 LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
-
-
-def convert_time(ts):
-    """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-
-def convert_time_searchable(ts):
-    """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -281,7 +272,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 - get the data for the new combobox
                 - chose the action
         """
-        
+
         instrument_name = GUI_instr.currentText()
         # print("instrument for x was set to: ",self.plotting_instrument_for_x)
         if livevsdb == "LIVE":
@@ -323,6 +314,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     self.show_error_textBrowser('plotting: do not choose "-" '
                                       'please, there is nothing behind it!')
                     return
+
     def plotting_display(self, dataplot):
         y = None
         try:
@@ -354,22 +346,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def deleting_object(self, object_to_delete):
         del object_to_delete
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def selection_y1(self, dataplot, livevsdb):
         dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
