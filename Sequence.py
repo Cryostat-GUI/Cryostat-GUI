@@ -21,6 +21,7 @@ import time
 from copy import deepcopy
 
 from util import AbstractEventhandlingThread
+from util import Window_ui
 
 
 class BreakCondition(Exception):
@@ -133,8 +134,8 @@ class Pure_measurement_Thread(AbstractEventhandlingThread):
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(self.measure)
+
     @pyqtSlot()
     def measure(self):
-       pass   
        data = dict()
        self.mainthread.sig_log_measurement.emit(deepcopy(data))

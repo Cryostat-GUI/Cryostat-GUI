@@ -1075,6 +1075,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
 
+    def initialize_window_OneShot(self):
+        self.window_OneShot = Window_ui(ui_file='.\\configurations\\OneShotMeasurement.ui')
+        self.window_OneShot.pushChoose_Datafile.connect()
+
     def initialize_window_Errors(self):
         """initialize Error Window"""
         self.Errors_window = Window_ui(ui_file='.\\configurations\\Errors.ui')
