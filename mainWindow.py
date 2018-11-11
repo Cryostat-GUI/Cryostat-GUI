@@ -813,6 +813,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
 
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
