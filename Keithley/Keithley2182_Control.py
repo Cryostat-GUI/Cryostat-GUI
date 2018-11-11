@@ -34,19 +34,13 @@ class Keithley2182_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    sensors =  dict(
-    	Voltage_nV = None)
-
+    sensors = dict(Voltage_nV=None)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
 
-#        self.delay1 = 1
-#        self.delay = 0.0
-      # self.setControl()
-      # self.__isRunning = True
 
     # @control_checks
     def running(self):
@@ -67,6 +61,22 @@ class Keithley2182_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    def read_Voltage(self):
+        """read a Voltage from instrument. return value should be float"""
+        try:
+            return self.Keithley2182.measureVoltage() * 10**9
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
             self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
