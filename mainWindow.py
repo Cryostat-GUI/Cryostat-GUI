@@ -76,6 +76,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
     sig_running_new_thread = pyqtSignal()
+    sig_log_measurement = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)

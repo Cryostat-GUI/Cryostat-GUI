@@ -17,6 +17,7 @@ import math
 
 
 from util import AbstractLoopThread
+from util import AbstractEventhandlingThread
 from util import Window_ui
 
 from sqlite3 import OperationalError
@@ -136,8 +137,6 @@ class Logger_configuration(Window_ui):
                 lambda value: self.setValue('Lakeshore350', 'thread', value))
         self.general_threads_Lakeshore350.toggled.connect(
                 lambda b: self.Lakeshore350_thread_running.setChecked(b))
-        self.general_spinSetInterval.valueChanged.connect(
-                lambda value: self.setValue('general', 'interval', value))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
@@ -150,6 +149,9 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
 
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
+
+        self.general_spinSetInterval.valueChanged.connect(
+                lambda value: self.setValue('general', 'interval', value))
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
@@ -195,6 +197,11 @@ class Logger_configuration(Window_ui):
         if 'log_conf.pickle' in configurations:
             with open('configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
+                if 'general' in self.conf:
+                    if 'interval' in self.conf['general']:
+                        self.general_spinSetInterval.setValue(self.conf['general']['interval'])
+                    if 'logfile_location' in self.conf['general']:
+                        self.lineFilelocation.setText(self.conf['general']['logfile_location'])
         else:
             self.conf = self.initialise_dicts()
 
@@ -549,6 +556,104 @@ class live_Logger(AbstractLoopThread):
                     for variablekey in dic:
                         self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
+
+
+class Logger_measurement_configuration(Window_ui):
+    """docstring for Logger_configuration"""
+
+    sig_send_conf = pyqtSignal(dict)
+
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(
+            ui_file='.\\configurations\\Log_meas_conf.ui', **kwargs)
+
+        self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
+        self.initialise_dicts()
+
+        # self.buttonBox_finish.accepted.connect(
+        #     lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
+        self.buttonBox_finish.accepted.connect(self.close_and_safe)
+        self.buttonBox_finish.rejected.connect(self.close)
+
+    def close_and_safe(self):
+        """save the configuration dict to a file, close the window afterwards"""
+        self.sig_send_conf.emit(deepcopy(self.conf))
+        # with open('configurations/log_conf.pickle', 'wb') as handle:
+        #     pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        self.close()
+
+    def setValue(self, value, bools):
+        """set a bool value according to the instrument and specific"""
+        self.conf[value] = bools
+
+    def initialise_dicts(self):
+        """initialise the conf dict, in case it was not handed down
+            return the empty conf dict
+        """
+        conf = dict(datafile='')
+        return conf
+
+    def window_FileDialogSave(self):
+        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
+           self, 'Choose Datafile Location',
+           'c:\\', "Data Files (*.dat)")
+        self.lineFilelocation.setText(dbname)
+        self.setValue('datafile', dbname)
+
+
+class measurement_Logger(AbstractEventhandlingThread):
+    """This is the datasaving thread
+    """
+
+    # sig_configuring = pyqtSignal(bool)
+    sig_log = pyqtSignal()
+
+    def __init__(self, mainthread, **kwargs):
+        super().__init__(**kwargs)
+        self.mainthread = mainthread
+
+        self.starttime = time.time()
+
+        self.mainthread.sig_log_measurement.connect(self.store_data)
+        self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
+
+        QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
+
+    def update_conf(self, conf):
+        """
+            - update the configuration with one being sent.
+
+        """
+        self.conf = conf
+
+    @pyqtSlot(dict)
+    def store_data(self, data):
+        """storing logging data
+            what data should be logged is set in self.conf
+            or will be set there eventually at any rate
+        """
+        # timedict = {'timeseconds': time.time(),
+        #             'ReadableTime': convert_time(time.time())}
+        try:
+            if not self.conf:
+                self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
+        except NameError:
+            # configuration not yet done
+            self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
+
+        if os.path.isfile(self.conf['datafile']):
+            try:
+                with open(self.conf['datafile'], 'a') as f:
+                    f.write('\n {temp} {res}'.format(**data))
+            except IOError as err:
+                self.sig_assertion.emit("DataSaver: "+ err.args[0])
+        else:
+            try:
+                with open(self.conf['datafile'], 'w') as f:
+                    f.write("# Measurement started on {date} \n# temp_sample [K], resistance [Ohm], time[s] \n".format(date=convert_time(self.starttime)))
+                    f.write('\n {temperature} {resistance} {time}'.format(**data))
+            except IOError as err:
+                self.sig_assertion.emit("DataSaver: "+ err.args[0])
 
 
 if __name__ == '__main__':
