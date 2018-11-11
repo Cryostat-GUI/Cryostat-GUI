@@ -76,6 +76,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
     sig_running_new_thread = pyqtSignal()
+    sig_log_measurement = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -280,7 +281,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 - get the data for the new combobox
                 - chose the action
         """
-        GUI_value.addItems(("-",))
+        
         instrument_name = GUI_instr.currentText()
         # print("instrument for x was set to: ",self.plotting_instrument_for_x)
         if livevsdb == "LIVE":
@@ -297,6 +298,8 @@ class mainWindow(QtWidgets.QMainWindow):
         #     colnames= self.mycursor.description
             # for row in colnames:
             #     axis.append(row[0])
+        GUI_value.clear()
+        GUI_value.addItems(("-",))
         GUI_value.addItems(value_names)
         GUI_value.activated.connect(lambda: self.plotting_selection_value(GUI_instr=GUI_instr,
                                                                           GUI_value=GUI_value,
@@ -1071,6 +1074,10 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
+
+    def initialize_window_OneShot(self):
+        self.window_OneShot = Window_ui(ui_file='.\\configurations\\OneShotMeasurement.ui')
+        self.window_OneShot.pushChoose_Datafile.connect()
 
     def initialize_window_Errors(self):
         """initialize Error Window"""

@@ -35,12 +35,12 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
         loadUi(ui_file, self)
 
         self.conf = dict(typ='change datafile', new_file_data='',
-                            mode='a' if comm[-1]=='1' else 'w',
+                            mode='',
                             DisplayText='')
         self.lineFileLocation.setText(self.conf['new_file_data'])
         self.lineFileLocation.textChanged.connect(lambda value: self.setValue('new_file_data', value))
         self.pushBrowse.clicked.connect(self.Browse)
-        self.comboMode.activated['int'].connect()
+        self.comboMode.activated['int'].connect(self.setMode)
 
         self.buttonDialog.accepted.connect(self.acc)
         self.buttonDialog.rejected.connect(self.close)
