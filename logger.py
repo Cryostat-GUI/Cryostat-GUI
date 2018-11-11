@@ -466,7 +466,7 @@ class live_Logger(AbstractLoopThread):
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
                            'logging_SearchableTime', 'SearchableTime']
-        # buggy because it will erase all previous data! 
+        # buggy because it will erase all previous data!
 
         # QTimer.singleShot(*1e3, self.worker)
 

@@ -62,7 +62,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     sig_arbitrary = pyqtSignal()
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
-    
+
     #these will hold the strings which the user selects to extract the data from db with the sql query and plot it
     #x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
     instrument_for_x=0
@@ -159,7 +159,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
-        # self.mdiArea.addSubWindow(self.ITC_window)        
+        # self.mdiArea.addSubWindow(self.ITC_window)
 
     def show_data_live(self):
         self.action_plotLive.triggered.connect(self.show_dataplotlive)
@@ -167,9 +167,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     def show_data_db(self):##a lot of work to do
         self.action_plotDatabase.triggered.connect(self.show_dataplotdb)
-        
-        
-   
+
+
+
     def show_dataplotdb(self):
         self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_database.ui')
         self.dataplot.show()
@@ -186,15 +186,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.dataplot.comboInstr_Axis_Y5.clear()
 
         for i in axis2:
-            self.dataplot.comboInstr_Axis_X.addItems(i) 
+            self.dataplot.comboInstr_Axis_X.addItems(i)
             self.dataplot.comboInstr_Axis_Y1.addItems(i)
             self.dataplot.comboInstr_Axis_Y2.addItems(i)
             self.dataplot.comboInstr_Axis_Y3.addItems(i)
             self.dataplot.comboInstr_Axis_Y4.addItems(i)
-            self.dataplot.comboInstr_Axis_Y5.addItems(i)    
+            self.dataplot.comboInstr_Axis_Y5.addItems(i)
         self.dataplot.comboInstr_Axis_X.activated.connect(self.selection_x)
         self.dataplot.comboInstr_Axis_Y1.activated.connect(self.selection_y1)
-        self.dataplot.buttonBox.clicked.connect(self.plotstart)    
+        self.dataplot.buttonBox.clicked.connect(self.plotstart)
 
     def show_dataplotlive(self):
         self.dataplot=Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
@@ -209,10 +209,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.dataplot.comboInstr_Axis_Y3.clear()
         self.dataplot.comboInstr_Axis_Y4.clear()
         self.dataplot.comboInstr_Axis_Y5.clear()
-        
+
 
         for i in axis2:
-            self.dataplot.comboInstr_Axis_X.addItems(i) 
+            self.dataplot.comboInstr_Axis_X.addItems(i)
             self.dataplot.comboInstr_Axis_Y1.addItems(i)
             self.dataplot.comboInstr_Axis_Y2.addItems(i)
             self.dataplot.comboInstr_Axis_Y3.addItems(i)
@@ -231,18 +231,18 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         colnames= mycursor.description
         for row in colnames:
             axis.append(row[0])
-        self.dataplot.comboValue_Axis_X.addItems(axis) 
+        self.dataplot.comboValue_Axis_X.addItems(axis)
         self.dataplot.comboValue_Axis_X.activated.connect(self.x_changed)
-           
+
     def x_changed(self):
         self.comboValue_Axis_X_plot=self.dataplot.comboValue_Axis_X.currentText()
 
     def selection_y1(self):
         self.dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
         self.instrument_for_y1=self.dataplot.comboInstr_Axis_Y1.currentText()
-        
+
         print("instrument for y1 was set to: ",self.instrument_for_y1)
-        
+
         axis=[]
         mycursor.execute("SELECT * FROM {}".format(self.instrument_for_y1))
         colnames= mycursor.description
@@ -250,7 +250,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             axis.append(row[0])
         self.dataplot.comboValue_Axis_Y1.addItems(axis)
         self.dataplot.comboValue_Axis_Y1.activated.connect(self.y1_changed)
-        
+
     def y1_changed(self):
         self.comboValue_Axis_Y1_plot=self.dataplot.comboValue_Axis_Y1.currentText()
 
@@ -266,11 +266,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             for row in data:
                 array1.append(list(row))
-            
+
             #this is for is for omiting 'None' values from the array, skipping this step would cause the plot to break!
-            
-            nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]   
-            
+
+            nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]
+
             #After renaming x to instrument_for_x and y1 to instrument_for_y1, the nparray became 1 dimensional, so the
             #original code:nparray_x = nparray[:,[0]] did not work, this is a workaround, i have no idea what caused it.
             #selecting different instruments for x and y doesn't have this problem as the data is stored in separate arrays.
@@ -284,9 +284,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             plt.xlabel(self.comboValue_Axis_X_plot)
             plt.ylabel(self.comboValue_Axis_Y1_plot)
 
-            
-            plt.draw() 
-            
+
+            plt.draw()
+
             plt.show()
         else:
             sql="SELECT {} FROM {}".format(self.comboValue_Axis_X_plot,self.instrument_for_x)
@@ -296,7 +296,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             for row in data:
                 array1.append(list(row))
             nparray_x=np.asarray(array1)[np.asarray(array1) != np.array(None)]
-            
+
             sql="SELECT {} FROM {}".format(self.comboValue_Axis_Y1_plot,self.instrument_for_y1)
             mycursor.execute(sql)
             data=mycursor.fetchall()
@@ -304,7 +304,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             for row in data:
                 array2.append(list(row))
             nparray_y=np.asarray(array2)[np.asarray(array2) != np.array(None)]
-            
+
             #there can be still some problems if the dimensions don't match so:
             if len(nparray_x)>len(nparray_y):
                 nparray_x=nparray_x[0:len(nparray_y)]
@@ -317,17 +317,17 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             plt.xlabel(self.comboValue_Axis_X_plot+" from table: "+str(self.instrument_for_x))
             plt.ylabel(self.comboValue_Axis_Y1_plot+" from table: "+str(self.instrument_for_y1))
 
-            
-            plt.draw() 
-            
+
+            plt.draw()
+
             plt.show()
     @pyqtSlot(bool)
-     
 
-    
-        
-    
-    
+
+
+
+
+
 
 
     def run_ITC(self, boolean):
@@ -449,12 +449,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
 
             timediffs = [(entry-self.ITC_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]# -self.ITC_Kpmin['newtime'])/60
-            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])], 
-                                Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])], 
+            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.ITC_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
+                                Sensor_2_Kpmin=[entry-self.ITC_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
                                 Sensor_3_Kpmin=[entry-self.ITC_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
             #integrating over the lists, to get an integrated rate of Kelvin/min
-            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
-                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
+            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
+                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
                                     Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)))
 
             self.ITC_window.lcdTemp_sens1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
@@ -463,13 +463,13 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
         # advancing entries to the next slot
-        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]): 
+        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
             self.ITC_Kpmin['newtime'][i+1] = entry
             self.ITC_Kpmin['Sensor_1_K'][i+1] = self.ITC_Kpmin['Sensor_1_K'][i]
             self.ITC_Kpmin['Sensor_2_K'][i+1] = self.ITC_Kpmin['Sensor_2_K'][i]
             self.ITC_Kpmin['Sensor_3_K'][i+1] = self.ITC_Kpmin['Sensor_3_K'][i]
 
-        # including the new values 
+        # including the new values
         self.ITC_Kpmin['newtime'][0] = time.time()
         self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
@@ -671,7 +671,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
                 # allows to choose from different inputs to connect to output 1 control loop. default is input 1.
-                
+
                 self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
@@ -681,7 +681,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                self.show_error_textBrowser('running: {}'.format(e)) 
+                self.show_error_textBrowser('running: {}'.format(e))
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
@@ -766,29 +766,29 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             # building lists of differences
             timediffs = [(entry-self.LakeShore350_Kpmin['newtime'][i+1])/60 for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1])]# -self.LakeShore350_Kpmin['newtime'])/60
-            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-1])], 
-                                Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-1])], 
-                                Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-1])], 
+            tempdiffs = dict(Sensor_1_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_1_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_1_K'][:-1])],
+                                Sensor_2_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_2_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_2_K'][:-1])],
+                                Sensor_3_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_3_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_3_K'][:-1])],
                                 Sensor_4_Kpmin=[entry-self.LakeShore350_Kpmin['Sensor_4_K'][i+1] for i, entry in enumerate(self.LakeShore350_Kpmin['Sensor_4_K'][:-1])])
             #integrating over the lists, to get an integrated rate of Kelvin/min
-            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)), 
-                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)), 
-                                    Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)), 
+            integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin'])/np.array(timediffs)),
+                                    Sensor_2_Kpmin=np.mean(np.array(tempdiffs['Sensor_2_Kpmin'])/np.array(timediffs)),
+                                    Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin'])/np.array(timediffs)),
                                     Sensor_4_Kpmin=np.mean(np.array(tempdiffs['Sensor_4_Kpmin'])/np.array(timediffs)) )
-          
+
             self.LakeShore350_window.lcdSensor1_Kpmin.display(integrated_diff['Sensor_1_Kpmin'])
             self.LakeShore350_window.lcdSensor2_Kpmin.display(integrated_diff['Sensor_2_Kpmin'])
             self.LakeShore350_window.lcdSensor3_Kpmin.display(integrated_diff['Sensor_3_Kpmin'])
             self.LakeShore350_window.lcdSensor4_Kpmin.display(integrated_diff['Sensor_4_Kpmin'])
         # advancing entries to the next slot
-        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]): 
+        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
             self.LakeShore350_Kpmin['newtime'][i+1] = entry
             self.LakeShore350_Kpmin['Sensor_1_K'][i+1] = self.LakeShore350_Kpmin['Sensor_1_K'][i]
             self.LakeShore350_Kpmin['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensor_2_K'][i]
             self.LakeShore350_Kpmin['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensor_3_K'][i]
             self.LakeShore350_Kpmin['Sensor_4_K'][i+1] = self.LakeShore350_Kpmin['Sensor_4_K'][i]
 
-        # including the new values 
+        # including the new values
         self.LakeShore350_Kpmin['newtime'][0] = time.time()
         self.LakeShore350_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
         self.LakeShore350_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
