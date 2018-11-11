@@ -18,8 +18,10 @@ from PyQt5.QtCore import pyqtSlot
 # import os
 # import re
 import time
+from copy import deepcopy
 
 from util import AbstractEventhandlingThread
+
 
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
@@ -78,10 +80,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
             self.mainthread.IPS_window.widgetSetpoints.setEnabled(True)
             self.mainthread.LakeShore350_window.widgetSetpoints.setEnabled(True)
 
-
     def check_Temp_in_Scan(self, Temp, direction=0):
         pass
-
 
     def wait_for_Temp(self, Temp_target, threshold=0.01):
         """repeatedly check whether the temperature was reached,
@@ -117,8 +117,6 @@ class Sequence_Thread(AbstractEventhandlingThread):
         # sleep for short time OUTSIDE of Lock
         time.sleep(0.1)
 
-
-
     def stop(self):
         """stop the sequence execution by setting self.__isRunning to False"""
         self.__isRunning = False
@@ -126,3 +124,17 @@ class Sequence_Thread(AbstractEventhandlingThread):
     @pyqtSlot()
     def setTempVTIOffset(self, offset):
         self.temp_VTI_offset = offset
+
+
+class Pure_measurement_Thread(AbstractEventhandlingThread):
+    """docstring for Pure_measurement_Thread"""
+    def __init__(self, mainthread):
+        super(Pure_measurement_Thread, self).__init__()
+        self.mainthread = mainthread
+
+        self.mainthread.sig_measure_oneshot.connect(self.measure)
+    @pyqtSlot()
+    def measure(self):
+       pass   
+       data = dict()
+       self.mainthread.sig_log_measurement.emit(deepcopy(data))
