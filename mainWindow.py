@@ -75,6 +75,10 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
+def calc_resistance(U, I):
+    return float(U)/float(I)
+
+
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window, where other windows will be spawned from"""
 
