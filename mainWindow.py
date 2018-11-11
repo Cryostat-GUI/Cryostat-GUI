@@ -100,6 +100,13 @@ class mainWindow(QtWidgets.QMainWindow):
         self.show_data()
         self.actionLogging_LIVE.triggered['bool'].connect(self.run_logger_live)
 
+        self.controls = [
+            self.ITC_window.groupSettings,
+            self.ILM_window.groupSettings,
+            self.IPS_window.groupSettings,
+            self.LakeShore350_window.groupSettings]
+        self.controls_Lock = Lock()
+
     def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
         """Set up a new Thread, and insert the worker class, which runs in the new thread
             Args:

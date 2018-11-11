@@ -19,8 +19,10 @@ import time
 from copy import deepcopy
 import numpy as np
 
+
 from util import AbstractEventhandlingThread
-from util import loopcontrol_threads
+from util import loops_off, controls_disabled
+
 
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
@@ -32,19 +34,19 @@ def measure_resistance(conf):
     temps = []
     resistances = []  # pos & neg
 
-    loopcontrol_threads(conf['threads'], False)
-    temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+    with loops_off:
+        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
 
-    for idx in range(conf['n_measurements']):
-        # as first time, apply positive current --> pos voltage (correct)
-        for currentfactor in [1, -1]:
-            conf['threads'][conf['threadname_CURR']].getto_setCurrent_A(conf['current_applied']*currentfactor)
-            conf['threads'][conf['threadname_CURR']].setCurrent_A(conf['current_applied']*currentfactor)
-            voltage = conf['threads'][conf['threadname_RES']].read_Voltage()*currentfactor
-            resistances.append(voltage/(conf['current_applied']*currentfactor))
+        for idx in range(conf['n_measurements']):
+            # as first time, apply positive current --> pos voltage (correct)
+            for currentfactor in [1, -1]:
+                conf['threads'][conf['threadname_CURR']].gettoset_Current_A(conf['current_applied']*currentfactor)
+                conf['threads'][conf['threadname_CURR']].setCurrent_A(conf['current_applied']*currentfactor)
+                voltage = conf['threads'][conf['threadname_RES']].read_Voltage()*currentfactor
+                # pure V/I, I hope that is fine.
+                resistances.append(voltage/(conf['current_applied']*currentfactor))
 
-    temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
-    loopcontrol_threads(conf['threads'], True)
+        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
@@ -72,39 +74,38 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.temp_VTI_offset = 5
 
     def running(self):
-        try:
-            self.mainthread.ITC_window.widgetSetpoints.setEnabled(False)
-            self.mainthread.ILM_window.widgetSetpoints.setEnabled(False)
-            self.mainthread.IPS_window.widgetSetpoints.setEnabled(False)
-            self.mainthread.LakeShore350_window.widgetSetpoints.setEnabled(False)
-            for entry in self.sequence:
-                if entry['typ'] == 'scan_T':
-                    for temp_setpoint_sample in entry['sequence_temperature']:
-                        temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
-                        temp_setpoint_VTI =  4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
+        with controls_disabled(self.mainthread.controls, self.mainthread.controls_lock):
+            try:
+                for entry in self.sequence:
+                    self.execute_sequence_entry(entry)
+            except BreakCondition:
+                self.sig_aborted.emit()
+                return 'Aborted!'
 
-                        self.mainthread.threads['control_ITC'][0].gettoset_Temperature(temp_setpoint_VTI)
-                        self.mainthread.threads['control_ITC'][0].setTemperature()
+    def execute_sequence_entry(self, entry):
+        if entry['typ'] == 'scan_T':
+            self.execute_scan_T(entry)
+            
+        if entry['typ'] == 'Wait':
+            self.wait_for_Temp(entry['Temp'])
+            self.wait_for_Field(entry['Field'])
+            time.sleep(entry['Delay'])
 
-                        self.mainthread.threads['control_LakeShore350'][0].gettoset_Temp_K(temp_setpoint_sample)
-                        self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
+    def execute_scan_T(self, entry):
+        for temp_setpoint_sample in entry['sequence_temperature']:
+            temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
+            temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
 
-                        self.check_Temp_in_Scan(temp_setpoint_sample)
+            self.mainthread.threads['control_ITC'][0].gettoset_Temperature(temp_setpoint_VTI)
+            self.mainthread.threads['control_ITC'][0].setTemperature()
 
-                    # always use the sweep option, so the rate can be controlled!
-                    # in case stabilisation is needed, just sweep to the respective point (let's try this...)
-                if entry['typ'] == 'Wait':
-                    self.wait_for_Temp(entry['Temp'])
-                    self.wait_for_Field(entry['Field'])
-                    time.sleep(entry['Delay'])
-        except BreakCondition:
-            self.sig_aborted.emit()
-            return 'Aborted!'
-        finally:
-            self.mainthread.ITC_window.widgetSetpoints.setEnabled(True)
-            self.mainthread.ILM_window.widgetSetpoints.setEnabled(True)
-            self.mainthread.IPS_window.widgetSetpoints.setEnabled(True)
-            self.mainthread.LakeShore350_window.widgetSetpoints.setEnabled(True)
+            self.mainthread.threads['control_LakeShore350'][0].gettoset_Temp_K(temp_setpoint_sample)
+            self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
+
+            self.check_Temp_in_Scan(temp_setpoint_sample)
+
+        # always use the sweep option, so the rate can be controlled!
+        # in case stabilisation is needed, just sweep to the respective point (let's try this...)
 
     def check_Temp_in_Scan(self, Temp, direction=0):
         pass
@@ -174,6 +175,5 @@ class OneShot_Thread(AbstractEventhandlingThread):
 
     @pyqtSlot(dict)
     def measure_oneshot(self, conf):
-        data = measure_resistance(conf)
-
-        conf['store_signal'].emit(deepcopy(data))
+        """invoke a single measurement and send it to saving the data"""
+        conf['store_signal'].emit(deepcopy(measure_resistance(conf)))

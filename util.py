@@ -25,6 +25,8 @@ import datetime
 import time
 from visa import VisaIOError
 
+from contextlib import contextmanager
+
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
@@ -48,11 +50,27 @@ def loopcontrol_threads(threads, loopcondition):
     for thread in threads:
         try:
             thread[0].loop = loopcondition
-            if loopcondition is False:
-                time.sleep(0.1)
         except AttributeError:
             pass
             # eventhandlingThread somewhere....
+
+
+@contextmanager
+def loops_off(threads):
+    loopcontrol_threads(threads, False)
+    time.sleep(0.1)
+    yield
+    loopcontrol_threads(threads, True)
+
+
+@contextmanager
+def controls_disabled(controls, lock):
+    with lock:
+        for control in controls:
+            control.setEnabled(False)
+        yield
+        for control in controls:
+            control.setEnabled(True)
 
 
 def ExceptionHandling(func):
