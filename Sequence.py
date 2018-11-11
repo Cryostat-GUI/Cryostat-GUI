@@ -17,6 +17,7 @@ from PyQt5.QtCore import pyqtSlot
 # import re
 import time
 from copy import deepcopy
+import numpy as np
 
 from util import AbstractEventhandlingThread
 from util import loopcontrol_threads
@@ -24,6 +25,32 @@ from util import loopcontrol_threads
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
     pass
+
+
+def measure_resistance(conf):
+    data = dict()
+    temps = []
+    resistances = []  # pos & neg
+
+    loopcontrol_threads(conf['threads'], False)
+    temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+
+    for idx in range(conf['n_measurements']):
+        # as first time, apply positive current --> pos voltage (correct)
+        for currentfactor in [1, -1]:
+            # set current with factor "currentfactor"
+            voltage = conf['threads'][conf['threadname_RES']].read_Voltage()*currentfactor
+            resistances.append(voltage/(conf['current_applied']*currentfactor))
+
+    temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+    loopcontrol_threads(conf['threads'], True)
+
+    data['T_mean_K'] = np.mean(temps)
+    data['T_std_K'] = np.std(temps)
+
+    data['R_mean_Ohm'] = np.mean(resistances)
+    data['R_std_Ohm'] = np.std(resistances)
+    return data
 
 
 class Sequence_Thread(AbstractEventhandlingThread):
@@ -125,7 +152,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
 
 
 class OneShot_Thread(AbstractEventhandlingThread):
-    """docstring for Pure_measurement_Thread"""
+    """docstring for OneShot_Thread"""
     def __init__(self, mainthread):
         super(OneShot_Thread, self).__init__()
         self.mainthread = mainthread
@@ -135,7 +162,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
                          threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=None,
-                         current_applied=None,
+                         current_applied=None,  # needs to be set - thus communicated!
                          n_measurements=10,)
 
     def update_conf(self, key, value):
@@ -144,15 +171,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
 
 
     @pyqtSlot(dict)
-    def measure(self, conf):
-        data = dict()
-        temps = []
-        voltages = []
-        loopcontrol_threads(conf['threads'], False)
-        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
-        for idx in range(conf['n_measurements']):
-            voltages.append(conf['threads'][conf['threadname_RES']].)
-
-        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+    def measure_oneshot(self, conf):
+        data = measure_resistance(conf)
 
         conf['store_signal'].emit(deepcopy(data))

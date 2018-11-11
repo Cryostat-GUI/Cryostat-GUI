@@ -21,6 +21,8 @@ from matplotlib.figure import Figure
 
 import functools
 import inspect
+import datetime
+import time
 from visa import VisaIOError
 
 from PyQt5.QtCore import QObject
@@ -45,7 +47,9 @@ def convert_time_searchable(ts):
 def loopcontrol_threads(threads, loopcondition):
     for thread in threads:
         try:
-            thread.loop = loopcondition
+            thread[0].loop = loopcondition
+            if loopcondition is False:
+                time.sleep(0.1)
         except AttributeError:
             pass
             # eventhandlingThread somewhere....
