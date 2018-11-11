@@ -53,13 +53,17 @@ class AbstractLoopThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 2 # second
         # self.__isRunning = True
+        self._loop = True
 
     @pyqtSlot()  # int
     def work(self):
         """class method which is working all the time while the thread is running. """
         # while self.__isRunning:
         try:
-            self.running()
+            if self._loop:
+                self.running()
+            else:
+                pass
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
@@ -74,10 +78,10 @@ class AbstractLoopThread(AbstractThread):
         """set the interval between running events in seconds"""
         self.interval = interval
 
-    # @pyqtSlot()
-    # def stop(self):
-    #     """stop the loop execution, sets self.__isRunning to False"""
-    #     self.__isRunning = False
+    @pyqtSlot()
+    def looping(self, loop):
+        """start/stop the loop execution, by setting the bool self._loop"""
+        self._loop = loop
 
 
 class AbstractEventhandlingThread(AbstractThread):
@@ -85,27 +89,23 @@ class AbstractEventhandlingThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.interval = 500
 
-    @pyqtSlot() # int
+    @pyqtSlot()
     def work(self):
         """class method which is here so something runs, and starting behaviour is not broken
         """
-        # while self.__isRunning:
         try:
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval*1e3, self.work)
 
     def running(self):
         """class method to be overrriden """
-        raise NotImplementedError
-
-    @pyqtSlot()
-    def stop(self):
-        """just here so stopping the thread can be done as with all others
-            can be overriden for "last second actions"
-        """
         pass
+        # raise NotImplementedError
 
 
 class Window_ui(QtWidgets.QWidget):
@@ -124,18 +124,6 @@ class Window_ui(QtWidgets.QWidget):
         # do stuff
         self.sig_closing.emit()
         event.accept() # let the window close
-
-
-# class sequence_listwidget(QtWidgets.QListWidget):
-#     """docstring for Sequence_ListWidget"""
-#     sig_dropped = pyqtSignal()
-
-#     def __init__(self, **kwargs):
-#         super(sequence_listwidget, self).__init__(**kwargs)
-
-#     def dropEvent(self, event):
-#         self.sig_dropped.emit(event)
-#         event.accept()
 
 
 class Window_plotting(QtWidgets.QDialog, Window_ui):
@@ -176,6 +164,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.plot()
 
     def plot_base(self):
+        # create an axis
         self.ax = self.figure.add_subplot(111)
 
         self.ax.set_title(self.title)
@@ -191,7 +180,6 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
     def plot(self):
         ''' plot some not so random stuff '''
-        # create an axis
 
         for ct, entry in enumerate(self.data):
             self.lines[ct].set_xdata(entry[0])
@@ -199,7 +187,6 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
         self.ax.relim()
         self.ax.autoscale_view()
-
 
         # refresh canvas
         self.canvas.draw()
