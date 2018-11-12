@@ -57,10 +57,12 @@ def loopcontrol_threads(threads, loopcondition):
 
 @contextmanager
 def loops_off(threads):
-    loopcontrol_threads(threads, False)
-    time.sleep(0.1)
-    yield
-    loopcontrol_threads(threads, True)
+    try:
+        loopcontrol_threads(threads, False)
+        time.sleep(0.1)
+        yield
+    finally:
+        loopcontrol_threads(threads, True)
 
 
 @contextmanager
