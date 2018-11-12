@@ -70,6 +70,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_logging_newconf = pyqtSignal(dict)
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
+    sig_measure_oneshot = pyqtSignal()
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -1065,6 +1066,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot = Window_ui(ui_file='.\\configurations\\OneShotMeasurement.ui')
         # self.window_OneShot.pushChoose_Datafile.connect()
         # self.window_OneShot.comboCurrentSource.addItems([])
+        self.window_OneShot.commandMeasure.setEnabled(False)
+
+        self.action_run_OneShot_Measuring.triggered['bool'].connect(self.run_OneShot)
+        self.action_show_OneShot_Measuring.triggered['bool'].connect(self.show_OneShot)
 
     @pyqtSlot(bool)
     def run_OneShot(self, boolean):
@@ -1072,10 +1077,23 @@ class mainWindow(QtWidgets.QMainWindow):
             OneShot = self.running_thread(OneShot_Thread(self), None, 'control_OneShot')
             self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(lambda value: OneShot.update_conf('excitation_current_A', value))
             self.window_OneShot.spinN_measurements.valueChanged.connect(lambda value: OneShot.update_conf('n_measurements', value))
-            self.window_OneShot.comboCurrentSource.activated['']
+            self.window_OneShot.comboCurrentSource.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
+            # needs more attention!
+            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
+            # needs more attention!
+            self.window_OneShot.commandMeasure.clicked.connect(lambda: self.sig_measure_oneshot.emit())
+            self.window_OneShot.commandMeasure.setEnabled(True)
 
         else:
             self.stopping_thread('control_OneShot')
+            self.window_OneShot.commandMeasure.setEnabled(False)
+
+    def show_OneShot(self, boolean):
+        """display/close the OneShot Measuring window"""
+        if boolean:
+            self.window_OneShot.show()
+        else:
+            self.window_OneShot.close()
 
     def initialize_window_Errors(self):
         """initialize Error Window"""

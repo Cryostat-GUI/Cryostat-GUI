@@ -185,7 +185,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
         super(OneShot_Thread, self).__init__()
         self.mainthread = mainthread
 
-        self.mainthread.sig_measure_oneshot.connect(lambda value: self.measure(self.conf))
+        self.mainthread.sig_measure_oneshot.connect(lambda: self.measure_oneshot(self.conf))
         self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
                          threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
