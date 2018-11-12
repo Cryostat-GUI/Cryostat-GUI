@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
-    <height>229</height>
+    <width>768</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>464</width>
+     <width>768</width>
      <height>21</height>
     </rect>
    </property>
@@ -68,13 +68,6 @@
      </property>
      <addaction name="action_show_Info_Dock"/>
      <addaction name="action_show_Errors"/>
-     <addaction name="action_show_Data"/>
-     <addaction name="separator"/>
-     <addaction name="action_show_ITC"/>
-     <addaction name="action_show_ILM"/>
-     <addaction name="action_show_IPS"/>
-     <addaction name="separator"/>
-     <addaction name="action_show_LakeShore350"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
@@ -106,8 +99,11 @@
     <addaction name="action_run_LakeShore350"/>
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
+    <addaction name="separator"/>
     <addaction name="action_Logging"/>
     <addaction name="actionLogging_LIVE"/>
+    <addaction name="separator"/>
+    <addaction name="action_run_OneShot_Measuring"/>
    </widget>
    <widget class="QMenu" name="menuShow_Data">
     <property name="title">
@@ -116,10 +112,21 @@
     <addaction name="action_plotLive"/>
     <addaction name="action_plotDatabase"/>
    </widget>
+   <widget class="QMenu" name="menuShow_Instruments">
+    <property name="title">
+     <string>Show Instruments</string>
+    </property>
+    <addaction name="action_show_ITC"/>
+    <addaction name="action_show_ILM"/>
+    <addaction name="action_show_IPS"/>
+    <addaction name="separator"/>
+    <addaction name="action_show_LakeShore350"/>
+   </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSystems_Online"/>
    <addaction name="menuShow_Data"/>
+   <addaction name="menuShow_Instruments"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -565,6 +572,11 @@
     <string>Logging LIVE</string>
    </property>
   </action>
+  <action name="action_run_OneShot_Measuring">
+   <property name="text">
+    <string>OneShot Measuring</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -580,7 +592,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>698</y>
+     <y>208</y>
     </hint>
    </hints>
   </connection>
