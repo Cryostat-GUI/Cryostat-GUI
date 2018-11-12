@@ -29,24 +29,46 @@ class BreakCondition(Exception):
     pass
 
 
-def measure_resistance(conf):
+def measure_resistance(threads,
+                       threadname_Temp,
+                       threadname_RES,
+                       threadname_CURR,
+                       n_measurements, current_applied_A):
+    """conduct one 'full' measurement of resistance:
+        arguments: dict conf
+            threads = dict of threads running of the mainWindow class
+            threadname_Temp  = name of the (LakeShore) Temperature thread
+            threadname_RES  = name of the (Keithley) Voltage measure thread
+            threadname_CURR  = name of the (Keithley) Current set thread
+            n_measurements  = number of measurements (dual polarity) to be averaged over
+            current_applied_A = excitation current for the measurement
+        returns: dict data
+            T_mean_K : mean of temperature readings
+                    before and after measurement [K]
+            T_std_K : std of temperature readings
+                    before and after measurement [K]
+            R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
+            R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
+
+
+    """
     data = dict()
     temps = []
     resistances = []  # pos & neg
 
-    with loops_off:
-        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+    with loops_off(threads):
+        temps.append(threads[threadname_Temp].read_Temperatures())
 
-        for idx in range(conf['n_measurements']):
+        for idx in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
-                conf['threads'][conf['threadname_CURR']].gettoset_Current_A(conf['current_applied']*currentfactor)
-                conf['threads'][conf['threadname_CURR']].setCurrent_A(conf['current_applied']*currentfactor)
-                voltage = conf['threads'][conf['threadname_RES']].read_Voltage()*currentfactor
+                threads[threadname_CURR].gettoset_Current_A(current_applied_A*currentfactor)
+                threads[threadname_CURR].setCurrent_A()
+                voltage = threads[threadname_RES].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
-                resistances.append(voltage/(conf['current_applied']*currentfactor))
+                resistances.append(voltage/(current_applied_A*currentfactor))
 
-        temps.append(conf['threads'][conf['threadname_Temp']].read_Temperatures())
+        temps.append(threads[threadname_Temp].read_Temperatures())
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
@@ -165,7 +187,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=None,
                          threadname_CURR=None,
-                         current_applied=None,  # needs to be set - thus communicated!
+                         current_applied_A=None,  # needs to be set - thus communicated!
                          n_measurements=10,)
 
     def update_conf(self, key, value):
@@ -176,4 +198,5 @@ class OneShot_Thread(AbstractEventhandlingThread):
     @pyqtSlot(dict)
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
-        conf['store_signal'].emit(deepcopy(measure_resistance(conf)))
+        with controls_disabled(self.mainthread.controls, self.mainthread.controls_lock):
+            conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
