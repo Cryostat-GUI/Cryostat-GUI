@@ -788,8 +788,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """
         """
         try:
-
-            self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A']))) 
+            self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
 
     # ------- MISC -------
 
