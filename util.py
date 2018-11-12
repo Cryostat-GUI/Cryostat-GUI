@@ -148,3 +148,9 @@ class sequence_listwidget(QtWidgets.QListWidget):
     def dropEvent(self, event):
         self.sig_dropped.emit(event)
         event.accept()
+
+
+def calculate_resistance(Voltage, Current):
+    return (Voltage*(10**9)/Current)
+
+

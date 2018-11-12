@@ -57,6 +57,7 @@ from pyvisa.errors import VisaIOError
 from logger import main_Logger, live_Logger
 from logger import Logger_configuration
 from util import Window_ui
+from util import calculate_resistance
 
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
@@ -711,6 +712,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_1))
         self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_2))
 
+        self.display_resistance(GUI_Display=lcdResistance1, GUI_data=Keithley2182_1)
+        self.display_resistance(GUI_Display=lcdResistance2, GUI_data=Keithley2182_2)
+        self.display_resistance(GUI_Display=lcdResistance3, GUI_data=Keithley2182_3)
+
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
 
 
@@ -720,9 +725,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             try:
-                # setting first Keithley6220 
                 getInfodata = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
-
+                # displaying store_data_Keithley
                 if 'GUI_number1' in kwargs:
                     getInfodata.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs['GUI_number1']))
                     getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
@@ -777,15 +781,15 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             # since the command failed in the communication with the device, the last value is retained
 
             GUI_number1.display(self.data[dataname]['Voltage_nV'])
-#            self.Keithley_window.lcdSensor2_nV.display(self.data['Keithley2182_2']['Voltage_nV'])
-#            self.Keithley_window.lcdSensor3_nV.display(self.data['Keithley2182_3']['Voltage_nV'])
 
-#    @pyqtSlot()
-#    def display_resistance(self):
+
+    @pyqtSlot()
+    def display_resistance(self, GUI_Display, GUI_Data):
         """
         """
-
-
+        try:
+            self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'],
+                                                                                                                                                         Current=self.[value.strip(')').split('(')[1]]['Current_A']))) 
 
     # ------- MISC -------
 

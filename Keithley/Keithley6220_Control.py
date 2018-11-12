@@ -102,6 +102,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
 #                self.sig_visaerror.emit(e_visa.args[0])
 
     def getCurrent_A(self):
+        self.Current_A = self.Current_A_value
         return self.Current_A_value
 
     def disable(self):
