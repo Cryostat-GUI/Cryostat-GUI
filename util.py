@@ -25,7 +25,7 @@ import datetime
 import time
 from visa import VisaIOError
 
-from contextlib import contextmanager
+from contextlib import suppress
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -48,31 +48,38 @@ def convert_time_searchable(ts):
 
 def loopcontrol_threads(threads, loopcondition):
     for thread in threads:
-        try:
+        with suppress(AttributeError):  # eventhandlingThread somewhere....
             thread[0].loop = loopcondition
-        except AttributeError:
-            pass
-            # eventhandlingThread somewhere....
 
 
-@contextmanager
-def loops_off(threads):
-    try:
-        loopcontrol_threads(threads, False)
+class loops_off:
+    """Context manager for disabling all AbstractLoopThread loops"""
+    def __init__(self, threads):
+        self._threads = threads
+
+    def __enter__(self, *args, **kwargs):
+        loopcontrol_threads(self._threads, False)
         time.sleep(0.1)
-        yield
-    finally:
-        loopcontrol_threads(threads, True)
+
+    def __exit__(self, *args, **kwargs):
+        loopcontrol_threads(self._threads, True)
 
 
-@contextmanager
-def controls_disabled(controls, lock):
-    with lock:
-        for control in controls:
+class controls_disabled:
+    """Context manager for disabling all controls in GUI"""
+    def __init__(self, controls, lock):
+        self._controls = controls
+        self._lock = lock
+
+    def __enter__(self, *args, **kwargs):
+        self._lock.acquire()
+        for control in self._controls:
             control.setEnabled(False)
-        yield
-        for control in controls:
+
+    def __exit__(self, *args, **kwargs):
+        for control in self._controls:
             control.setEnabled(True)
+        self._lock.release()
 
 
 def ExceptionHandling(func):
