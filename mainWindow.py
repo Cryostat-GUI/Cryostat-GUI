@@ -75,10 +75,6 @@ def convert_time(ts):
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
-def calc_resistance(U, I):
-    return float(U)/float(I)
-
-
 class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     """This is the main GUI Window, where other windows will be spawned from"""
 
@@ -733,38 +729,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                     getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                     getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
 
-                # setting second Keithley6220 
-#                getInfodata2 = self.running_thread(Keithley6220_Updater(InstrumentAddress=Keithley6220_2_InstrumentAddress),'Keithley6220_2', 'control_Keithley6220_2')
-#
-#                getInfodata2.sig_Infodata.connect(self.store_data_Keithley)
-#                getInfodata2.sig_visaerror.connect(self.show_error_textBrowser)
-#                getInfodata2.sig_assertion.connect(self.show_error_textBrowser)
-#                getInfodata2.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley6220_2: timeout'))
-
-                ## setting first Keithley2182 
-                #getInfodata3 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_1_InstrumentAddress),'Keithley2182_1', 'control_Keithley2182_1')
-#
-                #getInfodata3.sig_Infodata.connect(self.store_data_Keithley)
-                #getInfodata3.sig_visaerror.connect(self.show_error_textBrowser)
-                #getInfodata3.sig_assertion.connect(self.show_error_textBrowser)
-                #getInfodata3.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_1: timeout'))
-#
-                ## setting second Keithley2182 
-                #getInfodata4 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_2_InstrumentAddress),'Keithley2182_2', 'control_Keithley2182_2')
-#
-                #getInfodata4.sig_Infodata.connect(self.store_data_Keithley)
-                #getInfodata4.sig_visaerror.connect(self.show_error_textBrowser)
-                #getInfodata4.sig_assertion.connect(self.show_error_textBrowser)
-                #getInfodata4.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_2: timeout'))
-#
-                ## setting third Keithley2182 
-                #getInfodata5 = self.running_thread(Keithley2182_Updater(InstrumentAddress=Keithley2182_3_InstrumentAddress),'Keithley2182_3', 'control_Keithley2182_3')
-#
-                #getInfodata5.sig_Infodata.connect(self.store_data_Keithley)
-                #getInfodata5.sig_visaerror.connect(self.show_error_textBrowser)
-                #getInfodata5.sig_assertion.connect(self.show_error_textBrowser)
-                #getInfodata5.sig_visatimeout.connect(lambda: self.show_error_textBrowser('Keithley2182_3: timeout'))
-
 
                 # setting Keithley values by GUI Keithley window
             
@@ -774,12 +738,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
                 if 'GUI_push' in kwargs:
                     kwargs['GUI_push'].clicked.connect(lambda: self.threads[threadname][0].disable())
-
-#                self.Keithley_window.spinSetCurrent2_mA.valueChanged.connect(lambda value: self.threads['control_Keithley6220_2'][0].gettoset_Current_A(value))
-#                self.Keithley_window.spinSetCurrent2_mA.editingFinished.connect(lambda: self.threads['control_Keithley6220_2'][0].setCurrent_A())                
-
-#                self.Keithley_window.pushButton2.clicked.connect(lambda: self.threads['control_Keithley6220_2'][0].disable())
-
 
                 GUI_menu_action.setChecked(True)
 
@@ -813,10 +771,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
 
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
@@ -826,6 +780,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 #            self.Keithley_window.lcdSensor2_nV.display(self.data['Keithley2182_2']['Voltage_nV'])
 #            self.Keithley_window.lcdSensor3_nV.display(self.data['Keithley2182_3']['Voltage_nV'])
 
+#    @pyqtSlot()
+#    def display_resistance(self):
+        """
+        """
 
 
 
