@@ -712,9 +712,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_1))
         self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_2))
 
-        self.display_resistance(GUI_Display=lcdResistance1, GUI_data=Keithley2182_1)
-        self.display_resistance(GUI_Display=lcdResistance2, GUI_data=Keithley2182_2)
-        self.display_resistance(GUI_Display=lcdResistance3, GUI_data=Keithley2182_3)
+        self.display_resistance(GUI_Display=lcdResistance1, GUI_data='Keithley2182_1')
+        self.display_resistance(GUI_Display=lcdResistance2, GUI_data='Keithley2182_2')
+        self.display_resistance(GUI_Display=lcdResistance3, GUI_data='Keithley2182_3')
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
 
@@ -790,7 +790,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         try:
 
             self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'],
-                                                                                                                                                      Current=self.['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A']))) 
+                                                                                                                                                      Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A']))) 
 
     # ------- MISC -------
 
