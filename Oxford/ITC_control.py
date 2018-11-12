@@ -146,7 +146,7 @@ class ITC_Updater(AbstractLoopThread):
         """class method to be called to set Control
             this is to be invoked by a signal
         """
-            self.ITC.setControl(self.control_state)
+        self.ITC.setControl(self.control_state)
 
     @pyqtSlot()
     @ExceptionHandling
