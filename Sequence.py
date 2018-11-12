@@ -62,19 +62,19 @@ def measure_resistance(threads,
     resistances = []  # pos & neg
 
     with loops_off(threads):
-        temps.append(threads[threadname_Temp].read_Temperatures()[temperature_sensor])
+        temps.append(threads[threadname_Temp][0].read_Temperatures()[temperature_sensor])
 
         for idx in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
-                threads[threadname_CURR].gettoset_Current_A(current_applied_A*currentfactor)
-                threads[threadname_CURR].setCurrent_A()
+                threads[threadname_CURR][0].gettoset_Current_A(current_applied_A*currentfactor)
+                threads[threadname_CURR][0].setCurrent_A()
                 # wait for the current to set
-                voltage = threads[threadname_RES].read_Voltage()*currentfactor
+                voltage = threads[threadname_RES][0].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
                 resistances.append(voltage/(current_applied_A*currentfactor))
 
-        temps.append(threads[threadname_Temp].read_Temperatures()[temperature_sensor])
+        temps.append(threads[threadname_Temp][0].read_Temperatures()[temperature_sensor])
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
