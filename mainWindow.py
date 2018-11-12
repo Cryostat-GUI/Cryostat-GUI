@@ -792,10 +792,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     # ------- MISC -------
 
-    def printing(self,b):
-        """arbitrary example function"""
-        print(b)
-
+#    def printing(self,b):
+#        """arbitrary example function"""
+#        print(b)
+#
     def initialize_window_Log_conf(self):
         """initialize Logging configuration window"""
         self.Log_conf_window = Logger_configuration()
