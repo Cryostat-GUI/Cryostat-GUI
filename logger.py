@@ -1,5 +1,4 @@
 
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -634,17 +633,20 @@ class measurement_Logger(AbstractEventhandlingThread):
             # configuration not yet done
             self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
 
+        datastring = '\n {T_mean_K} {T_std_K} {R_mean_Ohm} {R_std_Ohm} {time}'.format(**data)
+
         if os.path.isfile(self.conf['datafile']):
             try:
                 with open(self.conf['datafile'], 'a') as f:
-                    f.write('\n {temp} {res}'.format(**data))
+                    f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])
         else:
             try:
                 with open(self.conf['datafile'], 'w') as f:
-                    f.write("# Measurement started on {date} \n# temp_sample [K], resistance [Ohm], time[s] \n".format(date=convert_time(self.starttime)))
-                    f.write('\n {temperature} {resistance} {time}'.format(**data))
+                    f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
+                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
+                    f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])
 
