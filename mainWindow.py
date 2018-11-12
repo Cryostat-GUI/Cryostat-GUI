@@ -46,6 +46,8 @@ from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
 from LakeShore.LakeShore350_Control import LakeShore350_Updater
 
+from Sequence import OneShot_Thread
+
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger, live_Logger
@@ -100,6 +102,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.show_data()
         self.actionLogging_LIVE.triggered['bool'].connect(self.run_logger_live)
 
+        self.initialize_window_OneShot()
         self.controls = [
             self.ITC_window.groupSettings,
             self.ILM_window.groupSettings,
@@ -148,6 +151,7 @@ class mainWindow(QtWidgets.QMainWindow):
         """ append error to Error window"""
         self.Errors_window.textErrors.append('{} - {}'.format(convert_time(time.time()),text))
 
+    # ------- plotting
     def connectdb(self, dbname):
         """connect to the database, provide the cursor for the whole class"""
         try:
@@ -629,8 +633,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
             if not self.data['ITC']['derivative_action_time'] == None:
                 self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
-
-
+                
 
     # ------- ------- ILM
     def initialize_window_ILM(self):
@@ -1060,7 +1063,19 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_window_OneShot(self):
         self.window_OneShot = Window_ui(ui_file='.\\configurations\\OneShotMeasurement.ui')
-        self.window_OneShot.pushChoose_Datafile.connect()
+        # self.window_OneShot.pushChoose_Datafile.connect()
+        # self.window_OneShot.comboCurrentSource.addItems([])
+
+    @pyqtSlot(bool)
+    def run_OneShot(self, boolean):
+        if boolean:
+            OneShot = self.running_thread(OneShot_Thread(self), None, 'control_OneShot')
+            self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(lambda value: OneShot.update_conf('excitation_current_A', value))
+            self.window_OneShot.spinN_measurements.valueChanged.connect(lambda value: OneShot.update_conf('n_measurements', value))
+            self.window_OneShot.comboCurrentSource.activated['']
+
+        else:
+            self.stopping_thread('control_OneShot')
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
