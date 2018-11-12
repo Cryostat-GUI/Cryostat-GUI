@@ -30,10 +30,12 @@ class BreakCondition(Exception):
 
 
 def measure_resistance(threads,
-                       threadname_Temp,
+                       current_applied_A,
                        threadname_RES,
                        threadname_CURR,
-                       n_measurements, current_applied_A):
+                       threadname_Temp='control_LakeShore350',
+                       temperature_sensor='Sensor_1_K',
+                       n_measurements=1):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -41,6 +43,7 @@ def measure_resistance(threads,
             threadname_RES  = name of the (Keithley) Voltage measure thread
             threadname_CURR  = name of the (Keithley) Current set thread
             n_measurements  = number of measurements (dual polarity) to be averaged over
+                            default = 1 (no reason to do much more)
             current_applied_A = excitation current for the measurement
         returns: dict data
             T_mean_K : mean of temperature readings
@@ -57,18 +60,19 @@ def measure_resistance(threads,
     resistances = []  # pos & neg
 
     with loops_off(threads):
-        temps.append(threads[threadname_Temp].read_Temperatures())
+        temps.append(threads[threadname_Temp].read_Temperatures()[temperature_sensor])
 
         for idx in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
                 threads[threadname_CURR].gettoset_Current_A(current_applied_A*currentfactor)
                 threads[threadname_CURR].setCurrent_A()
+                # wait for the current to set
                 voltage = threads[threadname_RES].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
                 resistances.append(voltage/(current_applied_A*currentfactor))
 
-        temps.append(threads[threadname_Temp].read_Temperatures())
+        temps.append(threads[threadname_Temp].read_Temperatures()[temperature_sensor])
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
@@ -187,8 +191,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=None,
                          threadname_CURR=None,
-                         current_applied_A=None,  # needs to be set - thus communicated!
-                         n_measurements=10,)
+                         current_applied_A=None)  # needs to be set - thus communicated!
 
     def update_conf(self, key, value):
         self.conf[key] = value

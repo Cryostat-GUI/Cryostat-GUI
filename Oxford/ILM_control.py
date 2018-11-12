@@ -7,6 +7,8 @@ from pyvisa.errors import VisaIOError
 from copy import deepcopy
 # from util import AbstractThread
 from util import AbstractLoopThread
+from util import ExceptionHandling
+
 
 class ILM_Updater(AbstractLoopThread):
 
@@ -37,7 +39,6 @@ class ILM_Updater(AbstractLoopThread):
         # channel_1_wire_current=6,
         # channel_2_wire_current=7,
         # needle_valve_position=10)
-
 
     def __init__(self, InstrumentAddress=''):
         super().__init__()
@@ -105,21 +106,15 @@ class ILM_Updater(AbstractLoopThread):
         self.delay2 = delay
 
     @pyqtSlot()
+    @ExceptionHandling
     def setControl(self):
         """class method to be called to set Control
             this is to be invoked by a signal
         """
-        try:
-            self.ILM.setControl(self.control_state)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.ILM.setControl(self.control_state)
 
     @pyqtSlot(int)
+    @ExceptionHandling
     def setProbingSpeed(self, speed, channel=1):
         """
             set probing speed for a specific channel
@@ -127,19 +122,11 @@ class ILM_Updater(AbstractLoopThread):
             for slow probing, speed = 0
             this comes from the order in the comboBox in the GUI
         """
-        try:
-            if speed == 1:
-                self.ILM.setFast(channel)
-            elif speed == 0:
-                self.ILM.setSlow(channel)
+        if speed == 1:
+            self.ILM.setFast(channel)
+        elif speed == 0:
+            self.ILM.setSlow(channel)
 
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
