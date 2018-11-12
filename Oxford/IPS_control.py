@@ -19,10 +19,6 @@ class IPS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
     sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
 
     sensors = dict(
                     # demand_current_to_psu_= 0,#           output_current

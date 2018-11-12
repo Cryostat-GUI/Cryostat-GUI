@@ -106,6 +106,9 @@ class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
 
     sig_assertion = pyqtSignal(str)
+    sig_visaerror = pyqtSignal(str)
+    sig_visatimeout = pyqtSignal()
+    timeouterror = VisaIOError(-1073807339)    
 
     def __init__(self):
         QThread.__init__(self)
@@ -127,15 +130,15 @@ class AbstractLoopThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 2 # second
         # self.__isRunning = True
-        self._loop = True
+        self.loop = True
 
     @pyqtSlot()  # int
-    @ExceptionHandling
+    # @ExceptionHandling  # this is being done with all functions again, still...
     def work(self):
         """class method which is working all the time while the thread is running. """
         # while self.__isRunning:
         try:
-            if self._loop:
+            if self.loop:
                 self.running()
             else:
                 pass
@@ -151,10 +154,10 @@ class AbstractLoopThread(AbstractThread):
         """set the interval between running events in seconds"""
         self.interval = interval
 
-    @pyqtSlot()
-    def looping(self, loop):
-        """start/stop the loop execution, by setting the bool self._loop"""
-        self._loop = loop
+    # @pyqtSlot()
+    # def looping(self, loop):
+    #     """start/stop the loop execution, by setting the bool self._loop"""
+    #     self._loop = loop
 
 
 class AbstractEventhandlingThread(AbstractThread):
@@ -170,15 +173,12 @@ class AbstractEventhandlingThread(AbstractThread):
         """
         try:
             self.running()
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
         finally:
             QTimer.singleShot(self.interval*1e3, self.work)
 
     def running(self):
-        """class method to be overrriden """
+        """empty method to keep thread alive (there is surely a better solution) """
         pass
-        # raise NotImplementedError
 
 
 class Window_ui(QtWidgets.QWidget):

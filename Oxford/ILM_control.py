@@ -28,9 +28,9 @@ class ILM_Updater(AbstractLoopThread):
 
     sig_Infodata = pyqtSignal(dict)
     # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
+    # sig_visaerror = pyqtSignal(str)
+    # sig_visatimeout = pyqtSignal()
+    # timeouterror = VisaIOError(-1073807339)
 
     sensors = dict(
         channel_1_level=1,

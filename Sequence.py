@@ -22,6 +22,7 @@ import numpy as np
 
 from util import AbstractEventhandlingThread
 from util import loops_off, controls_disabled
+from util import ExceptionHandling
 
 
 class BreakCondition(Exception):
@@ -35,7 +36,8 @@ def measure_resistance(threads,
                        threadname_CURR,
                        threadname_Temp='control_LakeShore350',
                        temperature_sensor='Sensor_1_K',
-                       n_measurements=1):
+                       n_measurements=1, 
+                       **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -199,7 +201,8 @@ class OneShot_Thread(AbstractEventhandlingThread):
 
 
     @pyqtSlot(dict)
+    @ExceptionHandling
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
-        with controls_disabled(self.mainthread.controls, self.mainthread.controls_lock):
+        with controls_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
             conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))

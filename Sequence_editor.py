@@ -23,6 +23,7 @@ from qlistmodel import ScanListModel
 
 dropstring = re.compile(r'([a-zA-Z0-9])')
 
+
 class Window_ChangeDataFile(QtWidgets.QDialog):
     """docstring for Window_waiting"""
 
