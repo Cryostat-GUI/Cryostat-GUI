@@ -588,6 +588,9 @@
    </property>
   </action>
   <action name="action_show_OneShot_Measuring">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>One-Shot Measurinng</string>
    </property>
