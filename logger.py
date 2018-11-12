@@ -632,6 +632,7 @@ class measurement_Logger(AbstractEventhandlingThread):
         except NameError:
             # configuration not yet done
             self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
+        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {time}'.format(**data)
 
         datastring = '\n {T_mean_K} {T_std_K} {R_mean_Ohm} {R_std_Ohm} {time}'.format(**data)
 
@@ -647,6 +648,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
                             "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
                     f.write(datastring)
+
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])
 
