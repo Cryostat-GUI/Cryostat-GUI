@@ -787,11 +787,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def display_resistance(self, GUI_Display, GUI_Data):
         """
         """
-        print(self.Keithley_window.comboBox_1.activated('str'))
         try:
 
             self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'],
-                                                                                                                                                         Current=self.[value.strip(')').split('(')[1]]['Current_A']))) 
+                                                                                                                                                      Current=self.['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A']))) 
 
     # ------- MISC -------
 
