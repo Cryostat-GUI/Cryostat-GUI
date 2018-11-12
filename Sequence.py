@@ -69,7 +69,8 @@ def measure_resistance(threads,
             for currentfactor in [1, -1]:
                 threads[threadname_CURR][0].gettoset_Current_A(current_applied_A*currentfactor)
                 threads[threadname_CURR][0].setCurrent_A()
-                # wait for the current to set
+                # wait for the current to be changed:
+                time.sleep(0.1)  # 0.1 measured with the DMM 7510 of a 6221 Source
                 voltage = threads[threadname_RES][0].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
                 resistances.append(voltage/(current_applied_A*currentfactor))
