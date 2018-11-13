@@ -1096,7 +1096,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # calculating resistance
                 if 'GUI_Box' in kwargs:
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, threadname, **kwargs))
+                    kwargs['threadname']=threadname
+                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
                     worker.sig_visaerror.connect(self.show_error_textBrowser)
                     worker.sig_assertion.connect(self.show_error_textBrowser)
                     worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
