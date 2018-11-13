@@ -508,12 +508,12 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Nanovolt 1</string>
+    <string>Nanovoltmeter 1</string>
    </property>
   </action>
   <action name="action_run_Current_sources">
    <property name="text">
-    <string>Nanovolt 2</string>
+    <string>Nanovoltmeter 2</string>
    </property>
   </action>
   <action name="action_Logging">
@@ -618,7 +618,7 @@
   </action>
   <action name="actionNanovolt_3">
    <property name="text">
-    <string>Nanovolt 3</string>
+    <string>Nanovoltmeter 3</string>
    </property>
   </action>
   <action name="actionCurrent_Source_1">
