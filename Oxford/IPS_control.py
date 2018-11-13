@@ -12,54 +12,52 @@ from pyvisa.errors import VisaIOError
 from copy import deepcopy
 
 from util import AbstractLoopThread
+from util import ExceptionHandling
+
 
 class IPS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
     sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
 
-    sensors= dict(
+    sensors = dict(
                     # demand_current_to_psu_= 0,#           output_current
-                    measured_power_supply_voltage = 1,
-                    measured_magnet_current = 2,
-                    # unused = 3,
-                    CURRENT_output = 4,#                  CURRENT output current (duplicate of R0)
-                    CURRENT_set_point= 5,#                CURRENT Target [A]
-                    CURRENT_sweep_rate = 6,#              CURRENT        [A/min]
-                    FIELD_output = 7,#                    FIELD   Output_Field
-                    FIELD_set_point = 8,#                 FIELD   Target [T]
-                    FIELD_sweep_rate = 9,#                FIELD          [T/min]
-                    lead_resistance = 10,#                RESISTANCE     [milli_Ohm]
-                    # channel_1_Freq4 = 11,
-                    # channel_2_Freq4 = 12,
-                    # channel_3_Freq4 = 13,
-                    # DACZ = 14,#                           PSU_zero_correction_as_a_hexadecimal_number
-                    software_voltage_limit = 15,
-                    persistent_magnet_current = 16,
-                    trip_current = 17,
-                    persistent_magnet_field = 18,
-                    trip_field = 19,
-                    # IDAC = 20,#                           demand_current_as_a_hexadecimal_number
-                    safe_current_limit_most_negative = 21,
-                    safe_current_limit_most_positive = 22)
-    statusdict = dict(magnetstatus= {'0': 'normal',
+                    measured_power_supply_voltage=1,
+                    measured_magnet_current=2,
+                    # unused=3,
+                    CURRENT_output=4,  #                  CURRENT output current (duplicate of R0)
+                    CURRENT_set_point=5,  #               CURRENT Target [A]
+                    CURRENT_sweep_rate=6,  #              CURRENT        [A/min]
+                    FIELD_output=7,  #                    FIELD   Output_Field
+                    FIELD_set_point=8,  #                 FIELD   Target [T]
+                    FIELD_sweep_rate=9,  #                FIELD          [T/min]
+                    lead_resistance=10,  #                RESISTANCE     [milli_Ohm]
+                    # channel_1_Freq4=11,
+                    # channel_2_Freq4=12,
+                    # channel_3_Freq4=13,
+                    # DACZ=14,#                           PSU_zero_correction_as_a_hexadecimal_number
+                    software_voltage_limit=15,
+                    persistent_magnet_current=16,
+                    trip_current=17,
+                    persistent_magnet_field=18,
+                    trip_field=19,
+                    # IDAC=20,#                           demand_current_as_a_hexadecimal_number
+                    safe_current_limit_most_negative=21,
+                    safe_current_limit_most_positive=22)
+    statusdict = dict(magnetstatus={'0': 'normal',
                                          '1': 'quenched',
                                          '2': 'over heated',
                                          '4': 'warming up'},
-                        currentstatus = {'0': 'normal',
+                        currentstatus={'0': 'normal',
                                          '1': 'on positive voltage limit',
                                          '2': 'on negative voltage limit',
                                          '4': 'outside negative current limit',
                                          '8': 'outside positive current limit'},
-                        activitystatus= {'0': 'Hold',
+                        activitystatus={'0': 'Hold',
                                          '1': 'To set point',
                                          '2': 'To zero',
                                          '4': 'Clamped'},
-                        loc_remstatus = {'0': 'local & locked',
+                        loc_remstatus={'0': 'local & locked',
                                          '1': 'remote & locked',
                                          '2': 'local & unlocked',
                                          '3': 'remote & unlocked',
@@ -71,7 +69,7 @@ class IPS_Updater(AbstractLoopThread):
                                           '1': 'On (open)',
                                           '2': 'Off (closed) magnet at field',
                                           '8': 'no switch fitted'},
-                        modestatus1 = {'0': 'display: Amps,  mode: immediate, sweepmode: Fast',
+                        modestatus1={'0': 'display: Amps,  mode: immediate, sweepmode: Fast',
                                        '1': 'display: Tesla, mode: immediate, sweepmode: Fast',
                                        '2': 'display: Amps,  mode: sweep,     sweepmode: Fast',
                                        '3': 'display: Tesla, mode: sweep,     sweepmode: Fast',
@@ -79,11 +77,11 @@ class IPS_Updater(AbstractLoopThread):
                                        '5': 'display: Tesla, mode: immediate, sweepmode: Train',
                                        '6': 'display: Amps,  mode: sweep,     sweepmode: Train',
                                        '7': 'display: Tesla, mode: sweep,     sweepmode: Train'},
-                        modestatus2 = {'0': 'at rest (output constant)',
+                        modestatus2={'0': 'at rest (output constant)',
                                        '1': 'sweeping (output changing)',
                                        '2': 'rate limiting (output changing)',
                                        '3': 'sweeping & rate limiting (output changing)'},
-                        polarity1 = {'0': 'desired: Forward, magnet: Forward, commanded: Forward',
+                        polarity1={'0': 'desired: Forward, magnet: Forward, commanded: Forward',
                                      '1': 'desired: Forward, magnet: Forward, commanded: Reverse',
                                      '2': 'desired: Forward, magnet: Reverse, commanded: Forward',
                                      '3': 'desired: Forward, magnet: Reverse, commanded: Reverse',
@@ -91,11 +89,10 @@ class IPS_Updater(AbstractLoopThread):
                                      '5': 'desired: Reverse, magnet: Forward, commanded: Reverse',
                                      '6': 'desired: Reverse, magnet: Reverse, commanded: Forward',
                                      '7': 'desired: Reverse, magnet: Reverse, commanded: Reverse'},
-                        polarity2 = {'0': 'output clamped (transition)',
+                        polarity2={'0': 'output clamped (transition)',
                                      '1': 'forward (verification)',
                                      '2': 'reverse (verification)',
                                      '4': 'output clamped (requested)'})
-
 
     def __init__(self, InstrumentAddress):
         super(IPS_Updater, self).__init__()
@@ -104,7 +101,6 @@ class IPS_Updater(AbstractLoopThread):
         self.PS = ips120(InstrumentAddress=InstrumentAddress)
         self.field_setpoint = 0
         self.first = True
-
 
     @pyqtSlot()
     def running(self):
@@ -145,30 +141,24 @@ class IPS_Updater(AbstractLoopThread):
 
     def getStatus(self):
         status = self.PS.getStatus()
-        return dict(status_magnet = self.statusdict['magnetstatus'][status[1]],
-                    status_current = self.statusdict['currentstatus'][status[2]],
-                    status_activity= self.statusdict['activitystatus'][status[4]],
-                    status_locrem = self.statusdict['loc_remstatus'][status[6]],
-                    status_switchheater= self.statusdict['switchHeaterstat'][status[8]],
-                    status_mode1= self.statusdict['modestatus1'][status[10]],
-                    status_mode2= self.statusdict['modestatus2'][status[11]],
-                    status_polarity1 = self.statusdict['polarity1'][status[13]],
-                    status_polarity3 = self.statusdict['polarity2'][status[14]])
+        return dict(status_magnet=self.statusdict['magnetstatus'][status[1]],
+                    status_current=self.statusdict['currentstatus'][status[2]],
+                    status_activity=self.statusdict['activitystatus'][status[4]],
+                    status_locrem=self.statusdict['loc_remstatus'][status[6]],
+                    status_switchheater=self.statusdict['switchHeaterstat'][status[8]],
+                    status_mode1=self.statusdict['modestatus1'][status[10]],
+                    status_mode2=self.statusdict['modestatus2'][status[11]],
+                    status_polarity1=self.statusdict['polarity1'][status[13]],
+                    status_polarity3=self.statusdict['polarity2'][status[14]])
 
     @pyqtSlot(int)
+    @ExceptionHandling
     def setControl(self, control_state=3):
         """method to set the control for local/remote"""
-        try:
-            self.PS.setControl(control_state)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setControl(control_state)
 
     @pyqtSlot()
+    @ExceptionHandling
     def readField(self, nosend=False):
         '''method to readField - this can be invoked by a signal'''
         try:
@@ -176,78 +166,37 @@ class IPS_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             if not nosend:
                 self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                if not nosend:
-                    self.sig_visatimeout.emit()
-            else:
-                if not nosend:
-                    self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
+    @ExceptionHandling
     def readFieldSetpoint(self):
         '''method to readFieldSetpoint - this can be invoked by a signal'''
-        try:
-            return self.PS.readFieldSetpoint()
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        return self.PS.readFieldSetpoint()
 
     @pyqtSlot()
+    @ExceptionHandling
     def readFieldSweepRate(self):
         '''method to readFieldSweepRate - this can be invoked by a signal'''
-        try:
-            return self.PS.readFieldSweepRate()
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        return self.PS.readFieldSweepRate()
 
     @pyqtSlot()
+    @ExceptionHandling
     def setActivity(self, state):
         '''method to setActivity - this can be invoked by a signal'''
-        try:
-            self.PS.setActivity( state)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setActivity(state)
 
     @pyqtSlot()
+    @ExceptionHandling
     def setSwitchHeater(self, state):
         '''method to setHeater - this can be invoked by a signal'''
-        try:
-            self.PS.setSwitchHeater(state)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setSwitchHeater(state)
 
     @pyqtSlot()
+    @ExceptionHandling
     def setFieldSetpoint(self):
         '''method to setFieldSetpoint - this can be invoked by a signal'''
-        try:
-            self.PS.setFieldSetpoint(self.field_setpoint)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setFieldSetpoint(self.field_setpoint)
+
     @pyqtSlot(float)
     def gettoset_FieldSetpoint(self, value):
         """class method to receive and store the value, to set the Field Setpoint
@@ -257,18 +206,13 @@ class IPS_Updater(AbstractLoopThread):
         self.field_setpoint = value
 
     @pyqtSlot()
+    @ExceptionHandling
     def setFieldSweepRate(self):
         '''method to setFieldSweepRate - this can be invoked by a signal'''
-        try:
-            self.PS.setFieldSweepRate(self.field_rate)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setFieldSweepRate(self.field_rate)
+
     @pyqtSlot(int)
+    @ExceptionHandling
     def gettoset_FieldSweepRate(self, value):
         """class method to receive and store the value to set the Field sweep rate
             later on, when the command to enforce the value is sent
@@ -276,27 +220,13 @@ class IPS_Updater(AbstractLoopThread):
         self.field_setpoint = value
 
     @pyqtSlot()
+    @ExceptionHandling
     def setDisplay(self, display):
         '''method to setDisplay - this can be invoked by a signal'''
-        try:
-            self.PS.setDisplay(display)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        self.PS.setDisplay(display)
 
     @pyqtSlot()
+    @ExceptionHandling
     def waitForField(self, timeout, error_margin):
         '''method to waitForField - this can be invoked by a signal'''
-        try:
-            return self.PS.waitForField()
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        return self.PS.waitForField()

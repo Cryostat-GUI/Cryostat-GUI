@@ -1,5 +1,4 @@
 
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -17,7 +16,11 @@ import math
 
 
 from util import AbstractLoopThread
+from util import AbstractEventhandlingThread
 from util import Window_ui
+from util import convert_time
+from util import convert_time_searchable
+
 
 from sqlite3 import OperationalError
 
@@ -86,11 +89,6 @@ def change_to_correct_types(tablename, dictname):
     return sql
 
 
-def convert_time(ts):
-    """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-
 class Logger_configuration(Window_ui):
     """docstring for Logger_configuration"""
 
@@ -131,8 +129,6 @@ class Logger_configuration(Window_ui):
                 lambda value: self.setValue('Lakeshore350', 'thread', value))
         self.general_threads_Lakeshore350.toggled.connect(
                 lambda b: self.Lakeshore350_thread_running.setChecked(b))
-        self.general_spinSetInterval.valueChanged.connect(
-                lambda value: self.setValue('general', 'interval', value))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
@@ -145,6 +141,9 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
 
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
+
+        self.general_spinSetInterval.valueChanged.connect(
+                lambda value: self.setValue('general', 'interval', value))
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
@@ -190,6 +189,11 @@ class Logger_configuration(Window_ui):
         if 'log_conf.pickle' in configurations:
             with open('configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
+                if 'general' in self.conf:
+                    if 'interval' in self.conf['general']:
+                        self.general_spinSetInterval.setValue(self.conf['general']['interval'])
+                    if 'logfile_location' in self.conf['general']:
+                        self.lineFilelocation.setText(self.conf['general']['logfile_location'])
         else:
             self.conf = self.initialise_dicts()
 
@@ -406,8 +410,10 @@ class main_Logger(AbstractLoopThread):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
+        self.operror = False
         if self.not_yet_initialised:
             return
+
 
         names = ['ITC', 
                  'ILM', 
@@ -422,8 +428,10 @@ class main_Logger(AbstractLoopThread):
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time())}
 
-        for name in names:
-            data[name].update(timedict)
+
+        # for name in names:
+        #     if name in data:
+        #         data[name].update(timedict)
 
         self.connected = self.connectdb(self.conf['general']['logfile_location'])
         if not self.connected:
@@ -431,16 +439,24 @@ class main_Logger(AbstractLoopThread):
             self.local_list.append(data)
             return
 
-        self.mycursor = self.conn.cursor()
+        try:
+            with self.conn:
+                self.mycursor = self.conn.cursor()
+                if len(self.local_list) > 0:
+                    for entry in self.local_list:
+                        self.storing_to_database(entry, names)
+                    self.local_list = []
 
-        if len(self.local_list) > 0:
-            for entry in self.local_list:
-                self.storing_to_database(entry, names)
-            self.local_list = []
-
-        self.storing_to_database(data, names)
-
-        self.conn.commit()
+                self.storing_to_database(data, names)
+        except OperationalError as e:
+            self.operror = True
+            self.local_list.append(data)
+            self.sig_assertion.emit(e.args[0])
+        except sqlite3.Error as er:
+            if not self.operror:
+                self.local_list.append(data)
+            self.sig_assertion.emit(er.args[0])
+            print(er)
 
         # data.update(timedict)
 
@@ -451,8 +467,16 @@ class live_Logger(AbstractLoopThread):
     def __init__(self, mainthread, **kwargs):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
-        self.interval = 2
-        self.initialised = False
+        self.interval = 5
+        self.pre_init()
+        self.initialisation()
+        self.mainthread.sig_running_new_thread.connect(self.pre_init)
+        self.mainthread.sig_running_new_thread.connect(self.initialisation)
+
+        self.time_names = ['logging_timeseconds', 'timeseconds',
+                           'logging_ReadableTime', 'ReadableTime',
+                           'logging_SearchableTime', 'SearchableTime']
+        # buggy because it will erase all previous data!
 
         # QTimer.singleShot(*1e3, self.worker)
 
@@ -464,7 +488,7 @@ class live_Logger(AbstractLoopThread):
         """
         try:
             while not self.initialised:
-                pass
+                time.sleep(0.02)
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -478,6 +502,8 @@ class live_Logger(AbstractLoopThread):
             while the thread is running, keeping the event loop busy
         """
         try:
+            while not self.initialised:
+                time.sleep(0.02)
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -490,25 +516,149 @@ class live_Logger(AbstractLoopThread):
             and append them to the list which will be plotted
         """
         try:
+            # print("live logger trying to log")
             with self.mainthread.dataLock:
-                for instr in self.mainthread.data:
-                    for varkey in self.mainthread.data[instr]:
-                        self.mainthread.data_live[instr][varkey].append(
-                            self.mainthread.data[instr][varkey])
+                with self.mainthread.dataLock_live:
+                    # print(self.mainthread.data_live)
+                    for instr in self.mainthread.data:
+                        timedict = dict(logging_timeseconds=time.time()-self.startingtime,
+                                        logging_ReadableTime=convert_time(time.time()),
+                                        logging_SearchableTime=convert_time_searchable(time.time()))
+                        dic = deepcopy(self.mainthread.data[instr])
+                        dic.update(timedict)
+                        for varkey in dic:
+                            self.mainthread.data_live[instr][varkey].append(dic[varkey])
+                            if len(self.mainthread.data_live[instr][varkey]) > 1000:
+                                self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
-            self.sig_assertion.emit(key.args[0])
+            self.sig_assertion.emit("live logger"+key.args[0])
+
+    def pre_init(self):
+        self.initialised = False
 
     def initialisation(self):
-        """copy the current data-dict, insert empty lists in all values"""
+        """
+           copy the current data-dict,
+           update for logging times,
+           insert empty lists in all values
+        """
+        self.startingtime = time.time()
+        timedict = dict(logging_timeseconds=0,
+                        logging_ReadableTime=0,
+                        logging_SearchableTime=0)
         with self.mainthread.dataLock:
-            self.mainthread.data_live = self.mainthread.data
-            for instrument in self.mainthread.data:
-                for variablekey in self.mainthread.data[instrument]:
-                    self.mainthread.data_live[instrument][variablekey] = []
+            with self.mainthread.dataLock_live:
+                self.mainthread.data_live = deepcopy(self.mainthread.data)
+                for instrument in self.mainthread.data:
+                    dic = self.mainthread.data[instrument]
+                    dic.update(timedict)
+                    self.mainthread.data_live[instrument].update(timedict)
+                    for variablekey in dic:
+                        self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
+
+
+class Logger_measurement_configuration(Window_ui):
+    """docstring for Logger_configuration"""
+
+    sig_send_conf = pyqtSignal(dict)
+
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(
+            ui_file='.\\configurations\\Log_meas_conf.ui', **kwargs)
+
+        self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
+        self.conf = self.initialise_dicts()
+
+        # self.buttonBox_finish.accepted.connect(
+        #     lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
+        self.buttonBox_finish.accepted.connect(self.close_and_safe)
+        self.buttonBox_finish.rejected.connect(self.close)
+
+    def close_and_safe(self):
+        """save the configuration dict to a file, close the window afterwards"""
+        self.sig_send_conf.emit(deepcopy(self.conf))
+        # with open('configurations/log_conf.pickle', 'wb') as handle:
+        #     pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        self.close()
+
+    def setValue(self, value, bools):
+        """set a bool value according to the instrument and specific"""
+        self.conf[value] = bools
+
+    def initialise_dicts(self):
+        """initialise the conf dict, in case it was not handed down
+            return the empty conf dict
+        """
+        conf = dict(datafile='')
+        return conf
+
+    def window_FileDialogSave(self):
+        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
+           self, 'Choose Datafile Location',
+           'c:\\', "Data Files (*.dat)")
+        self.lineFilelocation.setText(dbname)
+        self.setValue('datafile', dbname)
+
+
+class measurement_Logger(AbstractEventhandlingThread):
+    """This is the datasaving thread
+    """
+
+    # sig_configuring = pyqtSignal(bool)
+    sig_log = pyqtSignal()
+
+    def __init__(self, mainthread, **kwargs):
+        super().__init__(**kwargs)
+        self.mainthread = mainthread
+
+        self.starttime = time.time()
+
+        self.mainthread.sig_log_measurement.connect(self.store_data)
+        self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
+
+        QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
+
+    def update_conf(self, conf):
+        """
+            - update the configuration with one being sent.
+
+        """
+        self.conf = conf
+
+    @pyqtSlot(dict)
+    def store_data(self, data):
+        """storing logging data
+            what data should be logged is set in self.conf
+            or will be set there eventually at any rate
+        """
+        # timedict = {'timeseconds': time.time(),
+        #             'ReadableTime': convert_time(time.time())}
+        try:
+            if not self.conf:
+                self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
+        except NameError:
+            # configuration not yet done
+            self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
+        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {time}'.format(**data)
+
+        if os.path.isfile(self.conf['datafile']):
+            try:
+                with open(self.conf['datafile'], 'a') as f:
+                    f.write(datastring)
+            except IOError as err:
+                self.sig_assertion.emit("DataSaver: "+ err.args[0])
+        else:
+            try:
+                with open(self.conf['datafile'], 'w') as f:
+                    f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
+                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
+                    f.write(datastring)
+            except IOError as err:
+                self.sig_assertion.emit("DataSaver: "+ err.args[0])
 
 
 if __name__ == '__main__':

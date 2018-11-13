@@ -60,7 +60,7 @@
        </widget>
       </item>
       <item row="3" column="2">
-       <widget class="QComboBox" name="comboValue_Axis_Y"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y1"/>
       </item>
       <item row="4" column="2">
        <widget class="QComboBox" name="comboValue_Axis_Y2"/>

@@ -1,36 +1,30 @@
 """  -----------------------------------------------------------------------------------
     Main Module of the Cryostat-GUI built for a custom setup PPMS at TU Wien, Austria
     (Technical University of Vienna, Austria)
-
-    The cryostat is an Oxford Spectromag, controlled by:
+     The cryostat is an Oxford Spectromag, controlled by:
         - Oxford:
             - Intelligent Temperature Controller (ITC) 503
             - Intelligent Level Meter (ILM) 211
             - Intelligent Power Supply (IPS) 120-10
         - LakeShore 350 Temperature Controller
-
-    Measurements will be performed with:
+     Measurements will be performed with:
     - Keithley:
         - 2182A Nanovoltmeter (x3)
         - 6221 Current Source (AC and DC)
         - DMM7510 7 1/2 Digital Multimeter
         - 2700 Multimeter / Data Acquisition System
-
-
-Classes:
+ Classes:
     mainWindow:
         The main GUI class for the PyQt application
-
-    Author(s):
+     Author(s):
         bklebel (Benjamin Klebel)
         adtera
         Acronis
 ----------------------------------------------------------------------------------------
 """
 
-
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QObject
+from PyQt5 import QtWidgets # , QtGui
+# from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
@@ -44,6 +38,8 @@ import datetime
 from threading import Lock
 import numpy as np
 from copy import deepcopy
+import sqlite3
+
 
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
@@ -52,14 +48,16 @@ from LakeShore.LakeShore350_Control import LakeShore350_Updater
 from Keithley.Keithley2182_Control import Keithley2182_Updater
 from Keithley.Keithley6220_Control import Keithley6220_Updater
 
+from Sequence import OneShot_Thread
+
 from pyvisa.errors import VisaIOError
 
 from logger import main_Logger, live_Logger
 from logger import Logger_configuration
-from util import Window_ui
-from util import calculate_resistance
-from util import convert_time_searchable
 
+from util import Window_ui, Window_plotting
+from util import convert_time
+from util import convert_time_searchable
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -72,17 +70,16 @@ Keithley6220_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6220_2_InstrumentAddress = 'GPIB0::6::INSTR'
 
 
-def convert_time(ts):
-    """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-
-class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
+class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
 
     sig_arbitrary = pyqtSignal()
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
+    sig_running_new_thread = pyqtSignal()
+    sig_log_measurement = pyqtSignal(dict)
+    sig_measure_oneshot = pyqtSignal()
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -96,16 +93,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.logging_running_logger = False
 
         self.dataLock = Lock()
+        self.dataLock_live = Lock()
         self.app = app
 
-
         QTimer.singleShot(0, self.initialize_all_windows)
-
 
     def closeEvent(self, event):
         super(mainWindow, self).closeEvent(event)
         self.app.quit()
-
 
     def initialize_all_windows(self):
         self.initialize_window_ITC()
@@ -115,13 +110,19 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.initialize_window_LakeShore350()
         self.initialize_window_Keithley()
         self.initialize_window_Errors()
+        self.show_data()
+        self.actionLogging_LIVE.triggered['bool'].connect(self.run_logger_live)
 
-
-
+        self.initialize_window_OneShot()
+        self.controls = [
+            self.ITC_window.groupSettings,
+            self.ILM_window.groupSettings,
+            self.IPS_window.groupSettings,
+            self.LakeShore350_window.groupSettings]
+        self.controls_Lock = Lock()
 
     def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
         """Set up a new Thread, and insert the worker class, which runs in the new thread
-
             Args:
                 worker - the class (as a class instance) which should run inside
                 dataname - the name for which a dict entry should be made in the self.data dict,
@@ -130,7 +131,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                         to be used for e.g. signals
                         listing the thread in self.threads is also important to protect it
                         from garbage collection!
-
             Returns:
                 the worker class instance, useful for connecting signals directly
         """
@@ -147,6 +147,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         thread.started.connect(worker.work)
         thread.start()
+        self.sig_running_new_thread.emit()
         return worker
 
     def stopping_thread(self, threadname):
@@ -160,6 +161,300 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def show_error_textBrowser(self, text):
         """ append error to Error window"""
         self.Errors_window.textErrors.append('{} - {}'.format(convert_time(time.time()),text))
+
+    # ------- plotting
+    def connectdb(self, dbname):
+        """connect to the database, provide the cursor for the whole class"""
+        try:
+            self.conn = sqlite3.connect(dbname)
+            self.mycursor = self.conn.cursor()
+        except sqlite3.connect.Error as err:
+            raise AssertionError("Logger: Couldn't establish connection {}".format(err))
+
+    def show_data(self):  # a lot of work to do
+        """connect GUI signals for plotting, setting up some of the needs of plotting"""
+        self.action_plotDatabase.triggered.connect(self.show_dataplotdb_configuration)
+        self.action_plotLive.triggered.connect(self.show_dataplotlive_configuration)
+        self.windows_plotting = []
+
+        #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
+        #  x,y1.. is for tablenames, x,y1.._plot is for column names in the tables respectively
+        self.plotting_instrument_for_x = 0
+        self.plotting_instrument_for_y1 = 0
+        self.plotting_instrument_for_y2 = 0
+
+        self.plotting_comboValue_Axis_X_plot = 0
+        self.plotting_comboValue_Axis_Y1_plot = 0
+        self.plotting_data_y2_plot = 0
+
+    def show_dataplotdb_configuration(self):
+        self.dataplot_db = Window_ui(ui_file='.\\configurations\\Data_display_selection_database.ui')
+        self.dataplot_db.show()
+        #  populating the combobox instruments tab with tablenames:
+        self.mycursor.execute("SELECT name FROM sqlite_master where type='table'")
+        axis2 = self.mycursor.fetchall()
+        axis2.insert(0, ("-",))
+
+        self.dataplot_db.comboInstr_Axis_X.clear()
+        self.dataplot_db.comboInstr_Axis_Y1.clear()
+        self.dataplot_db.comboInstr_Axis_Y2.clear()
+        self.dataplot_db.comboInstr_Axis_Y3.clear()
+        self.dataplot_db.comboInstr_Axis_Y4.clear()
+        self.dataplot_db.comboInstr_Axis_Y5.clear()
+
+        for i in axis2:
+            self.dataplot_db.comboInstr_Axis_X.addItems(i)
+            self.dataplot_db.comboInstr_Axis_Y1.addItems(i)
+            self.dataplot_db.comboInstr_Axis_Y2.addItems(i)
+            self.dataplot_db.comboInstr_Axis_Y3.addItems(i)
+            self.dataplot_db.comboInstr_Axis_Y4.addItems(i)
+            self.dataplot_db.comboInstr_Axis_Y5.addItems(i)
+        self.dataplot_db.comboInstr_Axis_X.activated.connect(self.selection_x)
+        self.dataplot_db.comboInstr_Axis_Y1.activated.connect(self.selection_y1)
+        self.dataplot_db.buttonBox.clicked.connect(self.plotstart)
+
+    def show_dataplotlive_configuration(self):
+        """
+            open the window for configuration of the Live-plotting to be done,
+            fill the comboboxes with respective values, to choose from instruments
+            connect to actions being taken in this configuration window
+        """
+        self.dataplot_live_conf = Window_ui(ui_file='.\\configurations\\Data_display_selection_live.ui')
+
+        # initialize some "storage space" for data
+        self.dataplot_live_conf.axes = dict()
+        self.dataplot_live_conf.data = dict()
+
+        if not hasattr(self, "data_live"):
+            self.show_error_textBrowser('no live data to plot!')
+            self.show_error_textBrowser('If you want to see live data, start the live logger!')
+            return
+        self.dataplot_live_conf.show()
+
+        with self.dataLock_live:
+            axis_instrument = list(self.data_live)  # all the dictionary keys
+        axis_instrument.insert(0, "-")  # for no chosen value by default
+        self.dataplot_live_conf.comboInstr_Axis_X.clear()
+        self.dataplot_live_conf.comboInstr_Axis_Y1.clear()
+        self.dataplot_live_conf.comboInstr_Axis_Y2.clear()
+        self.dataplot_live_conf.comboInstr_Axis_Y3.clear()
+        self.dataplot_live_conf.comboInstr_Axis_Y4.clear()
+        self.dataplot_live_conf.comboInstr_Axis_Y5.clear()
+
+        # for i in axis_instrument:  # filling the comboboxes for the instrument
+            # print(i, type(i))
+        self.dataplot_live_conf.comboInstr_Axis_X.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y1.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y2.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y3.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y4.addItems(axis_instrument)
+        self.dataplot_live_conf.comboInstr_Axis_Y5.addItems(axis_instrument)
+        # actions in case instruments are chosen in comboboxes
+        self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_X,
+                                                                                                               GUI_instr=self.dataplot_live_conf.comboInstr_Axis_X,
+                                                                                                               livevsdb="LIVE",
+                                                                                                               axis='X',
+                                                                                                               dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y1.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y1,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y1,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y1',
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y2.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y2,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y2,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y2',
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y3.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y3,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y3,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y3',
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y4.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y4,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y4,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y4',
+                                                                                                                dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.comboInstr_Axis_Y5.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y5,
+                                                                                                                GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
+                                                                                                                livevsdb="LIVE",
+                                                                                                                axis='Y5',
+                                                                                                                dataplot=self.dataplot_live_conf))
+
+        self.dataplot_live_conf.buttonBox.clicked.connect(lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
+        self.dataplot_live_conf.buttonBox.clicked.connect(lambda: self.dataplot_live_conf.close())
+        self.dataplot_live_conf.buttonCancel.clicked.connect(lambda: self.dataplot_live_conf.close())
+
+    def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
+        """
+           filling the Value column combobox in case the corresponding
+           element of the instrument column combobox was chosen
+           thus:
+                - check for the chosen instrument,
+                - get the data for the new combobox
+                - chose the action
+        """
+
+        instrument_name = GUI_instr.currentText()
+        # print("instrument for x was set to: ",self.plotting_instrument_for_x)
+        if livevsdb == "LIVE":
+            with self.dataLock_live:
+                try:
+                    value_names = list(self.data_live[instrument_name])
+                except KeyError:
+                    self.show_error_textBrowser('plotting: do not choose "-" '
+                                      'please, there is nothing behind it!')
+                    return
+        # elif livevsdb == "DB":
+        #     axis = []
+        #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
+        #     colnames= self.mycursor.description
+            # for row in colnames:
+            #     axis.append(row[0])
+        GUI_value.clear()
+        GUI_value.addItems(("-",))
+        GUI_value.addItems(value_names)
+        GUI_value.activated.connect(lambda: self.plotting_selection_value(GUI_instr=GUI_instr,
+                                                                          GUI_value=GUI_value,
+                                                                          livevsdb="LIVE",
+                                                                          axis=axis,
+                                                                          dataplot=dataplot))
+
+    def x_changed(self):
+        self.plotting_comboValue_Axis_X_plot=self.dataplot.comboValue_Axis_X.currentText()
+
+    def plotting_selection_value(self, GUI_instr, GUI_value, livevsdb, axis, dataplot):
+        value_name = GUI_value.currentText()
+        instrument_name = GUI_instr.currentText()
+        dataplot.axes[axis] = value_name
+
+        if livevsdb == 'LIVE':
+            with self.dataLock_live:
+                try:
+                    dataplot.data[axis] = self.data_live[instrument_name][value_name]
+                except KeyError:
+                    self.show_error_textBrowser('plotting: do not choose "-" '
+                                      'please, there is nothing behind it!')
+                    return
+
+    def plotting_display(self, dataplot):
+        y = None
+        try:
+            x = dataplot.data['X']
+            y = [dataplot.data[key] for key in dataplot.data if key != 'X' ]
+        except KeyError:
+            self.show_error_textBrowser('Plotting: You certainly did not choose an X axis, try again!')
+            return
+        if y is None:
+            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            return
+        data = [[x, yn] for yn in y]
+        label_y = None
+        try:
+            label_y = dataplot.axes['Y1']
+        except KeyError:
+            for key in dataplot.axes:
+                try:
+                    label_y = dataplot.axes[key]
+                except KeyError:
+                    pass
+        if label_y is None:
+            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            return
+        window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
+        window.show()
+        window.sig_closing.connect(lambda: window.setParent(None))
+        self.windows_plotting.append(window)
+
+    def deleting_object(self, object_to_delete):
+        del object_to_delete
+
+    def selection_y1(self, dataplot, livevsdb):
+        dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
+        instrument_for_y1 = self.dataplot.comboInstr_Axis_Y1.currentText()
+
+        axis = []
+        if livevsdb == "LIVE":
+            axis = list(self.data_live[instrument_for_y1])
+        # elif livevsdb == "DB":
+        #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_y1))
+        #     colnames= self.mycursor.description
+            # for row in colnames:
+            #     axis.append(row[0])
+        self.dataplot.comboValue_Axis_Y1.addItems(axis)
+        self.dataplot.comboValue_Axis_Y1.activated.connect(self.y1_changed)
+
+    def y1_changed(self):
+        self.plotting_comboValue_Axis_Y1_plot=self.dataplot.comboValue_Axis_Y1.currentText()
+
+    #gotta have an if statement for the case when x and y values are from different tables
+    def plotstart(self):
+        print(self.plotting_comboValue_Axis_X_plot,self.plotting_comboValue_Axis_Y1_plot, self.plotting_instrument_for_x)
+        array1=[]
+        array2=[]
+        if self.plotting_instrument_for_x==self.plotting_instrument_for_y1:
+            sql="SELECT {},{} from {} ".format(self.plotting_comboValue_Axis_X_plot,self.plotting_comboValue_Axis_Y1_plot,self.plotting_instrument_for_x)
+            self.mycursor.execute(sql)
+            data =self.mycursor.fetchall()
+
+            for row in data:
+                array1.append(list(row))
+
+            #this is for is for omiting 'None' values from the array, skipping this step would cause the plot to break!
+
+            nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]
+
+            #After renaming x to instrument_for_x and y1 to instrument_for_y1, the nparray became 1 dimensional, so the
+            #original code:nparray_x = nparray[:,[0]] did not work, this is a workaround, i have no idea what caused it.
+            #selecting different instruments for x and y doesn't have this problem as the data is stored in separate arrays.
+
+            nparray_x = nparray[0::2]
+            nparray_y = nparray[1::2]
+
+            plt.figure()
+            plt.plot(nparray_x,nparray_y)
+            #labels:
+            plt.xlabel(self.plotting_comboValue_Axis_X_plot)
+            plt.ylabel(self.plotting_comboValue_Axis_Y1_plot)
+
+
+            plt.draw()
+
+            plt.show()
+        else:
+            sql="SELECT {} FROM {}".format(self.plotting_comboValue_Axis_X_plot,self.plotting_instrument_for_x)
+            self.mycursor.execute(sql)
+            data=self.mycursor.fetchall()
+
+            for row in data:
+                array1.append(list(row))
+            nparray_x=np.asarray(array1)[np.asarray(array1) != np.array(None)]
+
+            sql="SELECT {} FROM {}".format(self.plotting_comboValue_Axis_Y1_plot,self.plotting_instrument_for_y1)
+            self.mycursor.execute(sql)
+            data=self.mycursor.fetchall()
+
+            for row in data:
+                array2.append(list(row))
+            nparray_y=np.asarray(array2)[np.asarray(array2) != np.array(None)]
+
+            #there can be still some problems if the dimensions don't match so:
+            if len(nparray_x)>len(nparray_y):
+                nparray_x=nparray_x[0:len(nparray_y)]
+            else:
+                nparray_y=nparray_y[0:len(nparray_x)]
+
+            plt.figure()
+            plt.plot(nparray_x,nparray_y)
+            #labels:
+            plt.xlabel(self.plotting_comboValue_Axis_X_plot+" from table: "+str(self.plotting_instrument_for_x))
+            plt.ylabel(self.plotting_comboValue_Axis_Y1_plot+" from table: "+str(self.plotting_instrument_for_y1))
+
+
+            plt.draw()
+
+            plt.show()
+
 
     # ------- Oxford Instruments
     # ------- ------- ITC
@@ -206,6 +501,8 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                                                 Sensor_2_K = [0]*integration_length,
                                                 Sensor_3_K = [0]*integration_length,
                                                 Sensor_4_K = [0]*integration_length)
+
+                # self.time_itc = [0]
 
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
@@ -305,33 +602,49 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         # including the new values
         self.ITC_Kpmin['newtime'][0] = time.time()
-        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K'])
-        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K'])
-        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K'])
+        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K']) if not data['Sensor_1_K'] == None else 0
+        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data['Sensor_2_K'] == None else 0
+        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data['Sensor_3_K'] == None else 0
         data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
                             Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
                             Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
 
-
-        data['date'] = convert_time(time.time())
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
+            # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
+            # self.time_itc.append(time.time())
             self.data['ITC'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
-            self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
-            self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
+            if not self.data['ITC']['Sensor_1_K'] == None:
+                self.ITC_window.lcdTemp_sens1_K.display(self.data['ITC']['Sensor_1_K'])
+            if not self.data['ITC']['Sensor_2_K'] == None:
+                self.ITC_window.lcdTemp_sens2_K.display(self.data['ITC']['Sensor_2_K'])
+            if not self.data['ITC']['Sensor_3_K'] == None:
+                self.ITC_window.lcdTemp_sens3_K.display(self.data['ITC']['Sensor_3_K'])
 
-            self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
-            self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
-            self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
-            self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
-            self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
-            self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
-            self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
-            self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
-            self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
-
+            if not self.data['ITC']['set_temperature'] == None:
+                self.ITC_window.lcdTemp_set.display(self.data['ITC']['set_temperature'])
+            if not self.data['ITC']['temperature_error'] == None:
+                self.ITC_window.lcdTemp_err.display(self.data['ITC']['temperature_error'])
+            if not self.data['ITC']['heater_output_as_percent'] == None:
+                self.ITC_window.progressHeaterPercent.setValue(self.data['ITC']['heater_output_as_percent'])
+            if not self.data['ITC']['heater_output_as_voltage'] == None:
+                self.ITC_window.lcdHeaterVoltage.display(self.data['ITC']['heater_output_as_voltage'])
+            if not self.data['ITC']['gas_flow_output'] == None:
+                self.ITC_window.progressNeedleValve.setValue(self.data['ITC']['gas_flow_output'])
+            if not self.data['ITC']['gas_flow_output'] == None:
+                self.ITC_window.lcdNeedleValve_percent.display(self.data['ITC']['gas_flow_output'])
+            if not self.data['ITC']['proportional_band'] == None:
+                self.ITC_window.lcdProportionalID.display(self.data['ITC']['proportional_band'])
+            if not self.data['ITC']['integral_action_time'] == None:
+                self.ITC_window.lcdPIntegrationD.display(self.data['ITC']['integral_action_time'])
+            if not self.data['ITC']['derivative_action_time'] == None:
+                self.ITC_window.lcdPIDerivative.display(self.data['ITC']['derivative_action_time'])
+                
 
     # ------- ------- ILM
     def initialize_window_ILM(self):
@@ -384,8 +697,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     @pyqtSlot(dict)
     def store_data_ilm(self, data):
         """Store ILM data in self.data['ILM'], update ILM_window"""
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
-            data['date'] = convert_time(time.time())
+            # data['date'] = convert_time(time.time())
             self.data['ILM'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -463,8 +780,12 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     @pyqtSlot(dict)
     def store_data_ips(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
-            data['date'] = convert_time(time.time())
+            # data['date'] = convert_time(time.time())
             self.data['IPS'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
@@ -489,7 +810,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.IPS_window.labelStatusActivity.setText(self.data['IPS']['status_activity'])
             self.IPS_window.labelStatusLocRem.setText(self.data['IPS']['status_locrem'])
             self.IPS_window.labelStatusSwitchHeater.setText(self.data['IPS']['status_switchheater'])
-
 
     # ------- LakeShore 350 -------
     def initialize_window_LakeShore350(self):
@@ -523,7 +843,6 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             for sensor in self.LakeShore350_Kpmin['Sensors']:
                 sensor += [0]*(length-self.LakeShore350_Kpmin['length'])
             self.LakeShore350_Kpmin['length'] = length
-
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -665,7 +984,11 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             if not co == 0:
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
-        data['date'] = convert_time(time.time())
+        # data['date'] = convert_time(time.time())
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
@@ -851,6 +1174,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     # ------- MISC -------
 
     def printing(self, b):
+
         """arbitrary example function"""
         print(b)
 
@@ -892,21 +1216,53 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """method to start/stop the thread which controls the Oxford ITC"""
 
         if boolean:
-            try:
+            # try:
 
-                getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+            getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
+            getInfodata.sig_assertion.connect(self.show_error_textBrowser)
 
-                self.actionLogging_LIVE.setChecked(True)
-            except VisaIOError as e:
-                self.action_run_ITC.setChecked(False)
-                self.show_error_textBrowser(e)
+            self.actionLogging_LIVE.setChecked(True)
+            print('logging live online')
+            # except VisaIOError as e:
+            #     self.actionLogging_LIVE.setChecked(False)
+            #     self.show_error_textBrowser(e)
                 # print(e) # TODO: open window displaying the error message
-
         else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
 
+    def initialize_window_OneShot(self):
+        self.window_OneShot = Window_ui(ui_file='.\\configurations\\OneShotMeasurement.ui')
+        # self.window_OneShot.pushChoose_Datafile.connect()
+        # self.window_OneShot.comboCurrentSource.addItems([])
+        self.window_OneShot.commandMeasure.setEnabled(False)
+
+        self.action_run_OneShot_Measuring.triggered['bool'].connect(self.run_OneShot)
+        self.action_show_OneShot_Measuring.triggered['bool'].connect(self.show_OneShot)
+
+    @pyqtSlot(bool)
+    def run_OneShot(self, boolean):
+        if boolean:
+            OneShot = self.running_thread(OneShot_Thread(self), None, 'control_OneShot')
+            self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(lambda value: OneShot.update_conf('excitation_current_A', value))
+            self.window_OneShot.spinN_measurements.valueChanged.connect(lambda value: OneShot.update_conf('n_measurements', value))
+            self.window_OneShot.comboCurrentSource.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
+            # needs more attention!
+            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
+            # needs more attention!
+            self.window_OneShot.commandMeasure.clicked.connect(lambda: self.sig_measure_oneshot.emit())
+            self.window_OneShot.commandMeasure.setEnabled(True)
+
+        else:
+            self.stopping_thread('control_OneShot')
+            self.window_OneShot.commandMeasure.setEnabled(False)
+
+    def show_OneShot(self, boolean):
+        """display/close the OneShot Measuring window"""
+        if boolean:
+            self.window_OneShot.show()
+        else:
+            self.window_OneShot.close()
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
@@ -926,6 +1282,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         else:
             self.Errors_window.close()
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     a = time.time()
@@ -933,4 +1290,3 @@ if __name__ == '__main__':
     form.show()
     print(time.time()-a)
     sys.exit(app.exec_())
-

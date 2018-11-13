@@ -622,6 +622,7 @@
    </property>
   </action>
   <action name="action_run_Current_1">
+
    <property name="text">
     <string>Current Source 1</string>
    </property>
