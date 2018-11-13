@@ -27,8 +27,8 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [x] Oxford ILM 211
 - [x] Oxford PS120 10
 - [x] Lakeshore 350
-- [ ] Keithley 2182 A
-- [ ] Keithley 6221
+- [x] Keithley 2182 A
+- [x] Keithley 6221
 - [ ] Keithley DMM 7510 7 
 - [ ] Keithley MM 2700
 
@@ -37,8 +37,7 @@ Software to enforce control over an Oxford Cryostat, as well as measurment devic
 - [x] Oxford ILM 211
 - [x] Oxford PS120 10
 - [x] Lakeshore 350
-- [ ] Keithley 2182 A
-- [ ] Keithley 6221
+- [x] Keithley Resistance measurement
 - [ ] Keithley DMM 7510 7 
 - [ ] Keithley MM 2700
 
