@@ -1250,6 +1250,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value: self.OneShot_chooseInstrument(value, "RES", OneShot))
             self.window_OneShot.commandMeasure.clicked.connect(lambda: self.sig_measure_oneshot.emit())
             self.window_OneShot.commandMeasure.setEnabled(True)
+            self.window_OneShot.pushChoose_Datafile.clicked(lambda: self.OneShot_chooseDatafile(OneShot))
 
         else:
             self.stopping_thread('control_OneShot')
@@ -1262,6 +1263,12 @@ class mainWindow(QtWidgets.QMainWindow):
             OneShot.update_conf('threadname_RES', Nanovolts[comboInt] )
         elif mode == "CURR": 
             OneShot.update_conf('threadname_CURR', current_sources[comboInt] )
+
+    def OneShot_chooseDatafile(self, OneShot):
+        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
+               'c:\\',"Datafiles (*.dat)")
+        OneShot.update_conf('datafile', new_file_data)
+
 
     def show_OneShot(self, boolean):
         """display/close the OneShot Measuring window"""

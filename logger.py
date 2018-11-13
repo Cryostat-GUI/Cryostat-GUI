@@ -647,23 +647,23 @@ class measurement_Logger(AbstractEventhandlingThread):
         """
         # timedict = {'timeseconds': time.time(),
         #             'ReadableTime': convert_time(time.time())}
-        try:
-            if not self.conf:
-                self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
-        except NameError:
-            # configuration not yet done
-            self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
+        # try:
+        #     if not self.data:
+        #         self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
+        # except NameError:
+        #     # configuration not yet done
+        #     self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
         datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {time}'.format(**data)
 
-        if os.path.isfile(self.conf['datafile']):
+        if os.path.isfile(self.data['datafile']):
             try:
-                with open(self.conf['datafile'], 'a') as f:
+                with open(self.data['datafile'], 'a') as f:
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])
         else:
             try:
-                with open(self.conf['datafile'], 'w') as f:
+                with open(self.data['datafile'], 'w') as f:
                     f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
                             "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
                     f.write(datastring)

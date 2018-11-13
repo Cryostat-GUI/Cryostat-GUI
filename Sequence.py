@@ -23,6 +23,7 @@ import numpy as np
 from util import AbstractEventhandlingThread
 from util import loops_off, controls_disabled
 from util import ExceptionHandling
+from util import convert_time, convert_time_searchable
 
 
 class BreakCondition(Exception):
@@ -57,6 +58,10 @@ def measure_resistance(threads,
 
 
     """
+    # measured current reversal = 40ms. 
+    # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
+    current_reversal_time = 0.6
+
     data = dict()
     temps = []
     resistances = []  # pos & neg
@@ -70,7 +75,7 @@ def measure_resistance(threads,
                 threads[threadname_CURR][0].gettoset_Current_A(current_applied_A*currentfactor)
                 threads[threadname_CURR][0].setCurrent_A()
                 # wait for the current to be changed:
-                time.sleep(0.1)  # 0.1 measured with the DMM 7510 of a 6221 Source
+                time.sleep(current_reversal_time) 
                 voltage = threads[threadname_RES][0].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
                 resistances.append(voltage/(current_applied_A*currentfactor))
@@ -82,6 +87,10 @@ def measure_resistance(threads,
 
     data['R_mean_Ohm'] = np.mean(resistances)
     data['R_std_Ohm'] = np.std(resistances)
+    timedict = {'timeseconds': time.time(),
+            'ReadableTime': convert_time(time.time()),
+            'SearchableTime': convert_time_searchable(time.time())}
+    data.update(timedict)
     return data
 
 
