@@ -1086,22 +1086,14 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 worker = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
-                # display data given by nanovoltmeters
-                if 'GUI_number1' in kwargs:
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
-                    worker.sig_visaerror.connect(self.show_error_textBrowser)
-                    worker.sig_assertion.connect(self.show_error_textBrowser)
-                    worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
-                
+                kwargs['threadname']=threadname
 
-                # calculating resistance
-                if 'GUI_Box' in kwargs:
-                    kwargs['threadname']=threadname
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
-                    worker.sig_visaerror.connect(self.show_error_textBrowser)
-                    worker.sig_assertion.connect(self.show_error_textBrowser)
-                    worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
-
+                # display data given by nanovoltmeters & calculate resistance
+                worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
+                worker.sig_visaerror.connect(self.show_error_textBrowser)
+                worker.sig_assertion.connect(self.show_error_textBrowser)
+                worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                    
                 # setting Keithley values for current source by GUI Keithley window
 
                 if 'GUI_number2' in kwargs:
@@ -1167,31 +1159,19 @@ class mainWindow(QtWidgets.QMainWindow):
             'SearchableTime': convert_time_searchable(time.time())}
         data.update(timedict)
         with self.dataLock:
+            data['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
             self.data[dataname].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
             if 'GUI_number1' in kwargs:
                 try:
                     kwargs['GUI_number1'].display(self.data[dataname]['Voltage_V'])
-                except AttributeError as a_err:
-                    if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
-                        self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
-            if 'GUI_Box' in kwargs:
-                try:
-                    kwargs['GUI_Box'].activated['QString'].connect(lambda value: self.threads[kwargs['threadname']][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
                     kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
-                        self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0])) 
+                        self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
 
 
-
-
-    # @pyqtSlot()
-    # def display_resistance(self, GUI_Display, GUI_Data):
-    #     """
-    #     """
-    #     self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_V'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
 
     # ------- MISC -------
 

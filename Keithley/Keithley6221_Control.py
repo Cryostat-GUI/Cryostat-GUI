@@ -153,6 +153,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def setCurrent_A(self):
         try:
             self.Keithley6221.setCurrent(self.Current_A_value)
+            self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])            
         except AssertionError as e_ass:
