@@ -1160,19 +1160,21 @@ class mainWindow(QtWidgets.QMainWindow):
         data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
-            if not str(kwargs['GUI_Box'].currentText()) == '--':
-                self.data[dataname]['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
             if 'GUI_number1' in kwargs:
                 try:
+                    if not str(kwargs['GUI_Box'].currentText()) == '--':
+                        self.data[dataname]['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
                     kwargs['GUI_number1'].display(self.data[dataname]['Voltage_V'])
                     if 'Resistance_Ohm' in self.data[dataname]:
                         kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
-
+                except KeyError as key_err:
+                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0])
 
 
     # ------- MISC -------
