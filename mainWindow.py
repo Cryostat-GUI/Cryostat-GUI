@@ -1167,7 +1167,8 @@ class mainWindow(QtWidgets.QMainWindow):
             if 'GUI_number1' in kwargs:
                 try:
                     kwargs['GUI_number1'].display(self.data[dataname]['Voltage_V'])
-                    kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
+                    if 'Resistance_Ohm' in self.data[dataname]:
+                        kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
