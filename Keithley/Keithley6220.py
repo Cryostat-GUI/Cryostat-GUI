@@ -41,6 +41,12 @@ class Keithley6220(object):
     power supply have are not present on the 6220.
 
     """
+    def __init__(self, InstrumentAddress = None):
+        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
+        # self._visa_resource.read_termination = '\r'
+        self.CommunicationLock = threading.Lock()
+        self.device = self._visa_resource   
+         
     def go(self, command):
         with self.CommunicationLock:
             self.device.write(command)
@@ -54,7 +60,7 @@ class Keithley6220(object):
         """
         self.go('SOUR:CLE:IMM')
 
-    def SetCurrent(self, current_value):
+    def setCurrent(self, current_value):
         """Sets Current
         """
         if -0.105 > current_value > 0.105:
@@ -62,7 +68,7 @@ class Keithley6220(object):
         self.go('CURR ' + '{0:e}'.format(current_value))
 
 
-    def ConfigSourceFunctions(self, bias_current = 1e-4, compliance = 1):
+    def configSourceFunctions(self, bias_current = 1e-4, compliance = 1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
         The current output will remain at the last point in the sweep after completion.
         The compliance setting limits the output voltage of the Model 622x. The voltage
@@ -73,7 +79,7 @@ class Keithley6220(object):
         self.go('SOUR:CURR ' + '{0:e}'.format(bias_current))
         self.go('SOUR:CURR:COMP ' + '{0:f}'.format(compliance))
 
-    def SetupSweep(self, start_current, stop_current, step_current, delay):
+    def setupSweep(self, start_current, stop_current, step_current, delay):
         """Sets up the Sweep
         """
         self.go('OUR:SWE:SPAC LIN')
@@ -85,7 +91,7 @@ class Keithley6220(object):
         self.go('OUR:SWE:COUN 1')
         self.go('OUR:SWE:CAB OFF')
 
-    def StartSweep(self):
+    def startSweep(self):
         """Starts the Sweep
         """
         self.go('SOUR:SWE:ARM')

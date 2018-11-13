@@ -30,6 +30,8 @@ from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 
 
+import datetime
+
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
@@ -100,6 +102,7 @@ class AbstractEventhandlingThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.interval = 500
 
 
     @pyqtSlot() # int
