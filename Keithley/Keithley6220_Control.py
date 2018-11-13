@@ -47,7 +47,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
 
         self.Keithley6220 = Keithley6220(InstrumentAddress=InstrumentAddress)
 
-        self.Current_A_value = None
+        self.Current_A_value = 0
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
 #        self.Start_Current_value = 0
 #        self.Step_Current_value = 0
@@ -153,6 +153,8 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
     def setCurrent_A(self):
         try:
             self.Keithley6220.setCurrent(self.Current_A_value)
+        except TypeError as e_type:
+            self.sig_assertion.emit(e_type.args[0])            
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
