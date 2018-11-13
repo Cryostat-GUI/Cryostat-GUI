@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>527</width>
-    <height>241</height>
+    <width>554</width>
+    <height>229</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>527</width>
+     <width>554</width>
      <height>21</height>
     </rect>
    </property>
@@ -68,13 +68,6 @@
      </property>
      <addaction name="action_show_Info_Dock"/>
      <addaction name="action_show_Errors"/>
-     <addaction name="action_show_Data"/>
-     <addaction name="separator"/>
-     <addaction name="action_show_ITC"/>
-     <addaction name="action_show_ILM"/>
-     <addaction name="action_show_IPS"/>
-     <addaction name="separator"/>
-     <addaction name="action_show_LakeShore350"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
@@ -110,8 +103,11 @@
     <addaction name="action_run_LakeShore350"/>
     <addaction name="separator"/>
     <addaction name="menuKeithley"/>
+    <addaction name="separator"/>
     <addaction name="action_Logging"/>
     <addaction name="actionLogging_LIVE"/>
+    <addaction name="separator"/>
+    <addaction name="action_run_OneShot_Measuring"/>
    </widget>
    <widget class="QMenu" name="menuShow_Data">
     <property name="title">
@@ -120,10 +116,30 @@
     <addaction name="action_plotLive"/>
     <addaction name="action_plotDatabase"/>
    </widget>
+   <widget class="QMenu" name="menuShow_Instruments">
+    <property name="title">
+     <string>Show Instruments</string>
+    </property>
+    <addaction name="action_show_ITC"/>
+    <addaction name="action_show_ILM"/>
+    <addaction name="action_show_IPS"/>
+    <addaction name="separator"/>
+    <addaction name="action_show_LakeShore350"/>
+    <addaction name="separator"/>
+    <addaction name="action_show_Keithley"/>
+   </widget>
+   <widget class="QMenu" name="menuControls">
+    <property name="title">
+     <string>Measuring</string>
+    </property>
+    <addaction name="action_show_OneShot_Measuring"/>
+   </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSystems_Online"/>
    <addaction name="menuShow_Data"/>
+   <addaction name="menuShow_Instruments"/>
+   <addaction name="menuControls"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -488,9 +504,6 @@
    </property>
   </action>
   <action name="action_run_Nanovolt_1">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -498,12 +511,9 @@
     <string>Nanovoltmeter 1</string>
    </property>
   </action>
-  <action name="action_run_Current_1">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="action_run_Nanovolt_2">
    <property name="text">
-    <string>Current source 1</string>
+    <string>Nanovoltmeter 2</string>
    </property>
   </action>
   <action name="action_Logging">
@@ -565,6 +575,9 @@
    </property>
   </action>
   <action name="actionLogging_LIVE">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -572,36 +585,50 @@
     <string>Logging LIVE</string>
    </property>
   </action>
-  <action name="action_run_Nanovolt_2">
+  <action name="action_run_OneShot_Measuring">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Nanovoltmeter 2</string>
+    <string>OneShot Measuring</string>
    </property>
   </action>
-  <action name="action_run_Nanovolt_3">
+  <action name="action_show_OneShot_Measuring">
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="text">
+    <string>One-Shot Measurinng</string>
+   </property>
+  </action>
+  <action name="actionNanovolt_1">
+   <property name="text">
+    <string>Nanovolt 1</string>
+   </property>
+  </action>
+  <action name="actionNanovolt_2">
+   <property name="text">
+    <string>Nanovolt 2</string>
+   </property>
+  </action>
+  <action name="action_show_Keithley">
+   <property name="text">
+    <string>Keithley Resistance</string>
+   </property>
+  </action>
+  <action name="action_run_Nanovolt_3">
    <property name="text">
     <string>Nanovoltmeter 3</string>
    </property>
   </action>
-  <action name="action_run_Current_2">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="action_run_Current_1">
    <property name="text">
-    <string>Current source 2</string>
+    <string>Current Source 1</string>
    </property>
   </action>
-  <action name="action_show_Keithley">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="action_run_Current_2">
    <property name="text">
-    <string>Keithley Resistance</string>
+    <string>Current Source 2</string>
    </property>
   </action>
  </widget>
@@ -619,7 +646,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>698</y>
+     <y>416</y>
     </hint>
    </hints>
   </connection>
