@@ -1175,6 +1175,8 @@ class mainWindow(QtWidgets.QMainWindow):
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
                 except KeyError as key_err:
                     self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0]))
+                except ZeroDivisionError as z_err:
+                    self.data[dataname]['Resistance_Ohm'] = np.nan
 
 
     # ------- MISC -------
