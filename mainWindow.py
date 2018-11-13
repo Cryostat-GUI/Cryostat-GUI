@@ -64,7 +64,7 @@ ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
 LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
-Keithley2182_1_InstrumentAddress = 'GPIB0::2::INSTR' 
+Keithley2182_1_InstrumentAddress = 'GPIB0::2::INSTR'
 Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6220_1_InstrumentAddress = 'GPIB0::5::INSTR'
@@ -626,7 +626,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
             self.LakeShore350_Kpmin['newtime'][i+1] = entry
             self.LakeShore350_Kpmin['newtime'][0] = time.time()
-            for key in self.LakeShore350_Kpmin['Sensors'].keys(): 
+            for key in self.LakeShore350_Kpmin['Sensors'].keys():
                 self.LakeShore350_Kpmin['Sensors'][key][i+1] = self.LakeShore350_Kpmin['Sensors'][key][i]
                 self.LakeShore350_Kpmin['Sensors'][key][0] = deepcopy(data[key])
 
@@ -698,12 +698,43 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.Keithley_window = Window_ui(ui_file='.\\Keithley\\Keithley_control.ui')
         self.Keithley_window.sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
 
-        confdict2182_1 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_1_InstrumentAddress, dataname='Keithley2182_1', threadname='control_Keithley2182_1', GUI_number1=self.Keithley_window.lcdSensor1_nV, GUI_menu_action=self.action_run_Nanovolt_1)
-        confdict2182_2 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_2_InstrumentAddress, dataname='Keithley2182_2', threadname='control_Keithley2182_2', GUI_number1=self.Keithley_window.lcdSensor2_nV, GUI_menu_action=self.action_run_Nanovolt_2)
-        confdict2182_3 = dict(clas= Keithley2182_Updater, instradress=Keithley2182_3_InstrumentAddress, dataname='Keithley2182_3', threadname='control_Keithley2182_3', GUI_number1=self.Keithley_window.lcdSensor3_nV, GUI_menu_action=self.action_run_Nanovolt_3)
+        # -------- Nanovolts
+        confdict2182_1 = dict(clas=Keithley2182_Updater,
+                              instradress=Keithley2182_1_InstrumentAddress,
+                              dataname='Keithley2182_1',
+                              threadname='control_Keithley2182_1',
+                              GUI_number1=self.Keithley_window.lcdSensor1_nV,
+                              GUI_menu_action=self.action_run_Nanovolt_1)
 
-        confdict6220_1 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_1_InstrumentAddress, dataname='Keithley6220_1', threadname='control_Keithley6220_1', GUI_number2=self.Keithley_window.spinSetCurrent1_mA, GUI_push=self.Keithley_window.pushButton_1, GUI_menu_action=self.action_run_Current_1)
-        confdict6220_2 = dict(clas= Keithley6220_Updater, instradress=Keithley6220_2_InstrumentAddress, dataname='Keithley6220_2', threadname='control_Keithley6220_2', GUI_number2=self.Keithley_window.spinSetCurrent2_mA, GUI_push=self.Keithley_window.pushButton_2, GUI_menu_action=self.action_run_Current_2)
+        confdict2182_2 = dict(clas=Keithley2182_Updater,
+                              instradress=Keithley2182_2_InstrumentAddress,
+                              dataname='Keithley2182_2',
+                              threadname='control_Keithley2182_2',
+                              GUI_number1=self.Keithley_window.lcdSensor2_nV,
+                              GUI_menu_action=self.action_run_Nanovolt_2)
+
+        confdict2182_3 = dict(clas=Keithley2182_Updater,
+                              instradress=Keithley2182_3_InstrumentAddress,
+                              dataname='Keithley2182_3',
+                              threadname='control_Keithley2182_3',
+                              GUI_number1=self.Keithley_window.lcdSensor3_nV,
+                              GUI_menu_action=self.action_run_Nanovolt_3)
+
+        # ´------- Current Sources
+        confdict6220_1 = dict(clas=Keithley6220_Updater,
+                              instradress=Keithley6220_1_InstrumentAddress,
+                              dataname='Keithley6220_1',
+                              threadname='control_Keithley6220_1',
+                              GUI_number2=self.Keithley_window.spinSetCurrent1_mA,
+                              GUI_push=self.Keithley_window.pushButton_1,
+                              GUI_menu_action=self.action_run_Current_1)
+        confdict6220_2 = dict(clas=Keithley6220_Updater,
+                              instradress=Keithley6220_2_InstrumentAddress,
+                              dataname='Keithley6220_2',
+                              threadname='control_Keithley6220_2',
+                              GUI_number2=self.Keithley_window.spinSetCurrent2_mA,
+                              GUI_push=self.Keithley_window.pushButton_2,
+                              GUI_menu_action=self.action_run_Current_2)
 
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
         self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_2))
@@ -735,7 +766,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
                 # setting Keithley values by GUI Keithley window
-            
+
                 if 'GUI_number2' in kwargs:
                     kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
                     kwargs['GUI_number2'].editingFinished.connect(lambda: self.threads[threadname][0].setCurrent_A())
@@ -758,7 +789,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             if 'GUI_push' in kwargs:
                 kwargs['GUI_push'].clicked.disonnect()
-            
+
 
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
