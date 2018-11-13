@@ -58,7 +58,6 @@ from logger import Logger_configuration
 from util import Window_ui, Window_plotting
 from util import convert_time
 from util import convert_time_searchable
-from util import calculate_resistance
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
