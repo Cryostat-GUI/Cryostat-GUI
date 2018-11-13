@@ -47,7 +47,7 @@
      <x>0</x>
      <y>0</y>
      <width>527</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuControl">
@@ -75,8 +75,6 @@
      <addaction name="action_show_IPS"/>
      <addaction name="separator"/>
      <addaction name="action_show_LakeShore350"/>
-     <addaction name="separator"/>
-     <addaction name="action_show_Keithley"/>
     </widget>
     <addaction name="menuShow_Info_Dock"/>
     <addaction name="action_Logging_configuration"/>
