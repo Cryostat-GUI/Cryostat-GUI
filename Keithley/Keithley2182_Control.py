@@ -91,4 +91,4 @@ class Keithley2182_Updater(AbstractLoopThread):
     def calculate_resistance(self, sourcename, metername):
         """calculates resistance
         """
-            self.sensors['Resistance_Ohm'] = metername/sourcename
+        self.sensors['Resistance_Ohm'] = metername/sourcename
