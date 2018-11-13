@@ -213,6 +213,8 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.label_y = label_y
         self.title = title
 
+        self.interval = 2
+
         # a figure instance to plot on
         self.figure = Figure()
 
@@ -266,4 +268,4 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
         # refresh canvas
         self.canvas.draw()
-        QTimer.singleShot(3*1e3, self.plot)
+        QTimer.singleShot(self.interval*1e3, self.plot)
