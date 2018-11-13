@@ -144,6 +144,8 @@ class Logger_configuration(Window_ui):
 
         self.general_spinSetInterval.valueChanged.connect(
                 lambda value: self.setValue('general', 'interval', value))
+        self.general_spinSetInterval_Live.valueChanged.connect(
+                lambda value: self.setValue('general', 'interval_live', value))        
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
@@ -472,6 +474,7 @@ class live_Logger(AbstractLoopThread):
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
         self.mainthread.sig_running_new_thread.connect(self.initialisation)
+        self.mainthread.sig_logging_newconf.connect(self.update_conf)        
 
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
@@ -559,6 +562,13 @@ class live_Logger(AbstractLoopThread):
                     for variablekey in dic:
                         self.mainthread.data_live[instrument][variablekey] = []
         self.initialised = True
+
+    def update_conf(self, conf):
+        """
+            - update the configuration with one being sent.
+        """
+        self.interval = conf['general']['interval_live']
+
 
 
 class Logger_measurement_configuration(Window_ui):

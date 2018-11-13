@@ -234,7 +234,7 @@
        <item row="0" column="3">
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Logging Interval:</string>
+          <string>Database Logging Interval:</string>
          </property>
         </widget>
        </item>
@@ -250,6 +250,20 @@
          <property name="maximum">
           <double>3600.000000000000000</double>
          </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Live Logging Interval:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QDoubleSpinBox" name="general_spinSetInterval_Live">
          <property name="value">
           <double>1.000000000000000</double>
          </property>

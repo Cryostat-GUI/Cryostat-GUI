@@ -1265,16 +1265,22 @@ class mainWindow(QtWidgets.QMainWindow):
             OneShot = self.running_thread(OneShot_Thread(self), None, 'control_OneShot')
             self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(lambda value: OneShot.update_conf('excitation_current_A', value))
             self.window_OneShot.spinN_measurements.valueChanged.connect(lambda value: OneShot.update_conf('n_measurements', value))
-            self.window_OneShot.comboCurrentSource.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
-            # needs more attention!
-            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value:OneShot.update_conf('threadname_RES', None))
-            # needs more attention!
+            self.window_OneShot.comboCurrentSource.activated['int'].connect(lambda value: self.OneShot_chooseInstrument(value, "CURR", OneShot))
+            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value: self.OneShot_chooseInstrument(value, "RES", OneShot))
             self.window_OneShot.commandMeasure.clicked.connect(lambda: self.sig_measure_oneshot.emit())
             self.window_OneShot.commandMeasure.setEnabled(True)
 
         else:
             self.stopping_thread('control_OneShot')
             self.window_OneShot.commandMeasure.setEnabled(False)
+
+    def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
+        current_sources = [None, 'Keithley6220_1', 'Keithley6220_2']
+        Nanovolts = [None, 'Keithley2182_1', 'Keithley2182_2', 'Keithley2182_3']
+        if mode == "RES": 
+            OneShot.update_conf('threadname_RES', Nanovolts[comboInt] )
+        elif mode == "CURR": 
+            OneShot.update_conf('threadname_CURR', current_sources[comboInt] )
 
     def show_OneShot(self, boolean):
         """display/close the OneShot Measuring window"""

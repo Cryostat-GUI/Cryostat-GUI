@@ -190,7 +190,7 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file=None, parent=None, **kwargs):
+    def __init__(self, ui_file=None, **kwargs):
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)
@@ -212,6 +212,8 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
+
+        self.interval = 2
 
         # a figure instance to plot on
         self.figure = Figure()
@@ -266,4 +268,4 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
         # refresh canvas
         self.canvas.draw()
-        QTimer.singleShot(3*1e3, self.plot)
+        QTimer.singleShot(self.interval*1e3, self.plot)
