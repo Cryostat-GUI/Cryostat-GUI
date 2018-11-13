@@ -69,6 +69,7 @@ class Keithley2182_Updater(AbstractLoopThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def read_Voltage(self):
         """read a Voltage from instrument. return value should be float"""
         try:

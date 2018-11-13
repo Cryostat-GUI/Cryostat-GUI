@@ -769,17 +769,19 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 # setting Keithley values by GUI Keithley window
 
                 if 'GUI_number2' in kwargs:
-                    kwargs['GUI_number2'].valueChanged.connect(lambda value: worker.gettoset_Current_A(value))
-                    kwargs['GUI_number2'].editingFinished.connect(lambda: worker.setCurrent_A())
-                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(dict(changed_Current_A=worker.getCurrent_A()), dataname ))
+                    kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.threads[threadname][0].setCurrent_A())
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(dict(changed_Current_A=self.threads[threadname][0].getCurrent_A()), dataname ))
 
                 if 'GUI_push' in kwargs:
-                    if worker.Output == 'OFF': 
-                        kwargs['GUI_push'].clicked.connect(lambda: worker.enable())
-                        kwargs['GUI_push'].setText('Output OFF')  # reversed, as this toggles!
-                    if worker.Output == 'On': 
-                        kwargs['GUI_push'].clicked.connect(lambda: worker.disable())
-                        kwargs['GUI_push'].setText('Output ON')  # reversed, as this toggles!
+                    if not self.threads[threadname][0].OutputOn:
+                        kwargs['GUI_push'].setText('Output ON')  # 'correct', as this reads
+                        # enable
+                    if self.threads[threadname][0].OutputOn:
+                        kwargs['GUI_push'].setText('Output OFF')  # 'correct', as this reads
+
+                    kwargs['GUI_push'].clicked.connect(lambda: self.Keithley_toggleOutput(kwargs['GUI_push'], self.threads[threadname][0]))
+                    kwargs['GUI_push'].setEnabled(True)
 
                 GUI_menu_action.setChecked(True)
 
@@ -795,9 +797,20 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 kwargs['GUI_number2'].editingFinished.disconnect()
 
             if 'GUI_push' in kwargs:
-                kwargs['GUI_push'].clicked.disonnect()
-                rgs['GUI_push'].setText('Output ON')
+                kwargs['GUI_push'].clicked.disconnect()
+                # kwargs['GUI_push'].setText('Output ON')
+                kwargs['GUI_push'].setEnabled(False)
 
+    @pyqtSlot()
+    def Keithley_toggleOutput(self, GUI_Button, worker):
+        worker.OutputOn = worker.getstatus()
+        if not worker.OutputOn:
+            worker.enable()
+            GUI_Button.setText('Output OFF')  # ''reversed'', as this toggles!
+            # enable
+        elif worker.OutputOn:
+            worker.disable()
+            GUI_Button.setText('Output ON')  # ''reversed'', as this toggles!
 
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
@@ -826,7 +839,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             except AttributeError as a_err:
                 if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                     self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
-                
+
 
 
     # @pyqtSlot()
@@ -837,10 +850,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
     # ------- MISC -------
 
-#    def printing(self,b):
-#        """arbitrary example function"""
-#        print(b)
-#
+    def printing(self, b):
+        """arbitrary example function"""
+        print(b)
+
     def initialize_window_Log_conf(self):
         """initialize Logging configuration window"""
         self.Log_conf_window = Logger_configuration()

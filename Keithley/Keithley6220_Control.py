@@ -48,7 +48,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
         self.Keithley6220 = Keithley6220(InstrumentAddress=InstrumentAddress)
 
         self.Current_A_value = None
-        self.Output = 'OFF'
+        self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
 #        self.Start_Current_value = 0
 #        self.Step_Current_value = 0
 #        self.Stop_Current_value = 0
@@ -105,28 +105,51 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
     def getCurrent_A(self):
         return self.Current_A_value
 
+    @pyqtSlot()
     def disable(self):
         try:
             self.Keithley6220.disable()
+            self.OutputOn = self.Keithley6220.getstatus()[0]
+        except TypeError as e_type:
+            self.sig_assertion.emit(e_type.args[0])
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
             else:
-                self.sig_visaerror.emit(e_visa.args[0])      
+                self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def enable(self):
         try:
             self.Keithley6220.enable()
+            self.OutputOn = self.Keithley6220.getstatus()[0]
+        except TypeError as e_type:
+            self.sig_assertion.emit(e_type.args[0])
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
             else:
-                self.sig_visaerror.emit(e_visa.args[0])                   
+                self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
+    def getstatus(self):
+        try:
+            return int(self.Keithley6220.getstatus()[0])
+        except TypeError as e_type:
+            self.sig_assertion.emit(e_type.args[0])
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
     def setCurrent_A(self):
         try:
             self.Keithley6220.setCurrent(self.Current_A_value)
@@ -138,6 +161,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def setSweep(self):
         try:
             self.Keithley6220.SetupSweet(self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
@@ -149,6 +173,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
+    @pyqtSlot()
     def startSweep(self):
         try:
             self.Keithley6220.StartSweep()
