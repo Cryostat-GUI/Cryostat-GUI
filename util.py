@@ -190,7 +190,7 @@ class Window_ui(QtWidgets.QWidget):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, ui_file=None, parent=None, **kwargs):
+    def __init__(self, ui_file=None, **kwargs):
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)
