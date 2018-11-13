@@ -30,6 +30,12 @@ from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 
 
+def convert_time_searchable(ts):
+    """converts timestamps from time.time() into reasonably searchable string format"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+
+
+
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
 
