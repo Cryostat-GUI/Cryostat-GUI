@@ -1097,7 +1097,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # calculating resistance whereas sourcname is either 'Keithley6221_1' or 'Keithley6221_2'
                 if 'GUI_Display' in kwargs:
-                    GUI_Box.activated['str'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data[sourcename='{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
+                    sourcname = '{0:s}'.format(value.strip(')').split('(')[1])
+                    GUI_Box.activated['str'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data[sourcename]['Current_A'], self.data[dataname]['Voltage_V']))
                     worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_Display=kwargs['GUI_Display']))
 
 
