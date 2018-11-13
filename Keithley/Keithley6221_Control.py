@@ -4,7 +4,7 @@ import time
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 # from PyQt5.uic import loadUi
 
-from Keithley.Keithley6221 import Keithley6221
+from Keithley.Keithley6220 import Keithley6220
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
@@ -13,8 +13,8 @@ from copy import deepcopy
 from util import AbstractEventhandlingThread
 
 
-class Keithley6221_Updater(AbstractEventhandlingThread):
-    """This is the worker thread, which updates all instrument data of a Keithely 6221
+class Keithley6220_Updater(AbstractEventhandlingThread):
+    """This is the worker thread, which updates all instrument data of a Keithely 6220
 
         For each method of the device class (except collecting data), there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
@@ -45,7 +45,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
 
-        self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress)
+        self.Keithley6220 = Keithley6220(InstrumentAddress=InstrumentAddress)
 
         self.Current_A_value = 0
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
@@ -59,7 +59,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
       # self.setControl()
       # self.__isRunning = True
 
-#        self.Keithley6221.ConfigSourceFunctions()
+#        self.Keithley6220.ConfigSourceFunctions()
 
     # @control_checks
 #     def running(self):
@@ -72,7 +72,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 
 #         """
 #         try:
-#             self.sensors['Current_A'] = self.Keithley6221.measureVoltage()
+#             self.sensors['Current_A'] = self.Keithley6220.measureVoltage()
 # #            self.sensors['Start_Current'] = self.Start_Current_value
 # #            self.sensors['Step_Current'] = self.Step_Current_value
 # #            self.sensors['Stop_Current'] = self.Stop_Current_value
@@ -93,7 +93,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 #        """Utilizes @property to set the value for the voltage and send the command to the device.
 #        """
 #        try:
-#            self.Keithley6221.voltage = self.Current_A_value
+#            self.Keithley6220.voltage = self.Current_A_value
 #        except AssertionError as e_ass:
 #            self.sig_assertion.emit(e_ass.args[0])
 #        except VisaIOError as e_visa:
@@ -103,14 +103,13 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 #                self.sig_visaerror.emit(e_visa.args[0])
 
     def getCurrent_A(self):
-        self.sensors['Current_A'] = self.Current_A_value
         return self.Current_A_value
 
     @pyqtSlot()
     def disable(self):
         try:
-            self.Keithley6221.disable()
-            self.OutputOn = self.Keithley6221.getstatus()[0]
+            self.Keithley6220.disable()
+            self.OutputOn = self.Keithley6220.getstatus()[0]
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])
         except AssertionError as e_ass:
@@ -124,8 +123,8 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     def enable(self):
         try:
-            self.Keithley6221.enable()
-            self.OutputOn = self.Keithley6221.getstatus()[0]
+            self.Keithley6220.enable()
+            self.OutputOn = self.Keithley6220.getstatus()[0]
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])
         except AssertionError as e_ass:
@@ -139,7 +138,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     def getstatus(self):
         try:
-            return int(self.Keithley6221.getstatus()[0])
+            return int(self.Keithley6220.getstatus()[0])
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])
         except AssertionError as e_ass:
@@ -153,7 +152,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     def setCurrent_A(self):
         try:
-            self.Keithley6221.setCurrent(self.Current_A_value)
+            self.Keithley6220.setCurrent(self.Current_A_value)
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])            
         except AssertionError as e_ass:
@@ -167,7 +166,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     def setSweep(self):
         try:
-            self.Keithley6221.SetupSweet(self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
+            self.Keithley6220.SetupSweet(self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -179,7 +178,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     def startSweep(self):
         try:
-            self.Keithley6221.StartSweep()
+            self.Keithley6220.StartSweep()
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
@@ -187,7 +186,6 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
                 self.sig_visatimeout.emit()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
-
 
     @pyqtSlot(float)
     def gettoset_Current_A(self, value):
@@ -204,6 +202,4 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot(float)
     def gettoset_Stop_Current(self, value):
         self.Stop_Current_value = value
-
-
 

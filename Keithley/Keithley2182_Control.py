@@ -34,7 +34,8 @@ class Keithley2182_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    sensors = dict(Voltage_V=None)
+    sensors = dict(Voltage_V=None,
+                   Resistance_Ohm = None)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -84,3 +85,10 @@ class Keithley2182_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
+
+
+    @pyqtSlot()
+    def calculate_resistance(self, sourcename, metername):
+        """calculates resistance
+        """
+            self.sensors['Resistance_Ohm'] = metername/sourcename
