@@ -1029,7 +1029,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley2182_1',
                               GUI_number1=self.Keithley_window.lcdSensor1_V,
                               GUI_menu_action=self.action_run_Nanovolt_1,
-                              GUI_Box=self.Keithley.comboBox_1,
+                              GUI_Box=self.Keithley_window.comboBox_1,
                               GUI_Display=self.Keithley_window.lcdResistance1)
 
         confdict2182_2 = dict(clas=Keithley2182_Updater,
@@ -1038,7 +1038,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley2182_2',
                               GUI_number1=self.Keithley_window.lcdSensor2_V,
                               GUI_menu_action=self.action_run_Nanovolt_2,
-                              GUI_Box=self.Keithley.comboBox_2,
+                              GUI_Box=self.Keithley_window.comboBox_2,
                               GUI_Display=self.Keithley_window.lcdResistance2)
 
         confdict2182_3 = dict(clas=Keithley2182_Updater,
