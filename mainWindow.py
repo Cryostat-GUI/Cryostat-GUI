@@ -1174,7 +1174,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
                 except KeyError as key_err:
-                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0])
+                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0]))
 
 
     # ------- MISC -------
