@@ -1086,7 +1086,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 worker = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
-                # displaying store_data_Keithley
+                # display data given by nanovoltmeters
                 if 'GUI_number1' in kwargs:
                     worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
                     worker.sig_visaerror.connect(self.show_error_textBrowser)
@@ -1094,13 +1094,13 @@ class mainWindow(QtWidgets.QMainWindow):
                     worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
                 
 
-                # calculating resistance whereas sourcname is either 'Keithley6221_1' or 'Keithley6221_2'
+                # calculating resistance
                 if 'GUI_Display' in kwargs:
                     GUI_Box.activated['str'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
                     worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_Display=kwargs['GUI_Display']))
 
 
-                # setting Keithley values by GUI Keithley window
+                # setting Keithley values for current source by GUI Keithley window
 
                 if 'GUI_number2' in kwargs:
                     kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))

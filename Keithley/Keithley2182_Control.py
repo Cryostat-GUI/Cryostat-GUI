@@ -91,4 +91,6 @@ class Keithley2182_Updater(AbstractLoopThread):
     def calculate_resistance(self, sourcename, metername):
         """calculates resistance
         """
+        if sourcename == None or sourcename == 0:
+            raise AssertionError("Keithley:ServiceRequestEnableRegisterCommand: Current Value parameter must not be 0 or None.")
         self.sensors['Resistance_Ohm'] = metername/sourcename
