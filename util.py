@@ -40,7 +40,6 @@ def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
@@ -101,7 +100,6 @@ def ExceptionHandling(func):
             print('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
 
-
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
 
@@ -142,6 +140,8 @@ class AbstractLoopThread(AbstractThread):
                 self.running()
             else:
                 pass
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
         finally:
             QTimer.singleShot(self.interval*1e3, self.work)
 
@@ -173,6 +173,8 @@ class AbstractEventhandlingThread(AbstractThread):
         """
         try:
             self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
         finally:
             QTimer.singleShot(self.interval*1e3, self.work)
 
@@ -202,6 +204,7 @@ class Window_ui(QtWidgets.QWidget):
 class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
+
 
     def __init__(self, data, label_x, label_y, title, parent=None):
         super().__init__()

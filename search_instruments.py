@@ -9,7 +9,7 @@ devices = []
 for ct, manager in enumerate(res):
     for resource in manager:
         try:
-            devices.append(rm.open_resource(resource))
+            devices.append(rm[1].open_resource(resource))
             print(devices[-1].query('*IDN?'), resource)
         except VisaIOError as e1:
             try:

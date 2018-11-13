@@ -91,12 +91,12 @@
      <property name="title">
       <string>Keithley</string>
      </property>
-     <addaction name="action_run_Nanovolts"/>
-     <addaction name="action_run_Current_sources"/>
-     <addaction name="actionNanovolt_3"/>
+     <addaction name="action_run_Nanovolt_1"/>
+     <addaction name="action_run_Nanovolt_2"/>
+     <addaction name="action_run_Nanovolt_3"/>
      <addaction name="separator"/>
-     <addaction name="actionCurrent_Source_1"/>
-     <addaction name="actionCurrent_Source_2"/>
+     <addaction name="action_run_Current_1"/>
+     <addaction name="action_run_Current_2"/>
     </widget>
     <addaction name="menuOxford_Cryostat"/>
     <addaction name="separator"/>
@@ -126,7 +126,7 @@
     <addaction name="separator"/>
     <addaction name="action_show_LakeShore350"/>
     <addaction name="separator"/>
-    <addaction name="actionKeithley_Resistance"/>
+    <addaction name="action_show_Keithley"/>
    </widget>
    <widget class="QMenu" name="menuControls">
     <property name="title">
@@ -503,7 +503,7 @@
     <string>Powersupply</string>
    </property>
   </action>
-  <action name="action_run_Nanovolts">
+  <action name="action_run_Nanovolt_1">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -511,7 +511,7 @@
     <string>Nanovoltmeter 1</string>
    </property>
   </action>
-  <action name="action_run_Current_sources">
+  <action name="action_run_Nanovolt_2">
    <property name="text">
     <string>Nanovoltmeter 2</string>
    </property>
@@ -611,22 +611,23 @@
     <string>Nanovolt 2</string>
    </property>
   </action>
-  <action name="actionKeithley_Resistance">
+  <action name="action_show_Keithley">
    <property name="text">
     <string>Keithley Resistance</string>
    </property>
   </action>
-  <action name="actionNanovolt_3">
+  <action name="action_run_Nanovolt_3">
    <property name="text">
     <string>Nanovoltmeter 3</string>
    </property>
   </action>
-  <action name="actionCurrent_Source_1">
+  <action name="action_run_Current_1">
+
    <property name="text">
     <string>Current Source 1</string>
    </property>
   </action>
-  <action name="actionCurrent_Source_2">
+  <action name="action_run_Current_2">
    <property name="text">
     <string>Current Source 2</string>
    </property>
