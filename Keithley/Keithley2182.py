@@ -84,3 +84,12 @@ class Keithley2182(object):
 #        return self.query("SENS:DATA:FRES?")[0]
         return float(self.query(":READ?")[0])
 
+    def DisplayOn(self):
+        pass
+
+    def DisplayOff(self):
+        pass
+
+
+
+

@@ -103,7 +103,6 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 #                self.sig_visaerror.emit(e_visa.args[0])
 
     def getCurrent_A(self):
-        self.sensors['Current_A'] = self.Current_A_value
         return self.Current_A_value
 
     @pyqtSlot()
@@ -154,6 +153,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def setCurrent_A(self):
         try:
             self.Keithley6221.setCurrent(self.Current_A_value)
+            self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
         except TypeError as e_type:
             self.sig_assertion.emit(e_type.args[0])            
         except AssertionError as e_ass:
@@ -188,7 +188,6 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
-
     @pyqtSlot(float)
     def gettoset_Current_A(self, value):
         self.Current_A_value = value
@@ -204,6 +203,4 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot(float)
     def gettoset_Stop_Current(self, value):
         self.Stop_Current_value = value
-
-
 
