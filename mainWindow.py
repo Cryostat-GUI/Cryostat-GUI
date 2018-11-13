@@ -1258,7 +1258,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.comboNanovoltmeter.activated['int'].connect(lambda value: self.OneShot_chooseInstrument(value, "RES", OneShot))
             self.window_OneShot.commandMeasure.clicked.connect(lambda: self.sig_measure_oneshot.emit())
             self.window_OneShot.commandMeasure.setEnabled(True)
-            self.window_OneShot.pushChoose_Datafile.clicked(lambda: self.OneShot_chooseDatafile(OneShot))
+            self.window_OneShot.pushChoose_Datafile.clicked.connect(lambda: self.OneShot_chooseDatafile(OneShot))
 
         else:
             self.stopping_thread('control_OneShot')
