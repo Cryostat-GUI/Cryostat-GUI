@@ -48,6 +48,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
         self.Keithley6220 = Keithley6220(InstrumentAddress=InstrumentAddress)
 
         self.Current_A_value = None
+        self.Output = 'OFF'
 #        self.Start_Current_value = 0
 #        self.Step_Current_value = 0
 #        self.Stop_Current_value = 0

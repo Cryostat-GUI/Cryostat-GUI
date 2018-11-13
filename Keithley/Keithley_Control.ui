@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>755</width>
-    <height>274</height>
+    <width>813</width>
+    <height>337</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -241,17 +241,7 @@
      <property name="checkable">
       <bool>false</bool>
      </property>
-     <layout class="QGridLayout" name="_2" columnstretch="0,1,0,0">
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetCurrent1_A">
-        <property name="decimals">
-         <number>5</number>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
+     <layout class="QGridLayout" name="_2" columnstretch="0,0,0,0">
       <item row="0" column="0">
        <widget class="QLabel" name="label_10">
         <property name="minimumSize">
@@ -263,6 +253,32 @@
         <property name="text">
          <string>DC Source 1 
   (GPIB: 5)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="spinSetCurrent1_A">
+        <property name="decimals">
+         <number>5</number>
+        </property>
+        <property name="maximum">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="spinSetCurrent2_A">
+        <property name="decimals">
+         <number>5</number>
+        </property>
+        <property name="maximum">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
         </property>
        </widget>
       </item>
@@ -280,13 +296,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="text">
-         <string>Power Off</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="2">
        <widget class="QLabel" name="label_7">
         <property name="maximumSize">
@@ -297,16 +306,6 @@
         </property>
         <property name="text">
          <string>[A]</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetCurrent2_A">
-        <property name="decimals">
-         <number>5</number>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -323,10 +322,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="pushButton_1">
+      <item row="2" column="3">
+       <widget class="QPushButton" name="pushToggleOut_2">
         <property name="text">
-         <string>Power Off</string>
+         <string>Output ON</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="pushToggleOut_1">
+        <property name="text">
+         <string>Output ON</string>
         </property>
        </widget>
       </item>

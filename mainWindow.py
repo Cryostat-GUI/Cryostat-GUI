@@ -727,14 +727,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                               dataname='Keithley6220_1',
                               threadname='control_Keithley6220_1',
                               GUI_number2=self.Keithley_window.spinSetCurrent1_A,
-                              GUI_push=self.Keithley_window.pushButton_1,
+                              GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.action_run_Current_1)
         confdict6220_2 = dict(clas=Keithley6220_Updater,
                               instradress=Keithley6220_2_InstrumentAddress,
                               dataname='Keithley6220_2',
                               threadname='control_Keithley6220_2',
                               GUI_number2=self.Keithley_window.spinSetCurrent2_A,
-                              GUI_push=self.Keithley_window.pushButton_2,
+                              GUI_push=self.Keithley_window.pushToggleOut_2,
                               GUI_menu_action=self.action_run_Current_2)
 
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
@@ -757,24 +757,29 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
         if boolean:
             try:
-                getInfodata = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
+                worker = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
                 # displaying store_data_Keithley
                 if 'GUI_number1' in kwargs:
-                    getInfodata.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
-                    getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
-                    getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                    getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
+                    worker.sig_visaerror.connect(self.show_error_textBrowser)
+                    worker.sig_assertion.connect(self.show_error_textBrowser)
+                    worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
 
 
                 # setting Keithley values by GUI Keithley window
 
                 if 'GUI_number2' in kwargs:
-                    kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
-                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.threads[threadname][0].setCurrent_A())
-                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(dict(changed_Current_A=self.threads[threadname][0].getCurrent_A()), dataname ))
+                    kwargs['GUI_number2'].valueChanged.connect(lambda value: worker.gettoset_Current_A(value))
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: worker.setCurrent_A())
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(dict(changed_Current_A=worker.getCurrent_A()), dataname ))
 
                 if 'GUI_push' in kwargs:
-                    kwargs['GUI_push'].clicked.connect(lambda: self.threads[threadname][0].disable())
+                    if worker.Output == 'OFF': 
+                        kwargs['GUI_push'].clicked.connect(lambda: worker.enable())
+                        kwargs['GUI_push'].setText('Output OFF')  # reversed, as this toggles!
+                    if worker.Output == 'On': 
+                        kwargs['GUI_push'].clicked.connect(lambda: worker.disable())
+                        kwargs['GUI_push'].setText('Output ON')  # reversed, as this toggles!
 
                 GUI_menu_action.setChecked(True)
 
@@ -791,6 +796,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
             if 'GUI_push' in kwargs:
                 kwargs['GUI_push'].clicked.disonnect()
+                rgs['GUI_push'].setText('Output ON')
 
 
     @pyqtSlot(bool)
