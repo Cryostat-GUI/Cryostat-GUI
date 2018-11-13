@@ -53,7 +53,7 @@ class Keithley2182_Updater(AbstractLoopThread):
 
         """
         try:
-            self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage() * 10**9
+            self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage() #* 10**9
 
             self.sig_Infodata.emit(deepcopy(self.sensors))
 
@@ -72,7 +72,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     def read_Voltage(self):
         """read a Voltage from instrument. return value should be float"""
         try:
-            return self.Keithley2182.measureVoltage() * 10**9
+            return self.Keithley2182.measureVoltage() #* 10**9
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except ValueError as e:

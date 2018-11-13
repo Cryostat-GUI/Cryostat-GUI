@@ -45,8 +45,8 @@ class Keithley6220(object):
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
-        self.device = self._visa_resource   
-         
+        self.device = self._visa_resource
+
     def go(self, command):
         with self.CommunicationLock:
             self.device.write(command)
@@ -67,6 +67,8 @@ class Keithley6220(object):
             raise AssertionError("Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
         self.go('CURR ' + '{0:e}'.format(current_value))
 
+    def enable(self):
+        self.go('OUTP ON')
 
     def configSourceFunctions(self, bias_current = 1e-4, compliance = 1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
@@ -97,7 +99,58 @@ class Keithley6220(object):
         self.go('SOUR:SWE:ARM')
         self.go('INIT')
 
+    def more(self):
+        """
+        OUTPut Source output control:
+            [:STAT]? Turn output on or off (standby). default = OFF
+            :LTE <b> Connect output low to earth ground (ON) or float output low (OFF). default = OFF
+            :ISH <name> Connect triax inner shield to OLOW (output low) or cable GUAR. default = OLOW
+            :RESP <name> Set the output response for 6221: FAST or SLOW. default = FAST
+            :INT Interlock:
+                :TRIP? Returns a “0” if interlock is tripped (open) or a “1”
+        """
 
+        pass
+
+    def even_more(self):
+        """
+        STATus Commands status registers:                               Note 1
+                :MEASurement Measurement event registers:
+                    [:EVENt]? Read the event register.                  Note 2
+                    :ENABle <NDN> or <NRf> Program the enable register. Note 3
+                    :CONDition? Read the condition register.
+                :OPERation Operation event registers:
+                    [:EVENt]? Read the event register.                  Note 2
+                    :ENABle <NDN> or <NRf> Program the enable register. Note 3
+                    :CONDition? Read the condition register.
+                :QUEStionable Questionable event registers:
+                    [:EVENt]? Read the event register. Note 2
+                    :ENABle <NDN> or <NRf> Program the enable register. Note 3
+                    :CONDition? Read the condition register.
+                :PRESet Return status registers to default states.
+                :QUEue Read error queue:
+                    [:NEXT]? Read the most recent error message.        Note 4
+                    :ENABle <list> Specify error and status messages
+                                for errorqueue: -999 to +999.
+                    Note 5
+                    :DISable <list> Specify error and status messages not to
+                                be placed in error queue: -999 to +999
+                    :CLEar Clears all messages from error queue.
+        Notes:
+        1. Commands in this subsystem are not affected
+            by *RST or SYSTem:PRESet.
+            The effects of cycling power, *CLS and STATus:PRESet,
+            are explained by the following notes.
+        2. Event registers — Power-up and *CLS clears all bits.
+            STATus:PRESet has no effect.
+        3. Enable registers — Power-up and STATus:PRESet clears all bits.
+            *CLS has no effect.
+        4. Error queue — Power-up and *CLS empties the error queue.
+            STATus:PRESet has no effect.
+        5. Error queue messages — Power-up enables error messages and disables
+            status messages. *CLS and STATus:PRESet have no effect.
+        """
+        pass
 
 
 

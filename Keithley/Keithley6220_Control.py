@@ -115,6 +115,17 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
             else:
                 self.sig_visaerror.emit(e_visa.args[0])      
 
+    def enable(self):
+        try:
+            self.Keithley6220.enable()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])                   
+
     def setCurrent_A(self):
         try:
             self.Keithley6220.setCurrent(self.Current_A_value)
