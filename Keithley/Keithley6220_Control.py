@@ -102,7 +102,6 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
 #                self.sig_visaerror.emit(e_visa.args[0])
 
     def getCurrent_A(self):
-        self.Current_A = self.Current_A_value
         return self.Current_A_value
 
     def disable(self):
@@ -151,7 +150,7 @@ class Keithley6220_Updater(AbstractEventhandlingThread):
 
     @pyqtSlot(float)
     def gettoset_Current_A(self, value):
-        self.Current_A_value = value/1000
+        self.Current_A_value = value
 
     @pyqtSlot(float)
     def gettoset_Start_Current(self, value):

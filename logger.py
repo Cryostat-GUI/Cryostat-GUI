@@ -409,7 +409,16 @@ class main_Logger(AbstractLoopThread):
         if self.not_yet_initialised:
             return
 
-        names = ['ITC', 'ILM', 'IPS', 'LakeShore350']
+        names = ['ITC', 
+                 'ILM', 
+                 'IPS', 
+                 'LakeShore350', 
+                 'Keithley2182_1', 
+                 'Keithley2182_2', 
+                 'Keithley2182_3', 
+                 'Keithley6220_1', 
+                 'Keithley6220_2']
+                 
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time())}
 

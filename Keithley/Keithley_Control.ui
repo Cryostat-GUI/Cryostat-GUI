@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1006</width>
-    <height>342</height>
+    <width>755</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -25,7 +25,7 @@
      <property name="title">
       <string>Resistances - calculated</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,1">
       <item row="2" column="1">
        <widget class="QComboBox" name="comboBox_3">
         <item>
@@ -127,7 +127,7 @@
      <property name="checkable">
       <bool>false</bool>
      </property>
-     <layout class="QGridLayout" columnstretch="0,0,0">
+     <layout class="QGridLayout" columnstretch="0,1,0">
       <item row="2" column="2">
        <widget class="QLabel" name="label_5">
         <property name="maximumSize">
@@ -137,7 +137,7 @@
          </size>
         </property>
         <property name="text">
-         <string>[nV]</string>
+         <string>[V]</string>
         </property>
        </widget>
       </item>
@@ -150,12 +150,12 @@
          </size>
         </property>
         <property name="text">
-         <string>[nV]</string>
+         <string>[V]</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLCDNumber" name="lcdSensor2_nV">
+       <widget class="QLCDNumber" name="lcdSensor2_V">
         <property name="digitCount">
          <number>7</number>
         </property>
@@ -167,19 +167,21 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>nV  1</string>
+         <string>nV  1 
+  (GPIB: 2)</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>nV 3</string>
+         <string>nV 3 
+  (GPIB: 4)</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLCDNumber" name="lcdSensor3_nV">
+       <widget class="QLCDNumber" name="lcdSensor3_V">
         <property name="digitCount">
          <number>7</number>
         </property>
@@ -189,7 +191,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLCDNumber" name="lcdSensor1_nV">
+       <widget class="QLCDNumber" name="lcdSensor1_V">
         <property name="frameShape">
          <enum>QFrame::Box</enum>
         </property>
@@ -213,14 +215,15 @@
          </size>
         </property>
         <property name="text">
-         <string>[nV]</string>
+         <string>[V]</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>nV 2</string>
+         <string>nV 2 
+  (GPIB: 3)</string>
         </property>
        </widget>
       </item>
@@ -238,9 +241,9 @@
      <property name="checkable">
       <bool>false</bool>
      </property>
-     <layout class="QGridLayout" name="_2" columnstretch="0,0,0,0">
+     <layout class="QGridLayout" name="_2" columnstretch="0,1,0,0">
       <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetCurrent1_mA"/>
+       <widget class="QDoubleSpinBox" name="spinSetCurrent1_A"/>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_10">
@@ -251,7 +254,8 @@
          </size>
         </property>
         <property name="text">
-         <string>DC Source 1</string>
+         <string>DC Source 1 
+  (GPIB: 5)</string>
         </property>
        </widget>
       </item>
@@ -264,7 +268,8 @@
          </size>
         </property>
         <property name="text">
-         <string>DC Source 2</string>
+         <string>DC Source 2 
+  (GPIB: 6)</string>
         </property>
        </widget>
       </item>
@@ -284,12 +289,12 @@
          </size>
         </property>
         <property name="text">
-         <string>[mA]</string>
+         <string>[A]</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetCurrent2_mA"/>
+       <widget class="QDoubleSpinBox" name="spinSetCurrent2_A"/>
       </item>
       <item row="0" column="2">
        <widget class="QLabel" name="label_12">
@@ -300,7 +305,7 @@
          </size>
         </property>
         <property name="text">
-         <string>[mA]</string>
+         <string>[A]</string>
         </property>
        </widget>
       </item>
@@ -314,7 +319,7 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0" colspan="2">
+   <item row="0" column="0" colspan="3">
     <widget class="QTextBrowser" name="textBrowser">
      <property name="minimumSize">
       <size>
@@ -338,8 +343,8 @@
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:24pt; font-weight:600;&quot;&gt;Keihtley 2182 &amp;amp; 6220&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:24pt; font-weight:600;&quot;&gt;Keihtley 2182 &amp;amp; 6220&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

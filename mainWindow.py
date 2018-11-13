@@ -703,21 +703,21 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                               instradress=Keithley2182_1_InstrumentAddress,
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
-                              GUI_number1=self.Keithley_window.lcdSensor1_nV,
+                              GUI_number1=self.Keithley_window.lcdSensor1_V,
                               GUI_menu_action=self.action_run_Nanovolt_1)
 
         confdict2182_2 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
-                              GUI_number1=self.Keithley_window.lcdSensor2_nV,
+                              GUI_number1=self.Keithley_window.lcdSensor2_V,
                               GUI_menu_action=self.action_run_Nanovolt_2)
 
         confdict2182_3 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
-                              GUI_number1=self.Keithley_window.lcdSensor3_nV,
+                              GUI_number1=self.Keithley_window.lcdSensor3_V,
                               GUI_menu_action=self.action_run_Nanovolt_3)
 
         # ´------- Current Sources
@@ -725,14 +725,14 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                               instradress=Keithley6220_1_InstrumentAddress,
                               dataname='Keithley6220_1',
                               threadname='control_Keithley6220_1',
-                              GUI_number2=self.Keithley_window.spinSetCurrent1_mA,
+                              GUI_number2=self.Keithley_window.spinSetCurrent1_A,
                               GUI_push=self.Keithley_window.pushButton_1,
                               GUI_menu_action=self.action_run_Current_1)
         confdict6220_2 = dict(clas=Keithley6220_Updater,
                               instradress=Keithley6220_2_InstrumentAddress,
                               dataname='Keithley6220_2',
                               threadname='control_Keithley6220_2',
-                              GUI_number2=self.Keithley_window.spinSetCurrent2_mA,
+                              GUI_number2=self.Keithley_window.spinSetCurrent2_A,
                               GUI_push=self.Keithley_window.pushButton_2,
                               GUI_menu_action=self.action_run_Current_2)
 
@@ -743,9 +743,9 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_1))
         self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_2))
 
-        self.display_resistance(GUI_Display=lcdResistance1, GUI_data='Keithley2182_1')
-        self.display_resistance(GUI_Display=lcdResistance2, GUI_data='Keithley2182_2')
-        self.display_resistance(GUI_Display=lcdResistance3, GUI_data='Keithley2182_3')
+        # self.display_resistance(GUI_Display=lcdResistance1, GUI_data='Keithley2182_1')
+        # self.display_resistance(GUI_Display=lcdResistance2, GUI_data='Keithley2182_2')
+        # self.display_resistance(GUI_Display=lcdResistance3, GUI_data='Keithley2182_3')
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
 
@@ -759,7 +759,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 getInfodata = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
                 # displaying store_data_Keithley
                 if 'GUI_number1' in kwargs:
-                    getInfodata.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs['GUI_number1']))
+                    getInfodata.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
                     getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
                     getInfodata.sig_assertion.connect(self.show_error_textBrowser)
                     getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
@@ -770,6 +770,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
                 if 'GUI_number2' in kwargs:
                     kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
                     kwargs['GUI_number2'].editingFinished.connect(lambda: self.threads[threadname][0].setCurrent_A())
+                    kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(dict(changed_Current_A=self.threads[threadname][0].getCurrent_A()), dataname ))
 
                 if 'GUI_push' in kwargs:
                     kwargs['GUI_push'].clicked.connect(lambda: self.threads[threadname][0].disable())
@@ -801,7 +802,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
 
 
     @pyqtSlot(dict)
-    def store_data_Keithley(self, data, dataname, GUI_number1):
+    def store_data_Keithley(self, data, dataname, GUI_number1=None, **kwargs):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
@@ -813,15 +814,19 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
             self.data[dataname].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
+            try:
+                GUI_number1.display(self.data[dataname]['Voltage_V'])
+            except AttributeError as a_err:
+                if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
+                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
+                
 
-            GUI_number1.display(self.data[dataname]['Voltage_nV'])
 
-
-    @pyqtSlot()
-    def display_resistance(self, GUI_Display, GUI_Data):
-        """
-        """
-        self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
+    # @pyqtSlot()
+    # def display_resistance(self, GUI_Display, GUI_Data):
+    #     """
+    #     """
+    #     self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_V'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
 
     # ------- MISC -------
 
