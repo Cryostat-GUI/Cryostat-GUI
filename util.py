@@ -89,36 +89,36 @@ class AbstractLoopThread(AbstractThread):
     #     self.__isRunning = False
 
 
-# class AbstractEventhandlingThread(AbstractThread):
-#     """Abstract thread class to be used with instruments """
+class AbstractEventhandlingThread(AbstractThread):
+    """Abstract thread class to be used with instruments """
 
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
-#     @pyqtSlot() # int
-#     def work(self):
-#         """class method which is here so something runs, and starting behaviour is not broken
-#         """
-#         # while self.__isRunning:
-#         try:
-#             self.running()
-#         except AssertionError as assertion:
-#             self.sig_assertion.emit(assertion.args[0])
-#         finally:
-#             QTimer.singleShot(self.interval*1e3, self.work)
+    @pyqtSlot() # int
+    def work(self):
+        """class method which is here so something runs, and starting behaviour is not broken
+        """
+        # while self.__isRunning:
+        try:
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval*1e3, self.work)
 
-#     def running(self):
-#         """class method to be overrriden """
-#         pass
-#         # raise NotImplementedError
+    def running(self):
+        """class method to be overrriden """
+        pass
+        # raise NotImplementedError
 
-#     @pyqtSlot()
-#     def stop(self):
-#         """just here so stopping the thread can be done as with all others
-#             can be overriden for "last second actions"
-#         """
-#         pass
+    @pyqtSlot()
+    def stop(self):
+        """just here so stopping the thread can be done as with all others
+            can be overriden for "last second actions"
+        """
+        pass
 
 
 class Window_ui(QtWidgets.QWidget):

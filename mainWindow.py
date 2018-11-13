@@ -805,7 +805,10 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
-
+        timedict = {'timeseconds': time.time(),
+            'ReadableTime': convert_time(time.time()),
+            'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
@@ -818,8 +821,7 @@ class mainWindow(QtWidgets.QMainWindow): #, mainWindow_ui.Ui_Cryostat_Main):
     def display_resistance(self, GUI_Display, GUI_Data):
         """
         """
-        try:
-            self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
+        self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_nV'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
 
     # ------- MISC -------
 
