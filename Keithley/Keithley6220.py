@@ -54,11 +54,17 @@ class Keithley6220(object):
 
     # METHODS #
 
-    def disable(self):
+    def disable_fully(self):
         """
         Set the output current to zero and disable the output.
         """
         self.go('SOUR:CLE:IMM')
+
+    def enable(self):
+        self.go('OUTP ON')
+
+    def disable(self):
+        self.go('OUTP OFF')        
 
     def setCurrent(self, current_value):
         """Sets Current
@@ -67,8 +73,7 @@ class Keithley6220(object):
             raise AssertionError("Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
         self.go('CURR ' + '{0:e}'.format(current_value))
 
-    def enable(self):
-        self.go('OUTP ON')
+
 
     def configSourceFunctions(self, bias_current = 1e-4, compliance = 1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
