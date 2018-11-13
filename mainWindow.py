@@ -1178,7 +1178,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
             if 'GUI_Box' in kwargs:
                 try:
-                    kwargs['GUI_Box'].activated['QString'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
+                    kwargs['GUI_Box'].activated['QString'].connect(lambda value: self.threads[kwargs['threadname']][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
                     kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
