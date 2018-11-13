@@ -46,7 +46,7 @@ from Oxford.ILM_control import ILM_Updater
 from Oxford.IPS_control import IPS_Updater
 from LakeShore.LakeShore350_Control import LakeShore350_Updater
 from Keithley.Keithley2182_Control import Keithley2182_Updater
-from Keithley.Keithley6220_Control import Keithley6220_Updater
+from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
 
@@ -66,8 +66,8 @@ LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
 Keithley2182_1_InstrumentAddress = 'GPIB0::2::INSTR'
 Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
-Keithley6220_1_InstrumentAddress = 'GPIB0::5::INSTR'
-Keithley6220_2_InstrumentAddress = 'GPIB0::6::INSTR'
+Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
+Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 
 
 
@@ -1016,7 +1016,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
 
-   # ------- Keithley 2182 + Keithley 6220 -------
+   # ------- Keithley 2182 + Keithley 6221 -------
     def initialize_window_Keithley(self):
         """initialize Keithley Window"""
         self.Keithley_window = Window_ui(ui_file='.\\Keithley\\Keithley_control.ui')
@@ -1028,48 +1028,53 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
                               GUI_number1=self.Keithley_window.lcdSensor1_V,
-                              GUI_menu_action=self.action_run_Nanovolt_1)
+                              GUI_menu_action=self.action_run_Nanovolt_1,
+                              GUI_Box=self.Keithley_window.comboBox_1,
+                              GUI_Display=self.Keithley_window.lcdResistance1)
 
         confdict2182_2 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
                               GUI_number1=self.Keithley_window.lcdSensor2_V,
-                              GUI_menu_action=self.action_run_Nanovolt_2)
+                              GUI_menu_action=self.action_run_Nanovolt_2,
+                              GUI_Box=self.Keithley_window.comboBox_2,
+                              GUI_Display=self.Keithley_window.lcdResistance2)
 
         confdict2182_3 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
                               GUI_number1=self.Keithley_window.lcdSensor3_V,
-                              GUI_menu_action=self.action_run_Nanovolt_3)
+                              GUI_menu_action=self.action_run_Nanovolt_3,
+                              GUI_Box=self.Keithley_window.comboBox_3,
+                              GUI_Display=self.Keithley_window.lcdResistance3)
 
-        # ´------- Current Sources
-        confdict6220_1 = dict(clas=Keithley6220_Updater,
-                              instradress=Keithley6220_1_InstrumentAddress,
-                              dataname='Keithley6220_1',
-                              threadname='control_Keithley6220_1',
+        # -------- Current Sources
+        confdict6221_1 = dict(clas=Keithley6221_Updater,
+                              instradress=Keithley6221_1_InstrumentAddress,
+                              dataname='Keithley6221_1',
+                              threadname='control_Keithley6221_1',
                               GUI_number2=self.Keithley_window.spinSetCurrent1_A,
                               GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.action_run_Current_1)
-        confdict6220_2 = dict(clas=Keithley6220_Updater,
-                              instradress=Keithley6220_2_InstrumentAddress,
-                              dataname='Keithley6220_2',
-                              threadname='control_Keithley6220_2',
+
+        confdict6221_2 = dict(clas=Keithley6221_Updater,
+                              instradress=Keithley6221_2_InstrumentAddress,
+                              dataname='Keithley6221_2',
+                              threadname='control_Keithley6221_2',
                               GUI_number2=self.Keithley_window.spinSetCurrent2_A,
                               GUI_push=self.Keithley_window.pushToggleOut_2,
                               GUI_menu_action=self.action_run_Current_2)
+
 
         self.action_run_Nanovolt_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_1))
         self.action_run_Nanovolt_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_2))
         self.action_run_Nanovolt_3.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict2182_3))
 
-        self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_1))
-        self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6220_2))
+        self.action_run_Current_1.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6221_1))
+        self.action_run_Current_2.triggered['bool'].connect(lambda value: self.run_Keithley(value, **confdict6221_2))
 
-        # self.display_resistance(GUI_Display=lcdResistance1, GUI_data='Keithley2182_1')
-        # self.display_resistance(GUI_Display=lcdResistance2, GUI_data='Keithley2182_2')
-        # self.display_resistance(GUI_Display=lcdResistance3, GUI_data='Keithley2182_3')
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
 
@@ -1081,15 +1086,15 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 worker = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
-                # displaying store_data_Keithley
-                if 'GUI_number1' in kwargs:
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
-                    worker.sig_visaerror.connect(self.show_error_textBrowser)
-                    worker.sig_assertion.connect(self.show_error_textBrowser)
-                    worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                kwargs['threadname']=threadname
 
-
-                # setting Keithley values by GUI Keithley window
+                # display data given by nanovoltmeters & calculate resistance
+                worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
+                worker.sig_visaerror.connect(self.show_error_textBrowser)
+                worker.sig_assertion.connect(self.show_error_textBrowser)
+                worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                    
+                # setting Keithley values for current source by GUI Keithley window
 
                 if 'GUI_number2' in kwargs:
                     kwargs['GUI_number2'].valueChanged.connect(lambda value: self.threads[threadname][0].gettoset_Current_A(value))
@@ -1145,7 +1150,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
     @pyqtSlot(dict)
-    def store_data_Keithley(self, data, dataname, GUI_number1=None, **kwargs):
+    def store_data_Keithley(self, data, dataname, **kwargs):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
@@ -1155,21 +1160,24 @@ class mainWindow(QtWidgets.QMainWindow):
         data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
-            try:
-                GUI_number1.display(self.data[dataname]['Voltage_V'])
-            except AttributeError as a_err:
-                if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
-                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
+            if 'GUI_number1' in kwargs:
+                try:
+                    if not str(kwargs['GUI_Box'].currentText()) == '--':
+                        self.data[dataname]['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
+                    kwargs['GUI_number1'].display(self.data[dataname]['Voltage_V'])
+                    if 'Resistance_Ohm' in self.data[dataname]:
+                        kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
+                except AttributeError as a_err:
+                    if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
+                        self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
+                except KeyError as key_err:
+                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0]))
+                except ZeroDivisionError as z_err:
+                    self.data[dataname]['Resistance_Ohm'] = np.nan
 
-
-
-    # @pyqtSlot()
-    # def display_resistance(self, GUI_Display, GUI_Data):
-    #     """
-    #     """
-    #     self.Keithley_window.GUI_Display.display(self.Keithley_window.comboBox_1.activated['str'].connect(lambda value: self.calculate_resistance(Voltage=self.data[GUI_data]['Voltage_V'], Current=self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'])))
 
     # ------- MISC -------
 

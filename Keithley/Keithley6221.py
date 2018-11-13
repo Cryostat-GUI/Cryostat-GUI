@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Provides support for the Keithley 6220 constant current supply
+Provides support for the Keithley 6221 constant current supply
 """
 
 # IMPORTS #####################################################################
@@ -32,13 +32,13 @@ except OSError:
 # CLASSES #####################################################################
 
 
-class Keithley6220(object):
+class Keithley6221(object):
 
     """
-    The Keithley 6220 is a single channel constant current supply.
+    The Keithley 6221 is a single channel constant current supply.
 
     Because this is a constant current supply, most features that a regular
-    power supply have are not present on the 6220.
+    power supply have are not present on the 6221.
 
     """
     def __init__(self, InstrumentAddress = None):
