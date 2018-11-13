@@ -1095,10 +1095,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 
 
                 # calculating resistance
-                if 'GUI_Display' in kwargs:
-                    GUI_Box.activated['str'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_Display=kwargs['GUI_Display']))
-
+                if 'GUI_Box' in kwargs:
+                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs))
 
                 # setting Keithley values for current source by GUI Keithley window
 
@@ -1174,8 +1172,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
-            if 'GUI_Display' in kwargs:
+            if 'GUI_Box' in kwargs:
                 try:
+                    kwargs['GUI_Box'].activated['str'].connect(lambda value: self.threads[threadname][0].calculate_resistance(self.data['{0:s}'.format(value.strip(')').split('(')[1])]['Current_A'], self.data[dataname]['Voltage_V']))
                     GUI_Display.display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
