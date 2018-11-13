@@ -261,6 +261,9 @@
         <property name="decimals">
          <number>5</number>
         </property>
+        <property name="minimum">
+         <double>-0.100000000000000</double>
+        </property>
         <property name="maximum">
          <double>0.100000000000000</double>
         </property>
@@ -273,6 +276,9 @@
        <widget class="QDoubleSpinBox" name="spinSetCurrent2_A">
         <property name="decimals">
          <number>5</number>
+        </property>
+        <property name="minimum">
+         <double>-0.100000000000000</double>
         </property>
         <property name="maximum">
          <double>0.100000000000000</double>
@@ -324,6 +330,9 @@
       </item>
       <item row="2" column="3">
        <widget class="QPushButton" name="pushToggleOut_2">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Output ON</string>
         </property>
@@ -331,6 +340,9 @@
       </item>
       <item row="0" column="3">
        <widget class="QPushButton" name="pushToggleOut_1">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Output ON</string>
         </property>
