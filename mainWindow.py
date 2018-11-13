@@ -1159,8 +1159,9 @@ class mainWindow(QtWidgets.QMainWindow):
             'SearchableTime': convert_time_searchable(time.time())}
         data.update(timedict)
         with self.dataLock:
-            data['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
             self.data[dataname].update(data)
+
+            self.data[dataname]['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
             if 'GUI_number1' in kwargs:
