@@ -1088,7 +1088,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 worker = self.running_thread(clas(InstrumentAddress=instradress), dataname, threadname)
                 # display data given by nanovoltmeters
                 if 'GUI_number1' in kwargs:
-                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, GUI_number1=kwargs['GUI_number1']))
+                    worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs))
                     worker.sig_visaerror.connect(self.show_error_textBrowser)
                     worker.sig_assertion.connect(self.show_error_textBrowser)
                     worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
@@ -1097,6 +1097,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 # calculating resistance
                 if 'GUI_Box' in kwargs:
                     worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, kwargs))
+                    worker.sig_visaerror.connect(self.show_error_textBrowser)
+                    worker.sig_assertion.connect(self.show_error_textBrowser)
+                    worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
 
                 # setting Keithley values for current source by GUI Keithley window
 
@@ -1154,7 +1157,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
     @pyqtSlot(dict)
-    def store_data_Keithley(self, data, dataname, GUI_number1=None, **kwargs):
+    def store_data_Keithley(self, data, dataname, **kwargs):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
@@ -1168,7 +1171,7 @@ class mainWindow(QtWidgets.QMainWindow):
             # since the command failed in the communication with the device, the last value is retained
             if 'GUI_number1' in kwargs:
                 try:
-                    GUI_number1.display(self.data[dataname]['Voltage_V'])
+                    kwargs['GUI_number1'].display(self.data[dataname]['Voltage_V'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
