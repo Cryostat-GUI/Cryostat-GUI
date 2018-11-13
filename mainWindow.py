@@ -1160,7 +1160,7 @@ class mainWindow(QtWidgets.QMainWindow):
         data.update(timedict)
         with self.dataLock:
             self.data[dataname].update(data)
-            if not kwargs['GUI_Box'].currentText() == '--':
+            if not str(kwargs['GUI_Box'].currentText()) == '--':
                 self.data[dataname]['Resistance_Ohm'] = self.data[dataname]['Voltage_V']/(self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device, the last value is retained
