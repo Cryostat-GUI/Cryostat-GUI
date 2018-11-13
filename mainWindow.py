@@ -1047,7 +1047,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley2182_3',
                               GUI_number1=self.Keithley_window.lcdSensor3_V,
                               GUI_menu_action=self.action_run_Nanovolt_3,
-                              GUI_Box=self.Keithley.comboBox_3,
+                              GUI_Box=self.Keithley_window.comboBox_3,
                               GUI_Display=self.Keithley_window.lcdResistance3)
 
         # -------- Current Sources
