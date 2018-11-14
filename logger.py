@@ -470,6 +470,7 @@ class live_Logger(AbstractLoopThread):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
         self.interval = 5
+        self.length_list = 1000
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
@@ -531,7 +532,7 @@ class live_Logger(AbstractLoopThread):
                         dic.update(timedict)
                         for varkey in dic:
                             self.mainthread.data_live[instr][varkey].append(dic[varkey])
-                            if len(self.mainthread.data_live[instr][varkey]) > 1000:
+                            if len(self.mainthread.data_live[instr][varkey]) > self.length_list:
                                 self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
