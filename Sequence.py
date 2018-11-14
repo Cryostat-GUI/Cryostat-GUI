@@ -32,7 +32,7 @@ class BreakCondition(Exception):
 
 
 def measure_resistance(threads,
-                       current_applied_A,
+                       excitation_current_A,
                        threadname_RES,
                        threadname_CURR,
                        threadname_Temp='control_LakeShore350',
@@ -47,7 +47,7 @@ def measure_resistance(threads,
             threadname_CURR  = name of the (Keithley) Current set thread
             n_measurements  = number of measurements (dual polarity) to be averaged over
                             default = 1 (no reason to do much more)
-            current_applied_A = excitation current for the measurement
+            excitation_current_A = excitation current for the measurement
         returns: dict data
             T_mean_K : mean of temperature readings
                     before and after measurement [K]
@@ -72,13 +72,13 @@ def measure_resistance(threads,
         for idx in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
-                threads[threadname_CURR][0].gettoset_Current_A(current_applied_A*currentfactor)
+                threads[threadname_CURR][0].gettoset_Current_A(excitation_current_A*currentfactor)
                 threads[threadname_CURR][0].setCurrent_A()
                 # wait for the current to be changed:
                 time.sleep(current_reversal_time) 
                 voltage = threads[threadname_RES][0].read_Voltage()*currentfactor
                 # pure V/I, I hope that is fine.
-                resistances.append(voltage/(current_applied_A*currentfactor))
+                resistances.append(voltage/(excitation_current_A*currentfactor))
 
         temps.append(threads[threadname_Temp][0].read_Temperatures()[temperature_sensor])
 
@@ -87,6 +87,7 @@ def measure_resistance(threads,
 
     data['R_mean_Ohm'] = np.mean(resistances)
     data['R_std_Ohm'] = np.std(resistances)
+    data['datafile'] = kwargs['datafile']
     timedict = {'timeseconds': time.time(),
             'ReadableTime': convert_time(time.time()),
             'SearchableTime': convert_time_searchable(time.time())}
@@ -203,7 +204,8 @@ class OneShot_Thread(AbstractEventhandlingThread):
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=None,
                          threadname_CURR=None,
-                         current_applied_A=None)  # needs to be set - thus communicated!
+                         excitation_current_A=None)  # needs to be set - thus communicated!
+        self.__name__ = 'OneShot_Thread'
 
     def update_conf(self, key, value):
         self.conf[key] = value

@@ -628,9 +628,9 @@ class measurement_Logger(AbstractEventhandlingThread):
         self.starttime = time.time()
 
         self.mainthread.sig_log_measurement.connect(self.store_data)
-        self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
+        # self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
 
-        QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
+        # QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
 
     def update_conf(self, conf):
         """
@@ -653,19 +653,19 @@ class measurement_Logger(AbstractEventhandlingThread):
         # except NameError:
         #     # configuration not yet done
         #     self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
-        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {time}'.format(**data)
+        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(**data)
 
-        if os.path.isfile(self.data['datafile']):
+        if os.path.isfile(data['datafile']):
             try:
-                with open(self.data['datafile'], 'a') as f:
+                with open(data['datafile'], 'a') as f:
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])
         else:
             try:
-                with open(self.data['datafile'], 'w') as f:
+                with open(data['datafile'], 'w') as f:
                     f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
-                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
+                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s], date \n")
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: "+ err.args[0])

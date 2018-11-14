@@ -52,7 +52,7 @@ from Sequence import OneShot_Thread
 
 from pyvisa.errors import VisaIOError
 
-from logger import main_Logger, live_Logger
+from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration
 
 from util import Window_ui, Window_plotting
@@ -158,6 +158,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.threads[threadname][1].wait()
         del self.threads[threadname]
 
+    def show_error_general(self, text):
+        self.show_error_textBrowser(text)
+
     def show_error_textBrowser(self, text):
         """ append error to Error window"""
         self.Errors_window.textErrors.append('{} - {}'.format(convert_time(time.time()),text))
@@ -226,8 +229,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.data = dict()
 
         if not hasattr(self, "data_live"):
-            self.show_error_textBrowser('no live data to plot!')
-            self.show_error_textBrowser('If you want to see live data, start the live logger!')
+            self.show_error_general('no live data to plot!')
+            self.show_error_general('If you want to see live data, start the live logger!')
             return
         self.dataplot_live_conf.show()
 
@@ -302,7 +305,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 try:
                     value_names = list(self.data_live[instrument_name])
                 except KeyError:
-                    self.show_error_textBrowser('plotting: do not choose "-" '
+                    self.show_error_general('plotting: do not choose "-" '
                                       'please, there is nothing behind it!')
                     return
         # elif livevsdb == "DB":
@@ -333,7 +336,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 try:
                     dataplot.data[axis] = self.data_live[instrument_name][value_name]
                 except KeyError:
-                    self.show_error_textBrowser('plotting: do not choose "-" '
+                    self.show_error_general('plotting: do not choose "-" '
                                       'please, there is nothing behind it!')
                     return
 
@@ -343,10 +346,10 @@ class mainWindow(QtWidgets.QMainWindow):
             x = dataplot.data['X']
             y = [dataplot.data[key] for key in dataplot.data if key != 'X' ]
         except KeyError:
-            self.show_error_textBrowser('Plotting: You certainly did not choose an X axis, try again!')
+            self.show_error_general('Plotting: You certainly did not choose an X axis, try again!')
             return
         if y is None:
-            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            self.show_error_general('Plotting: You did not choose a single Y axis to plot, try again!')
             return
         data = [[x, yn] for yn in y]
         label_y = None
@@ -359,7 +362,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 except KeyError:
                     pass
         if label_y is None:
-            self.show_error_textBrowser('Plotting: You did not choose a single Y axis to plot, try again!')
+            self.show_error_general('Plotting: You did not choose a single Y axis to plot, try again!')
             return
         window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
         window.show()
@@ -479,10 +482,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
+                getInfodata.sig_visaerror.connect(self.show_error_general)
                 # getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ITC: timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_general)
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_general('ITC: timeout'))
 
                 self.data['ITC'] =  dict(set_temperature = 0,
                                          Sensor_1_K =0,
@@ -535,7 +538,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.logging_running_ITC = True
             except VisaIOError as e:
                 self.action_run_ITC.setChecked(False)
-                self.show_error_textBrowser(e)
+                self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
 
         else:
@@ -667,9 +670,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 # getInfodata.sig_visaerror.connect(self.printing)
                 # getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('ILM: timeout'))
+                getInfodata.sig_visaerror.connect(self.show_error_general)
+                getInfodata.sig_assertion.connect(self.show_error_general)
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_general('ILM: timeout'))
 
                 self.ILM_window.combosetProbingRate_chan1.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
                 # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
@@ -680,7 +683,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             except VisaIOError as e:
                 self.action_run_ILM.setChecked(False)
-                self.show_error_textBrowser(e)
+                self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
             self.action_run_ILM.setChecked(False)
@@ -744,9 +747,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
                 # getInfodata.sig_visaerror.connect(self.printing)
                 # getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('IPS: timeout'))
+                getInfodata.sig_visaerror.connect(self.show_error_general)
+                getInfodata.sig_assertion.connect(self.show_error_general)
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_general('IPS: timeout'))
 
                 self.IPS_window.comboSetActivity.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setActivity(value))
                 self.IPS_window.comboSetSwitchHeater.activated['int'].connect(lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
@@ -763,7 +766,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             except VisaIOError as e:
                 self.action_run_IPS.setChecked(False)
-                self.show_error_textBrowser(e)
+                self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
             self.action_run_IPS.setChecked(False)
@@ -854,10 +857,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_visaerror.connect(self.show_error_textBrowser)
+                getInfodata.sig_visaerror.connect(self.show_error_general)
                 # getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.show_error_textBrowser)
-                getInfodata.sig_visatimeout.connect(lambda: self.show_error_textBrowser('LakeShore350: timeout'))
+                getInfodata.sig_assertion.connect(self.show_error_general)
+                getInfodata.sig_visatimeout.connect(lambda: self.show_error_general('LakeShore350: timeout'))
 
                 self.func_LakeShore350_setKpminLength(5)
 
@@ -909,7 +912,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             except VisaIOError as e:
                 self.action_run_LakeShore350.setChecked(False)
-                self.show_error_textBrowser('running: {}'.format(e))
+                self.show_error_general('running: {}'.format(e))
         else:
             self.action_run_LakeShore350.setChecked(False)
             self.stopping_thread('control_LakeShore350')
@@ -1090,9 +1093,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # display data given by nanovoltmeters & calculate resistance
                 worker.sig_Infodata.connect(lambda data: self.store_data_Keithley(data, dataname, **kwargs))
-                worker.sig_visaerror.connect(self.show_error_textBrowser)
-                worker.sig_assertion.connect(self.show_error_textBrowser)
-                worker.sig_visatimeout.connect(lambda: self.show_error_textBrowser('{0:s}: timeout'.format(dataname)))
+                worker.sig_visaerror.connect(self.show_error_general)
+                worker.sig_assertion.connect(self.show_error_general)
+                worker.sig_visatimeout.connect(lambda: self.show_error_general('{0:s}: timeout'.format(dataname)))
                     
                 # setting Keithley values for current source by GUI Keithley window
 
@@ -1115,7 +1118,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             except VisaIOError as e:
                 GUI_menu_action.setChecked(False)
-                self.show_error_textBrowser('running: {}'.format(e))
+                self.show_error_general('running: {}'.format(e))
         else:
             GUI_menu_action.setChecked(False)
             self.stopping_thread(threadname)
@@ -1172,9 +1175,9 @@ class mainWindow(QtWidgets.QMainWindow):
                         kwargs['GUI_Display'].display(self.data[dataname]['Resistance_Ohm'])
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
-                        self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
+                        self.show_error_general('{name}: {err}'.format(name=dataname, err=a_err.args[0]))
                 except KeyError as key_err:
-                    self.show_error_textBrowser('{name}: {err}'.format(name=dataname, err=key_err.args[0]))
+                    self.show_error_general('{name}: {err}'.format(name=dataname, err=key_err.args[0]))
                 except ZeroDivisionError as z_err:
                     self.data[dataname]['Resistance_Ohm'] = np.nan
 
@@ -1227,13 +1230,13 @@ class mainWindow(QtWidgets.QMainWindow):
             # try:
 
             getInfodata = self.running_thread(live_Logger(self), None, 'control_Logging_live')
-            getInfodata.sig_assertion.connect(self.show_error_textBrowser)
+            getInfodata.sig_assertion.connect(self.show_error_general)
 
             self.actionLogging_LIVE.setChecked(True)
             print('logging live online')
             # except VisaIOError as e:
             #     self.actionLogging_LIVE.setChecked(False)
-            #     self.show_error_textBrowser(e)
+            #     self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
             self.stopping_thread('control_Logging_live')
@@ -1252,6 +1255,8 @@ class mainWindow(QtWidgets.QMainWindow):
     def run_OneShot(self, boolean):
         if boolean:
             OneShot = self.running_thread(OneShot_Thread(self), None, 'control_OneShot')
+            OneShot.sig_assertion.connect(self.OneShot_errorHandling)
+
             self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(lambda value: OneShot.update_conf('excitation_current_A', value))
             self.window_OneShot.spinN_measurements.valueChanged.connect(lambda value: OneShot.update_conf('n_measurements', value))
             self.window_OneShot.comboCurrentSource.activated['int'].connect(lambda value: self.OneShot_chooseInstrument(value, "CURR", OneShot))
@@ -1260,22 +1265,35 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(True)
             self.window_OneShot.pushChoose_Datafile.clicked.connect(lambda: self.OneShot_chooseDatafile(OneShot))
 
+            self.running_thread(measurement_Logger(self), None, 'save_OneShot')
         else:
             self.stopping_thread('control_OneShot')
+            self.stopping_thread('save_OneShot')
             self.window_OneShot.commandMeasure.setEnabled(False)
 
     def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None, 'Keithley6220_1', 'Keithley6220_2']
-        Nanovolts = [None, 'Keithley2182_1', 'Keithley2182_2', 'Keithley2182_3']
+        current_sources = [None, 'control_Keithley6221_1', 'control_Keithley6221_2']
+        Nanovolts = [None, 'control_Keithley2182_1', 'control_Keithley2182_2', 'control_Keithley2182_3']
         if mode == "RES": 
-            OneShot.update_conf('threadname_RES', Nanovolts[comboInt] )
+            OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
         elif mode == "CURR": 
-            OneShot.update_conf('threadname_CURR', current_sources[comboInt] )
+            OneShot.update_conf('threadname_CURR', current_sources[comboInt])
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-               'c:\\',"Datafiles (*.dat)")
+               'c:\\', "Datafiles (*.dat)")
         OneShot.update_conf('datafile', new_file_data)
+        # print(OneShot)
+
+    def OneShot_errorHandling(self, errortext):
+        if 'Key' in errortext:
+            if any(x in errortext for x in ['None', 'Keithley']):
+                self.window_OneShot.comboCurrentSource.setCurrentIndex(0)
+                self.window_OneShot.comboNanovoltmeter.setCurrentIndex(0)
+                self.show_error_general(errortext)
+        self.show_error_general(errortext)
+
+
 
 
     def show_OneShot(self, boolean):

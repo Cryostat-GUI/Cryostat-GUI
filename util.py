@@ -88,9 +88,15 @@ def ExceptionHandling(func):
             try:
                 return func(*args, **kwargs)
             except AssertionError as e_ass:
-                args[0].sig_assertion.emit(e_ass.args[0])
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Assertion', e_ass.args[0]))
+            except TypeError as e_type:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Type', e_type.args[0]))
+            except KeyError as e_key:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Key', e_key.args[0]))
             except ValueError as e_val:
-                args[0].sig_assertion.emit('{}: {}: {}'.format(args[0].__name__, func.__name__, e_val.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Value', e_val.args[0]))
+            except AttributeError as e_attr:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Attribute', e_attr.args[0]))
             except VisaIOError as e_visa:
                 if isinstance(e_visa, args[0].timeouterror) and e_visa.args == args[0].timeouterror.args:
                     args[0].sig_visatimeout.emit()
