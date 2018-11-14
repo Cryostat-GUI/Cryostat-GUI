@@ -19,7 +19,7 @@ class Keithley2182_Updater(AbstractLoopThread):
         For each self.ITC503 function (except collecting data), there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
         the corresponding value to the device.
-
+(sel)
         There is a second method for all wrappers, which accepts
         the corresponding value, and stores it, so it can be sent upon acknowledgment
 
@@ -84,3 +84,11 @@ class Keithley2182_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def speed_up(self):
+        """increase measurement speed
+        """
+        try:
+            self.Keithley2182.setRate('FAS')
+

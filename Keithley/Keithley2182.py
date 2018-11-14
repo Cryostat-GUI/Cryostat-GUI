@@ -77,18 +77,25 @@ class Keithley2182(object):
         :return: voltage in V
         :return type: float
         """
-
-
 #        self.sendcmd("SENS:CHAN 1")
 #        self.sendcmd("SENS:FUNC 'VOLT:DC'")
 #        return self.query("SENS:DATA:FRES?")[0]
-        return float(self.query(":READ?")[0])
+        self.go(':TRIGger:COUNt 1')
+        return float(self.query(':READ?')[0])
 
     def DisplayOn(self):
-        pass
+        self.go8(':DISPlay:ENABle ON')
 
     def DisplayOff(self):
-        pass
+        self.go(':DISPlay:ENABle OFF')
+
+    def setRate(self, value = 'FAS'):
+        if value == 'FAS':
+            self.go(':SENSe:VOLTage:DC:NPLC 0.1')
+        if value == 'MED': 
+            self.go(':SENSe:VOLTage:DC:NPLC 1')
+        if value == 'SLO':
+            self.go(':SENSe:VOLTage:DC:NPLC 5')
 
 
 
