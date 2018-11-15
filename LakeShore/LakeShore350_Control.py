@@ -95,6 +95,7 @@ class LakeShore350_Updater(AbstractLoopThread):
       # self.setControl()
       # self.__isRunning = True
 
+    @ExceptionHandling
     def initiating_PID(self):
         temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
         self.LoopP_value = temp_list0[0]
@@ -102,67 +103,52 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.LoopD_value = temp_list0[2]
 
     # @control_checks
+    @ExceptionHandling
     def running(self):
-        """Try to extract all current data from the ITC, and emit signal, sending the data
-
-            self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
-            with any other PC, so errors which come back are "caught", or communication is set up
-            in a way no errors occur)
-
         """
-        try:
-            self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
-            self.sensors['Heater_Output_mW'] = (self.sensors['Heater_Output_percentage']/100)*994.5
-            self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
-            self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
-            self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-            self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
-            temp_list = self.LakeShore350.KelvinReadingQuery(0)
-            self.sensors['Sensor_1_K'] = temp_list[0]
-            self.sensors['Sensor_2_K'] = temp_list[1]
-            self.sensors['Sensor_3_K'] = temp_list[2]
-            self.sensors['Sensor_4_K'] = temp_list[3]
-            temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-            self.sensors['Loop_P_Param'] = temp_list2[0]
-            self.sensors['Loop_I_Param'] = temp_list2[1]
-            self.sensors['Loop_D_Param'] = temp_list2[2]
-            self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)[0]
-            temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
-            self.sensors['Sensor_1_Ohm'] = temp_list3[0]
-            self.sensors['Sensor_2_Ohm'] = temp_list3[1]
-            self.sensors['Sensor_3_Ohm'] = temp_list3[2]
-            self.sensors['Sensor_4_Ohm'] = temp_list3[3]
-            self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
+        Try to extract all current data from LakeShore350,
+        and emit signal, sending the data
+        """
+        self.sensors['Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
+        self.sensors['Heater_Output_mW'] = (self.sensors['Heater_Output_percentage']/100)*994.5
+        self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
+        self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+        self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+        self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
+        temp_list = self.LakeShore350.KelvinReadingQuery(0)
+        self.sensors['Sensor_1_K'] = temp_list[0]
+        self.sensors['Sensor_2_K'] = temp_list[1]
+        self.sensors['Sensor_3_K'] = temp_list[2]
+        self.sensors['Sensor_4_K'] = temp_list[3]
+        temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+        self.sensors['Loop_P_Param'] = temp_list2[0]
+        self.sensors['Loop_I_Param'] = temp_list2[1]
+        self.sensors['Loop_D_Param'] = temp_list2[2]
+        self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)[0]
+        temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
+        self.sensors['Sensor_1_Ohm'] = temp_list3[0]
+        self.sensors['Sensor_2_Ohm'] = temp_list3[1]
+        self.sensors['Sensor_3_Ohm'] = temp_list3[2]
+        self.sensors['Sensor_4_Ohm'] = temp_list3[3]
+        self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
 
-            self.sig_Infodata.emit(deepcopy(self.sensors))
+        self.sig_Infodata.emit(deepcopy(self.sensors))
 
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
-
-    # def control_checks(func):
-    #     @functools.wraps(func)
-    #     def wrapper_control_checks(*args, **kwargs):
-    #         pass
-
-
+    @ExceptionHandling
     def configSensor(self):
         """configures sensor inputs to Cerox
         """
         for i in ['A','B','C','D']:
             self.LakeShore350.InputTypeParameterCommand(i,3,1,0,1,1,0)
 
+    @ExceptionHandling        
     def configHeater(self):
         """configures heater output
         HeaterSetupCommand(1,2,0,0.141,2) sets Output 1, Heater_Resistance to 50 Ohm, enables Custom Maximum Heater Output Current of 0.141 and configures the heater output displays to show in power.
         """
         self.LakeShore350.HeaterSetupCommand(1,2,0,0.141,2)
 
+    @ExceptionHandling    
     def configTempLimit(self):
         """sets temperature limit
         """
