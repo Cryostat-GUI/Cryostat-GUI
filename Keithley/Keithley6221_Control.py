@@ -62,6 +62,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def disable(self):
         self.Keithley6221.disable()
         self.Current_A_storage = self.Current_A_value
+        # for logging/application running:
         self.Current_A_value = 0
         self.OutputOn = self.Keithley6221.getstatus()[0]
 
@@ -77,6 +78,18 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @ExceptionHandling
     def getstatus(self):
         return int(self.Keithley6221.getstatus()[0])
+
+
+    @ExceptionHandling
+    def toggle_frontpanel(self, bools, text='In sequence...'):
+        if bools:
+            self.Keithley6221.enable_frontpanel(text)
+        else:
+            self.Keithley6221.disable_frontpanel()
+
+
+
+
 
     @pyqtSlot()
     @ExceptionHandling

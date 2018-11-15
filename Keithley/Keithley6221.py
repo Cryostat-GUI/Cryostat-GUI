@@ -65,7 +65,6 @@ class Keithley6221(object):
 
 
     # METHODS #
-
     def disable_fully(self):
         """
         Set the output current to zero and disable the output.
@@ -80,6 +79,17 @@ class Keithley6221(object):
 
     def getstatus(self):
         return self.query('OUTPUT:STATE?')
+
+    def disable_frontpanel(self, text):
+        self.go('DISPlay:TEXT:STATe on; DISPlay:TEXT "measuring..."')
+        self.go(f'DISPlay:WINDow2TEXT:STATe on; DISPlay:WINDow2:TEXT "{text}"')
+        self.go('DISPlay:ENABle off')
+
+    def enable_frontpanel(self):
+        self.go('DISPlay:ENABle on')
+        self.go('DISPlay:TEXT:STATe off')
+        self.go(f'DISPlay:WINDow2TEXT:STATe off')
+
 
     def setCurrent(self, current_value):
         """Sets Current

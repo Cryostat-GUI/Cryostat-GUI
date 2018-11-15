@@ -64,7 +64,7 @@ class loops_off:
         loopcontrol_threads(self._threads, True)
 
 
-class controls_disabled:
+class controls_software_disabled:
     """Context manager for disabling all controls in GUI"""
     def __init__(self, controls, lock):
         self._controls = controls
@@ -78,6 +78,25 @@ class controls_disabled:
     def __exit__(self, *args, **kwargs):
         for control in self._controls:
             control.setEnabled(True)
+        self._lock.release()
+
+
+class controls_hardware_disabled:
+    """Context manager for disabling all Front panel controls
+        on instruments
+    """
+    def __init__(self, device_names, threads, lock):
+        self._lock = lock
+        self._threads = threads
+
+    def __enter__(self, *args, **kwargs):
+        self._lock.acquire()
+        for thread in self._threads:
+            self._threads[thread][0].toggle_frontpanel(False)
+
+    def __exit__(self, *args, **kwargs):
+        for thread in self._threads:
+            self._threads[thread][0].toggle_frontpanel(True)
         self._lock.release()
 
 

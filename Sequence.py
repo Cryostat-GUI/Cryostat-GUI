@@ -67,6 +67,7 @@ def measure_resistance(threads,
     resistances = []  # pos & neg
 
     with loops_off(threads):
+        threads[threadname_CURR][0].enable()
         temps.append(threads[threadname_Temp][0].read_Temperatures()[temperature_sensor])
 
         for idx in range(n_measurements):
@@ -113,7 +114,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.temp_VTI_offset = 5
 
     def running(self):
-        with controls_disabled(self.mainthread.controls, self.mainthread.controls_lock):
+        with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_lock):
             try:
                 for entry in self.sequence:
                     self.execute_sequence_entry(entry)

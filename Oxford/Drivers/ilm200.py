@@ -105,7 +105,6 @@ class ilm211(AbstractSerialDeviceDriver):
         return [self._converting_status_channel(status[1]), self._converting_status_channel(status[2]),
                 stat_channel[0], stat_channel[1], stat_channel[2]]
 
-
     def setSlow(self, channel):
         """put channel 'channel' into slow sample rate"""
         if not isinstance(channel, int):
