@@ -876,6 +876,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
                 # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda value: self.threads['control_LakeShore350'][0].setInput())
 
+                self.LakeShore350_window.checkRamp_Status.toggled['bool'].connect(lambda value: self.threads['control_LakeShore350'][0].setStatusRamp_device(value))
+
 
                 """ NEW GUI controls P, I and D values for Control Loop PID Values Command
                 # """

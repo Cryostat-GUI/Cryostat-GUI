@@ -32,26 +32,26 @@ class LakeShore350_Updater(AbstractLoopThread):
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
 
-    sensors =  dict(
-        Heater_Output_percentage = None,
-        Heater_Output_mW = None,
-        Temp_K = None,
-        Ramp_Rate_Status = None,
-        Ramp_Rate = None,
-        Input_Sensor = None,
-        Sensor_1_K = None,
-        Sensor_2_K = None,
-        Sensor_3_K = None,
-        Sensor_4_K = None,
-        Loop_P_Param = None,
-        Loop_I_Param = None,
-        Loop_D_Param = None,
-        Heater_Range = None,
-        Sensor_1_Ohm = None,
-        Sensor_2_Ohm = None,
-        Sensor_3_Ohm = None,
-        Sensor_4_Ohm = None,
-        OutputMode = None)
+    sensors = dict(
+        Heater_Output_percentage=None,
+        Heater_Output_mW=None,
+        Temp_K=None,
+        Ramp_Rate_Status=None,
+        Ramp_Rate=None,
+        Input_Sensor=None,
+        Sensor_1_K=None,
+        Sensor_2_K=None,
+        Sensor_3_K=None,
+        Sensor_4_K=None,
+        Loop_P_Param=None,
+        Loop_I_Param=None,
+        Loop_D_Param=None,
+        Heater_Range=None,
+        Sensor_1_Ohm=None,
+        Sensor_2_Ohm=None,
+        Sensor_3_Ohm=None,
+        Sensor_4_Ohm=None,
+        OutputMode=None)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -160,7 +160,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     def setTemp_K(self):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
-        self.LakeShore350.ControlSetpointCommand(1,self.Temp_K_value)
+        self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
 
     @ExceptionHandling
     def read_Temperatures(self):
@@ -183,19 +183,30 @@ class LakeShore350_Updater(AbstractLoopThread):
 #                self.sig_visatimeout.emit()
 #            else:
 #                self.sig_visaerror.emit(e_visa.args[0])
+    @pyqtSlot(bool)
+    def setStatusRamp(self, bools):
+        self.Ramp_status_internal = bools
+        self.setStatusRamp_device(bools)
+        self.setTemp_K()
 
     @pyqtSlot()
     @ExceptionHandling
     def setRamp_Rate_K(self):
         self.LakeShore350.ControlSetpointRampParameterCommand(1, 1, self.Ramp_Rate_value)
 
+    @ExceptionHandling
+    def setStatusRamp_device(self, bools):
+        if bools:
+            self.LakeShore350.ControlSetpointRampParameterCommand(1, 1, self.Ramp_Rate_value)
+        else:
+            self.LakeShore350.ControlSetpointRampParameterCommand(1, 0, 0)
 
     @pyqtSlot()
     @ExceptionHandling
     def setInput(self, Input_value):
         """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
         """
-        self.LakeShore350.OutputModeCommand(1, 1, self.Input_value,1)
+        self.LakeShore350.OutputModeCommand(1, 1, self.Input_value, 1)
 
 
     @pyqtSlot()
