@@ -276,7 +276,7 @@ all performed queries</string>
       <item row="4" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Sens 4</string>
+         <string>Sens 4 - Probe Head</string>
         </property>
        </widget>
       </item>
@@ -375,7 +375,7 @@ all performed queries</string>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Sens 1 - Probe Head</string>
+         <string>Sens 1</string>
         </property>
        </widget>
       </item>
