@@ -148,7 +148,10 @@ class LakeShore350_Updater(AbstractLoopThread):
         """configures heater output
         HeaterSetupCommand(1,2,0,0.141,2) sets Output 1, Heater_Resistance to 50 Ohm, enables Custom Maximum Heater Output Current of 0.141 and configures the heater output displays to show in power.
         """
-        self.LakeShore350.HeaterSetupCommand(1,2,0,0.141,2)
+        # weak heater
+        # self.LakeShore350.HeaterSetupCommand(1, 2, 0, 0.141, 2)
+        # strong heater
+        self.LakeShore350.HeaterSetupCommand(1, 2, 2, 1, 2)
 
     @ExceptionHandling    
     def configTempLimit(self):
