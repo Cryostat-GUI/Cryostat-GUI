@@ -85,7 +85,7 @@ class controls_hardware_disabled:
     """Context manager for disabling all Front panel controls
         on instruments
     """
-    def __init__(self, device_names, threads, lock):
+    def __init__(self, threads, lock):
         self._lock = lock
         self._threads = threads
 
