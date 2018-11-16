@@ -571,7 +571,6 @@ class live_Logger(AbstractLoopThread):
         self.interval = conf['general']['interval_live']
 
 
-
 class Logger_measurement_configuration(Window_ui):
     """docstring for Logger_configuration"""
 

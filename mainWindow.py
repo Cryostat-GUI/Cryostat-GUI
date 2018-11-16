@@ -344,7 +344,7 @@ class mainWindow(QtWidgets.QMainWindow):
         y = None
         try:
             x = dataplot.data['X']
-            y = [dataplot.data[key] for key in dataplot.data if key != 'X' ]
+            y = [dataplot.data[key] for key in dataplot.data if key != 'X']
         except KeyError:
             self.show_error_general('Plotting: You certainly did not choose an X axis, try again!')
             return
@@ -361,10 +361,14 @@ class mainWindow(QtWidgets.QMainWindow):
                     label_y = dataplot.axes[key]
                 except KeyError:
                     pass
+        legend_labels = [dataplot.axes[key] for key in sorted(dataplot.axes)if key != 'X']
         if label_y is None:
             self.show_error_general('Plotting: You did not choose a single Y axis to plot, try again!')
             return
-        window = Window_plotting(data=data, label_x=dataplot.axes['X'], label_y=label_y, title='your advertisment could be here!')
+        window = Window_plotting(data=data, 
+                                 label_x=dataplot.axes['X'], 
+                                 label_y=label_y, 
+                                 legend_labels=legend_labels)
         window.show()
         window.sig_closing.connect(lambda: window.setParent(None))
         self.windows_plotting.append(window)

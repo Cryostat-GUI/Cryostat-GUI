@@ -231,12 +231,13 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     sig_closing = pyqtSignal()
 
 
-    def __init__(self, data, label_x, label_y, title, parent=None):
+    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!'):
         super().__init__()
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
+        self.legend = legend_labels
 
         self.interval = 2
 
@@ -278,8 +279,9 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         if not isinstance(self.data, list):
             self.data = [self.data]
         self.ax.clear()
-        for entry in self.data:
-            self.lines.append(self.ax.plot(entry[0], entry[1], '*-')[0])
+        for entry, label in zip(self.data, self.legend):
+            self.lines.append(self.ax.plot(entry[0], entry[1], '*-', label=label)[0])
+        self.ax.legend()
 
     def plot(self):
         ''' plot some not so random stuff '''
