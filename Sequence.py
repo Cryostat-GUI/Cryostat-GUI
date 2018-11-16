@@ -21,7 +21,7 @@ import numpy as np
 
 
 from util import AbstractEventhandlingThread
-from util import loops_off, controls_disabled
+from util import loops_off, controls_software_disabled
 from util import ExceptionHandling
 from util import convert_time, convert_time_searchable
 

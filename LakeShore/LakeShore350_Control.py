@@ -70,7 +70,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.Ramp_Rate_value = 0
         self.Input_value = 1
 
-        self.Upper_Bound_value = 300
+        self.Upper_Bound_value = 330
         """proper P, I, D values needed
         """
         # self.ZoneP_value
@@ -85,6 +85,8 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.configHeater()
         self.configTempLimit()
         self.initiating_PID()
+
+        self.Ramp_status_internal = int(False)
 
 #        self.setControlLoopZone()
 #        self.startHeater()
@@ -161,6 +163,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
+        self.LakeShore350.ControlSetpointRampParameterCommand(1, self.Ramp_status_internal, self.Ramp_Rate_value)
 
     @ExceptionHandling
     def read_Temperatures(self):
@@ -185,21 +188,14 @@ class LakeShore350_Updater(AbstractLoopThread):
 #                self.sig_visaerror.emit(e_visa.args[0])
     @pyqtSlot(bool)
     def setStatusRamp(self, bools):
-        self.Ramp_status_internal = bools
-        self.setStatusRamp_device(bools)
+        self.Ramp_status_internal = int(bools)
+        self.setRamp_Rate_K()
         self.setTemp_K()
 
     @pyqtSlot()
     @ExceptionHandling
     def setRamp_Rate_K(self):
-        self.LakeShore350.ControlSetpointRampParameterCommand(1, 1, self.Ramp_Rate_value)
-
-    @ExceptionHandling
-    def setStatusRamp_device(self, bools):
-        if bools:
-            self.LakeShore350.ControlSetpointRampParameterCommand(1, 1, self.Ramp_Rate_value)
-        else:
-            self.LakeShore350.ControlSetpointRampParameterCommand(1, 0, 0)
+        self.LakeShore350.ControlSetpointRampParameterCommand(1, self.Ramp_status_internal, self.Ramp_Rate_value)
 
     @pyqtSlot()
     @ExceptionHandling
