@@ -92,3 +92,92 @@ class Keithley2182_Updater(AbstractLoopThread):
         try:
             self.Keithley2182.setRate('FAS')
 
+    @pyqtSlot()
+    def TurnOnDisplay(self):
+        try:
+            return self.Keithley2182.DisplayOn()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOffDisplay(self):
+        try:
+            return self.Keithley2182.DisplayOff()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOnFrontAutozero(self):
+            try:
+            return self.Keithley2182.FrontAutozeroOn()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOffFrontAutozero(self):
+            try:
+            return self.Keithley2182.FrontAutozeroOff()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOnAutozero(self):
+            try:
+            return self.Keithley2182.AutozeroOn()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOffAutozero(self):
+            try:
+            return self.Keithley2182.AutozeroOff()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
