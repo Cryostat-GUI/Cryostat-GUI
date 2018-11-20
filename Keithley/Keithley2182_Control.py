@@ -181,3 +181,33 @@ class Keithley2182_Updater(AbstractLoopThread):
                 self.sig_visatimeout.emit()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOffAutorange(self):
+            try:
+            return self.Keithley2182.AutorangeOff()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])
+
+    @pyqtSlot()
+    def TurnOnAutorange(self):
+            try:
+            return self.Keithley2182.AutorangeOn()
+        except AssertionError as e_ass:
+            self.sig_assertion.emit(e_ass.args[0])
+        except ValueError as e:
+            # necessary for typeconversions from str to float
+            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+        except VisaIOError as e_visa:
+            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                self.sig_visatimeout.emit()
+            else:
+                self.sig_visaerror.emit(e_visa.args[0])

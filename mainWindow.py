@@ -1042,7 +1042,8 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_Display=self.Keithley_window.lcdResistance1,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_1,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_1,
-                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_1)
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
 
         confdict2182_2 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
@@ -1054,7 +1055,8 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_Display=self.Keithley_window.lcdResistance2,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_2,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_2,
-                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_2)
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
 
         confdict2182_3 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
@@ -1066,7 +1068,8 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_Display=self.Keithley_window.lcdResistance3,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_3,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_3,
-                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_3)
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_3,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
 
         # -------- Current Sources
         confdict6221_1 = dict(clas=Keithley6221_Updater,
@@ -1125,6 +1128,8 @@ class mainWindow(QtWidgets.QMainWindow):
                     kwargs['GUI_CBox_Autozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutozero() if value == 0 else None)
                     kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnFrontAutozero() if value == 2 else None)
                     kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffFrontAutozero() if value == 0 else None)
+                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnAutorange() if value == 2 else None)
+                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutorange() if value == 0 else None)
                     
                 # setting values for current source
 
