@@ -1,4 +1,3 @@
-import time
 
 # from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -29,18 +28,12 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
-
-    sensors =  dict(
-    	Current_A=None,
-#        Start_Current = None,
-#        Step_Current = None,
-#        Stop_Current = None
-        )
+    sensors = dict(
+        Current_A=None,
+        #        Start_Current = None,
+        #        Step_Current = None,
+        #        Stop_Current = None
+    )
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -48,7 +41,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress)
 
         self.Current_A_value = 0
-        self.Current_A_storage = 0 # if power is turned off
+        self.Current_A_storage = 0  # if power is turned off
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
 #        self.Start_Current_value = 0
 #        self.Step_Current_value = 0
@@ -79,17 +72,12 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def getstatus(self):
         return int(self.Keithley6221.getstatus()[0])
 
-
     @ExceptionHandling
     def toggle_frontpanel(self, bools, text='In sequence...'):
         if bools:
             self.Keithley6221.enable_frontpanel(text)
         else:
             self.Keithley6221.disable_frontpanel()
-
-
-
-
 
     @pyqtSlot()
     @ExceptionHandling
@@ -100,7 +88,8 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     @ExceptionHandling
     def setSweep(self):
-        self.Keithley6221.SetupSweet(self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
+        self.Keithley6221.SetupSweet(
+            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
 
     @pyqtSlot()
     @ExceptionHandling
@@ -123,4 +112,3 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot(float)
     def gettoset_Stop_Current(self, value):
         self.Stop_Current_value = value
-

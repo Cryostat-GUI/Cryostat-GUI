@@ -3,7 +3,8 @@
 Driver for the Keithley 2182 Nano-Voltmeter
 """
 
-import threading, visa
+import threading
+import visa
 
 import logging
 
@@ -14,9 +15,11 @@ logger.addHandler(logging.StreamHandler())
 
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager('C:\\Windows\\System32\\agvisa32.dll')
+    resource_manager = visa.ResourceManager(
+        'C:\\Windows\\System32\\agvisa32.dll')
 except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
 class Keithley2182(object):
@@ -31,15 +34,13 @@ class Keithley2182(object):
     >>> meter = ik.keithley.Keithley2182.open_gpibusb("/dev/ttyUSB0", 10)
     >>> print meter.measure(meter.Mode.voltage_dc)
     """
-    def __init__(self, InstrumentAddress = None):
 
-
+    def __init__(self, InstrumentAddress=None):
 
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
         self.device = self._visa_resource
-
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
@@ -65,8 +66,6 @@ class Keithley2182(object):
             self.device.write(command)
 
 
-
-
 #    def measureTemperature(self):
 #        self.sendcmd("SENS:CHAN 1")
 #        self.sendcmd("SENS:FUNC 'TEMP'")
@@ -89,7 +88,3 @@ class Keithley2182(object):
 
     def DisplayOff(self):
         pass
-
-
-
-

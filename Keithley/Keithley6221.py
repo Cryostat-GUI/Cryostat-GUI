@@ -6,7 +6,8 @@ Provides support for the Keithley 6221 constant current supply
 
 # IMPORTS #####################################################################
 
-import threading, visa
+import threading
+import visa
 
 import logging
 
@@ -17,9 +18,11 @@ logger.addHandler(logging.StreamHandler())
 
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager('C:\\Windows\\System32\\agvisa32.dll')
+    resource_manager = visa.ResourceManager(
+        'C:\\Windows\\System32\\agvisa32.dll')
 except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 #from __future__ import absolute_import
 #from __future__ import division
@@ -41,7 +44,8 @@ class Keithley6221(object):
     power supply have are not present on the 6221.
 
     """
-    def __init__(self, InstrumentAddress = None):
+
+    def __init__(self, InstrumentAddress=None):
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
@@ -62,7 +66,6 @@ class Keithley6221(object):
         with self.CommunicationLock:
             received = self.device.query(command)
         return received.strip().split(',')
-
 
     # METHODS #
     def disable_fully(self):
@@ -90,17 +93,15 @@ class Keithley6221(object):
         self.go('DISPlay:TEXT:STATe off')
         self.go(f'DISPlay:WINDow2TEXT:STATe off')
 
-
     def setCurrent(self, current_value):
         """Sets Current
         """
         if -0.105 > current_value > 0.105:
-            raise AssertionError("Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
+            raise AssertionError(
+                "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
         self.go('CURR {0:e}'.format(current_value))
 
-
-
-    def configSourceFunctions(self, bias_current = 1e-4, compliance = 1):
+    def configSourceFunctions(self, bias_current=1e-4, compliance=1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
         The current output will remain at the last point in the sweep after completion.
         The compliance setting limits the output voltage of the Model 622x. The voltage
@@ -181,29 +182,3 @@ class Keithley6221(object):
             status messages. *CLS and STATus:PRESet have no effect.
         """
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

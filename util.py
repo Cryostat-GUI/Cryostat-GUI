@@ -40,6 +40,7 @@ def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
+
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
@@ -53,6 +54,7 @@ def loopcontrol_threads(threads, loopcondition):
 
 class loops_off:
     """Context manager for disabling all AbstractLoopThread loops"""
+
     def __init__(self, threads):
         self._threads = threads
 
@@ -66,6 +68,7 @@ class loops_off:
 
 class controls_software_disabled:
     """Context manager for disabling all controls in GUI"""
+
     def __init__(self, controls, lock):
         self._controls = controls
         self._lock = lock
@@ -85,6 +88,7 @@ class controls_hardware_disabled:
     """Context manager for disabling all Front panel controls
         on instruments
     """
+
     def __init__(self, threads, lock):
         self._lock = lock
         self._threads = threads
@@ -107,23 +111,30 @@ def ExceptionHandling(func):
             try:
                 return func(*args, **kwargs)
             except AssertionError as e_ass:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Assertion', e_ass.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__, 'Assertion', e_ass.args[0]))
             except TypeError as e_type:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Type', e_type.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__, 'Type', e_type.args[0]))
             except KeyError as e_key:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Key', e_key.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__, 'Key', e_key.args[0]))
             except ValueError as e_val:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Value', e_val.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__, 'Value', e_val.args[0]))
             except AttributeError as e_attr:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(args[0].__name__, func.__name__, 'Attribute', e_attr.args[0]))
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__, 'Attribute', e_attr.args[0]))
             except VisaIOError as e_visa:
                 if isinstance(e_visa, args[0].timeouterror) and e_visa.args == args[0].timeouterror.args:
                     args[0].sig_visatimeout.emit()
                 else:
-                    args[0].sig_visaerror.emit('{}: {}: {}'.format(args[0].__name__, func.__name__, e_visa.args[0]))
+                    args[0].sig_visaerror.emit('{}: {}: {}'.format(
+                        args[0].__name__, func.__name__, e_visa.args[0]))
         else:
             print('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
+
 
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """
@@ -131,7 +142,7 @@ class AbstractThread(QObject):
     sig_assertion = pyqtSignal(str)
     sig_visaerror = pyqtSignal(str)
     sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)    
+    timeouterror = VisaIOError(-1073807339)
 
     def __init__(self):
         QThread.__init__(self)
@@ -151,7 +162,7 @@ class AbstractLoopThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.interval = 2 # second
+        self.interval = 2  # second
         # self.__isRunning = True
         self.loop = True
 
@@ -168,7 +179,7 @@ class AbstractLoopThread(AbstractThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval*1e3, self.work)
+            QTimer.singleShot(self.interval * 1e3, self.work)
 
     def running(self):
         """class method to be overriden """
@@ -201,7 +212,7 @@ class AbstractEventhandlingThread(AbstractThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval*1e3, self.work)
+            QTimer.singleShot(self.interval * 1e3, self.work)
 
     def running(self):
         """empty method to keep thread alive (there is surely a better solution) """
@@ -223,13 +234,12 @@ class Window_ui(QtWidgets.QWidget):
     def closeEvent(self, event):
         # do stuff
         self.sig_closing.emit()
-        event.accept() # let the window close
+        event.accept()  # let the window close
 
 
 class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
-
 
     def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!'):
         super().__init__()
@@ -280,7 +290,8 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
             self.data = [self.data]
         self.ax.clear()
         for entry, label in zip(self.data, self.legend):
-            self.lines.append(self.ax.plot(entry[0], entry[1], '*-', label=label)[0])
+            self.lines.append(self.ax.plot(
+                entry[0], entry[1], '*-', label=label)[0])
         self.ax.legend()
 
     def plot(self):
@@ -295,4 +306,4 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
         # refresh canvas
         self.canvas.draw()
-        QTimer.singleShot(self.interval*1e3, self.plot)
+        QTimer.singleShot(self.interval * 1e3, self.plot)

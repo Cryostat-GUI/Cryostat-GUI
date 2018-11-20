@@ -38,24 +38,23 @@ class ITC_Updater(AbstractLoopThread):
     # timeouterror = VisaIOError(-1073807339)
 
     sensors = dict(
-            set_temperature=0,
-            Sensor_1_K=1,
-            Sensor_2_K=2,
-            Sensor_3_K=3,
-            temperature_error=4,
-            heater_output_as_percent=5,
-            heater_output_as_voltage=6,
-            gas_flow_output=7,
-            proportional_band=8,
-            integral_action_time=9,
-            derivative_action_time=10)
+        set_temperature=0,
+        Sensor_1_K=1,
+        Sensor_2_K=2,
+        Sensor_3_K=3,
+        temperature_error=4,
+        heater_output_as_percent=5,
+        heater_output_as_voltage=6,
+        gas_flow_output=7,
+        proportional_band=8,
+        integral_action_time=9,
+        derivative_action_time=10)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
 
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
-
 
         self.control_state = 3
         self.set_temperature = 0
@@ -72,7 +71,6 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
-
     # @control_checks
     # @ExceptionHandling
     def running(self):
@@ -86,8 +84,8 @@ class ITC_Updater(AbstractLoopThread):
         """
 
         data = dict()
-            # get key-value pairs of the sensors dict,
-            # so I can then transmit one single dict
+        # get key-value pairs of the sensors dict,
+        # so I can then transmit one single dict
         # starttime = time.time()
         for key in self.sensors.keys():
             try:
@@ -102,12 +100,11 @@ class ITC_Updater(AbstractLoopThread):
                     self.sig_visatimeout.emit()
                     self.read_buffer()
                     data[key] = None
-                else: 
+                else:
 
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         self.sig_Infodata.emit(deepcopy(data))
-
 
     # def control_checks(func):
     #     @functools.wraps(func)
@@ -125,8 +122,6 @@ class ITC_Updater(AbstractLoopThread):
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
 
-
-
     @pyqtSlot()
     @ExceptionHandling
     def setNeedle(self):
@@ -138,7 +133,8 @@ class ITC_Updater(AbstractLoopThread):
         if 0 <= value <= 100:
             self.ITC.setGasOutput(value)
         else:
-            raise AssertionError('ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
+            raise AssertionError(
+                'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
 
     @pyqtSlot()
     @ExceptionHandling
@@ -156,7 +152,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.ITC.setTemperature(self.set_temperature)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setProportional(self):
@@ -166,7 +161,6 @@ class ITC_Updater(AbstractLoopThread):
             prop: Proportional band, in steps of 0.0001K.
         """
         self.ITC.setProportional(self.set_prop)
-
 
     @pyqtSlot()
     @ExceptionHandling
@@ -179,7 +173,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.ITC.setIntegral(self.set_integral)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setDerivative(self):
@@ -190,7 +183,6 @@ class ITC_Updater(AbstractLoopThread):
             Ranges from 0 to 273 minutes.
         """
         self.ITC.setDerivative(self.set_derivative)
-
 
     @pyqtSlot()
     @ExceptionHandling
@@ -204,7 +196,6 @@ class ITC_Updater(AbstractLoopThread):
         self.set_sensor = value
         self.ITC.setHeaterSensor(self.set_sensor)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setHeaterOutput(self):
@@ -217,7 +208,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.ITC.setHeaterOutput(self.set_heater_output)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setGasOutput(self):
@@ -229,7 +219,6 @@ class ITC_Updater(AbstractLoopThread):
                     Min: 0. Max: 99.
         """
         self.ITC.setGasOutput(self.set_gas_output)
-
 
     @pyqtSlot()
     @ExceptionHandling
@@ -247,7 +236,6 @@ class ITC_Updater(AbstractLoopThread):
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setSweeps(self):
@@ -255,8 +243,6 @@ class ITC_Updater(AbstractLoopThread):
             this is to be invoked by a signal
         """
         self.ITC.setSweeps(self.sweep_parameters)
-
-
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
@@ -314,7 +300,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.sweep_parameters = value
 
-
     # @pyqtSlot()
     # def gettoset_HeaterSensor(self, value):
     #     """class method to receive and store the value to set the sensor
@@ -328,5 +313,3 @@ class ITC_Updater(AbstractLoopThread):
     #         later on, when the command to enforce the value is sent
     #     """
     #     self.set_auto_manual = value
-
-

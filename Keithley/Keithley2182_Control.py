@@ -1,8 +1,4 @@
-import time
-
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.uic import loadUi
+from PyQt5.QtCore import pyqtSlot
 
 from Keithley.Keithley2182 import Keithley2182
 from pyvisa.errors import VisaIOError
@@ -28,19 +24,12 @@ class Keithley2182_Updater(AbstractLoopThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
-
     sensors = dict(Voltage_V=None)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
-
 
     # @control_checks
     def running(self):
@@ -53,7 +42,8 @@ class Keithley2182_Updater(AbstractLoopThread):
 
         """
         try:
-            self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage() #* 10**9
+            self.sensors[
+                'Voltage_V'] = self.Keithley2182.measureVoltage()  # * 10**9
 
             self.sig_Infodata.emit(deepcopy(self.sensors))
 
@@ -62,7 +52,8 @@ class Keithley2182_Updater(AbstractLoopThread):
             self.sig_assertion.emit(e_ass.args[0])
         except ValueError as e:
             # necessary for typeconversions from str to float
-            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+            self.sig_assertion.emit(
+                'Keithley: {}: '.format(self.instr) + e.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
@@ -73,12 +64,13 @@ class Keithley2182_Updater(AbstractLoopThread):
     def read_Voltage(self):
         """read a Voltage from instrument. return value should be float"""
         try:
-            return self.Keithley2182.measureVoltage() #* 10**9
+            return self.Keithley2182.measureVoltage()  # * 10**9
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except ValueError as e:
             # necessary for typeconversions from str to float
-            self.sig_assertion.emit('Keithley: {}: '.format(self.instr) + e.args[0])
+            self.sig_assertion.emit(
+                'Keithley: {}: '.format(self.instr) + e.args[0])
         except VisaIOError as e_visa:
             if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()

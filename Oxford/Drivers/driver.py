@@ -14,25 +14,11 @@ try:
     # the pyvisa manager we'll use to connect to the GPIB resources
     resource_manager = visa.ResourceManager()
 except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
 from visa import constants as vconst
-
-# import functools
-# def do_check(func):
-#     @functools.wraps(func)
-#     def wrapper_do_check(*args, **kwargs):
-#         value = func(*args, **kwargs)
-#         if value == "" or None:
-#             # raise AssertionError('SerialDriver: query: bad reply: empty string')
-#             print('SerialDriver empty string')
-#             value = wrapper_do_check(*args, **kwargs)
-#         if value[0] == '?':
-#             print('serialDriver received "?": {}'.format(value))
-#             value = wrapper_do_check(*args, **kwargs)
-#         return value
-#     return wrapper_do_check
 
 
 class AbstractSerialDeviceDriver(object):

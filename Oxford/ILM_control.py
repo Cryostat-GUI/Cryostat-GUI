@@ -35,10 +35,10 @@ class ILM_Updater(AbstractLoopThread):
     sensors = dict(
         channel_1_level=1,
         channel_2_level=2)
-        # channel_3_level=,
-        # channel_1_wire_current=6,
-        # channel_2_wire_current=7,
-        # needle_valve_position=10)
+    # channel_3_level=,
+    # channel_1_wire_current=6,
+    # channel_2_wire_current=7,
+    # needle_valve_position=10)
 
     def __init__(self, InstrumentAddress=''):
         super().__init__()
@@ -46,7 +46,8 @@ class ILM_Updater(AbstractLoopThread):
         # here the class instance of the ITC should be handed
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.control_state = 3
-        # self.interval = 60*30# every half hour one measurement lHe is not measured more often by the device anyways
+        # self.interval = 60*30# every half hour one measurement lHe is not
+        # measured more often by the device anyways
         self.interval = 3
 
         self.setControl()
@@ -67,7 +68,7 @@ class ILM_Updater(AbstractLoopThread):
                 # get key-value pairs of the sensors dict,
                 # so I can then transmit one single dict
                 # for key, idx_sensor in self.sensors.items():
-                data[key] = self.ILM.getValue(self.sensors[key])*0.1
+                data[key] = self.ILM.getValue(self.sensors[key]) * 0.1
                 # data['channel_2_level'] = self.ILM.getValue(2)*0.1
                 # if data[key] > 100:
                 #     data[key] = 100
@@ -88,8 +89,6 @@ class ILM_Updater(AbstractLoopThread):
                 else:
                     self.sig_visaerror.emit(e_visa.args[0])
         self.sig_Infodata.emit(deepcopy(data))
-
-
 
     def read_buffer(self):
         try:
@@ -126,7 +125,6 @@ class ILM_Updater(AbstractLoopThread):
             self.ILM.setFast(channel)
         elif speed == 0:
             self.ILM.setSlow(channel)
-
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
