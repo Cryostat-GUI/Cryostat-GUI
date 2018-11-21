@@ -112,25 +112,48 @@ def ExceptionHandling(func):
                 return func(*args, **kwargs)
             except AssertionError as e_ass:
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__, 'Assertion', e_ass.args[0]))
+                    args[0].__name__,
+                    func.__name__,
+                    'Assertion',
+                    e_ass.args[0]))
             except TypeError as e_type:
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__, 'Type', e_type.args[0]))
+                    args[0].__name__,
+                    func.__name__,
+                    'Type',
+                    e_type.args[0]))
             except KeyError as e_key:
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__, 'Key', e_key.args[0]))
+                    args[0].__name__,
+                    func.__name__,
+                    'Key',
+                    e_key.args[0]))
             except ValueError as e_val:
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__, 'Value', e_val.args[0]))
+                    args[0].__name__,
+                    func.__name__,
+                    'Value',
+                    e_val.args[0]))
             except AttributeError as e_attr:
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__, 'Attribute', e_attr.args[0]))
+                    args[0].__name__,
+                    func.__name__,
+                    'Attribute',
+                    e_attr.args[0]))
+            except NotImplementedError as e_implement:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__,
+                    'NotImplemented',
+                    e_implement.args[0]))
             except VisaIOError as e_visa:
                 if isinstance(e_visa, type(args[0].timeouterror)) and e_visa.args == args[0].timeouterror.args:
                     args[0].sig_visatimeout.emit()
                 else:
-                    args[0].sig_visaerror.emit('{}: {}: {}'.format(
-                        args[0].__name__, func.__name__, e_visa.args[0]))
+                    args[0].sig_visaerror.emit('{}: {}: {}: {}'.format(
+                        args[0].__name__,
+                        func.__name__,
+                        'VisaIO',
+                        e_visa.args[0]))
         else:
             print('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling

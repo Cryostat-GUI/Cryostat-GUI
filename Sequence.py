@@ -21,9 +21,13 @@ import numpy as np
 
 
 from util import AbstractEventhandlingThread
-from util import loops_off, controls_software_disabled
+from util import loops_off,
+from util import controls_software_disabled
 from util import ExceptionHandling
-from util import convert_time, convert_time_searchable
+from util import convert_time,
+from util import convert_time_searchable
+
+from qlistmodel import ScanningN
 
 
 class BreakCondition(Exception):
@@ -32,13 +36,13 @@ class BreakCondition(Exception):
 
 
 def measure_resistance(threads,
-                       excitation_current_A,
-                       threadname_RES,
-                       threadname_CURR,
-                       threadname_Temp='control_LakeShore350',
-                       temperature_sensor='Sensor_1_K',
-                       n_measurements=1,
-                       **kwargs):
+    excitation_current_A,
+    threadname_RES,
+    threadname_CURR,
+    threadname_Temp='control_LakeShore350',
+    temperature_sensor='Sensor_1_K',
+    n_measurements=1,
+    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -55,8 +59,6 @@ def measure_resistance(threads,
                     before and after measurement [K]
             R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
             R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
-
-
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
@@ -118,6 +120,9 @@ class Sequence_Thread(AbstractEventhandlingThread):
 
         self.temp_VTI_offset = 5
 
+        self.sensor_control = None  # needs to be set!
+        self.sensor_sample = None   # needs to be set!
+
     def running(self):
         with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_lock):
             try:
@@ -129,33 +134,70 @@ class Sequence_Thread(AbstractEventhandlingThread):
 
     def execute_sequence_entry(self, entry):
         if entry['typ'] == 'scan_T':
-            self.execute_scan_T(entry)
+            self.scan_T_execute(**entry)
 
         if entry['typ'] == 'Wait':
             self.wait_for_Temp(entry['Temp'])
             self.wait_for_Field(entry['Field'])
             time.sleep(entry['Delay'])
 
-    def execute_scan_T(self, entry):
-        for temp_setpoint_sample in entry['sequence_temperature']:
-            temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
-            temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
+    def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
 
-            self.mainthread.threads['control_ITC'][
-                0].gettoset_Temperature(temp_setpoint_VTI)
-            self.mainthread.threads['control_ITC'][0].setTemperature()
+        temperatures, stepsize = ScanningN(start=start,
+                                           end=end,
+                                           N=Nsteps)
+        try:
+            if ApproachMode == 0:
+                mode_scan = 'Fast Settle - Set Temps'
+            elif ApproachMode == 1:
+                mode_scan = "No o'shoot"
+                raise NotImplementedError("No o'shoot is not yet implemented - highly device specific!")
+            elif ApproachMode == 2:
+                mode_scan = 'Sweep'
+            else:
+                raise AssertionError('bad Temperature ApproachMode variable!')
+        except NotImplementedError:
+            mode_scan = 'Fast Settle - Set Temps'
+            self.sig_assertion.emit('Sequence: Tscan: Mode not impelemented yet! \n I am using Fast Settle instead!')
 
-            self.mainthread.threads['control_LakeShore350'][
-                0].gettoset_Temp_K(temp_setpoint_sample)
-            self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
+        if mode_scan == 'Fast Settle - Set Temps':
+            for temp_setpoint_sample in temperatures:
+                temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
+                temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
 
-            self.check_Temp_in_Scan(temp_setpoint_sample)
+                self.setTemperatures_hard(VTI=temp_setpoint_VTI,
+                                          Sample=temp_setpoint_sample)
 
-        # always use the sweep option, so the rate can be controlled!
-        # in case stabilisation is needed, just sweep to the respective point
-        # (let's try this...)
+                self.check_Temp_in_Scan(temp_setpoint_sample)
 
-    def check_Temp_in_Scan(self, Temp, direction=0):
+                for entry in commands:
+                    self.scan_runCommand(entry)
+
+        elif mode_scan == 'Sweep':
+            pass
+            # program VTI sweep, in accordance to the VTI Offset
+            # set temp and RampRate for Lakeshore
+            # if T_sweepentry is arrived: do stuff
+
+    def setTemperatures_hard(self, VTI, Sample):
+        self.mainthread.threads['control_ITC'][0].gettoset_Temperature(VTI)
+        self.mainthread.threads['control_ITC'][0].setTemperature()
+
+        self.mainthread.threads['control_LakeShore350'][0].gettoset_Temp_K(Sample)
+        self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
+        self.mainthread.threads['control_LakeShore350'][0].setStatusRamp(False)
+
+    def scan_T_programSweep(self, temperatures, SweepRate):
+        """
+            program sweep for VTI
+            program sweep for LakeShore"""
+        pass
+
+    def scan_T_checkTemp(self, Temp, direction=0):
+        # must block until the temperature has arrived at the specified point!
+        pass
+
+    def scan_runCommand(self, command):
         pass
 
     def wait_for_Temp(self, Temp_target, threshold=0.01):

@@ -1,15 +1,12 @@
 # import sys
 import time
+from copy import deepcopy
 
+from PyQt5.QtCore import pyqtSlot
 
-# from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
-# from PyQt5.uic import loadUi
-
-from .Drivers.ips120 import ips120
 from pyvisa.errors import VisaIOError
 
-from copy import deepcopy
+from .Drivers.ips120 import ips120
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -44,9 +41,9 @@ class IPS_Updater(AbstractLoopThread):
         safe_current_limit_most_positive=22)
 
     statusdict = dict(magnetstatus={'0': 'normal',
-                                         '1': 'quenched',
-                                         '2': 'over heated',
-                                         '4': 'warming up'},
+                                    '1': 'quenched',
+                                    '2': 'over heated',
+                                    '4': 'warming up'},
                       currentstatus={'0': 'normal',
                                      '1': 'on positive voltage limit',
                                      '2': 'on negative voltage limit',

@@ -199,6 +199,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     def setRamp_Rate_K(self):
         self.LakeShore350.ControlSetpointRampParameterCommand(
             1, self.Ramp_status_internal, self.Ramp_Rate_value)
+        # the lone '1' here is the output
 
     @pyqtSlot()
     @ExceptionHandling

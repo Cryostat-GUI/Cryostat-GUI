@@ -6,91 +6,31 @@ from PyQt5.QtCore import QTimer
 from PyQt5 import QtCore
 # import math
 
-# class PyMimeData(QtCore.QMimeData):
-#     """ The PyMimeData wraps a Python instance as MIME data.
-#     """
-#     # The MIME type for instances.
-#     MIME_TYPE = 'application/x-ets-qt4-instance'
 
-#     def __init__(self, data=None, **kwargs):
-#         """ Initialise the instance.
-#         """
-#         super(PyMimeData, self).__init__(**kwargs)
-
-#         # Keep a local reference to be returned if possible.
-#         self._local_instance = data
-
-#         if data is not None:
-#             # We may not be able to pickle the data.
-#             try:
-#                 pdata = dumps(data)
-#             except:
-#                 return
-
-#             # This format (as opposed to using a single sequence) allows the
-#             # type to be extracted without unpickling the data itself.
-#             self.setData(self.MIME_TYPE, dumps(data.__class__) + pdata)
-
-#     @classmethod
-#     def coerce(cls, md):
-#         """ Coerce a QMimeData instance to a PyMimeData instance if possible.
-#         """
-#         # See if the data is already of the right type. If it is then we know
-#         # we are in the same process.
-#         if isinstance(md, cls):
-#             return md
-
-#         # See if the data type is supported.
-#         if not md.hasFormat(cls.MIME_TYPE):
-#             return None
-
-#         nmd = cls()
-#         nmd.setData(cls.MIME_TYPE, md.data())
-
-#         return nmd
-
-#     def instance(self):
-#         """ Return the instance.
-#         """
-#         if self._local_instance is not None:
-#             return self._local_instance
-
-#         io = StringIO(str(self.data(self.MIME_TYPE)))
-
-#         try:
-#             # Skip the type.
-#             load(io)
-
-#             # Recreate the instance.
-#             return load(io)
-#         except:
-#            pass
-
-#         return None
-
-#     def instanceType(self):
-#         """ Return the type of the instance.
-#         """
-#         if self._local_instance is not None:
-#             return self._local_instance.__class__
-
-#         try:
-#             return loads(str(self.data(self.MIME_TYPE)))
-#         except:
-#             pass
-
-#         return None
+def ScanningN(start, end, N):
+    N += 1
+    stepsize = abs(end-start)/(N-1)
+    stepsize = abs(stepsize) if start < end else -abs(stepsize)
+    seq = []
+    for __ in range(int(N)):
+        seq.append(start)
+        start += stepsize
+    return seq, stepsize
 
 
-
-# # class Node(object):
-# #     """docstring for Node"""
-# #     def __init__(self, data):
-# #         super(Node, self).__init__()
-# #         self.data = data
-
-
-
+def ScanningSize(start, end, parameter):
+    stepsize = abs(parameter) if start < end else -abs(parameter)
+    seq = []
+    if start < end:
+        while start < end:
+            seq.append(start)
+            start += stepsize
+    else:
+        while start > end:
+            seq.append(start)
+            start += stepsize
+    N = len(seq)
+    return seq, N
 
 
 class SequenceListModel(QtCore.QAbstractListModel):
@@ -282,32 +222,15 @@ class ScanListModel(QtCore.QAbstractListModel):
             self.__sequence = self.Build_Scan_N(dic['start'], dic['end'], dic['Nsteps'])
         self.debug_running()
 
-
     def Build_Scan_N(self, start, end, N):
-        N += 1
-        stepsize = abs(end-start)/(N-1)
-        stepsize = abs(stepsize) if start < end else -abs(stepsize)
-        seq = []
-        for __ in range(int(N)):
-            seq.append(start)
-            start += stepsize
+        seq, stepsize = ScanningN(start, end, N)
         # self.sig_Nsteps.emit(N-1)
         self.sig_stepsize.emit(deepcopy(stepsize))
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return seq
 
     def Build_Scan_Size(self, start, end, parameter):
-        stepsize = abs(parameter) if start < end else -abs(parameter)
-        seq = []
-        if start < end:
-            while start < end:
-                seq.append(start)
-                start += stepsize
-        else:
-           while start > end:
-                seq.append(start)
-                start += stepsize
-        N = len(seq)
+        seq, N = ScanningSize(start, end, parameter)
         self.sig_Nsteps.emit(deepcopy(N))
         # self.sig_stepsize.emit(stepsize)
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
@@ -317,8 +240,6 @@ class ScanListModel(QtCore.QAbstractListModel):
         # print(self.__sequence)
         self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
         return deepcopy(self.__sequence)
-
-
 
     def debug_running(self):
         try:
@@ -354,6 +275,91 @@ class ScanListModel(QtCore.QAbstractListModel):
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#  | \
                 # QtCore.Qt.ItemIsEditable
                # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+
+
+# class PyMimeData(QtCore.QMimeData):
+#     """ The PyMimeData wraps a Python instance as MIME data.
+#     """
+#     # The MIME type for instances.
+#     MIME_TYPE = 'application/x-ets-qt4-instance'
+
+#     def __init__(self, data=None, **kwargs):
+#         """ Initialise the instance.
+#         """
+#         super(PyMimeData, self).__init__(**kwargs)
+
+#         # Keep a local reference to be returned if possible.
+#         self._local_instance = data
+
+#         if data is not None:
+#             # We may not be able to pickle the data.
+#             try:
+#                 pdata = dumps(data)
+#             except:
+#                 return
+
+#             # This format (as opposed to using a single sequence) allows the
+#             # type to be extracted without unpickling the data itself.
+#             self.setData(self.MIME_TYPE, dumps(data.__class__) + pdata)
+
+#     @classmethod
+#     def coerce(cls, md):
+#         """ Coerce a QMimeData instance to a PyMimeData instance if possible.
+#         """
+#         # See if the data is already of the right type. If it is then we know
+#         # we are in the same process.
+#         if isinstance(md, cls):
+#             return md
+
+#         # See if the data type is supported.
+#         if not md.hasFormat(cls.MIME_TYPE):
+#             return None
+
+#         nmd = cls()
+#         nmd.setData(cls.MIME_TYPE, md.data())
+
+#         return nmd
+
+#     def instance(self):
+#         """ Return the instance.
+#         """
+#         if self._local_instance is not None:
+#             return self._local_instance
+
+#         io = StringIO(str(self.data(self.MIME_TYPE)))
+
+#         try:
+#             # Skip the type.
+#             load(io)
+
+#             # Recreate the instance.
+#             return load(io)
+#         except:
+#            pass
+
+#         return None
+
+#     def instanceType(self):
+#         """ Return the type of the instance.
+#         """
+#         if self._local_instance is not None:
+#             return self._local_instance.__class__
+
+#         try:
+#             return loads(str(self.data(self.MIME_TYPE)))
+#         except:
+#             pass
+
+#         return None
+
+
+
+# # class Node(object):
+# #     """docstring for Node"""
+# #     def __init__(self, data):
+# #         super(Node, self).__init__()
+# #         self.data = data
+
 
 
 

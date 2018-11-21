@@ -21,6 +21,7 @@ from util import Window_ui
 from qlistmodel import SequenceListModel
 from qlistmodel import ScanListModel
 
+
 dropstring = re.compile(r'([a-zA-Z0-9])')
 
 
@@ -356,7 +357,15 @@ class Sequence_builder(Window_ui):
         return string
 
     def parse_Tscan(self, data):
-        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min'.format(**data)
+        if data['ApproachMode'] == 0:
+            mode = 'Fast Settle (single Set Temperature)'
+        if data['ApproachMode'] == 1:
+            mode = "No o'shoot (slow - not yet implemented!)"
+            raise NotImplementedError('There is no "No o\'shoot" mode yet!')
+        if data['ApproachMode'] == 2:
+            mode = 'Sweep'
+
+        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {mode}'.format(mode=mode, **data)
 
     def parse_set_temp(self, data):
         return 'Set Temperature to {Temp} at {rate}K/min (rate is only a wish...)'.format(**data)
@@ -389,9 +398,10 @@ class Sequence_builder(Window_ui):
             for entry in data:
                 print(entry)
                 if entry['typ'] == 'scan_T':
-                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {RampCondition} 0\n'.format(
+                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {SpacingCode} {ApproachMode}\n'.format(
                         **entry))  # TODO: make sure Rampcondition is actually where it is!
-                    f.write('{measuretype} 00 00 00 11 11 00\n'.format(**entry))
+                    for command in entry['commands']:
+                        f.write('{measuretype} 00 00 00 11 11 00\n'.format(**command))
                     f.write('ENT EOS\n')
                 if entry['typ'] == 'Wait':
                     Temp = 1 if entry['Temp'] else 0
@@ -445,7 +455,7 @@ class Sequence_builder(Window_ui):
 
             def construct_pattern(expressions):
                 pat = ''
-                for e in exp:
+                for e in expressions:
                     pat = pat + r'|' + e
                 return pat[1:]
                 # set temp,            set field,       scan Something,  Wait
@@ -495,18 +505,24 @@ class Sequence_builder(Window_ui):
                 if comm[0] == 'T':
                     templine = comm.splitlines()[0]
                     temps = [float(x) for x in self.number.findall(templine)]
+                    # temps are floats!
+                    if len(temps) < 6:
+                        raise AssertionError(
+                            'not enough specifying numbers for T-scan!')
                     dic = dict(typ='scan_T', start=temps[0],
                                end=temps[1],
                                SweepRate=temps[2],
                                Nsteps=temps[3],
-                               RampCondition=temps[4])
-                measureline = comm.splitlines()[1]
-                if measureline[:3] == 'RES':
-                    nums = [float(x) for x in self.number.findall(measureline)]
-                dic.update(dict(measuretype='RES',
-                                RES_arbnum1=nums[0],
-                                RES_arbnum2=nums[1],
-                                DisplayText=self.parse_Tscan(dic)))
+                               SpacingCode=temps[4],
+                               ApproachMode=temps[5])
+                    dic['DisplayText'] = self.parse_Tscan(dic)
+                dic['commands'] = []
+                for commandline in comm.splitlines()[1:]:
+                    if commandline[:3] == 'RES':
+                        nums = [float(x) for x in self.number.findall(commandline)]
+                        dic['commands'].append(dict(measuretype='RES',
+                                                    RES_arbnum1=nums[0],
+                                                    RES_arbnum2=nums[1]))
             elif part[3]:
                 # waiting
                 comm = part[3]
