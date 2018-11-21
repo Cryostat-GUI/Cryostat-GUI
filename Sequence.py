@@ -60,7 +60,7 @@ def measure_resistance(threads,
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
-    current_reversal_time = 0.6
+    current_reversal_time = 0.06
 
     data = dict()
     temps = []
