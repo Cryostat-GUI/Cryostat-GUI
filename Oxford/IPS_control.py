@@ -19,32 +19,30 @@ class IPS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
     sensors = dict(
-        # demand_current_to_psu_= 0,#           output_current
+        # demand_current_to_psu_= 0,#     output_current
         measured_power_supply_voltage=1,
         measured_magnet_current=2,
         # unused=3,
-        # CURRENT output current (duplicate of R0)
-        CURRENT_output=4,
-        CURRENT_set_point=5,  # CURRENT Target [A]
-        CURRENT_sweep_rate=6,  # CURRENT        [A/min]
-        FIELD_output=7,  # FIELD   Output_Field
-        FIELD_set_point=8,  # FIELD   Target [T]
-        FIELD_sweep_rate=9,  # FIELD          [T/min]
-        lead_resistance=10,  # RESISTANCE     [milli_Ohm]
+        CURRENT_output=4,  # CURRENT output current (duplicate of R0)
+        CURRENT_set_point=5,            # CURRENT Target [A]
+        CURRENT_sweep_rate=6,           # CURRENT        [A/min]
+        FIELD_output=7,                 # FIELD   Output_Field
+        FIELD_set_point=8,              # FIELD   Target [T]
+        FIELD_sweep_rate=9,             # FIELD          [T/min]
+        lead_resistance=10,             # RESISTANCE     [milli_Ohm]
         # channel_1_Freq4=11,
         # channel_2_Freq4=12,
         # channel_3_Freq4=13,
-        # DACZ=14,#
-        # PSU_zero_correction_as_a_hexadecimal_number
+        # DACZ=14,    # PSU_zero_correction_as_a_hexadecimal_number
         software_voltage_limit=15,
         persistent_magnet_current=16,
         trip_current=17,
         persistent_magnet_field=18,
         trip_field=19,
-        # IDAC=20,#
-        # demand_current_as_a_hexadecimal_number
+        # IDAC=20,  # demand_current_as_a_hexadecimal_number
         safe_current_limit_most_negative=21,
         safe_current_limit_most_positive=22)
+
     statusdict = dict(magnetstatus={'0': 'normal',
                                          '1': 'quenched',
                                          '2': 'over heated',
