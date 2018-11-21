@@ -1,11 +1,8 @@
 # import time
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtCore import QTimer
-
 from LakeShore.LakeShore350 import LakeShore350
 from pyvisa.errors import VisaIOError
-
 from copy import deepcopy
 
 # from util import AbstractThread

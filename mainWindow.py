@@ -32,6 +32,7 @@ from PyQt5.QtCore import QTimer
 # from PyQt5.QtWidgets import QtAlignRight
 from PyQt5.uic import loadUi
 
+
 import sys
 import time
 # import datetime
@@ -40,6 +41,7 @@ import numpy as np
 from copy import deepcopy
 import sqlite3
 
+from pyvisa.errors import VisaIOError
 
 from Oxford.ITC_control import ITC_Updater
 from Oxford.ILM_control import ILM_Updater
@@ -49,8 +51,6 @@ from Keithley.Keithley2182_Control import Keithley2182_Updater
 from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
-
-from pyvisa.errors import VisaIOError
 
 from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration

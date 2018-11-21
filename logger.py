@@ -180,7 +180,9 @@ class Logger_configuration(Window_ui):
         conf['Lakeshore350'] = dict()
         conf['Keithley Current'] = dict()
         conf['Keithley Volt'] = dict()
-        conf['general'] = dict(logfile_location='', interval=2)
+        conf['general'] = dict(logfile_location='',
+                               interval=2,
+                               interval_live=1)
         return conf
 
     def read_configuration(self):
