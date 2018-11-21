@@ -1,12 +1,6 @@
 from PyQt5 import QtWidgets
 
-
-# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-# from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-# from matplotlib.figure import Figure
-
 from util import Window_plotting
-
 
 
 if __name__ == '__main__':

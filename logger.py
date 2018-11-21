@@ -5,7 +5,6 @@ from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
 # import sys
-import datetime
 import time
 import pickle
 import os
