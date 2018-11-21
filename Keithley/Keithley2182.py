@@ -3,7 +3,8 @@
 Driver for the Keithley 2182 Nano-Voltmeter
 """
 
-import threading, visa
+import threading
+import visa
 
 import logging
 
@@ -14,9 +15,11 @@ logger.addHandler(logging.StreamHandler())
 
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager('C:\\Windows\\System32\\agvisa32.dll')
+    resource_manager = visa.ResourceManager(
+        'C:\\Windows\\System32\\agvisa32.dll')
 except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
 class Keithley2182(object):
@@ -31,15 +34,13 @@ class Keithley2182(object):
     >>> meter = ik.keithley.Keithley2182.open_gpibusb("/dev/ttyUSB0", 10)
     >>> print meter.measure(meter.Mode.voltage_dc)
     """
-    def __init__(self, InstrumentAddress = None):
 
-
+    def __init__(self, InstrumentAddress=None):
 
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
         self.CommunicationLock = threading.Lock()
         self.device = self._visa_resource
-
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
@@ -113,54 +114,54 @@ class Keithley2182(object):
                 raise AssertionError('Keithley2182:setRate: The measuring rate'
                                      ' needs to be between 0.01 and 50 NPLCycles'
                                      ' - that is 200microseconds to 1 second '
-                                     '(at a 50Hz powerline - europe)')            
+                                     '(at a 50Hz powerline - europe)')
             self.go(':SENSe:VOLTage:DC:NPLC {}'.format(num))
 
     def FrontAutozeroOn(self):
-    	"""With Front Autozero for the front-end amplifier enabled (which is the default setting), the
-    	Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
-    	measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
-    	This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
-    	amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
-    	"""
-    	self.go(':SYST:FAZ ON')
+        """With Front Autozero for the front-end amplifier enabled (which is the default setting), the
+        Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
+        measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
+        This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
+        amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
+        """
+        self.go(':SYST:FAZ ON')
 
     def FrontAutozeroOff(self):
-    	"""See FrontAutoZeroOn
-    	"""
-    	self.go(':SYST:FAZ OFF')
+        """See FrontAutoZeroOn
+        """
+        self.go(':SYST:FAZ OFF')
 
     def AutozeroOn(self):
-    	"""When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
-    	temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
-    	However, the zero, gain, and temperature reference points will eventually drift resulting in
-    	inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
-    	short periods of time.
-		When Autozero is enabled after being off for a long period of time, the internal reference points
-		will not be updated immediately. This will initially result in inaccurate measurements, especially
-		if the ambient temperature has changed by several degrees. A faster update of reference points
-		can be forced by setting a faster integration rate.
-		"""		
-    	self.go(':SYST:AZER ON')    	
+        """When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
+        temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
+        However, the zero, gain, and temperature reference points will eventually drift resulting in
+        inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
+        short periods of time.
+                When Autozero is enabled after being off for a long period of time, the internal reference points
+                will not be updated immediately. This will initially result in inaccurate measurements, especially
+                if the ambient temperature has changed by several degrees. A faster update of reference points
+                can be forced by setting a faster integration rate.
+                """
+        self.go(':SYST:AZER ON')
 
     def AutozeroOff(self):
-    	"""See AutoZeroOn
-    	"""
-    	self.go(':SYST:AZER OFF')
+        """See AutoZeroOn
+        """
+        self.go(':SYST:AZER OFF')
 
     def AutorangeOn(self):
-    	"""To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
-    	autoranging is selected. While autoranging is enabled, the instrument automatically selects the
-    	best range to measure the applied signal. Autoranging should not be used when optimum speed
-    	is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
-		Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
-		"""
-		self.go(':SENS:VOLT:RANG:AUTO ON')
+        """To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
+        autoranging is selected. While autoranging is enabled, the instrument automatically selects the
+        best range to measure the applied signal. Autoranging should not be used when optimum speed
+        is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
+                Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
+                """
+            self.go(':SENS:VOLT:RANG:AUTO ON')
 
-	def AutorangeOff(self):
-		"""See AutorangeOn
-		"""
-		self.go(':SENS:VOLT:RANG:AUTO OFF')
+        def AutorangeOff(self):
+            """See AutorangeOn
+            """
+            self.go(':SENS:VOLT:RANG:AUTO OFF')
 
     def more_ACAL(self):
         """Commands Description Default
@@ -215,6 +216,3 @@ class Keithley2182(object):
     def more_device_operation(self):
         """implement LLO and GTL (local locked out & go to local)"""
         pass
-
-
-
