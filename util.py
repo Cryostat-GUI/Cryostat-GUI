@@ -126,7 +126,7 @@ def ExceptionHandling(func):
                 args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
                     args[0].__name__, func.__name__, 'Attribute', e_attr.args[0]))
             except VisaIOError as e_visa:
-                if isinstance(e_visa, args[0].timeouterror) and e_visa.args == args[0].timeouterror.args:
+                if type(e_visa) == type(args[0].timeouterror) and e_visa.args == args[0].timeouterror.args:
                     args[0].sig_visatimeout.emit()
                 else:
                     args[0].sig_visaerror.emit('{}: {}: {}'.format(
@@ -143,6 +143,7 @@ class AbstractThread(QObject):
     sig_visaerror = pyqtSignal(str)
     sig_visatimeout = pyqtSignal()
     timeouterror = VisaIOError(-1073807339)
+    sig_Infodata = pyqtSignal(dict)
 
     def __init__(self):
         QThread.__init__(self)

@@ -18,8 +18,6 @@ from util import ExceptionHandling
 class IPS_Updater(AbstractLoopThread):
     """docstring for PS_Updater"""
 
-    sig_Infodata = pyqtSignal(dict)
-
     sensors = dict(
         # demand_current_to_psu_= 0,#           output_current
         measured_power_supply_voltage=1,

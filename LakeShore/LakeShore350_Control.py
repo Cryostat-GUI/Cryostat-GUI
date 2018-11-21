@@ -24,11 +24,6 @@ class LakeShore350_Updater(AbstractLoopThread):
         and subsequently sent to the main thread. It is packed in a dict,
         the keys of which are displayed in the "sensors" dict in this class.
     """
-    sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
 
     sensors = dict(
         Heater_Output_percentage=None,

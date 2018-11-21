@@ -26,12 +26,6 @@ class ILM_Updater(AbstractLoopThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sig_Infodata = pyqtSignal(dict)
-    # sig_assertion = pyqtSignal(str)
-    # sig_visaerror = pyqtSignal(str)
-    # sig_visatimeout = pyqtSignal()
-    # timeouterror = VisaIOError(-1073807339)
-
     sensors = dict(
         channel_1_level=1,
         channel_2_level=2)
