@@ -1,4 +1,3 @@
-
 from PyQt5.QtCore import pyqtSlot
 
 from Keithley.Keithley2182 import Keithley2182
@@ -36,6 +35,7 @@ class Keithley2182_Updater(AbstractLoopThread):
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
+
 
     @pyqtSlot()
     @ExceptionHandling
@@ -89,3 +89,4 @@ class Keithley2182_Updater(AbstractLoopThread):
     @ExceptionHandling
     def TurnOnAutorange(self):
         return self.Keithley2182.AutorangeOn()
+

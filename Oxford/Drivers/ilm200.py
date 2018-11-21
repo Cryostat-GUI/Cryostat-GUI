@@ -5,6 +5,7 @@ from Oxford.Drivers.driver import AbstractSerialDeviceDriver
 
 class ilm211(AbstractSerialDeviceDriver):
     """docstring for ilm200"""
+
     def __init__(self, **kwargs):
         super(ilm211, self).__init__(**kwargs)
 
@@ -28,7 +29,6 @@ class ilm211(AbstractSerialDeviceDriver):
         self.write("$C{}".format(state))
 
     def getValue(self, variable=2):
-
         """Read the variable defined by the index.
 
         There are values 11-13 but useless for
@@ -46,8 +46,9 @@ class ilm211(AbstractSerialDeviceDriver):
         """
         if not isinstance(variable, int):
             raise AssertionError('ILM: getValue: Argument must be integer')
-        if variable not in range(0,11):
-            raise AssertionError('ILM: getValue: Argument is not a valid number.')
+        if variable not in range(0, 11):
+            raise AssertionError(
+                'ILM: getValue: Argument is not a valid number.')
 
         # self.clear_buffers()
 
@@ -94,7 +95,6 @@ class ilm211(AbstractSerialDeviceDriver):
             interprete it, and return it
         """
 
-
         status = self.query('X')
         stat_channel = []
         stat_channel.append(status[5:6])
@@ -105,13 +105,13 @@ class ilm211(AbstractSerialDeviceDriver):
         return [self._converting_status_channel(status[1]), self._converting_status_channel(status[2]),
                 stat_channel[0], stat_channel[1], stat_channel[2]]
 
-
     def setSlow(self, channel):
         """put channel 'channel' into slow sample rate"""
         if not isinstance(channel, int):
             raise AssertionError('ILM: setSlow: Argument must be integer')
-        if channel not in [1,2]:
-            raise AssertionError('ILM: setSlow: Argument is not a valid number.')
+        if channel not in [1, 2]:
+            raise AssertionError(
+                'ILM: setSlow: Argument is not a valid number.')
 
         self.write('$S{}'.format(channel))
 
@@ -119,8 +119,8 @@ class ilm211(AbstractSerialDeviceDriver):
         """put channel 'channel' into fast sample rate"""
         if not isinstance(channel, int):
             raise AssertionError('ILM: setFast: Argument must be integer')
-        if channel not in [1,2]:
-            raise AssertionError('ILM: setFast: Argument is not a valid number.')
+        if channel not in [1, 2]:
+            raise AssertionError(
+                'ILM: setFast: Argument is not a valid number.')
 
         self.write('$T{}'.format(channel))
-

@@ -215,4 +215,5 @@ class Keithley2182(object):
 
     def more_device_operation(self):
         """implement LLO and GTL (local locked out & go to local)"""
+
         pass

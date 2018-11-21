@@ -5,7 +5,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
 # import sys
-import datetime
+# import datetime
 import time
 import pickle
 import os
@@ -69,10 +69,12 @@ def change_to_correct_types(tablename, dictname):
     if not dictname:
         raise AssertionError('Logger: dict does not yet exist')
     sql.append('''PRAGMA foreign_keys = 0''')
-    sql.append('''CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'''.format(table=tablename))
+    sql.append(
+        '''CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'''.format(table=tablename))
     sql.append('''DROP TABLE {table}'''.format(table=tablename))
     # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
-    sql.append('''CREATE TABLE IF NOT EXISTS {} '''.format(tablename) + sql_buildDictTableString(dictname))
+    sql.append('''CREATE TABLE IF NOT EXISTS {} '''.format(
+        tablename) + sql_buildDictTableString(dictname))
     # for key in dictname.keys():
     #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
 
@@ -114,21 +116,21 @@ class Logger_configuration(Window_ui):
         self.read_configuration()
 
         self.general_threads_ITC.toggled.connect(
-                lambda value: self.setValue('ITC', 'thread', value))
+            lambda value: self.setValue('ITC', 'thread', value))
         self.general_threads_ITC.toggled.connect(
-                lambda b: self.ITC_thread_running.setChecked(b))
+            lambda b: self.ITC_thread_running.setChecked(b))
         self.general_threads_ILM.toggled.connect(
-                lambda value: self.setValue('ILM', 'thread', value))
+            lambda value: self.setValue('ILM', 'thread', value))
         self.general_threads_ILM.toggled.connect(
-                lambda b: self.ILM_thread_running.setChecked(b))
+            lambda b: self.ILM_thread_running.setChecked(b))
         self.general_threads_PS.toggled.connect(
-                lambda value: self.setValue('PS', 'thread', value))
+            lambda value: self.setValue('PS', 'thread', value))
         self.general_threads_PS.toggled.connect(
-                lambda b: self.PS_thread_running.setChecked(b))
+            lambda b: self.PS_thread_running.setChecked(b))
         self.general_threads_Lakeshore350.toggled.connect(
-                lambda value: self.setValue('Lakeshore350', 'thread', value))
+            lambda value: self.setValue('Lakeshore350', 'thread', value))
         self.general_threads_Lakeshore350.toggled.connect(
-                lambda b: self.Lakeshore350_thread_running.setChecked(b))
+            lambda b: self.Lakeshore350_thread_running.setChecked(b))
 
         # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
         # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
@@ -143,9 +145,9 @@ class Logger_configuration(Window_ui):
         # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
 
         self.general_spinSetInterval.valueChanged.connect(
-                lambda value: self.setValue('general', 'interval', value))
+            lambda value: self.setValue('general', 'interval', value))
         self.general_spinSetInterval_Live.valueChanged.connect(
-                lambda value: self.setValue('general', 'interval_live', value))        
+            lambda value: self.setValue('general', 'interval_live', value))
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
 
@@ -176,9 +178,11 @@ class Logger_configuration(Window_ui):
         conf['ILM'] = dict()
         conf['PS'] = dict()
         conf['Lakeshore350'] = dict()
-        conf['Keithley Current']  = dict()
-        conf['Keithley Volt']   = dict()
-        conf['general'] = dict(logfile_location='', interval=2)
+        conf['Keithley Current'] = dict()
+        conf['Keithley Volt'] = dict()
+        conf['general'] = dict(logfile_location='',
+                               interval=2,
+                               interval_live=1)
         return conf
 
     def read_configuration(self):
@@ -193,16 +197,18 @@ class Logger_configuration(Window_ui):
                 self.conf = pickle.load(handle)
                 if 'general' in self.conf:
                     if 'interval' in self.conf['general']:
-                        self.general_spinSetInterval.setValue(self.conf['general']['interval'])
+                        self.general_spinSetInterval.setValue(
+                            self.conf['general']['interval'])
                     if 'logfile_location' in self.conf['general']:
-                        self.lineFilelocation.setText(self.conf['general']['logfile_location'])
+                        self.lineFilelocation.setText(
+                            self.conf['general']['logfile_location'])
         else:
             self.conf = self.initialise_dicts()
 
     def window_FileDialogSave(self):
         dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
-           self, 'Choose Database File Location',
-           'c:\\', "Database Files - SQLite3 (*.db)")
+            self, 'Choose Database File Location',
+            'c:\\', "Database Files - SQLite3 (*.db)")
         self.lineFilelocation.setText(dbname)
         self.setValue('general', 'logfile_location', dbname)
 
@@ -264,15 +270,16 @@ class main_Logger(AbstractLoopThread):
             return True
         except sqlite3.connect.Error as err:
             # raise AssertionError("Logger: Couldn't establish connection {}".format(err))
-            self.sig_assertion.emit('Logger: Couldn\'t establish connection: {}'.format(err))
+            self.sig_assertion.emit(
+                'Logger: Couldn\'t establish connection: {}'.format(err))
             return False
 
-    def createtable(self,tablename,dictname):
+    def createtable(self, tablename, dictname):
         """create the sql table if it does not exist,
             with all columns named after the keys in the dictionary
         """
 
-        sql="CREATE TABLE IF NOT EXISTS {} ".format(tablename)
+        sql = "CREATE TABLE IF NOT EXISTS {} ".format(tablename)
         sql += sql_buildDictTableString(dictname)
         # print(sql)
         try:
@@ -281,11 +288,12 @@ class main_Logger(AbstractLoopThread):
             # print(err)
             pass
 
-        #We should try to find a nicer a solution without try and except
+        # We should try to find a nicer a solution without try and except
         # #try:
         for key in dictname.keys():
             try:
-                sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(tablename,key,typeof(dictname[key]))
+                sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(
+                    tablename, key, typeof(dictname[key]))
                 # print(sql)
                 self.mycursor.execute(sql)
             except OperationalError as err:
@@ -307,7 +315,7 @@ class main_Logger(AbstractLoopThread):
             # print('no column like this!!!')
             raise AssertionError('Logger: dict does not yet exist')
         sql = """INSERT INTO {} ({}) VALUES ({})""".format(
-                    tablename, 'timeseconds', dictname['timeseconds'])
+            tablename, 'timeseconds', dictname['timeseconds'])
         self.mycursor.execute(sql)
 
         # for key in dictname.keys():
@@ -328,14 +336,16 @@ class main_Logger(AbstractLoopThread):
                 if not bools:
                     # print('ich arbeite')
                     sql = """UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
-                                                            column=key,
-                                                            value=SQLFormatting(var),
-                                                            sec='''timeseconds''',
-                                                            sec_now=dictname['timeseconds'])
+                                                                                                 column=key,
+                                                                                                 value=SQLFormatting(
+                                                                                                     var),
+                                                                                                 sec='''timeseconds''',
+                                                                                                 sec_now=dictname['timeseconds'])
                     self.mycursor.execute(sql)
         except OperationalError as err:
             print(err)
-            raise AssertionError(err.args[0])# do not know whether this will work
+            # do not know whether this will work
+            raise AssertionError(err.args[0])
 
     def printtable(self, tablename, dictname, date1, date2):
         """ print the data of one table between two dates
@@ -347,7 +357,7 @@ class main_Logger(AbstractLoopThread):
         print('\n')
 
         sql = """SELECT * from {} WHERE timeseconds BETWEEN {} AND {}""".format(
-                            tablename, date1, date2)
+            tablename, date1, date2)
         self.mycursor.execute(sql)
 
         data = self.mycursor.fetchall()
@@ -416,26 +426,25 @@ class main_Logger(AbstractLoopThread):
         if self.not_yet_initialised:
             return
 
-
-        names = ['ITC', 
-                 'ILM', 
-                 'IPS', 
-                 'LakeShore350', 
-                 'Keithley2182_1', 
-                 'Keithley2182_2', 
-                 'Keithley2182_3', 
-                 'Keithley6220_1', 
+        names = ['ITC',
+                 'ILM',
+                 'IPS',
+                 'LakeShore350',
+                 'Keithley2182_1',
+                 'Keithley2182_2',
+                 'Keithley2182_3',
+                 'Keithley6220_1',
                  'Keithley6220_2']
-                 
+
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time())}
-
 
         # for name in names:
         #     if name in data:
         #         data[name].update(timedict)
 
-        self.connected = self.connectdb(self.conf['general']['logfile_location'])
+        self.connected = self.connectdb(
+            self.conf['general']['logfile_location'])
         if not self.connected:
             self.sig_assertion.emit('no connection, storing locally')
             self.local_list.append(data)
@@ -470,11 +479,12 @@ class live_Logger(AbstractLoopThread):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
         self.interval = 5
+        self.length_list = 1000
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
         self.mainthread.sig_running_new_thread.connect(self.initialisation)
-        self.mainthread.sig_logging_newconf.connect(self.update_conf)        
+        self.mainthread.sig_logging_newconf.connect(self.update_conf)
 
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
@@ -496,7 +506,7 @@ class live_Logger(AbstractLoopThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval*1e3, self.worker)
+            QTimer.singleShot(self.interval * 1e3, self.worker)
 
     @pyqtSlot()  # int
     def worker(self):
@@ -511,7 +521,7 @@ class live_Logger(AbstractLoopThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval*1e3, self.worker)
+            QTimer.singleShot(self.interval * 1e3, self.worker)
 
     def running(self):
         """
@@ -524,20 +534,22 @@ class live_Logger(AbstractLoopThread):
                 with self.mainthread.dataLock_live:
                     # print(self.mainthread.data_live)
                     for instr in self.mainthread.data:
-                        timedict = dict(logging_timeseconds=time.time()-self.startingtime,
-                                        logging_ReadableTime=convert_time(time.time()),
+                        timedict = dict(logging_timeseconds=time.time() - self.startingtime,
+                                        logging_ReadableTime=convert_time(
+                                            time.time()),
                                         logging_SearchableTime=convert_time_searchable(time.time()))
                         dic = deepcopy(self.mainthread.data[instr])
                         dic.update(timedict)
                         for varkey in dic:
-                            self.mainthread.data_live[instr][varkey].append(dic[varkey])
-                            if len(self.mainthread.data_live[instr][varkey]) > 1000:
+                            self.mainthread.data_live[instr][
+                                varkey].append(dic[varkey])
+                            if len(self.mainthread.data_live[instr][varkey]) > self.length_list:
                                 self.mainthread.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
-            self.sig_assertion.emit("live logger"+key.args[0])
+            self.sig_assertion.emit("live logger" + key.args[0])
 
     def pre_init(self):
         self.initialised = False
@@ -568,7 +580,6 @@ class live_Logger(AbstractLoopThread):
             - update the configuration with one being sent.
         """
         self.interval = conf['general']['interval_live']
-
 
 
 class Logger_measurement_configuration(Window_ui):
@@ -608,8 +619,8 @@ class Logger_measurement_configuration(Window_ui):
 
     def window_FileDialogSave(self):
         dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
-           self, 'Choose Datafile Location',
-           'c:\\', "Data Files (*.dat)")
+            self, 'Choose Datafile Location',
+            'c:\\', "Data Files (*.dat)")
         self.lineFilelocation.setText(dbname)
         self.setValue('datafile', dbname)
 
@@ -628,9 +639,9 @@ class measurement_Logger(AbstractEventhandlingThread):
         self.starttime = time.time()
 
         self.mainthread.sig_log_measurement.connect(self.store_data)
-        self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
+        # self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
 
-        QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
+        # QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
 
     def update_conf(self, conf):
         """
@@ -647,28 +658,29 @@ class measurement_Logger(AbstractEventhandlingThread):
         """
         # timedict = {'timeseconds': time.time(),
         #             'ReadableTime': convert_time(time.time())}
-        try:
-            if not self.conf:
-                self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
-        except NameError:
-            # configuration not yet done
-            self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
-        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {time}'.format(**data)
+        # try:
+        #     if not self.data:
+        #         self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
+        # except NameError:
+        #     # configuration not yet done
+        #     self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
+        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(
+            **data)
 
-        if os.path.isfile(self.conf['datafile']):
+        if os.path.isfile(data['datafile']):
             try:
-                with open(self.conf['datafile'], 'a') as f:
+                with open(data['datafile'], 'a') as f:
                     f.write(datastring)
             except IOError as err:
-                self.sig_assertion.emit("DataSaver: "+ err.args[0])
+                self.sig_assertion.emit("DataSaver: " + err.args[0])
         else:
             try:
-                with open(self.conf['datafile'], 'w') as f:
+                with open(data['datafile'], 'w') as f:
                     f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
-                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s] \n")
+                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s], date \n")
                     f.write(datastring)
             except IOError as err:
-                self.sig_assertion.emit("DataSaver: "+ err.args[0])
+                self.sig_assertion.emit("DataSaver: " + err.args[0])
 
 
 if __name__ == '__main__':
