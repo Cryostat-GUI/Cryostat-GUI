@@ -1,0 +1,5 @@
+numpy
+PyQt5
+pyvisa
+matplotlib
+functools
