@@ -190,7 +190,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
     def scan_T_programSweep(self, temperatures, SweepRate):
         """
             program sweep for VTI
-            program sweep for LakeShore"""
+            program sweep for LakeShore
+        """
         pass
 
     def scan_T_checkTemp(self, Temp, direction=0):
