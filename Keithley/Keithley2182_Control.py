@@ -23,10 +23,12 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None)
 
+
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
+        self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
 
     # @control_checks
     @ExceptionHandling
@@ -52,41 +54,36 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     @ExceptionHandling
-    def TurnOnDisplay(self):
-        return self.Keithley2182.DisplayOn()
+    def ToggleDisplay(self, bools):
+        if bools:
+            self.Keithley2182.DisplayOn()
+        else:
+            self.Keithley2182.DisplayOff()
+
 
     @pyqtSlot()
     @ExceptionHandling
-    def TurnOffDisplay(self):
-        return self.Keithley2182.DisplayOff()
+    def ToggleFrontAutozero(self, bools):
+        if bools:
+            self.Keithley2182.FrontAutozeroOn()
+        else:
+            self.Keithley2182.FrontAutozeroOff()
+
 
     @pyqtSlot()
     @ExceptionHandling
-    def TurnOnFrontAutozero(self):
-        return self.Keithley2182.FrontAutozeroOn()
+    def ToggleAutozero(self, bools):
+        if bools:
+            self.Keithley2182.AutozeroOn()
+        else:
+            self.Keithley2182.AutozeroOff()
+
 
     @pyqtSlot()
     @ExceptionHandling
-    def TurnOffFrontAutozero(self):
-        return self.Keithley2182.FrontAutozeroOff()
-
-    @pyqtSlot()
-    @ExceptionHandling
-    def TurnOnAutozero(self):
-        return self.Keithley2182.AutozeroOn()
-
-    @pyqtSlot()
-    @ExceptionHandling
-    def TurnOffAutozero(self):
-        return self.Keithley2182.AutozeroOff()
-
-    @pyqtSlot()
-    @ExceptionHandling
-    def TurnOffAutorange(self):
-        return self.Keithley2182.AutorangeOff()
-
-    @pyqtSlot()
-    @ExceptionHandling
-    def TurnOnAutorange(self):
-        return self.Keithley2182.AutorangeOn()
+    def ToggleAutorange(self, bools):
+        if bools:
+            self.Keithley2182.AutorangeOn()
+        else:
+            self.Keithley2182.AutorangeOff()
 

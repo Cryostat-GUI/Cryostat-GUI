@@ -1254,14 +1254,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # setting values for nanovoltmeters
                 if 'GUI_number1' in kwargs:
-                    kwargs['GUI_CBox_Display'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnDisplay() if value == 2 else None)
-                    kwargs['GUI_CBox_Display'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffDisplay() if value == 0 else None)
-                    kwargs['GUI_CBox_Autozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnAutozero() if value == 2 else None)
-                    kwargs['GUI_CBox_Autozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutozero() if value == 0 else None)
-                    kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnFrontAutozero() if value == 2 else None)
-                    kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffFrontAutozero() if value == 0 else None)
-                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnAutorange() if value == 2 else None)
-                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutorange() if value == 0 else None)
+                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleDisplay(value))
+                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutozero(value))
+                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
+                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutorange(value))
                     
                 # setting values for current source
 
@@ -1317,38 +1313,38 @@ class mainWindow(QtWidgets.QMainWindow):
             worker.disable()
             GUI_Button.setText('Output ON')  # ''reversed'', as this toggles!
 
-#    @pyqtSlot()
-#    def Keithley_checkDisplay(self, value):
-#        if value == 0:
-#            self.Keithley_window.checkBox_Display_1.setChecked(False)
-#            self.Keithley_window.checkBox_Display_2.setChecked(False)
-#            self.Keithley_window.checkBox_Display_3.setChecked(False)
-#        if value == 2:
-#            self.Keithley_window.checkBox_Display_1.setChecked(True)
-#            self.Keithley_window.checkBox_Display_2.setChecked(True)
-#            self.Keithley_window.checkBox_Display_3.setChecked(True)
+        #    @pyqtSlot()
+        #    def Keithley_checkDisplay(self, value):
+        #        if value == 0:
+        #            self.Keithley_window.checkBox_Display_1.setChecked(False)
+        #            self.Keithley_window.checkBox_Display_2.setChecked(False)
+        #            self.Keithley_window.checkBox_Display_3.setChecked(False)
+        #        if value == 2:
+        #            self.Keithley_window.checkBox_Display_1.setChecked(True)
+        #            self.Keithley_window.checkBox_Display_2.setChecked(True)
+        #            self.Keithley_window.checkBox_Display_3.setChecked(True)
 
-#    @pyqtSlot()
-#    def Keithley_checkAutozero(self, value):
-#        if value == 0:
-#            self.Keithley_window.checkBox_Autozero_1.setChecked(False)
-#            self.Keithley_window.checkBox_Autozero_2.setChecked(False)
-#            self.Keithley_window.checkBox_Autozero_3.setChecked(False)
-#        if value == 2:
-#            self.Keithley_window.checkBox_Autozero_1.setChecked(True)
-#            self.Keithley_window.checkBox_Autozero_2.setChecked(True)
-#            self.Keithley_window.checkBox_Autozero_3.setChecked(True)
+        #    @pyqtSlot()
+        #    def Keithley_checkAutozero(self, value):
+        #        if value == 0:
+        #            self.Keithley_window.checkBox_Autozero_1.setChecked(False)
+        #            self.Keithley_window.checkBox_Autozero_2.setChecked(False)
+        #            self.Keithley_window.checkBox_Autozero_3.setChecked(False)
+        #        if value == 2:
+        #            self.Keithley_window.checkBox_Autozero_1.setChecked(True)
+        #            self.Keithley_window.checkBox_Autozero_2.setChecked(True)
+        #            self.Keithley_window.checkBox_Autozero_3.setChecked(True)
 
-#    @pyqtSlot()
-#    def Keithley_checkFrontAutozero(self, value):
-#        if value == 0:
-#            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(False)
-#            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(False)
-#            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(False)
-#        if value == 2:
-#            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(True)
-#            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
-#            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
+        #    @pyqtSlot()
+        #    def Keithley_checkFrontAutozero(self, value):
+        #        if value == 0:
+        #            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(False)
+        #            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(False)
+        #            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(False)
+        #        if value == 2:
+        #            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(True)
+        #            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
+        #            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
 
 
 
@@ -1356,11 +1352,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
     @pyqtSlot()
     def Keithley_checkAutozero(self, value):
+        pass
 
-
-    @pyqtSlot
+    @pyqtSlot()
     def Keithley_checkFrontAutozero(self, value):
-
+        pass
 
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
@@ -1467,7 +1463,7 @@ class mainWindow(QtWidgets.QMainWindow):
             #     self.show_error_general(e)
             # print(e) # TODO: open window displaying the error message
 
-else:
+        else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
 

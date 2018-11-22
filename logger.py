@@ -19,6 +19,7 @@ from util import AbstractEventhandlingThread
 from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
+from util import convert_time_date
 
 
 from sqlite3 import OperationalError
@@ -195,12 +196,21 @@ class Logger_configuration(Window_ui):
             with open('configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
                 if 'general' in self.conf:
-                    if 'interval' in self.conf['general']:
-                        self.general_spinSetInterval.setValue(
-                            self.conf['general']['interval'])
-                    if 'logfile_location' in self.conf['general']:
-                        self.lineFilelocation.setText(
-                            self.conf['general']['logfile_location'])
+                    if 'interval' not in self.conf['general']:
+                        self.conf['general']['interval'] = 5
+                    self.general_spinSetInterval.setValue(
+                        self.conf['general']['interval'])
+                    if 'interval_live' not in self.conf['general']:
+                        self.conf['general']['interval_live'] = 1
+                    self.general_spinSetInterval_Live.setValue(
+                        self.conf['general']['interval_live'])
+                    if 'logfile_location' not in self.conf['general']:
+                        string = 'C:/Users/Neven/GitHub/Cryostat-GUI/Log{}.db'
+                        self.conf['general'][
+                            'logfile_location'] = string.format(
+                                convert_time_date(time.time()))
+                    self.lineFilelocation.setText(
+                        self.conf['general']['logfile_location'])
         else:
             self.conf = self.initialise_dicts()
 

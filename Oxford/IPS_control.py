@@ -95,6 +95,7 @@ class IPS_Updater(AbstractLoopThread):
         # QThread.__init__(self)
 
         self.PS = ips120(InstrumentAddress=InstrumentAddress)
+        self.__name__ = 'IPS_Updater ' + InstrumentAddress
         self.field_setpoint = 0
         self.first = True
 

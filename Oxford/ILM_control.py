@@ -39,6 +39,7 @@ class ILM_Updater(AbstractLoopThread):
 
         # here the class instance of the ITC should be handed
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
+        self.__name__ = 'ILM_Updater ' + InstrumentAddress
         self.control_state = 3
         # self.interval = 60*30# every half hour one measurement lHe is not
         # measured more often by the device anyways

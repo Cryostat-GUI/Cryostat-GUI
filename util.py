@@ -36,6 +36,11 @@ from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 
 
+def convert_time_date(ts):
+    """converts timestamps from time.time() into date string"""
+    return datetime.datetime.fromtimestamp(ts).strftime('%d%m%Y')
+
+
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')

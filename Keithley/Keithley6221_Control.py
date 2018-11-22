@@ -39,7 +39,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         super().__init__(**kwargs)
 
         self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress)
-
+        self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON

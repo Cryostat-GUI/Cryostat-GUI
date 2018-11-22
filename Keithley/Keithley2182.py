@@ -79,10 +79,13 @@ class Keithley2182(object):
 #        self.sendcmd("SENS:FUNC 'VOLT:DC'")
 #        return self.query("SENS:DATA:FRES?")[0]
         self.go(':TRIGger:COUNt 1')
-        return float(self.query(':READ?')[0])
+        answer = self.query(':READ?')[0]
+        if answer[0:2] == '--':
+            answer = answer[1:]
+        return float(answer)
 
     def DisplayOn(self):
-        self.go8(':DISPlay:ENABle ON')
+        self.go(':DISPlay:ENABle ON')
 
     def DisplayOff(self):
         self.go(':DISPlay:ENABle OFF')
@@ -118,11 +121,12 @@ class Keithley2182(object):
             self.go(':SENSe:VOLTage:DC:NPLC {}'.format(num))
 
     def FrontAutozeroOn(self):
-        """With Front Autozero for the front-end amplifier enabled (which is the default setting), the
-        Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
-        measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
-        This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
-        amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
+        """
+            With Front Autozero for the front-end amplifier enabled (which is the default setting), the
+            Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
+            measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
+            This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
+            amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
         """
         self.go(':SYST:FAZ ON')
 
@@ -132,16 +136,17 @@ class Keithley2182(object):
         self.go(':SYST:FAZ OFF')
 
     def AutozeroOn(self):
-        """When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
-        temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
-        However, the zero, gain, and temperature reference points will eventually drift resulting in
-        inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
-        short periods of time.
-                When Autozero is enabled after being off for a long period of time, the internal reference points
-                will not be updated immediately. This will initially result in inaccurate measurements, especially
-                if the ambient temperature has changed by several degrees. A faster update of reference points
-                can be forced by setting a faster integration rate.
-                """
+        """
+            When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
+            temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
+            However, the zero, gain, and temperature reference points will eventually drift resulting in
+            inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
+            short periods of time.
+            When Autozero is enabled after being off for a long period of time, the internal reference points
+            will not be updated immediately. This will initially result in inaccurate measurements, especially
+            if the ambient temperature has changed by several degrees. A faster update of reference points
+            can be forced by setting a faster integration rate.
+        """
         self.go(':SYST:AZER ON')
 
     def AutozeroOff(self):
@@ -150,18 +155,18 @@ class Keithley2182(object):
         self.go(':SYST:AZER OFF')
 
     def AutorangeOn(self):
-        """To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
-        autoranging is selected. While autoranging is enabled, the instrument automatically selects the
-        best range to measure the applied signal. Autoranging should not be used when optimum speed
-        is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
-                Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
-                """
-            self.go(':SENS:VOLT:RANG:AUTO ON')
+        """
+            To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
+            autoranging is selected. While autoranging is enabled, the instrument automatically selects the
+            best range to measure the applied signal. Autoranging should not be used when optimum speed
+            is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
+            Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
+        """
+        self.go(':SENS:VOLT:RANG:AUTO ON')
 
-        def AutorangeOff(self):
-            """See AutorangeOn
-            """
-            self.go(':SENS:VOLT:RANG:AUTO OFF')
+    def AutorangeOff(self):
+        """See AutorangeOn"""
+        self.go(':SENS:VOLT:RANG:AUTO OFF')
 
     def more_ACAL(self):
         """Commands Description Default

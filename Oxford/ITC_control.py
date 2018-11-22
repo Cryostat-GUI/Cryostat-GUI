@@ -49,6 +49,7 @@ class ITC_Updater(AbstractLoopThread):
 
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
+        self.__name__ = 'ITC_Updater ' + InstrumentAddress
 
         self.control_state = 3
         self.set_temperature = 0
