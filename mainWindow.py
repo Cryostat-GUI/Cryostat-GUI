@@ -238,6 +238,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if not hasattr(self, "data_live"):
             self.show_error_general('no live data to plot!')
+
             self.show_error_general(
                 'If you want to see live data, start the live logger!')
             return
@@ -318,7 +319,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     value_names = list(self.data_live[instrument_name])
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                            'please, there is nothing behind it!')
+                                      'please, there is nothing behind it!')
                     return
         # elif livevsdb == "DB":
         #     axis = []
@@ -350,7 +351,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         instrument_name][value_name]
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                            'please, there is nothing behind it!')
+                                      'please, there is nothing behind it!')
                     return
 
     def plotting_display(self, dataplot):
@@ -376,8 +377,9 @@ class mainWindow(QtWidgets.QMainWindow):
                     label_y = dataplot.axes[key]
                 except KeyError:
                     pass
+
         legend_labels = [dataplot.axes[key]
-                         for key in sorted(dataplot.axes)if key != 'X']
+                         for key in sorted(dataplot.axes) if key != 'X']
         if label_y is None:
             self.show_error_general(
                 'Plotting: You did not choose a single Y axis to plot, try again!')
@@ -743,6 +745,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visaerror.connect(self.show_error_general)
                 getInfodata.sig_assertion.connect(self.show_error_general)
+
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('ILM: timeout'))
 
@@ -830,6 +833,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_visaerror.connect(self.show_error_general)
                 getInfodata.sig_assertion.connect(self.show_error_general)
+
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('IPS: timeout'))
 
@@ -972,6 +976,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_visaerror.connect(self.show_error_general)
                 # getInfodata.sig_assertion.connect(self.printing)
                 getInfodata.sig_assertion.connect(self.show_error_general)
+
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('LakeShore350: timeout'))
 
@@ -1158,7 +1163,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Keithley_window.sig_closing.connect(
             lambda: self.action_show_Keithley.setChecked(False))
 
-        # -------- Nanovolts
+        # -------- Nanovoltmeters
         confdict2182_1 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_1_InstrumentAddress,
                               dataname='Keithley2182_1',
@@ -1166,7 +1171,11 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_number1=self.Keithley_window.lcdSensor1_V,
                               GUI_menu_action=self.action_run_Nanovolt_1,
                               GUI_Box=self.Keithley_window.comboBox_1,
-                              GUI_Display=self.Keithley_window.lcdResistance1)
+                              GUI_Display=self.Keithley_window.lcdResistance1,
+                              GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_1,
+                              GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_1,
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
 
         confdict2182_2 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
@@ -1175,7 +1184,11 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_number1=self.Keithley_window.lcdSensor2_V,
                               GUI_menu_action=self.action_run_Nanovolt_2,
                               GUI_Box=self.Keithley_window.comboBox_2,
-                              GUI_Display=self.Keithley_window.lcdResistance2)
+                              GUI_Display=self.Keithley_window.lcdResistance2,
+                              GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_2,
+                              GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_2,
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
 
         confdict2182_3 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
@@ -1184,7 +1197,11 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_number1=self.Keithley_window.lcdSensor3_V,
                               GUI_menu_action=self.action_run_Nanovolt_3,
                               GUI_Box=self.Keithley_window.comboBox_3,
-                              GUI_Display=self.Keithley_window.lcdResistance3)
+                              GUI_Display=self.Keithley_window.lcdResistance3,
+                              GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_3,
+                              GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_3,
+                              GUI_CBox_Display=self.Keithley_window.checkBox_Display_3,
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
 
         # -------- Current Sources
         confdict6221_1 = dict(clas=Keithley6221_Updater,
@@ -1226,14 +1243,27 @@ class mainWindow(QtWidgets.QMainWindow):
                 worker = self.running_thread(
                     clas(InstrumentAddress=instradress), dataname, threadname)
                 kwargs['threadname'] = threadname
-
-                # display data given by nanovoltmeters & calculate resistance
                 worker.sig_Infodata.connect(
                     lambda data: self.store_data_Keithley(data, dataname, **kwargs))
                 worker.sig_visaerror.connect(self.show_error_general)
                 worker.sig_assertion.connect(self.show_error_general)
                 worker.sig_visatimeout.connect(
                     lambda: self.show_error_general('{0:s}: timeout'.format(dataname)))
+                
+                # display data given by nanovoltmeters & calculate resistance
+
+                # setting values for nanovoltmeters
+                if 'GUI_number1' in kwargs:
+                    kwargs['GUI_CBox_Display'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnDisplay() if value == 2 else None)
+                    kwargs['GUI_CBox_Display'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffDisplay() if value == 0 else None)
+                    kwargs['GUI_CBox_Autozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnAutozero() if value == 2 else None)
+                    kwargs['GUI_CBox_Autozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutozero() if value == 0 else None)
+                    kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnFrontAutozero() if value == 2 else None)
+                    kwargs['GUI_CBox_FronAutozero'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffFrontAutozero() if value == 0 else None)
+                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOnAutorange() if value == 2 else None)
+                    kwargs['GUI_CBox_Autorange'].CheckState.connect(lambda value: self.threads[threadname][0].TurnOffAutorange() if value == 0 else None)
+                    
+                # setting values for current source
 
                 # setting Keithley values for current source by GUI Keithley
                 # window
@@ -1246,7 +1276,6 @@ class mainWindow(QtWidgets.QMainWindow):
                     kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(
                         dict(changed_Current_A=self.threads[threadname][0].getCurrent_A()), dataname))
 
-                if 'GUI_push' in kwargs:
                     if not self.threads[threadname][0].OutputOn:
                         # 'correct', as this reads
                         kwargs['GUI_push'].setText('Output ON')
@@ -1287,6 +1316,51 @@ class mainWindow(QtWidgets.QMainWindow):
         elif worker.OutputOn:
             worker.disable()
             GUI_Button.setText('Output ON')  # ''reversed'', as this toggles!
+
+#    @pyqtSlot()
+#    def Keithley_checkDisplay(self, value):
+#        if value == 0:
+#            self.Keithley_window.checkBox_Display_1.setChecked(False)
+#            self.Keithley_window.checkBox_Display_2.setChecked(False)
+#            self.Keithley_window.checkBox_Display_3.setChecked(False)
+#        if value == 2:
+#            self.Keithley_window.checkBox_Display_1.setChecked(True)
+#            self.Keithley_window.checkBox_Display_2.setChecked(True)
+#            self.Keithley_window.checkBox_Display_3.setChecked(True)
+
+#    @pyqtSlot()
+#    def Keithley_checkAutozero(self, value):
+#        if value == 0:
+#            self.Keithley_window.checkBox_Autozero_1.setChecked(False)
+#            self.Keithley_window.checkBox_Autozero_2.setChecked(False)
+#            self.Keithley_window.checkBox_Autozero_3.setChecked(False)
+#        if value == 2:
+#            self.Keithley_window.checkBox_Autozero_1.setChecked(True)
+#            self.Keithley_window.checkBox_Autozero_2.setChecked(True)
+#            self.Keithley_window.checkBox_Autozero_3.setChecked(True)
+
+#    @pyqtSlot()
+#    def Keithley_checkFrontAutozero(self, value):
+#        if value == 0:
+#            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(False)
+#            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(False)
+#            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(False)
+#        if value == 2:
+#            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(True)
+#            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
+#            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
+
+
+
+
+
+    @pyqtSlot()
+    def Keithley_checkAutozero(self, value):
+
+
+    @pyqtSlot
+    def Keithley_checkFrontAutozero(self, value):
+
 
     @pyqtSlot(bool)
     def show_Keithley(self, boolean):
@@ -1392,7 +1466,8 @@ class mainWindow(QtWidgets.QMainWindow):
             #     self.actionLogging_LIVE.setChecked(False)
             #     self.show_error_general(e)
             # print(e) # TODO: open window displaying the error message
-        else:
+
+else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
 
@@ -1411,6 +1486,7 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_OneShot(self, boolean):
         if boolean:
+
             OneShot = self.running_thread(
                 OneShot_Thread(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
@@ -1430,16 +1506,20 @@ class mainWindow(QtWidgets.QMainWindow):
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
             self.running_thread(measurement_Logger(self), None, 'save_OneShot')
+            # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')
             self.stopping_thread('save_OneShot')
             self.window_OneShot.commandMeasure.setEnabled(False)
 
     def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None, 'control_Keithley6221_1',
+        current_sources = [None, 
+                           'control_Keithley6221_1',
                            'control_Keithley6221_2']
-        Nanovolts = [None, 'control_Keithley2182_1',
-                     'control_Keithley2182_2', 'control_Keithley2182_3']
+        Nanovolts = [None, 
+                     'control_Keithley2182_1',
+                     'control_Keithley2182_2', 
+                     'control_Keithley2182_3']
         if mode == "RES":
             OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
         elif mode == "CURR":
@@ -1447,7 +1527,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-                                                                  'c:\\', "Datafiles (*.dat)")
+               'c:\\', "Datafiles (*.dat)")
+
         OneShot.update_conf('datafile', new_file_data)
         # print(OneShot)
 

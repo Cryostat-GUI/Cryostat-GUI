@@ -1,23 +1,20 @@
 from PyQt5.QtCore import pyqtSlot
 
 from Keithley.Keithley2182 import Keithley2182
-from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
 
 # from util import AbstractThread
 from util import AbstractLoopThread
+from util import ExceptionHandling
 
 
 class Keithley2182_Updater(AbstractLoopThread):
-    """This is the worker thread, which updates all instrument data of the self.ITC 503.
+    """This is the worker thread, which updates all instrument data of one Keithley 2182 device.
 
-        For each self.ITC503 function (except collecting data), there is a wrapping method,
+        For each device function, there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
         the corresponding value to the device.
-
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
 
         The information from the device is collected in regular intervals (method "running"),
         and subsequently sent to the main thread. It is packed in a dict,
@@ -32,47 +29,64 @@ class Keithley2182_Updater(AbstractLoopThread):
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
 
     # @control_checks
+    @ExceptionHandling
     def running(self):
-        """Try to extract all current data from the ITC, and emit signal, sending the data
+        """Measure Voltage, send the data"""
+        self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
 
-            self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
-            with any other PC, so errors which come back are "caught", or communication is set up
-            in a way no errors occur)
+        self.sig_Infodata.emit(deepcopy(self.sensors))
 
-        """
-        try:
-            self.sensors[
-                'Voltage_V'] = self.Keithley2182.measureVoltage()  # * 10**9
-
-            self.sig_Infodata.emit(deepcopy(self.sensors))
-
-            # time.sleep(self.delay1)
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except ValueError as e:
-            # necessary for typeconversions from str to float
-            self.sig_assertion.emit(
-                'Keithley: {}: '.format(self.instr) + e.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
 
     @pyqtSlot()
+    @ExceptionHandling
     def read_Voltage(self):
         """read a Voltage from instrument. return value should be float"""
-        try:
-            return self.Keithley2182.measureVoltage()  # * 10**9
-        except AssertionError as e_ass:
-            self.sig_assertion.emit(e_ass.args[0])
-        except ValueError as e:
-            # necessary for typeconversions from str to float
-            self.sig_assertion.emit(
-                'Keithley: {}: '.format(self.instr) + e.args[0])
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                self.sig_visatimeout.emit()
-            else:
-                self.sig_visaerror.emit(e_visa.args[0])
+        return self.Keithley2182.measureVoltage()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def speed_up(self):
+        """increase measurement speed
+        """
+        self.Keithley2182.setRate('FAS')
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOnDisplay(self):
+        return self.Keithley2182.DisplayOn()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOffDisplay(self):
+        return self.Keithley2182.DisplayOff()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOnFrontAutozero(self):
+        return self.Keithley2182.FrontAutozeroOn()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOffFrontAutozero(self):
+        return self.Keithley2182.FrontAutozeroOff()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOnAutozero(self):
+        return self.Keithley2182.AutozeroOn()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOffAutozero(self):
+        return self.Keithley2182.AutozeroOff()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOffAutorange(self):
+        return self.Keithley2182.AutorangeOff()
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def TurnOnAutorange(self):
+        return self.Keithley2182.AutorangeOn()
+
