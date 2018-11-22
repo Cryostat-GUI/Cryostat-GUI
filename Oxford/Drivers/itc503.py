@@ -22,7 +22,6 @@ Classes:
 
 """
 import logging
-import threading
 
 from Oxford.Drivers.driver import AbstractSerialDeviceDriver
 import visa

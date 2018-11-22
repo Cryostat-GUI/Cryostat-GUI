@@ -50,7 +50,7 @@
        <height>321</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0" columnstretch="0,0,10">
+     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0" columnstretch="0,0,10">
       <item row="2" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
@@ -145,7 +145,7 @@
        <widget class="QComboBox" name="comboSetTempramp">
         <item>
          <property name="text">
-          <string>Stabilizing</string>
+          <string>Fast Settle</string>
          </property>
         </item>
         <item>

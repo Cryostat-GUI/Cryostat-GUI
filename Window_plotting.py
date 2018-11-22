@@ -9,9 +9,9 @@ if __name__ == '__main__':
     import sys
 
     start_time = 0
-    stop_time = 60*2
+    stop_time = 60 * 2
 
-    num = stop_time-start_time+1
+    num = stop_time - start_time + 1
 
     start_temp = 1
     stop_temp = 3
