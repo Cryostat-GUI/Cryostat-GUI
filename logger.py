@@ -497,13 +497,14 @@ class live_Logger(AbstractLoopThread):
                            'logging_SearchableTime', 'SearchableTime']
         self.calculations = {'ar_mean': lambda value: np.nanmean(value),
                              'stddev': lambda value: np.nanstd(value),
-                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))}
+                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))
+                             'stddev_rel': lambda value: np.nanstd(value) / np.nanmean(value),
+                             'stderr_rel': lambda value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value)))}
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
         self.mainthread.sig_running_new_thread.connect(self.initialisation)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
-
 
         # buggy because it will erase all previous data!
 
@@ -601,7 +602,7 @@ class live_Logger(AbstractLoopThread):
                         self.mainthread.data_live[instrument][variablekey] = []
                         for calc in self.calculations:
                             self.mainthread.data_live[instrument][
-                              '{key}_{c}'.format(key=variablekey, c=calc)] = []
+                                '{key}_{c}'.format(key=variablekey, c=calc)] = []
         self.initialised = True
 
     def setLength(self, length):
