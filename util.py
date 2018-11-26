@@ -21,9 +21,10 @@ from matplotlib.figure import Figure
 
 import functools
 import inspect
-import datetime
+from datetime import datetime
 import time
 from visa import VisaIOError
+import numpy as np
 
 from contextlib import suppress
 
@@ -38,17 +39,17 @@ from PyQt5.uic import loadUi
 
 def convert_time_date(ts):
     """converts timestamps from time.time() into date string"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%d%m%Y')
+    return datetime.fromtimestamp(ts).strftime('%d%m%Y')
 
 
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+    return datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
 
 def loopcontrol_threads(threads, loopcondition):
@@ -327,8 +328,11 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         ''' plot some not so random stuff '''
 
         for ct, entry in enumerate(self.data):
-            self.lines[ct].set_xdata(entry[0])
-            self.lines[ct].set_ydata(entry[1])
+            if np.array(entry[0]).shape != np.array(entry[1]).shape:
+                print('bad shape: ', np.array(entry[0]).shape, np.array(entry[1]).shape, self.legend[ct])
+            else:
+                self.lines[ct].set_xdata(entry[0])
+                self.lines[ct].set_ydata(entry[1])
 
         self.ax.relim()
         self.ax.autoscale_view()

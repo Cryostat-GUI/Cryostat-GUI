@@ -490,14 +490,14 @@ class live_Logger(AbstractLoopThread):
     def __init__(self, mainthread, **kwargs):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
-        self.interval = 5
+        self.interval = 1
         self.length_list = 1000
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
                            'logging_SearchableTime', 'SearchableTime']
         self.calculations = {'ar_mean': lambda value: np.nanmean(value),
                              'stddev': lambda value: np.nanstd(value),
-                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))
+                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value)),
                              'stddev_rel': lambda value: np.nanstd(value) / np.nanmean(value),
                              'stderr_rel': lambda value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value)))}
         self.pre_init()
@@ -565,6 +565,8 @@ class live_Logger(AbstractLoopThread):
                                 try:
                                     self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].append(
                                         self.calculations[calc](self.mainthread.data_live[instr][varkey]))
+                                    if len(self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)]) > self.length_list:
+                                        self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].pop(0)                                    
                                 except TypeError as e_type:
                                     # raise AssertionError(e_type.args[0])
                                     pass
