@@ -191,7 +191,7 @@ class AbstractLoopThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.interval = 2  # second
+        self.interval = 0.5  # second
         # self.__isRunning = True
         self.loop = True
 

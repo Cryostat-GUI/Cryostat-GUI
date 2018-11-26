@@ -85,11 +85,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 #        self.setControlLoopZone()
 #        self.startHeater()
 
-#        self.delay1 = 1
-#        self.delay = 0.0
-        self.interval = 0
-      # self.setControl()
-      # self.__isRunning = True
+        # self.interval = 0
 
     @ExceptionHandling
     def initiating_PID(self):
