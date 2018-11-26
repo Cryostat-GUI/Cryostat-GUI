@@ -150,6 +150,8 @@ class Logger_configuration(Window_ui):
             lambda value: self.setValue('general', 'interval_live', value))
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
+        self.lineFilelocation.textEdited.connect(
+            lambda value: self.setValue('general', 'logfile_location', value))
 
         self.buttonBox_finish.accepted.connect(
             lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
@@ -166,6 +168,7 @@ class Logger_configuration(Window_ui):
     def setValue(self, instrument, value, bools):
         """set a bool value according to the instrument and specific"""
         self.conf[instrument][value] = bools
+        # print(f'setting {value} to {bools}')
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
@@ -267,6 +270,7 @@ class main_Logger(AbstractLoopThread):
                 so that the configuring thread will be quit.
 
         """
+        # print('updating conf:', conf)
         self.conf = conf
         self.interval = self.conf['general']['interval']
         self.configuration_done = True
@@ -477,7 +481,6 @@ class main_Logger(AbstractLoopThread):
                 self.local_list.append(data)
             self.sig_assertion.emit(er.args[0])
             print(er)
-
         # data.update(timedict)
 
 
