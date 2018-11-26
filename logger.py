@@ -501,6 +501,9 @@ class live_Logger(AbstractLoopThread):
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
                            'logging_SearchableTime', 'SearchableTime']
+        self.calculations = {'av': lambda value: np.nanmean(value),
+                             'stddev': lambda value: np.nanstd(value),
+                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))}
         # buggy because it will erase all previous data!
 
         # QTimer.singleShot(*1e3, self.worker)
@@ -555,6 +558,9 @@ class live_Logger(AbstractLoopThread):
                         for varkey in dic:
                             self.mainthread.data_live[instr][
                                 varkey].append(dic[varkey])
+                            for calc in self.calculations:
+                                self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].append(
+                                    self.calculations[calc](self.mainthread.data_live[instr][varkey]))
                             if len(self.mainthread.data_live[instr][varkey]) > self.length_list:
                                 self.mainthread.data_live[instr][varkey].pop(0)
 
@@ -585,7 +591,27 @@ class live_Logger(AbstractLoopThread):
                     self.mainthread.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.mainthread.data_live[instrument][variablekey] = []
+                        for calc in self.calculations:
+                            self.mainthread.data_live[instrument][
+                              '{key}_{c}'.format(key=variablekey, c=calc)] = []
         self.initialised = True
+
+    def setLength(self, length):
+        """set the number of measurements the calculation should be conducted over"""
+
+        if self.length_list > length:
+            with self.mainthread.dataLock_live:
+                for instr in self.mainthread.data_live:
+                    for varkey in self.mainthread.data_live[instr]:
+                        self.mainthread.data_live[instr][
+                            varkey] = self.mainthread.data_live[instr][varkey][:length]
+        elif self.length_list < length:
+            with self.mainthread.dataLock_live:
+                for instr in self.mainthread.data_live:
+                    for varkey in self.mainthread.data_live[instr]:
+                        self.mainthread.data_live[instr][
+                            varkey] += [np.nan] * (length - self.length_list)
+        self.length_list = length
 
     def update_conf(self, conf):
         """

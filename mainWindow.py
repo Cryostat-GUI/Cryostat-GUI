@@ -319,7 +319,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     value_names = list(self.data_live[instrument_name])
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
         # elif livevsdb == "DB":
         #     axis = []
@@ -351,7 +351,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         instrument_name][value_name]
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
 
     def plotting_display(self, dataplot):
@@ -944,22 +944,24 @@ class mainWindow(QtWidgets.QMainWindow):
         if not self.LakeShore350_Kpmin:
             self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
                                            Sensors=dict(
-                Sensor_1_K=[0] * length,
-                Sensor_2_K=[0] * length,
-                Sensor_3_K=[0] * length,
-                Sensor_4_K=[0] * length),
+                Sensor_1_K=[np.nan] * length,
+                Sensor_2_K=[np.nan] * length,
+                Sensor_3_K=[np.nan] * length,
+                Sensor_4_K=[np.nan] * length),
                 length=length)
         elif self.LakeShore350_Kpmin['length'] > length:
             self.LakeShore350_Kpmin[
                 'newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor = sensor[:length]
+                self.LakeShore350_Kpmin['Sensors'][
+                    sensor] = self.LakeShore350_Kpmin['Sensors'][sensor][:length]
             self.LakeShore350_Kpmin['length'] = length
         elif self.LakeShore350_Kpmin['length'] < length:
             self.LakeShore350_Kpmin[
                 'newtime'] += [time.time()] * (length - self.LakeShore350_Kpmin['length'])
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor += [0] * (length - self.LakeShore350_Kpmin['length'])
+                self.LakeShore350_Kpmin['Sensors'][
+                    sensor] += [np.nan] * (length - self.LakeShore350_Kpmin['length'])
             self.LakeShore350_Kpmin['length'] = length
 
     @pyqtSlot(bool)
@@ -1249,16 +1251,20 @@ class mainWindow(QtWidgets.QMainWindow):
                 worker.sig_assertion.connect(self.show_error_general)
                 worker.sig_visatimeout.connect(
                     lambda: self.show_error_general('{0:s}: timeout'.format(dataname)))
-                
+
                 # display data given by nanovoltmeters & calculate resistance
 
                 # setting values for nanovoltmeters
                 if 'GUI_number1' in kwargs:
-                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleDisplay(value))
-                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutozero(value))
-                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
-                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutorange(value))
-                    
+                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleDisplay(value))
+                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutozero(value))
+                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
+                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutorange(value))
+
                 # setting values for current source
 
                 # setting Keithley values for current source by GUI Keithley
@@ -1345,10 +1351,6 @@ class mainWindow(QtWidgets.QMainWindow):
         #            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(True)
         #            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
         #            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
-
-
-
-
 
     @pyqtSlot()
     def Keithley_checkAutozero(self, value):
@@ -1509,12 +1511,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(False)
 
     def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None, 
+        current_sources = [None,
                            'control_Keithley6221_1',
                            'control_Keithley6221_2']
-        Nanovolts = [None, 
+        Nanovolts = [None,
                      'control_Keithley2182_1',
-                     'control_Keithley2182_2', 
+                     'control_Keithley2182_2',
                      'control_Keithley2182_3']
         if mode == "RES":
             OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
@@ -1523,7 +1525,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-               'c:\\', "Datafiles (*.dat)")
+                                                                  'c:\\', "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         # print(OneShot)
