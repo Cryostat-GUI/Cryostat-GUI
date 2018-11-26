@@ -50,6 +50,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
+        self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
 
         try:
             self.LakeShore350 = LakeShore350(
@@ -58,7 +59,6 @@ class LakeShore350_Updater(AbstractLoopThread):
             self.sig_assertion.emit('running in control: {}'.format(e))
             return
             # need to quit the THREAD!!
-        self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0
