@@ -492,18 +492,19 @@ class live_Logger(AbstractLoopThread):
         self.mainthread = mainthread
         self.interval = 5
         self.length_list = 1000
+        self.time_names = ['logging_timeseconds', 'timeseconds',
+                           'logging_ReadableTime', 'ReadableTime',
+                           'logging_SearchableTime', 'SearchableTime']
+        self.calculations = {'ar_mean': lambda value: np.nanmean(value),
+                             'stddev': lambda value: np.nanstd(value),
+                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))}
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
         self.mainthread.sig_running_new_thread.connect(self.initialisation)
         self.mainthread.sig_logging_newconf.connect(self.update_conf)
 
-        self.time_names = ['logging_timeseconds', 'timeseconds',
-                           'logging_ReadableTime', 'ReadableTime',
-                           'logging_SearchableTime', 'SearchableTime']
-        self.calculations = {'av': lambda value: np.nanmean(value),
-                             'stddev': lambda value: np.nanstd(value),
-                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value))}
+
         # buggy because it will erase all previous data!
 
         # QTimer.singleShot(*1e3, self.worker)
@@ -556,11 +557,18 @@ class live_Logger(AbstractLoopThread):
                         dic = deepcopy(self.mainthread.data[instr])
                         dic.update(timedict)
                         for varkey in dic:
+                            # print(instr, varkey)
                             self.mainthread.data_live[instr][
                                 varkey].append(dic[varkey])
                             for calc in self.calculations:
-                                self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].append(
-                                    self.calculations[calc](self.mainthread.data_live[instr][varkey]))
+                                try:
+                                    self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].append(
+                                        self.calculations[calc](self.mainthread.data_live[instr][varkey]))
+                                except TypeError as e_type:
+                                    # raise AssertionError(e_type.args[0])
+                                    pass
+                                except ValueError as e_val:
+                                    raise AssertionError(e_val.args[0])
                             if len(self.mainthread.data_live[instr][varkey]) > self.length_list:
                                 self.mainthread.data_live[instr][varkey].pop(0)
 
