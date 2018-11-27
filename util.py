@@ -27,6 +27,7 @@ from visa import VisaIOError
 import numpy as np
 
 from contextlib import suppress
+from copy import deepcopy
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -56,6 +57,18 @@ def loopcontrol_threads(threads, loopcondition):
     for thread in threads:
         with suppress(AttributeError):  # eventhandlingThread somewhere....
             thread[0].loop = loopcondition
+
+
+class dummy:
+    """docstring for dummy"""
+    def __init__(self):
+        pass
+
+    def __enter__(self, *args, **kwargs):
+        pass
+
+    def __exit__(self, *args, **kwargs):
+        pass
 
 
 class loops_off:
@@ -271,13 +284,17 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!'):
+    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', **kwargs):
         super().__init__()
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
         self.legend = legend_labels
+        if 'lock' in kwargs:
+            self.lock = kwargs['lock']
+        else:
+            self.lock = dummy()
 
         self.interval = 2
 
@@ -326,17 +343,26 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
     def plot(self):
         ''' plot some not so random stuff '''
+        try:
+            with self.lock:
+                for ct, entry in enumerate(self.data):
+                    ent0 = deepcopy(np.array(entry[0]))
+                    ent1 = deepcopy(np.array(entry[1]))
+                    if ent0.shape > ent1.shape:
+                        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+                        ent0 = ent0[:len(ent1)]
+                        # print('corrected: ', ent0.shape, ent1.shape)
+                    elif ent0.shape < ent1.shape:
+                        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+                        ent1 = ent1[:len(ent0)]
+                        # print('corrected: ', ent0.shape, ent1.shape)
+                    self.lines[ct].set_xdata(ent0)
+                    self.lines[ct].set_ydata(ent1)
 
-        for ct, entry in enumerate(self.data):
-            if np.array(entry[0]).shape != np.array(entry[1]).shape:
-                print('bad shape: ', np.array(entry[0]).shape, np.array(entry[1]).shape, self.legend[ct])
-            else:
-                self.lines[ct].set_xdata(entry[0])
-                self.lines[ct].set_ydata(entry[1])
+            self.ax.relim()
+            self.ax.autoscale_view()
 
-        self.ax.relim()
-        self.ax.autoscale_view()
-
-        # refresh canvas
-        self.canvas.draw()
-        QTimer.singleShot(self.interval * 1e3, self.plot)
+            # refresh canvas
+            self.canvas.draw()
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.plot)
