@@ -336,6 +336,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         if not isinstance(self.data, list):
             self.data = [self.data]
         self.ax.clear()
+        # print(self.data)
         for entry, label in zip(self.data, self.legend):
             self.lines.append(self.ax.plot(
                 entry[0], entry[1], '*-', label=label)[0])
@@ -364,5 +365,9 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
 
             # refresh canvas
             self.canvas.draw()
+        except ValueError as e_val:
+            print('ValueError: ', e_val.args[0])
+            # for x in self.data:
+                # print(x)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)

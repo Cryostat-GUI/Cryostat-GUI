@@ -21,7 +21,7 @@ except OSError:
 
 class LakeShore350(object):
 
-    def __init__(self, InstrumentAddress='GPIB0::12::INSTR'):
+    def __init__(self, InstrumentAddress='GPIB0::1::INSTR'):
 
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
