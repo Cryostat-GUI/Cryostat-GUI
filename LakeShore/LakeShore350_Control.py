@@ -40,6 +40,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         Loop_I_Param=None,
         Loop_D_Param=None,
         Heater_Range=None,
+        Heater_Setup=None,
         Sensor_1_Ohm=None,
         Sensor_2_Ohm=None,
         Sensor_3_Ohm=None,
@@ -65,6 +66,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.Input_value = 1
 
         self.Upper_Bound_value = 330
+        self._max_power = None
         """proper P, I, D values needed
         """
         # self.ZoneP_value
@@ -101,10 +103,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         Try to extract all current data from LakeShore350,
         and emit signal, sending the data
         """
-        self.sensors[
-            'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
-        self.sensors['Heater_Output_mW'] = (
-            self.sensors['Heater_Output_percentage'] / 100) * 994.5
+
         self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
             0]
@@ -120,7 +119,14 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Loop_P_Param'] = temp_list2[0]
         self.sensors['Loop_I_Param'] = temp_list2[1]
         self.sensors['Loop_D_Param'] = temp_list2[2]
-        self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)[0]
+
+        self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
+        self.sensors[
+            'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
+        self.sensors['Heater_Output_mW'] = self.sensors['Heater_Output_percentage'] / \
+            100 * self._max_power * 1e3 * \
+            10**(-(5 - self.sensors['Heater_Range']))
+
         temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
         self.sensors['Sensor_1_Ohm'] = temp_list3[0]
         self.sensors['Sensor_2_Ohm'] = temp_list3[1]
@@ -145,7 +151,11 @@ class LakeShore350_Updater(AbstractLoopThread):
         # weak heater
         # self.LakeShore350.HeaterSetupCommand(1, 2, 0, 0.141, 2)
         # strong heater
+        # 1A, 50Ohm, display power percentages
         self.LakeShore350.HeaterSetupCommand(1, 2, 2, 1, 2)
+        self._max_current = 1  # [A]
+        self._heater_resistance = 50  # [Ohm]
+        self._max_power = self._heater_resistance * self._max_current**2  # [W]
 
     @ExceptionHandling
     def configTempLimit(self):

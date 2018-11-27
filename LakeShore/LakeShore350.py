@@ -1467,7 +1467,8 @@ class LakeShore350(object):
             raise AssertionError(
                 "Output parameter must be an integer in [1,2,3,4].")
 
-        return self.query('OUTMODE? ' + '{0:1d}'.format(output))
+        answer = self.query('OUTMODE? ' + '{0:1d}'.format(output))
+        return [int(x) for x in answer]
 
     def ControlLoopPIDValuesCommand(self, output, p_value, i_value, d_value):
         """Control settings, (P, I, D, and Setpoint) are assigned to outputs, which results in the settings being
@@ -1515,8 +1516,8 @@ class LakeShore350(object):
         if 1 > output > 4:  # is this faster than not in?
             raise AssertionError(
                 "Output parameter must be an integer in [1,2,3,4].")
-
-        return self.query('PID? ' + '{0:1d}'.format(output))
+        answer = self.query('PID? ' + '{0:1d}'.format(output))
+        return [float(x) for x in answer]
 
     def ControlSetpointRampParameterCommand(self, output, check_state, rate_value):
         """Control loop settings are assigned to outputs, which results in the settings being applied to
@@ -1563,7 +1564,8 @@ class LakeShore350(object):
                 "Output parameter must be an integer in [1,2,3,4].")
 
         answer = self.query('RAMP? ' + '{0:1d}'.format(output))
-        return [answer[0], float(answer[1])]
+        # print(answer, type(answer), type(answer[0]))
+        return [float(x) for x in answer]
 
     def ControlSetpointRampStatusQuery(self, output):
         """Refer to ControlSetpointRampParameterCommand for description.
@@ -1620,8 +1622,8 @@ class LakeShore350(object):
         if 1 > output > 4:
             raise AssertionError(
                 "Output parameter must be an integer in [1,2,3,4].")
-
-        return self.query('RANGE? ' + '{0:1d}'.format(output))
+        answer = self.query('RANGE? ' + '{0:1d}'.format(output))
+        return int(answer[0])
 
     def InputReadingStatusQuery(self, input_value):
         """The integer returned represents the sum of the bit weighting of the input_value status flag bits.
@@ -1828,7 +1830,8 @@ class LakeShore350(object):
             raise AssertionError(
                 "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
-        return self.query('SRDG? ' + '{0:1}'.format(input_value))
+        answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
+        return [float(x) for x in answer]
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
