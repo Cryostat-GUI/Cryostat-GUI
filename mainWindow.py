@@ -950,18 +950,18 @@ class mainWindow(QtWidgets.QMainWindow):
                 Sensor_4_K=[np.nan] * length),
                 length=length)
         elif self.LakeShore350_Kpmin['length'] > length:
-            self.LakeShore350_Kpmin[
-                'newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
+            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
+                'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][
-                    sensor] = self.LakeShore350_Kpmin['Sensors'][sensor][:length]
+                self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
+                    'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
             self.LakeShore350_Kpmin['length'] = length
         elif self.LakeShore350_Kpmin['length'] < length:
-            self.LakeShore350_Kpmin[
-                'newtime'] += [time.time()] * (length - self.LakeShore350_Kpmin['length'])
+            self.LakeShore350_Kpmin['newtime'] = [time.time(
+            )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][
-                    sensor] += [np.nan] * (length - self.LakeShore350_Kpmin['length'])
+                self.LakeShore350_Kpmin['Sensors'][sensor] = [
+                    np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
             self.LakeShore350_Kpmin['length'] = length
 
     @pyqtSlot(bool)

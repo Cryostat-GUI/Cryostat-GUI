@@ -10,6 +10,7 @@ import pickle
 import os
 import sqlite3
 import numpy as np
+from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
 import math
 
@@ -495,11 +496,12 @@ class live_Logger(AbstractLoopThread):
         self.time_names = ['logging_timeseconds', 'timeseconds',
                            'logging_ReadableTime', 'ReadableTime',
                            'logging_SearchableTime', 'SearchableTime']
-        self.calculations = {'ar_mean': lambda value: np.nanmean(value),
-                             'stddev': lambda value: np.nanstd(value),
-                             'stderr': lambda value: np.nanstd(value) / np.sqrt(len(value)),
-                             'stddev_rel': lambda value: np.nanstd(value) / np.nanmean(value),
-                             'stderr_rel': lambda value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value)))}
+        self.calculations = {'ar_mean': lambda time, value: np.nanmean(value),
+                             'stddev': lambda time, value: np.nanstd(value),
+                             'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+                             'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+                             'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+                             'slope': lambda time, value: nppolyfit(time, value, deg=1)}
         self.pre_init()
         self.initialisation()
         self.mainthread.sig_running_new_thread.connect(self.pre_init)
@@ -564,9 +566,10 @@ class live_Logger(AbstractLoopThread):
                             for calc in self.calculations:
                                 try:
                                     self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].append(
-                                        self.calculations[calc](self.mainthread.data_live[instr][varkey]))
+                                        self.calculations[calc](self.mainthread.data_live[instr]['logging_timeseconds'],self.mainthread.data_live[instr][varkey]))
                                     if len(self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)]) > self.length_list:
-                                        self.mainthread.data_live[instr]['{key}_{c}'.format(key=varkey, c=calc)].pop(0)                                    
+                                        self.mainthread.data_live[instr][
+                                            '{key}_{c}'.format(key=varkey, c=calc)].pop(0)
                                 except TypeError as e_type:
                                     # raise AssertionError(e_type.args[0])
                                     pass
@@ -615,13 +618,13 @@ class live_Logger(AbstractLoopThread):
                 for instr in self.mainthread.data_live:
                     for varkey in self.mainthread.data_live[instr]:
                         self.mainthread.data_live[instr][
-                            varkey] = self.mainthread.data_live[instr][varkey][:length]
+                            varkey] = self.mainthread.data_live[instr][varkey][(self.length_list - length):]
         elif self.length_list < length:
             with self.mainthread.dataLock_live:
                 for instr in self.mainthread.data_live:
                     for varkey in self.mainthread.data_live[instr]:
-                        self.mainthread.data_live[instr][
-                            varkey] += [np.nan] * (length - self.length_list)
+                        self.mainthread.data_live[instr][varkey] = [
+                            np.nan] * (length - self.length_list) + self.mainthread.data_live[instr][varkey]
         self.length_list = length
 
     def update_conf(self, conf):
