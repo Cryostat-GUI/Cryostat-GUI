@@ -122,7 +122,11 @@
        </widget>
       </item>
       <item row="11" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y5"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y5">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
@@ -182,7 +186,11 @@
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_X"/>
+       <widget class="QComboBox" name="comboValue_Axis_X">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="4" column="0">
        <widget class="QLabel" name="label_5">
@@ -206,16 +214,32 @@
        </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y1"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y1">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="3" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y2"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y2">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="4" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y3"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y3">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="5" column="3">
-       <widget class="QComboBox" name="comboValue_Axis_Y4"/>
+       <widget class="QComboBox" name="comboValue_Axis_Y4">
+        <property name="maxVisibleItems">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
       <item row="11" column="0">
        <widget class="QLabel" name="label_7">
