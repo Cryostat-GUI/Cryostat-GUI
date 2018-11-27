@@ -498,8 +498,8 @@ class live_Logger(AbstractLoopThread):
         self.dataLock_live = mainthread.dataLock_live
 
         # self.time_names = ['logging_timeseconds', 'timeseconds',
-                           # 'logging_ReadableTime', 'ReadableTime',
-                           # 'logging_SearchableTime', 'SearchableTime']
+        # 'logging_ReadableTime', 'ReadableTime',
+        # 'logging_SearchableTime', 'SearchableTime']
         self.calculations = {'ar_mean': lambda time, value: np.nanmean(value),
                              'stddev': lambda time, value: np.nanstd(value),
                              'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
@@ -512,7 +512,7 @@ class live_Logger(AbstractLoopThread):
                              }
         self.slopes = {'slope': lambda value, mean: value[0][1],
                        'slope_rel': lambda value, mean: value[0][1] / mean,
-                       'slope_residualsMean': lambda value, mean: np.nanmean(value[1][0])}
+                       'slope_residuals': lambda value, mean: value[1][0][0] if len(value[1][0]) > 0 else np.nan}
         self.noCalc = ['time', 'Time', 'logging', 'band', 'calc']
         self.pre_init()
         self.initialisation()
@@ -592,26 +592,27 @@ class live_Logger(AbstractLoopThread):
                             # print(varkey)
                             if all([x not in varkey for x in self.noCalc]):
                                 # print(varkey, calc)
-                                if calc == 'slope':
-                                    # print('fitting')
-                                    fit = self.calculations[calc](
-                                        times, self.data_live[instr][varkey])
-                                    for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
-                                        self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
-                                            fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
-                                else:
-                                    try:
-                                        self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
-                                            self.calculations[calc](times, self.data_live[instr][varkey]))
-                                        if not self.counting:
-                                            self.data_live[instr][
-                                                '{key}_calc_{c}'.format(key=varkey, c=calc)].pop(0)
-                                    except TypeError as e_type:
-                                        # raise AssertionError(e_type.args[0])
-                                        # print('TYPE CALC')
-                                        pass
-                                    except ValueError as e_val:
-                                        raise AssertionError(e_val.args[0])
+                                if self.time_init:
+                                    if calc == 'slope':
+                                        # print('fitting')
+                                        fit = self.calculations[calc](
+                                            times, self.data_live[instr][varkey])
+                                        for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
+                                            self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
+                                                fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
+                                    else:
+                                        try:
+                                            self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
+                                                self.calculations[calc](times, self.data_live[instr][varkey]))
+                                            if not self.counting:
+                                                self.data_live[instr][
+                                                    '{key}_calc_{c}'.format(key=varkey, c=calc)].pop(0)
+                                        except TypeError as e_type:
+                                            # raise AssertionError(e_type.args[0])
+                                            # print('TYPE CALC')
+                                            pass
+                                        except ValueError as e_val:
+                                            raise AssertionError(e_val.args[0])
                         if not self.count > self.length_list:
                             self.counting = True
                         else:

@@ -387,7 +387,7 @@ class mainWindow(QtWidgets.QMainWindow):
         window = Window_plotting(data=data,
                                  label_x=dataplot.axes['X'],
                                  label_y=label_y,
-                                 legend_labels=legend_labels, 
+                                 legend_labels=legend_labels,
                                  lock=self.dataLock_live)
         window.show()
         window.sig_closing.connect(lambda: window.setParent(None))

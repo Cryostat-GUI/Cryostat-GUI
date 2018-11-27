@@ -59,6 +59,20 @@ def loopcontrol_threads(threads, loopcondition):
             thread[0].loop = loopcondition
 
 
+def shaping(entry):
+    ent0 = deepcopy(np.array(entry[0]))
+    ent1 = deepcopy(np.array(entry[1]))
+    if ent0.shape > ent1.shape:
+        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+        ent0 = ent0[:len(ent1)]
+        # print('corrected: ', ent0.shape, ent1.shape)
+    elif ent0.shape < ent1.shape:
+        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+        ent1 = ent1[:len(ent0)]
+        # print('corrected: ', ent0.shape, ent1.shape)
+    return ent0, ent1
+
+
 class dummy:
     """docstring for dummy"""
     def __init__(self):
@@ -337,9 +351,11 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
             self.data = [self.data]
         self.ax.clear()
         # print(self.data)
-        for entry, label in zip(self.data, self.legend):
-            self.lines.append(self.ax.plot(
-                entry[0], entry[1], '*-', label=label)[0])
+        with self.lock:
+            for entry, label in zip(self.data, self.legend):
+                ent0, ent1 = shaping(entry)
+                self.lines.append(self.ax.plot(
+                    ent0, ent1, '*-', label=label)[0])
         self.ax.legend()
 
     def plot(self):
@@ -347,16 +363,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         try:
             with self.lock:
                 for ct, entry in enumerate(self.data):
-                    ent0 = deepcopy(np.array(entry[0]))
-                    ent1 = deepcopy(np.array(entry[1]))
-                    if ent0.shape > ent1.shape:
-                        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-                        ent0 = ent0[:len(ent1)]
-                        # print('corrected: ', ent0.shape, ent1.shape)
-                    elif ent0.shape < ent1.shape:
-                        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-                        ent1 = ent1[:len(ent0)]
-                        # print('corrected: ', ent0.shape, ent1.shape)
+                    ent0, ent1 = shaping(entry)
                     self.lines[ct].set_xdata(ent0)
                     self.lines[ct].set_ydata(ent1)
 
