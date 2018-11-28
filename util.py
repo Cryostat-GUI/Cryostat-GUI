@@ -52,8 +52,14 @@ def convert_time_searchable(ts):
 
 
 def loopcontrol_threads(threads, loopcondition):
+    """
+        temporarily turn off the loop function of
+        an AbstractLoopThread class instance
+    """
     for thread in threads:
         with suppress(AttributeError):  # eventhandlingThread somewhere....
+            while bool(thread[0].loop) is bool(loopcondition):
+                time.sleep(0.2)  # wait
             thread[0].loop = loopcondition
 
 
