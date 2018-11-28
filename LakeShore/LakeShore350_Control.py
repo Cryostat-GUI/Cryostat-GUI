@@ -121,6 +121,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Loop_D_Param'] = temp_list2[2]
 
         self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
+        self.sensors['Heater_Range_times_10'] = self.sensors['Heater_Range']
         self.sensors[
             'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
         self.sensors['Heater_Output_mW'] = self.sensors['Heater_Output_percentage'] / \
