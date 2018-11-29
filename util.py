@@ -380,5 +380,5 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
             QTimer.singleShot(self.interval * 1e3, self.plot)
 
     def closeEvent(self, event):
-        super().closeEvent()
+        super().closeEvent(event)
         del self
