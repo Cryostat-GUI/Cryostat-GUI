@@ -23,7 +23,7 @@ Classes:
 """
 import logging
 
-from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+from Oxford.driver import AbstractSerialDeviceDriver
 import visa
 from pyvisa.errors import VisaIOError
 
@@ -135,7 +135,6 @@ class itc503(AbstractSerialDeviceDriver):
         #     print('ITC: Assertion: T')
         #     self.read()
         #     value = self.getValue(variable)
-
         return float(value.strip('R+'))
 
     def setProportional(self, prop=0):

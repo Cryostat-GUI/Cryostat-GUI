@@ -1,11 +1,10 @@
-# import time
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtCore import QTimer
-from LakeShore.LakeShore350 import LakeShore350
+from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
+from importlib import reload
 
-# from util import AbstractThread
+import LakeShore
+
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
@@ -52,9 +51,10 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
-
+        global LakeShore
+        LS = reload(LakeShore.LakeShore350)
         try:
-            self.LakeShore350 = LakeShore350(
+            self.LakeShore350 = LS.LakeShore350(
                 InstrumentAddress=InstrumentAddress)
         except VisaIOError as e:
             self.sig_assertion.emit('running in control: {}'.format(e))
