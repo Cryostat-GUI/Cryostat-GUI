@@ -23,7 +23,6 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None)
 
-
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
@@ -37,7 +36,6 @@ class Keithley2182_Updater(AbstractLoopThread):
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
-
 
     @pyqtSlot()
     @ExceptionHandling
