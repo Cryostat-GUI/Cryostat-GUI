@@ -1,12 +1,13 @@
 # import sys
 import time
 from copy import deepcopy
+from importlib import reload
 
 from PyQt5.QtCore import pyqtSlot
 
 from pyvisa.errors import VisaIOError
 
-from .Drivers.ips120 import ips120
+import Oxford
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -93,7 +94,8 @@ class IPS_Updater(AbstractLoopThread):
     def __init__(self, InstrumentAddress):
         super(IPS_Updater, self).__init__()
         # QThread.__init__(self)
-
+        global Oxford
+        ips120 = reload(Oxford.ips120).ips120
         self.PS = ips120(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'IPS_Updater ' + InstrumentAddress
         self.field_setpoint = 0

@@ -1,8 +1,11 @@
+
+
 from PyQt5.QtCore import pyqtSlot
 
-from Keithley.Keithley2182 import Keithley2182
+import Keithley
 
 from copy import deepcopy
+from importlib import reload
 
 # from util import AbstractThread
 from util import AbstractLoopThread
@@ -23,11 +26,13 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None)
 
-
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
+        global Keithley
+        K_2182 = reload(Keithley.Keithley2182)
+
+        self.Keithley2182 = K_2182.Keithley2182(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
 
     # @control_checks
@@ -37,7 +42,6 @@ class Keithley2182_Updater(AbstractLoopThread):
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
-
 
     @pyqtSlot()
     @ExceptionHandling

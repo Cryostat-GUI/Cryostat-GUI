@@ -23,7 +23,7 @@ Classes:
 """
 import logging
 
-from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+from Oxford.driver import AbstractSerialDeviceDriver
 import visa
 from pyvisa.errors import VisaIOError
 
@@ -42,7 +42,6 @@ except OSError:
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
 
-
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
 
@@ -51,7 +50,6 @@ class itc503(AbstractSerialDeviceDriver):
         self.delay = 0.06
 
         # self.setControl() # done in thread
-
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the ITC 503
@@ -137,7 +135,6 @@ class itc503(AbstractSerialDeviceDriver):
         #     print('ITC: Assertion: T')
         #     self.read()
         #     value = self.getValue(variable)
-
         return float(value.strip('R+'))
 
     def setProportional(self, prop=0):

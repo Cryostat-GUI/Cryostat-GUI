@@ -1,11 +1,10 @@
-# import time
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtCore import QTimer
-from LakeShore.LakeShore350 import LakeShore350
+from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
+from importlib import reload
 
-# from util import AbstractThread
+import LakeShore
+
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
@@ -52,9 +51,10 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
-
+        global LakeShore
+        LS = reload(LakeShore.LakeShore350)
         try:
-            self.LakeShore350 = LakeShore350(
+            self.LakeShore350 = LS.LakeShore350(
                 InstrumentAddress=InstrumentAddress)
         except VisaIOError as e:
             self.sig_assertion.emit('running in control: {}'.format(e))
@@ -107,20 +107,24 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
             0]
-        self.sensors['Ramp_Rate'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
-            1]
+
         self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
         temp_list = self.LakeShore350.KelvinReadingQuery(0)
         self.sensors['Sensor_1_K'] = temp_list[0]
         self.sensors['Sensor_2_K'] = temp_list[1]
         self.sensors['Sensor_3_K'] = temp_list[2]
         self.sensors['Sensor_4_K'] = temp_list[3]
+        ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
+        self.sensors['Ramp_Rate'] = ramp_rate if self.sensors[
+            'Temp_K'] < temp_list[self.sensors['Input_Sensor'] - 1] else - ramp_rate
         temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
         self.sensors['Loop_P_Param'] = temp_list2[0]
         self.sensors['Loop_I_Param'] = temp_list2[1]
         self.sensors['Loop_D_Param'] = temp_list2[2]
 
         self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
+        self.sensors['Heater_Range_times_10'] = self.sensors[
+            'Heater_Range'] * 10
         self.sensors[
             'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
         self.sensors['Heater_Output_mW'] = self.sensors['Heater_Output_percentage'] / \

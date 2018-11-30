@@ -506,12 +506,12 @@ class live_Logger(AbstractLoopThread):
                              'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
                              'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
                              # 'test': lambda time, value: print(time),
-                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
-                             'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1]
+                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),  # still need to convert to minutes
+                             'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
                              }
-        self.slopes = {'slope': lambda value, mean: value[0][1],
-                       'slope_rel': lambda value, mean: value[0][1] / mean,
-                       'slope_residuals': lambda value, mean: value[1][0][0] if len(value[1][0]) > 0 else np.nan}
+        self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
+                       'slope_rel': lambda value, mean: value[0][1] / mean * 60,  # minutes,
+                       'slope_residuals': lambda value, mean: value[1][0][0] * 60 if len(value[1][0]) > 0 else np.nan}
         self.noCalc = ['time', 'Time', 'logging', 'band', 'Loop', 'Range', 'Setup', 'calc']
         self.pre_init()
         self.initialisation()
