@@ -182,6 +182,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_plotLive.triggered.connect(
             self.show_dataplotlive_configuration)
         self.windows_plotting = []
+        self.plotting_window_count = 0
 
         #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
         # x,y1.. is for tablenames, x,y1.._plot is for column names in the
@@ -384,17 +385,24 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(
                 'Plotting: You did not choose a single Y axis to plot, try again!')
             return
+        self.plotting_window_count += 1
+        number = deepcopy(self.plotting_window_count)
         window = Window_plotting(data=data,
                                  label_x=dataplot.axes['X'],
                                  label_y=label_y,
                                  legend_labels=legend_labels,
-                                 lock=self.dataLock_live)
+                                 lock=self.dataLock_live,
+                                 number=number)
         window.show()
-        window.sig_closing.connect(lambda: window.setParent(None))
+        window.sig_closing.connect(
+            self.plotting_deleting_window(window, number))
         self.windows_plotting.append(window)
 
-    def deleting_object(self, object_to_delete):
-        del object_to_delete
+    @pyqtSlot()
+    def plotting_deleting_window(self, window, number):
+        for ct, w in enumerate(self.windows_plotting):
+            if w.number == number:
+                del self.windows_plotting[ct]
 
     def selection_y1(self, dataplot, livevsdb):
         dataplot.comboValue_Axis_Y1.addItems(tuple("-"))

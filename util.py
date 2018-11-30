@@ -298,13 +298,14 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', **kwargs):
+    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', number, **kwargs):
         super().__init__()
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
         self.legend = legend_labels
+        self.number = number
         if 'lock' in kwargs:
             self.lock = kwargs['lock']
         else:
