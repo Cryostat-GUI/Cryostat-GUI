@@ -302,8 +302,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        self.dataplot_live_conf.buttonBox.clicked.connect(
-            lambda: self.dataplot_live_conf.close())
+        # self.dataplot_live_conf.buttonBox.clicked.connect(
+        #     lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -398,12 +398,12 @@ class mainWindow(QtWidgets.QMainWindow):
                                  legend_labels=legend_labels,
                                  lock=self.dataLock_live,
                                  number=number)
-        window.show()
-        window.sig_closing.connect(
-            self.plotting_deleting_window(window, number))
+        print(type(window))
+        window.sig_closing.connect(lambda:
+                                   self.plotting_deleting_window(window, number))
         self.windows_plotting.append(window)
+        window.show()
 
-    @pyqtSlot()
     def plotting_deleting_window(self, window, number):
         for ct, w in enumerate(self.windows_plotting):
             if w.number == number:
@@ -1269,7 +1269,7 @@ class mainWindow(QtWidgets.QMainWindow):
         global Keithley2182_Updater
         K_2182 = reload(Keithley.Keithley2182_Control)
         K_6221 = reload(Keithley.Keithley6221_Control)
-        
+
         if 'GUI_number2' in kwargs:
             clas = K_6221.Keithley6221_Updater
         else:

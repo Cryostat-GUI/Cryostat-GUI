@@ -298,7 +298,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', number, **kwargs):
+    def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
         super().__init__()
         self.data = data
         self.label_x = label_x
@@ -380,6 +380,6 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)
 
-    def closeEvent(self, event):
-        super().closeEvent(event)
-        del self
+    # def closeEvent(self, event):
+    #     super().closeEvent(event)
+    #     del self
