@@ -115,8 +115,8 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Sensor_3_K'] = temp_list[2]
         self.sensors['Sensor_4_K'] = temp_list[3]
         ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-        self.sensors['Ramp_Rate'] = ramp_rate if self.sensors[
-            'Temp_K'] < temp_list[self.sensors['Input_Sensor'] - 1] else - ramp_rate
+        self.sensors['Ramp_Rate'] = ramp_rate if self.Temp_K_value > self.sensors[
+            'Temp_K'] else - ramp_rate
         temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
         self.sensors['Loop_P_Param'] = temp_list2[0]
         self.sensors['Loop_I_Param'] = temp_list2[1]
