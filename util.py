@@ -21,11 +21,13 @@ from matplotlib.figure import Figure
 
 import functools
 import inspect
-import datetime
+from datetime import datetime
 import time
 from visa import VisaIOError
+import numpy as np
 
 from contextlib import suppress
+from copy import deepcopy
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -38,17 +40,17 @@ from PyQt5.uic import loadUi
 
 def convert_time_date(ts):
     """converts timestamps from time.time() into date string"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%d%m%Y')
+    return datetime.fromtimestamp(ts).strftime('%d%m%Y')
 
 
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+    return datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
 
 def loopcontrol_threads(threads, loopcondition):
@@ -61,6 +63,32 @@ def loopcontrol_threads(threads, loopcondition):
             while bool(thread[0].loop) is bool(loopcondition):
                 time.sleep(0.2)  # wait
             thread[0].loop = loopcondition
+
+
+def shaping(entry):
+    ent0 = deepcopy(np.array(entry[0]))
+    ent1 = deepcopy(np.array(entry[1]))
+    if ent0.shape > ent1.shape:
+        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+        ent0 = ent0[:len(ent1)]
+        # print('corrected: ', ent0.shape, ent1.shape)
+    elif ent0.shape < ent1.shape:
+        # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
+        ent1 = ent1[:len(ent0)]
+        # print('corrected: ', ent0.shape, ent1.shape)
+    return ent0, ent1
+
+
+class dummy:
+    """docstring for dummy"""
+    def __init__(self):
+        pass
+
+    def __enter__(self, *args, **kwargs):
+        pass
+
+    def __exit__(self, *args, **kwargs):
+        pass
 
 
 class loops_off:
@@ -197,7 +225,7 @@ class AbstractLoopThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.interval = 2  # second
+        self.interval = 0.5  # second
         # self.__isRunning = True
         self.loop = True
 
@@ -276,13 +304,17 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!'):
+    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', **kwargs):
         super().__init__()
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
         self.legend = legend_labels
+        if 'lock' in kwargs:
+            self.lock = kwargs['lock']
+        else:
+            self.lock = dummy()
 
         self.interval = 2
 
@@ -324,21 +356,35 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         if not isinstance(self.data, list):
             self.data = [self.data]
         self.ax.clear()
-        for entry, label in zip(self.data, self.legend):
-            self.lines.append(self.ax.plot(
-                entry[0], entry[1], '*-', label=label)[0])
+        # print(self.data)
+        with self.lock:
+            for entry, label in zip(self.data, self.legend):
+                ent0, ent1 = shaping(entry)
+                self.lines.append(self.ax.plot(
+                    ent0, ent1, '*-', label=label)[0])
         self.ax.legend()
 
     def plot(self):
         ''' plot some not so random stuff '''
+        try:
+            with self.lock:
+                for ct, entry in enumerate(self.data):
+                    ent0, ent1 = shaping(entry)
+                    self.lines[ct].set_xdata(ent0)
+                    self.lines[ct].set_ydata(ent1)
 
-        for ct, entry in enumerate(self.data):
-            self.lines[ct].set_xdata(entry[0])
-            self.lines[ct].set_ydata(entry[1])
+            self.ax.relim()
+            self.ax.autoscale_view()
 
-        self.ax.relim()
-        self.ax.autoscale_view()
+            # refresh canvas
+            self.canvas.draw()
+        except ValueError as e_val:
+            print('ValueError: ', e_val.args[0])
+            # for x in self.data:
+                # print(x)
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.plot)
 
-        # refresh canvas
-        self.canvas.draw()
-        QTimer.singleShot(self.interval * 1e3, self.plot)
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        del self

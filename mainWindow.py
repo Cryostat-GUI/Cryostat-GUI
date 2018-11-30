@@ -39,16 +39,21 @@ import time
 from threading import Lock
 import numpy as np
 from copy import deepcopy
+from importlib import reload
 import sqlite3
 
 from pyvisa.errors import VisaIOError
 
-from Oxford.ITC_control import ITC_Updater
-from Oxford.ILM_control import ILM_Updater
-from Oxford.IPS_control import IPS_Updater
-from LakeShore.LakeShore350_Control import LakeShore350_Updater
-from Keithley.Keithley2182_Control import Keithley2182_Updater
-from Keithley.Keithley6221_Control import Keithley6221_Updater
+import Oxford
+import LakeShore
+import Keithley
+
+# from Oxford.ITC_control import ITC_Updater
+# from Oxford.ILM_control import ILM_Updater
+# from Oxford.IPS_control import IPS_Updater
+# from LakeShore.LakeShore350_Control import LakeShore350_Updater
+# from Keithley.Keithley2182_Control import Keithley2182_Updater
+# from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
 
@@ -319,7 +324,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     value_names = list(self.data_live[instrument_name])
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
         # elif livevsdb == "DB":
         #     axis = []
@@ -351,7 +356,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         instrument_name][value_name]
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
 
     def plotting_display(self, dataplot):
@@ -387,7 +392,8 @@ class mainWindow(QtWidgets.QMainWindow):
         window = Window_plotting(data=data,
                                  label_x=dataplot.axes['X'],
                                  label_y=label_y,
-                                 legend_labels=legend_labels)
+                                 legend_labels=legend_labels,
+                                 lock=self.dataLock_live)
         window.show()
         window.sig_closing.connect(lambda: window.setParent(None))
         self.windows_plotting.append(window)
@@ -506,6 +512,9 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
         """method to start/stop the thread which controls the Oxford ITC"""
+        global Oxford
+        O_ITC = reload(Oxford.ITC_control)
+        ITC_Updater = O_ITC.ITC_Updater
 
         if boolean:
             try:
@@ -734,7 +743,9 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ILM(self, boolean):
         """start/stop the Level Meter thread"""
-
+        global Oxford
+        O_ILM = reload(Oxford.ILM_control)
+        ILM_Updater = O_ILM.ILM_Updater
         if boolean:
             try:
                 getInfodata = self.running_thread(ILM_Updater(
@@ -822,6 +833,9 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_IPS(self, boolean):
         """start/stop the Powersupply thread"""
+        global Oxford
+        O_IPS = reload(Oxford.IPS_control)
+        IPS_Updater = O_IPS.IPS_Updater
 
         if boolean:
             try:
@@ -944,27 +958,32 @@ class mainWindow(QtWidgets.QMainWindow):
         if not self.LakeShore350_Kpmin:
             self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
                                            Sensors=dict(
-                Sensor_1_K=[0] * length,
-                Sensor_2_K=[0] * length,
-                Sensor_3_K=[0] * length,
-                Sensor_4_K=[0] * length),
+                Sensor_1_K=[np.nan] * length,
+                Sensor_2_K=[np.nan] * length,
+                Sensor_3_K=[np.nan] * length,
+                Sensor_4_K=[np.nan] * length),
                 length=length)
         elif self.LakeShore350_Kpmin['length'] > length:
-            self.LakeShore350_Kpmin[
-                'newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
+            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
+                'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor = sensor[:length]
+                self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
+                    'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
             self.LakeShore350_Kpmin['length'] = length
         elif self.LakeShore350_Kpmin['length'] < length:
-            self.LakeShore350_Kpmin[
-                'newtime'] += [time.time()] * (length - self.LakeShore350_Kpmin['length'])
+            self.LakeShore350_Kpmin['newtime'] = [time.time(
+            )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor += [0] * (length - self.LakeShore350_Kpmin['length'])
+                self.LakeShore350_Kpmin['Sensors'][sensor] = [
+                    np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
             self.LakeShore350_Kpmin['length'] = length
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
         """start/stop the LakeShore350 thread"""
+        global LakeShore
+        LC = reload(LakeShore.LakeShore350_Control)
+        LakeShore350_Updater = LC.LakeShore350_Updater
 
         if boolean:
             try:
@@ -1164,7 +1183,7 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda: self.action_show_Keithley.setChecked(False))
 
         # -------- Nanovoltmeters
-        confdict2182_1 = dict(clas=Keithley2182_Updater,
+        confdict2182_1 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_1_InstrumentAddress,
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
@@ -1177,7 +1196,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
 
-        confdict2182_2 = dict(clas=Keithley2182_Updater,
+        confdict2182_2 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
@@ -1190,7 +1209,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
 
-        confdict2182_3 = dict(clas=Keithley2182_Updater,
+        confdict2182_3 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
@@ -1204,7 +1223,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
 
         # -------- Current Sources
-        confdict6221_1 = dict(clas=Keithley6221_Updater,
+        confdict6221_1 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_1_InstrumentAddress,
                               dataname='Keithley6221_1',
                               threadname='control_Keithley6221_1',
@@ -1212,7 +1231,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.action_run_Current_1)
 
-        confdict6221_2 = dict(clas=Keithley6221_Updater,
+        confdict6221_2 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_2_InstrumentAddress,
                               dataname='Keithley6221_2',
                               threadname='control_Keithley6221_2',
@@ -1237,6 +1256,16 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_Keithley(self, boolean, clas, instradress, dataname, threadname, GUI_menu_action, **kwargs):
         """start/stop the Keithley thread"""
+        global Keithley
+        global Keithley6221_Updater
+        global Keithley2182_Updater
+        K_2182 = reload(Keithley.Keithley2182_Control)
+        K_6221 = reload(Keithley.Keithley6221_Control)
+        
+        if 'GUI_number2' in kwargs:
+            clas = K_6221.Keithley6221_Updater
+        else:
+            clas = K_2182.Keithley2182_Updater
 
         if boolean:
             try:
@@ -1249,16 +1278,20 @@ class mainWindow(QtWidgets.QMainWindow):
                 worker.sig_assertion.connect(self.show_error_general)
                 worker.sig_visatimeout.connect(
                     lambda: self.show_error_general('{0:s}: timeout'.format(dataname)))
-                
+
                 # display data given by nanovoltmeters & calculate resistance
 
                 # setting values for nanovoltmeters
                 if 'GUI_number1' in kwargs:
-                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleDisplay(value))
-                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutozero(value))
-                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
-                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutorange(value))
-                    
+                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleDisplay(value))
+                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutozero(value))
+                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
+                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutorange(value))
+
                 # setting values for current source
 
                 # setting Keithley values for current source by GUI Keithley
@@ -1345,10 +1378,6 @@ class mainWindow(QtWidgets.QMainWindow):
         #            self.Keithley_window.checkBox_FrontAutozero_1.setChecked(True)
         #            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
         #            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
-
-
-
-
 
     @pyqtSlot()
     def Keithley_checkAutozero(self, value):
@@ -1509,12 +1538,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(False)
 
     def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None, 
+        current_sources = [None,
                            'control_Keithley6221_1',
                            'control_Keithley6221_2']
-        Nanovolts = [None, 
+        Nanovolts = [None,
                      'control_Keithley2182_1',
-                     'control_Keithley2182_2', 
+                     'control_Keithley2182_2',
                      'control_Keithley2182_3']
         if mode == "RES":
             OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
@@ -1523,7 +1552,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-               'c:\\', "Datafiles (*.dat)")
+                                                                  'c:\\', "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         # print(OneShot)

@@ -616,6 +616,20 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>spinsetHeaterPercent</tabstop>
+  <tabstop>spinsetProportionalID</tabstop>
+  <tabstop>spinsetPIntegrationD</tabstop>
+  <tabstop>spinsetPIDerivative</tabstop>
+  <tabstop>spin_threadinterval</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>spinsetTemp</tabstop>
+  <tabstop>doubleSpinBox</tabstop>
+  <tabstop>comboBox</tabstop>
+  <tabstop>combosetAutocontrol</tabstop>
+  <tabstop>spinsetGasOutput</tabstop>
+  <tabstop>combosetHeatersens</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

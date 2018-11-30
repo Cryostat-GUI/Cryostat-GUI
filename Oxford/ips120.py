@@ -19,7 +19,7 @@ import time
 import logging
 
 
-from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+from Oxford.driver import AbstractSerialDeviceDriver
 
 # import visa
 # from pyvisa.errors import VisaIOError
