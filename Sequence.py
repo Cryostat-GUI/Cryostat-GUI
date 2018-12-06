@@ -9,6 +9,7 @@
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QTimer
 
 # import sys
 # import datetime
@@ -268,5 +269,9 @@ class OneShot_Thread(AbstractEventhandlingThread):
     @ExceptionHandling
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
-        with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
-            conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
+        try:
+            with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
+                conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
+                print('measuring', convert_time(time.time()))
+        finally:
+            QTimer.singleShot(30*1e3, lambda: self.measure_oneshot(self.conf))

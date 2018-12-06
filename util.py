@@ -276,6 +276,18 @@ class AbstractEventhandlingThread(AbstractThread):
         pass
 
 
+class Workerclass(QObject):
+    """tiny class for performing one single task ()"""
+    def __init__(self, workfunction, *args, **kwargs):
+        super(Workerclass, self).__init__()
+        self.workfunction = workfunction
+        self.args = args
+        self.kwargs = kwargs
+
+    def work(self):
+        self.workfunction(*self.args, **self.kwargs)
+        
+
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
         emits a signal when being closed
