@@ -63,6 +63,7 @@ from logger import Logger_configuration
 from util import Window_ui, Window_plotting
 from util import convert_time
 from util import convert_time_searchable
+from util import Workerclass
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -90,6 +91,7 @@ class mainWindow(QtWidgets.QMainWindow):
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
         self.threads = dict()
+        self.threads_tiny = list()
         self.data = dict()
         self.logging_bools = dict()
 
@@ -125,7 +127,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
 
-    def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
+    def running_thread(self, worker, info=None, **kwargs):
         """Set up a new Thread, and insert the worker class, which runs in the new thread
             Args:
                 worker - the class (as a class instance) which should run inside
@@ -140,19 +142,31 @@ class mainWindow(QtWidgets.QMainWindow):
         """
 
         thread = QThread()
-        self.threads[threadname] = (worker, thread)
         worker.moveToThread(thread)
-
-        if dataname in self.data or dataname == None:
-            pass
-        else:
-            with self.dataLock:
-                self.data[dataname] = dict()
 
         thread.started.connect(worker.work)
         thread.start()
+        return worker, thread
+
+    def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
+        worker, thread = self.running_thread(worker)
+
+        if dataname in self.data or dataname is None:
+            pass
+        else:
+            with self.dataLock:
+                self.data[dataname] = dict()        
+        self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
+
         return worker
+        
+    def running_thread_tiny(self, worker):
+        worker, thread = self.running_thread(worker)
+        self.threads_tiny.append((worker, thread))
+        # TODO there should be another worker, who regularly checks which of these
+        # are still alive, and removes the dead ones from the list, in order
+        # to prevent a memory leak
 
     def stopping_thread(self, threadname):
         """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
@@ -187,6 +201,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_plotLive.triggered.connect(
             self.show_dataplotlive_configuration)
         self.windows_plotting = []
+        self.plotting_window_count = 0
 
         #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
         # x,y1.. is for tablenames, x,y1.._plot is for column names in the
@@ -301,8 +316,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        self.dataplot_live_conf.buttonBox.clicked.connect(
-            lambda: self.dataplot_live_conf.close())
+        # self.dataplot_live_conf.buttonBox.clicked.connect(
+        #     lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -389,17 +404,24 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(
                 'Plotting: You did not choose a single Y axis to plot, try again!')
             return
+        self.plotting_window_count += 1
+        number = deepcopy(self.plotting_window_count)
         window = Window_plotting(data=data,
                                  label_x=dataplot.axes['X'],
                                  label_y=label_y,
                                  legend_labels=legend_labels,
-                                 lock=self.dataLock_live)
-        window.show()
-        window.sig_closing.connect(lambda: window.setParent(None))
+                                 lock=self.dataLock_live,
+                                 number=number)
+        # print(type(window))
+        window.sig_closing.connect(lambda:
+                                   self.plotting_deleting_window(window, number))
         self.windows_plotting.append(window)
+        window.show()
 
-    def deleting_object(self, object_to_delete):
-        del object_to_delete
+    def plotting_deleting_window(self, window, number):
+        for ct, w in enumerate(self.windows_plotting):
+            if w.number == number:
+                del self.windows_plotting[ct]
 
     def selection_y1(self, dataplot, livevsdb):
         dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
@@ -520,7 +542,7 @@ class mainWindow(QtWidgets.QMainWindow):
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = self.running_thread(ITC_Updater(
+                getInfodata = self.running_thread_control(ITC_Updater(
                     ITC_Instrumentadress), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
@@ -557,10 +579,33 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.spinsetTemp.editingFinished.connect(
                     lambda: self.threads['control_ITC'][0].setTemperature())
 
+                def change_gas(self):
+                    gas_new = self.threads['control_ITC'][0].set_gas_output
+                    with self.dataLock:
+                        gas_old = int(self.data['ITC']['gas_flow_output'])
+                    if gas_new == 0:
+                        time_wait = 60/1e2*gas_old + 5
+                        self.threads['control_ITC'][0].setGasOutput()
+
+                        self.ITC_window.spinsetGasOutput.setEnabled(False)
+                        time.sleep(time_wait)
+                        self.ITC_window.spinsetGasOutput.setEnabled(True)
+                    else:
+                        time1 = 60/1e2*gas_old + 5
+                        time2 = 60/1e2*gas_new + 5
+                        self.threads['control_ITC'][0].gettoset_GasOutput(0)
+                        self.threads['control_ITC'][0].setGasOutput()
+                        self.ITC_window.spinsetGasOutput.setEnabled(False)
+                        time.sleep(time1)
+                        self.threads['control_ITC'][0].gettoset_GasOutput(gas_new)
+                        self.threads['control_ITC'][0].setGasOutput()
+                        time.sleep(time2)
+                        self.ITC_window.spinsetGasOutput.setEnabled(True)
+
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setGasOutput())
+                    lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
@@ -748,7 +793,7 @@ class mainWindow(QtWidgets.QMainWindow):
         ILM_Updater = O_ILM.ILM_Updater
         if boolean:
             try:
-                getInfodata = self.running_thread(ILM_Updater(
+                getInfodata = self.running_thread_control(ILM_Updater(
                     InstrumentAddress=ILM_Instrumentadress), 'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
@@ -839,7 +884,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                getInfodata = self.running_thread(IPS_Updater(
+                getInfodata = self.running_thread_control(IPS_Updater(
                     InstrumentAddress=IPS_Instrumentadress), 'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
@@ -987,7 +1032,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                getInfodata = self.running_thread(LakeShore350_Updater(
+                getInfodata = self.running_thread_control(LakeShore350_Updater(
                     InstrumentAddress=LakeShore_InstrumentAddress), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
@@ -1261,7 +1306,7 @@ class mainWindow(QtWidgets.QMainWindow):
         global Keithley2182_Updater
         K_2182 = reload(Keithley.Keithley2182_Control)
         K_6221 = reload(Keithley.Keithley6221_Control)
-        
+
         if 'GUI_number2' in kwargs:
             clas = K_6221.Keithley6221_Updater
         else:
@@ -1269,7 +1314,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                worker = self.running_thread(
+                worker = self.running_thread_control(
                     clas(InstrumentAddress=instradress), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
@@ -1456,7 +1501,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger = self.running_thread_control(main_Logger(self), None, 'logger')
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1481,7 +1526,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             # try:
 
-            getInfodata = self.running_thread(
+            getInfodata = self.running_thread_control(
                 live_Logger(self), None, 'control_Logging_live')
             getInfodata.sig_assertion.connect(self.show_error_general)
 
@@ -1512,7 +1557,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def run_OneShot(self, boolean):
         if boolean:
 
-            OneShot = self.running_thread(
+            OneShot = self.running_thread_control(
                 OneShot_Thread(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
@@ -1530,7 +1575,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
-            self.running_thread(measurement_Logger(self), None, 'save_OneShot')
+            self.running_thread_control(measurement_Logger(self), None, 'save_OneShot')
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')

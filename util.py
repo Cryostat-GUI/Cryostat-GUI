@@ -282,6 +282,18 @@ class AbstractEventhandlingThread(AbstractThread):
         pass
 
 
+class Workerclass(QObject):
+    """tiny class for performing one single task ()"""
+    def __init__(self, workfunction, *args, **kwargs):
+        super(Workerclass, self).__init__()
+        self.workfunction = workfunction
+        self.args = args
+        self.kwargs = kwargs
+
+    def work(self):
+        self.workfunction(*self.args, **self.kwargs)
+        
+
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
         emits a signal when being closed
@@ -304,13 +316,14 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     """Small window containing a plot, which can be udpated every so often"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, label_x, label_y, legend_labels, title='your advertisment could be here!', **kwargs):
+    def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
         super().__init__()
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
         self.title = title
         self.legend = legend_labels
+        self.number = number
         if 'lock' in kwargs:
             self.lock = kwargs['lock']
         else:
@@ -385,6 +398,6 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)
 
-    def closeEvent(self, event):
-        super().closeEvent(event)
-        del self
+    # def closeEvent(self, event):
+    #     super().closeEvent(event)
+    #     del self

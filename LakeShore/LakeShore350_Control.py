@@ -63,7 +63,6 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0
-        self.Input_value = 1
 
         self.Upper_Bound_value = 330
         self._max_power = None
@@ -115,8 +114,8 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Sensor_3_K'] = temp_list[2]
         self.sensors['Sensor_4_K'] = temp_list[3]
         ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-        self.sensors['Ramp_Rate'] = ramp_rate if self.sensors[
-            'Temp_K'] < temp_list[self.sensors['Input_Sensor'] - 1] else - ramp_rate
+        self.sensors['Ramp_Rate'] = ramp_rate if self.Temp_K_value > self.sensors[
+            'Temp_K'] else - ramp_rate
         temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
         self.sensors['Loop_P_Param'] = temp_list2[0]
         self.sensors['Loop_I_Param'] = temp_list2[1]
@@ -216,7 +215,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     def setInput(self, Input_value):
         """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
         """
-        self.LakeShore350.OutputModeCommand(1, 1, self.Input_value, 1)
+        self.LakeShore350.OutputModeCommand(1, 1, Input_value, 1)
 
     @pyqtSlot()
     @ExceptionHandling

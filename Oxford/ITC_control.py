@@ -6,6 +6,8 @@ from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
 from importlib import reload
+import time
+
 # from util import AbstractThread
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -114,19 +116,20 @@ class ITC_Updater(AbstractLoopThread):
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def setNeedle(self):
-        """class method to be called to set Needle
-            this is necessary, so it can be invoked by a signal
-            self.gasoutput between 0 and 100 %
-        """
-        value = self.set_GasOutput
-        if 0 <= value <= 100:
-            self.ITC.setGasOutput(value)
-        else:
-            raise AssertionError(
-                'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setNeedle(self):
+    #     """class method to be called to set Needle
+    #         this is necessary, so it can be invoked by a signal
+    #         self.gasoutput between 0 and 100 %
+    #     """
+    #     value = self.set_GasOutput
+    #     print(value)
+    #     if 0 <= value <= 100:
+    #         self.ITC.setGasOutput(value)
+    #     else:
+    #         raise AssertionError(
+    #             'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
 
     @pyqtSlot()
     @ExceptionHandling
@@ -211,6 +214,7 @@ class ITC_Updater(AbstractLoopThread):
                     Min: 0. Max: 99.
         """
         self.ITC.setGasOutput(self.set_gas_output)
+
 
     @pyqtSlot()
     @ExceptionHandling
