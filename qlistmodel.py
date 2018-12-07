@@ -37,9 +37,10 @@ class SequenceListModel(QtCore.QAbstractListModel):
 
     sig_send = QtCore.pyqtSignal(list)
 
-    def __init__(self, sequence=[], parent=None):
+    def __init__(self, sequence=None, parent=None):
         QtCore.QAbstractListModel.__init__(self, parent)
-        self.__sequence = sequence
+        self.__sequence = [] if sequence is None else sequence
+
         # self.countinserted = 0
         # self.root = Node(dict(DisplayText='specialnode', arbdata='weha'))
         # self.debug_running()
