@@ -612,6 +612,11 @@ class live_Logger(AbstractLoopThread):
             self.count += 1
 
     def calculations_perform(self, instr, varkey, calc, times):
+        """
+            perform one specified calculation on all corresponding datasets
+            
+            return: None
+        """
         if calc == 'slope':
             # print('fitting', instr, varkey)
             # print(self.data_live[instr][varkey])

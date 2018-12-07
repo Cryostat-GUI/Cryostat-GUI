@@ -60,6 +60,9 @@ def loopcontrol_threads(threads, loopcondition):
 
 
 def shaping(entry):
+    """adjust the shape of data-arrays given to matplotlib,
+        to prevent mismatches
+    """
     ent0 = deepcopy(np.array(entry[0]))
     ent1 = deepcopy(np.array(entry[1]))
     if ent0.shape > ent1.shape:
@@ -309,6 +312,7 @@ class Workerclass(QObject):
         self.kwargs = kwargs
 
     def work(self):
+        """run the passed function"""
         self.workfunction(*self.args, **self.kwargs)
 
 

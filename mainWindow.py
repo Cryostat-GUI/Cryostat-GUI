@@ -110,6 +110,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.app.quit()
 
     def initialize_all_windows(self):
+        """window and GUI initialisatoins"""
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -129,6 +130,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.controls_Lock = Lock()
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
+        """
+            run a specified worker class in a thread
+                this should be a device controlling thread
+            add a corresponding entry in the data dictionary
+            add the thread and worker-class instances to the threads dictionary
+
+            return: the worker-class instance
+        """
         worker, thread = running_thread(worker)
 
         if dataname in self.data or dataname is None:
@@ -142,6 +151,13 @@ class mainWindow(QtWidgets.QMainWindow):
         return worker
 
     def running_thread_tiny(self, worker):
+        """
+            run a specified worker class in a thread
+                this is a small worker which performs one single task
+                intended to be used in conjuction with util.Workerclass
+
+            return: None
+        """
         worker, thread = running_thread(worker)
         self.threads_tiny.append((worker, thread))
         # TODO there should be another worker, who regularly checks which of these
@@ -399,6 +415,9 @@ class mainWindow(QtWidgets.QMainWindow):
         window.show()
 
     def plotting_deleting_window(self, window, number):
+        """delete the window entry in the list of windows
+            was planned to fix the memory leak, not sure if it really works
+        """
         for ct, w in enumerate(self.windows_plotting):
             if w.number == number:
                 del self.windows_plotting[ct]
@@ -560,6 +579,16 @@ class mainWindow(QtWidgets.QMainWindow):
                     lambda: self.threads['control_ITC'][0].setTemperature())
 
                 def change_gas(self):
+                    """to be worked in a separate worker thread (separate
+                        time.sleep() from GUI)
+                        change the opening percentage of the needle valve in a
+                        repeatable fashion (go to zero, go to new value)
+                        disable the GUI element during the operation
+
+                        should be changed, to use signals to change GUI,
+                        and possibly timers instead of time.sleep()
+                        (QTimer not usefil in the second case)
+                    """
                     gas_new = self.threads['control_ITC'][0].set_gas_output
                     with self.dataLock:
                         gas_old = int(self.data['ITC']['gas_flow_output'])
@@ -586,7 +615,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
-                    lambda: running_thread_tiny(Workerclass(change_gas, self)))
+                    lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
