@@ -9,6 +9,7 @@
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QTimer
 
 # import sys
 # import datetime
@@ -36,13 +37,13 @@ class BreakCondition(Exception):
 
 
 def measure_resistance(threads,
-    excitation_current_A,
-    threadname_RES,
-    threadname_CURR,
-    threadname_Temp='control_LakeShore350',
-    temperature_sensor='Sensor_1_K',
-    n_measurements=1,
-    **kwargs):
+                       excitation_current_A,
+                       threadname_RES,
+                       threadname_CURR,
+                       threadname_Temp='control_LakeShore350',
+                       temperature_sensor='Sensor_1_K',
+                       n_measurements=1,
+                       **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -151,14 +152,16 @@ class Sequence_Thread(AbstractEventhandlingThread):
                 mode_scan = 'Fast Settle - Set Temps'
             elif ApproachMode == 1:
                 mode_scan = "No o'shoot"
-                raise NotImplementedError("No o'shoot is not yet implemented - highly device specific!")
+                raise NotImplementedError(
+                    "No o'shoot is not yet implemented - highly device specific!")
             elif ApproachMode == 2:
                 mode_scan = 'Sweep'
             else:
                 raise AssertionError('bad Temperature ApproachMode variable!')
         except NotImplementedError:
             mode_scan = 'Fast Settle - Set Temps'
-            self.sig_assertion.emit('Sequence: Tscan: Mode not impelemented yet! \n I am using Fast Settle instead!')
+            self.sig_assertion.emit(
+                'Sequence: Tscan: Mode not impelemented yet! \n I am using Fast Settle instead!')
 
         if mode_scan == 'Fast Settle - Set Temps':
             for temp_setpoint_sample in temperatures:
@@ -183,7 +186,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.mainthread.threads['control_ITC'][0].gettoset_Temperature(VTI)
         self.mainthread.threads['control_ITC'][0].setTemperature()
 
-        self.mainthread.threads['control_LakeShore350'][0].gettoset_Temp_K(Sample)
+        self.mainthread.threads['control_LakeShore350'][
+            0].gettoset_Temp_K(Sample)
         self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
         self.mainthread.threads['control_LakeShore350'][0].setStatusRamp(False)
 
@@ -268,5 +272,10 @@ class OneShot_Thread(AbstractEventhandlingThread):
     @ExceptionHandling
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
-        with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
-            conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
+        try:
+            with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
+                conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
+                print('measuring', convert_time(time.time()))
+        finally:
+            QTimer.singleShot(
+                30 * 1e3, lambda: self.measure_oneshot(self.conf))

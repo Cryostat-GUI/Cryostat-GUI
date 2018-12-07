@@ -1,6 +1,6 @@
 from pyvisa.errors import VisaIOError
 
-from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+from Oxford.driver import AbstractSerialDeviceDriver
 
 
 class ilm211(AbstractSerialDeviceDriver):

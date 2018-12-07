@@ -1,14 +1,12 @@
 
-import time
+from PyQt5.QtCore import pyqtSlot
 
-# from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-# from PyQt5.uic import loadUi
-
-from .Drivers.itc503 import itc503
+import Oxford
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
+from importlib import reload
+import time
 
 # from util import AbstractThread
 from util import AbstractLoopThread
@@ -46,7 +44,8 @@ class ITC_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
-
+        global Oxford
+        itc503 = reload(Oxford.itc503).itc503
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'ITC_Updater ' + InstrumentAddress
@@ -117,19 +116,20 @@ class ITC_Updater(AbstractLoopThread):
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def setNeedle(self):
-        """class method to be called to set Needle
-            this is necessary, so it can be invoked by a signal
-            self.gasoutput between 0 and 100 %
-        """
-        value = self.set_GasOutput
-        if 0 <= value <= 100:
-            self.ITC.setGasOutput(value)
-        else:
-            raise AssertionError(
-                'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setNeedle(self):
+    #     """class method to be called to set Needle
+    #         this is necessary, so it can be invoked by a signal
+    #         self.gasoutput between 0 and 100 %
+    #     """
+    #     value = self.set_GasOutput
+    #     print(value)
+    #     if 0 <= value <= 100:
+    #         self.ITC.setGasOutput(value)
+    #     else:
+    #         raise AssertionError(
+    #             'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
 
     @pyqtSlot()
     @ExceptionHandling

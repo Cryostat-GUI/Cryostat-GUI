@@ -39,16 +39,21 @@ import time
 from threading import Lock
 import numpy as np
 from copy import deepcopy
+from importlib import reload
 import sqlite3
 
 from pyvisa.errors import VisaIOError
 
-from Oxford.ITC_control import ITC_Updater
-from Oxford.ILM_control import ILM_Updater
-from Oxford.IPS_control import IPS_Updater
-from LakeShore.LakeShore350_Control import LakeShore350_Updater
-from Keithley.Keithley2182_Control import Keithley2182_Updater
-from Keithley.Keithley6221_Control import Keithley6221_Updater
+import Oxford
+import LakeShore
+import Keithley
+
+# from Oxford.ITC_control import ITC_Updater
+# from Oxford.ILM_control import ILM_Updater
+# from Oxford.IPS_control import IPS_Updater
+# from LakeShore.LakeShore350_Control import LakeShore350_Updater
+# from Keithley.Keithley2182_Control import Keithley2182_Updater
+# from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
 
@@ -58,6 +63,8 @@ from logger import Logger_configuration
 from util import Window_ui, Window_plotting
 from util import convert_time
 from util import convert_time_searchable
+from util import Workerclass
+from util import running_thread
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -85,6 +92,7 @@ class mainWindow(QtWidgets.QMainWindow):
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
         self.threads = dict()
+        self.threads_tiny = list()
         self.data = dict()
         self.logging_bools = dict()
 
@@ -102,6 +110,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.app.quit()
 
     def initialize_all_windows(self):
+        """window and GUI initialisatoins"""
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -120,34 +129,40 @@ class mainWindow(QtWidgets.QMainWindow):
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
 
-    def running_thread(self, worker, dataname, threadname, info=None, **kwargs):
-        """Set up a new Thread, and insert the worker class, which runs in the new thread
-            Args:
-                worker - the class (as a class instance) which should run inside
-                dataname - the name for which a dict entry should be made in the self.data dict,
-                        in case the Thread is passing data (e.g. sensors, instrument status...)
-                threadname - the name as which the thread will be listed in self.threads,
-                        to be used for e.g. signals
-                        listing the thread in self.threads is also important to protect it
-                        from garbage collection!
-            Returns:
-                the worker class instance, useful for connecting signals directly
+    def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
+            run a specified worker class in a thread
+                this should be a device controlling thread
+            add a corresponding entry in the data dictionary
+            add the thread and worker-class instances to the threads dictionary
 
-        thread = QThread()
-        self.threads[threadname] = (worker, thread)
-        worker.moveToThread(thread)
+            return: the worker-class instance
+        """
+        worker, thread = running_thread(worker)
 
-        if dataname in self.data or dataname == None:
+        if dataname in self.data or dataname is None:
             pass
         else:
             with self.dataLock:
                 self.data[dataname] = dict()
-
-        thread.started.connect(worker.work)
-        thread.start()
+        self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
+
         return worker
+
+    def running_thread_tiny(self, worker):
+        """
+            run a specified worker class in a thread
+                this is a small worker which performs one single task
+                intended to be used in conjuction with util.Workerclass
+
+            return: None
+        """
+        worker, thread = running_thread(worker)
+        self.threads_tiny.append((worker, thread))
+        # TODO there should be another worker, who regularly checks which of these
+        # are still alive, and removes the dead ones from the list, in order
+        # to prevent a memory leak
 
     def stopping_thread(self, threadname):
         """Stop the thread specified by the argument threadname, delete its entry in self.threads"""
@@ -182,6 +197,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_plotLive.triggered.connect(
             self.show_dataplotlive_configuration)
         self.windows_plotting = []
+        self.plotting_window_count = 0
 
         #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
         # x,y1.. is for tablenames, x,y1.._plot is for column names in the
@@ -296,8 +312,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        self.dataplot_live_conf.buttonBox.clicked.connect(
-            lambda: self.dataplot_live_conf.close())
+        # self.dataplot_live_conf.buttonBox.clicked.connect(
+        #     lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -319,7 +335,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     value_names = list(self.data_live[instrument_name])
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
         # elif livevsdb == "DB":
         #     axis = []
@@ -351,7 +367,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         instrument_name][value_name]
                 except KeyError:
                     self.show_error_general('plotting: do not choose "-" '
-                                      'please, there is nothing behind it!')
+                                            'please, there is nothing behind it!')
                     return
 
     def plotting_display(self, dataplot):
@@ -384,16 +400,27 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(
                 'Plotting: You did not choose a single Y axis to plot, try again!')
             return
+        self.plotting_window_count += 1
+        number = deepcopy(self.plotting_window_count)
         window = Window_plotting(data=data,
                                  label_x=dataplot.axes['X'],
                                  label_y=label_y,
-                                 legend_labels=legend_labels)
-        window.show()
-        window.sig_closing.connect(lambda: window.setParent(None))
+                                 legend_labels=legend_labels,
+                                 lock=self.dataLock_live,
+                                 number=number)
+        # print(type(window))
+        window.sig_closing.connect(lambda:
+                                   self.plotting_deleting_window(window, number))
         self.windows_plotting.append(window)
+        window.show()
 
-    def deleting_object(self, object_to_delete):
-        del object_to_delete
+    def plotting_deleting_window(self, window, number):
+        """delete the window entry in the list of windows
+            was planned to fix the memory leak, not sure if it really works
+        """
+        for ct, w in enumerate(self.windows_plotting):
+            if w.number == number:
+                del self.windows_plotting[ct]
 
     def selection_y1(self, dataplot, livevsdb):
         dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
@@ -506,12 +533,15 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
         """method to start/stop the thread which controls the Oxford ITC"""
+        global Oxford
+        O_ITC = reload(Oxford.ITC_control)
+        ITC_Updater = O_ITC.ITC_Updater
 
         if boolean:
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = self.running_thread(ITC_Updater(
+                getInfodata = running_thread_control(ITC_Updater(
                     ITC_Instrumentadress), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
@@ -548,10 +578,44 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.spinsetTemp.editingFinished.connect(
                     lambda: self.threads['control_ITC'][0].setTemperature())
 
+                def change_gas(self):
+                    """to be worked in a separate worker thread (separate
+                        time.sleep() from GUI)
+                        change the opening percentage of the needle valve in a
+                        repeatable fashion (go to zero, go to new value)
+                        disable the GUI element during the operation
+
+                        should be changed, to use signals to change GUI,
+                        and possibly timers instead of time.sleep()
+                        (QTimer not usefil in the second case)
+                    """
+                    gas_new = self.threads['control_ITC'][0].set_gas_output
+                    with self.dataLock:
+                        gas_old = int(self.data['ITC']['gas_flow_output'])
+                    if gas_new == 0:
+                        time_wait = 60 / 1e2 * gas_old + 5
+                        self.threads['control_ITC'][0].setGasOutput()
+
+                        self.ITC_window.spinsetGasOutput.setEnabled(False)
+                        time.sleep(time_wait)
+                        self.ITC_window.spinsetGasOutput.setEnabled(True)
+                    else:
+                        time1 = 60 / 1e2 * gas_old + 5
+                        time2 = 60 / 1e2 * gas_new + 5
+                        self.threads['control_ITC'][0].gettoset_GasOutput(0)
+                        self.threads['control_ITC'][0].setGasOutput()
+                        self.ITC_window.spinsetGasOutput.setEnabled(False)
+                        time.sleep(time1)
+                        self.threads['control_ITC'][
+                            0].gettoset_GasOutput(gas_new)
+                        self.threads['control_ITC'][0].setGasOutput()
+                        time.sleep(time2)
+                        self.ITC_window.spinsetGasOutput.setEnabled(True)
+
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setGasOutput())
+                    lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
@@ -734,10 +798,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ILM(self, boolean):
         """start/stop the Level Meter thread"""
-
+        global Oxford
+        O_ILM = reload(Oxford.ILM_control)
+        ILM_Updater = O_ILM.ILM_Updater
         if boolean:
             try:
-                getInfodata = self.running_thread(ILM_Updater(
+                getInfodata = running_thread_control(ILM_Updater(
                     InstrumentAddress=ILM_Instrumentadress), 'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
@@ -822,10 +888,13 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_IPS(self, boolean):
         """start/stop the Powersupply thread"""
+        global Oxford
+        O_IPS = reload(Oxford.IPS_control)
+        IPS_Updater = O_IPS.IPS_Updater
 
         if boolean:
             try:
-                getInfodata = self.running_thread(IPS_Updater(
+                getInfodata = running_thread_control(IPS_Updater(
                     InstrumentAddress=IPS_Instrumentadress), 'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
@@ -944,31 +1013,36 @@ class mainWindow(QtWidgets.QMainWindow):
         if not self.LakeShore350_Kpmin:
             self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
                                            Sensors=dict(
-                Sensor_1_K=[0] * length,
-                Sensor_2_K=[0] * length,
-                Sensor_3_K=[0] * length,
-                Sensor_4_K=[0] * length),
+                Sensor_1_K=[np.nan] * length,
+                Sensor_2_K=[np.nan] * length,
+                Sensor_3_K=[np.nan] * length,
+                Sensor_4_K=[np.nan] * length),
                 length=length)
         elif self.LakeShore350_Kpmin['length'] > length:
-            self.LakeShore350_Kpmin[
-                'newtime'] = self.LakeShore350_Kpmin['newtime'][:length]
+            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
+                'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor = sensor[:length]
+                self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
+                    'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
             self.LakeShore350_Kpmin['length'] = length
         elif self.LakeShore350_Kpmin['length'] < length:
-            self.LakeShore350_Kpmin[
-                'newtime'] += [time.time()] * (length - self.LakeShore350_Kpmin['length'])
+            self.LakeShore350_Kpmin['newtime'] = [time.time(
+            )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
             for sensor in self.LakeShore350_Kpmin['Sensors']:
-                sensor += [0] * (length - self.LakeShore350_Kpmin['length'])
+                self.LakeShore350_Kpmin['Sensors'][sensor] = [
+                    np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
             self.LakeShore350_Kpmin['length'] = length
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
         """start/stop the LakeShore350 thread"""
+        global LakeShore
+        LC = reload(LakeShore.LakeShore350_Control)
+        LakeShore350_Updater = LC.LakeShore350_Updater
 
         if boolean:
             try:
-                getInfodata = self.running_thread(LakeShore350_Updater(
+                getInfodata = running_thread_control(LakeShore350_Updater(
                     InstrumentAddress=LakeShore_InstrumentAddress), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
@@ -1164,7 +1238,7 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda: self.action_show_Keithley.setChecked(False))
 
         # -------- Nanovoltmeters
-        confdict2182_1 = dict(clas=Keithley2182_Updater,
+        confdict2182_1 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_1_InstrumentAddress,
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
@@ -1177,7 +1251,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
 
-        confdict2182_2 = dict(clas=Keithley2182_Updater,
+        confdict2182_2 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
@@ -1190,7 +1264,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
 
-        confdict2182_3 = dict(clas=Keithley2182_Updater,
+        confdict2182_3 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
@@ -1204,7 +1278,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
 
         # -------- Current Sources
-        confdict6221_1 = dict(clas=Keithley6221_Updater,
+        confdict6221_1 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_1_InstrumentAddress,
                               dataname='Keithley6221_1',
                               threadname='control_Keithley6221_1',
@@ -1212,7 +1286,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.action_run_Current_1)
 
-        confdict6221_2 = dict(clas=Keithley6221_Updater,
+        confdict6221_2 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_2_InstrumentAddress,
                               dataname='Keithley6221_2',
                               threadname='control_Keithley6221_2',
@@ -1237,10 +1311,20 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_Keithley(self, boolean, clas, instradress, dataname, threadname, GUI_menu_action, **kwargs):
         """start/stop the Keithley thread"""
+        global Keithley
+        # global Keithley6221_Updater
+        # global Keithley2182_Updater
+        K_2182 = reload(Keithley.Keithley2182_Control)
+        K_6221 = reload(Keithley.Keithley6221_Control)
+
+        if 'GUI_number2' in kwargs:
+            clas = K_6221.Keithley6221_Updater
+        else:
+            clas = K_2182.Keithley2182_Updater
 
         if boolean:
             try:
-                worker = self.running_thread(
+                worker = running_thread_control(
                     clas(InstrumentAddress=instradress), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
@@ -1249,16 +1333,20 @@ class mainWindow(QtWidgets.QMainWindow):
                 worker.sig_assertion.connect(self.show_error_general)
                 worker.sig_visatimeout.connect(
                     lambda: self.show_error_general('{0:s}: timeout'.format(dataname)))
-                
+
                 # display data given by nanovoltmeters & calculate resistance
 
                 # setting values for nanovoltmeters
                 if 'GUI_number1' in kwargs:
-                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleDisplay(value))
-                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutozero(value))
-                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
-                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(lambda value: self.threads[threadname][0].ToggleAutorange(value))
-                    
+                    kwargs['GUI_CBox_Display'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleDisplay(value))
+                    kwargs['GUI_CBox_Autozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutozero(value))
+                    kwargs['GUI_CBox_FronAutozero'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
+                    kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(
+                        lambda value: self.threads[threadname][0].ToggleAutorange(value))
+
                 # setting values for current source
 
                 # setting Keithley values for current source by GUI Keithley
@@ -1346,10 +1434,6 @@ class mainWindow(QtWidgets.QMainWindow):
         #            self.Keithley_window.checkBox_FrontAutozero_2.setChecked(True)
         #            self.Keithley_window.checkBox_FrontAutozero_3.setChecked(True)
 
-
-
-
-
     @pyqtSlot()
     def Keithley_checkAutozero(self, value):
         pass
@@ -1427,7 +1511,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = self.running_thread(main_Logger(self), None, 'logger')
+            logger = running_thread_control(
+                main_Logger(self), None, 'logger')
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1452,7 +1537,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             # try:
 
-            getInfodata = self.running_thread(
+            getInfodata = running_thread_control(
                 live_Logger(self), None, 'control_Logging_live')
             getInfodata.sig_assertion.connect(self.show_error_general)
 
@@ -1483,7 +1568,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def run_OneShot(self, boolean):
         if boolean:
 
-            OneShot = self.running_thread(
+            OneShot = running_thread_control(
                 OneShot_Thread(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
@@ -1501,7 +1586,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
-            self.running_thread(measurement_Logger(self), None, 'save_OneShot')
+            running_thread_control(
+                measurement_Logger(self), None, 'save_OneShot')
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')
@@ -1509,12 +1595,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(False)
 
     def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None, 
+        current_sources = [None,
                            'control_Keithley6221_1',
                            'control_Keithley6221_2']
-        Nanovolts = [None, 
+        Nanovolts = [None,
                      'control_Keithley2182_1',
-                     'control_Keithley2182_2', 
+                     'control_Keithley2182_2',
                      'control_Keithley2182_3']
         if mode == "RES":
             OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
@@ -1523,7 +1609,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-               'c:\\', "Datafiles (*.dat)")
+                                                                  'c:\\', "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         # print(OneShot)

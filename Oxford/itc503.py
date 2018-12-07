@@ -23,7 +23,7 @@ Classes:
 """
 import logging
 
-from Oxford.Drivers.driver import AbstractSerialDeviceDriver
+from Oxford.driver import AbstractSerialDeviceDriver
 import visa
 from pyvisa.errors import VisaIOError
 
@@ -36,12 +36,12 @@ try:
     # the pyvisa manager we'll use to connect to the GPIB resources
     resource_manager = visa.ResourceManager()
 except OSError:
-    logger.exception("\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
 class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
-
 
     def __init__(self, **kwargs):
         super(itc503, self).__init__(**kwargs)
@@ -51,7 +51,6 @@ class itc503(AbstractSerialDeviceDriver):
         self.delay = 0.06
 
         # self.setControl() # done in thread
-
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the ITC 503
@@ -81,9 +80,10 @@ class itc503(AbstractSerialDeviceDriver):
                 above base temperature for any system.
         """
         if not isinstance(temperature, (int, float)):
-            raise AssertionError('ITC: setTemperature: argument must be a number')
+            raise AssertionError(
+                'ITC: setTemperature: argument must be a number')
 
-        command = '$T{}'.format(temperature)# + str(int(1000*temperature))
+        command = '$T{}'.format(temperature)  # + str(int(1000*temperature))
         self.write(command)
 
     def getValue(self, variable=0):
@@ -104,10 +104,11 @@ class itc503(AbstractSerialDeviceDriver):
         """
         if not isinstance(variable, int):
             raise AssertionError('ITC: getValue: argument must be integer')
-        if variable not in range(0,11):
-            raise AssertionError('ITC: getValue: Argument is not a valid number.')
+        if variable not in range(0, 11):
+            raise AssertionError(
+                'ITC: getValue: Argument is not a valid number.')
 
-        ### clear any buffer by reading, ignoring all timeout errors
+        # clear any buffer by reading, ignoring all timeout errors
         # self.clear_buffers()
         # retrieve value
         value = self.query('R{}'.format(variable))
@@ -137,7 +138,6 @@ class itc503(AbstractSerialDeviceDriver):
         #     print('ITC: Assertion: T')
         #     self.read()
         #     value = self.getValue(variable)
-
         return float(value.strip('R+'))
 
     def setProportional(self, prop=0):
@@ -177,7 +177,7 @@ class itc503(AbstractSerialDeviceDriver):
                     the heater on the front panel.
         """
 
-        if sensor not in [1,2,3]:
+        if sensor not in [1, 2, 3]:
             raise AssertionError('ITC: setHeaterSensor: Heater not on list.')
 
         self.write('$H{}'.format(sensor))
@@ -239,12 +239,13 @@ class itc503(AbstractSerialDeviceDriver):
                 sweep table (see _setSweepStep).
         """
         if not isinstance(sweep_parameters, dict):
-            raise AssertionError('ITC: setSweeps: Input should be a dict (of dicts)!')
-        steps = range(1,17)
+            raise AssertionError(
+                'ITC: setSweeps: Input should be a dict (of dicts)!')
+        steps = range(1, 17)
         parameters_keys = sweep_parameters.keys()
-        null_parameter = {  'set_point' : 5,
-                            'sweep_time': 0,
-                            'hold_time' : 0  }
+        null_parameter = {'set_point': 5,
+                          'sweep_time': 0,
+                          'hold_time': 0}
 
         for step in steps:
             if step in parameters_keys:
@@ -270,11 +271,11 @@ class itc503(AbstractSerialDeviceDriver):
         self._visa_resource.write(step_setting)
 
         setpoint_setting = '$s{}'.format(
-                            sweep_table['set_point'])
+            sweep_table['set_point'])
         sweeptime_setting = '$s{}'.format(
                             sweep_table['sweep_time'])
         holdtime_setting = '$s{}'.format(
-                            sweep_table['hold_time'])
+            sweep_table['hold_time'])
 
         self._visa_resource.write('$y1')
         self._visa_resource.write(setpoint_setting)
@@ -303,7 +304,8 @@ class itc503(AbstractSerialDeviceDriver):
         """start walking through the sweep table at a specific point"""
 
         if 32 > point < 2:
-            raise AssertionError('ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
+            raise AssertionError(
+                'ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
         self.write('$S{}'.format(point))
 
     def SweepStop(self):

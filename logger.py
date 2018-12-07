@@ -10,6 +10,7 @@ import pickle
 import os
 import sqlite3
 import numpy as np
+from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
 import math
 
@@ -150,6 +151,8 @@ class Logger_configuration(Window_ui):
             lambda value: self.setValue('general', 'interval_live', value))
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
+        self.lineFilelocation.textEdited.connect(
+            lambda value: self.setValue('general', 'logfile_location', value))
 
         self.buttonBox_finish.accepted.connect(
             lambda: self.sig_send_conf.emit(deepcopy(self.conf)))
@@ -166,6 +169,7 @@ class Logger_configuration(Window_ui):
     def setValue(self, instrument, value, bools):
         """set a bool value according to the instrument and specific"""
         self.conf[instrument][value] = bools
+        # print(f'setting {value} to {bools}')
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
@@ -267,6 +271,7 @@ class main_Logger(AbstractLoopThread):
                 so that the configuring thread will be quit.
 
         """
+        # print('updating conf:', conf)
         self.conf = conf
         self.interval = self.conf['general']['interval']
         self.configuration_done = True
@@ -477,7 +482,6 @@ class main_Logger(AbstractLoopThread):
                 self.local_list.append(data)
             self.sig_assertion.emit(er.args[0])
             print(er)
-
         # data.update(timedict)
 
 
@@ -487,17 +491,37 @@ class live_Logger(AbstractLoopThread):
     def __init__(self, mainthread, **kwargs):
         super(live_Logger, self).__init__()
         self.mainthread = mainthread
-        self.interval = 5
-        self.length_list = 1000
+        self.interval = 1
+        self.length_list = 60
+        self.data = mainthread.data
+        self.dataLock = mainthread.dataLock
+        self.dataLock_live = mainthread.dataLock_live
+
+        # self.time_names = ['logging_timeseconds', 'timeseconds',
+        # 'logging_ReadableTime', 'ReadableTime',
+        # 'logging_SearchableTime', 'SearchableTime']
+        self.calculations = {'ar_mean': lambda time, value: np.nanmean(value),
+                             'stddev': lambda time, value: np.nanstd(value),
+                             'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+                             'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+                             'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+                             # 'test': lambda time, value: print(time),
+                             # still need to convert to minutes
+                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
+                             'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
+                             }
+        self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
+                       # minutes,
+                       'slope_rel': lambda value, mean: value[0][1] / mean * 60,
+                       'slope_residuals': lambda value, mean: value[1][0][0] * 60 if len(value[1][0]) > 0 else np.nan}
+        self.noCalc = ['time', 'Time', 'logging',
+                       'band', 'Loop', 'Range', 'Setup', 'calc']
         self.pre_init()
         self.initialisation()
-        self.mainthread.sig_running_new_thread.connect(self.pre_init)
-        self.mainthread.sig_running_new_thread.connect(self.initialisation)
-        self.mainthread.sig_logging_newconf.connect(self.update_conf)
+        mainthread.sig_running_new_thread.connect(self.pre_init)
+        mainthread.sig_running_new_thread.connect(self.initialisation)
+        mainthread.sig_logging_newconf.connect(self.update_conf)
 
-        self.time_names = ['logging_timeseconds', 'timeseconds',
-                           'logging_ReadableTime', 'ReadableTime',
-                           'logging_SearchableTime', 'SearchableTime']
         # buggy because it will erase all previous data!
 
         # QTimer.singleShot(*1e3, self.worker)
@@ -539,26 +563,92 @@ class live_Logger(AbstractLoopThread):
         """
         try:
             # print("live logger trying to log")
-            with self.mainthread.dataLock:
-                with self.mainthread.dataLock_live:
-                    # print(self.mainthread.data_live)
-                    for instr in self.mainthread.data:
+            with self.dataLock_live:
+                with self.dataLock:
+                    # print(self.data_live)
+                    for instr in self.data:
                         timedict = dict(logging_timeseconds=time.time() - self.startingtime,
-                                        logging_ReadableTime=convert_time(
-                                            time.time()),
-                                        logging_SearchableTime=convert_time_searchable(time.time()))
-                        dic = deepcopy(self.mainthread.data[instr])
+                                        # logging_ReadableTime=convert_time(
+                                        # time.time()),
+                                        # logging_SearchableTime=convert_time_searchable(time.time())
+                                        )
+                        dic = deepcopy(self.data[instr])
                         dic.update(timedict)
+
+                        # print(times[0])
                         for varkey in dic:
-                            self.mainthread.data_live[instr][
+                            # print(instr, varkey)
+                            self.data_live[instr][
                                 varkey].append(dic[varkey])
-                            if len(self.mainthread.data_live[instr][varkey]) > self.length_list:
-                                self.mainthread.data_live[instr][varkey].pop(0)
+                        if self.time_init:
+                            times = [float(x) for x in self.data_live[
+                                instr]['logging_timeseconds']]
+                        else:
+                            times = [0]
+                    # print('first time')
+                for instr in self.data_live:
+                    # print('before ', len(times), len(self.data_live[instr]['logging_timeseconds']))
+                    for varkey in self.data_live[instr]:
+                        # if 'calc' not in varkey:
+                        # print(instr, varkey)
+                        for calc in self.calculations:
+                            # print(varkey)
+                            if all([x not in varkey for x in self.noCalc]):
+                                # print(varkey, calc)
+                                if self.time_init:
+                                    self.calculations_perform(
+                                        instr, varkey, calc, times)
+                        if self.count > self.length_list:
+                            self.counting = False
+                            # print('pop at general ', instr, varkey)
+                            self.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
             self.sig_assertion.emit("live logger" + key.args[0])
+        self.time_init = True
+        if self.counting == True:
+            self.count += 1
+
+    def calculations_perform(self, instr, varkey, calc, times):
+        """
+            perform one specified calculation on all corresponding datasets
+            
+            return: None
+        """
+        if calc == 'slope':
+            # print('fitting', instr, varkey)
+            # print(self.data_live[instr][varkey])
+            fit = self.calculations[calc](times, self.data_live[instr][varkey])
+            for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
+                self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
+                    fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
+        elif calc == 'slope_of_mean':
+            times_spec = deepcopy(times)
+            # if self.counting:
+            # print('cutting the time')
+            while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
+                times_spec.pop(0)
+            # print(len(times_spec), len(self.data_live[instr][
+                # '{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
+                self.calculations[calc](times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+        else:
+            try:
+                self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
+                    self.calculations[calc](times, self.data_live[instr][varkey]))
+
+            except TypeError:
+                # raise AssertionError(e_type.args[0])
+                # print('TYPE CALC')
+                pass
+            except ValueError as e_val:
+                raise AssertionError(e_val.args[0])
+        # if not self.counting:
+        #     print('pop at calc: ', instr, varkey, calc)
+        #     self.data_live[instr][
+        #         '{key}_calc_{c}'.format(key=varkey, c=calc)].pop(0)
 
     def pre_init(self):
         self.initialised = False
@@ -571,18 +661,47 @@ class live_Logger(AbstractLoopThread):
         """
         self.startingtime = time.time()
         timedict = dict(logging_timeseconds=0,
-                        logging_ReadableTime=0,
-                        logging_SearchableTime=0)
-        with self.mainthread.dataLock:
-            with self.mainthread.dataLock_live:
-                self.mainthread.data_live = deepcopy(self.mainthread.data)
-                for instrument in self.mainthread.data:
-                    dic = self.mainthread.data[instrument]
+                        # logging_ReadableTime=0,
+                        # logging_SearchableTime=0
+                        )
+        self.time_init = False
+        self.count = 0
+        self.counting = True
+        with self.dataLock:
+            with self.dataLock_live:
+                self.mainthread.data_live = deepcopy(self.data)
+                self.data_live = self.mainthread.data_live
+                for instrument in self.data:
+                    dic = self.data[instrument]
                     dic.update(timedict)
-                    self.mainthread.data_live[instrument].update(timedict)
+                    self.data_live[instrument].update(timedict)
                     for variablekey in dic:
-                        self.mainthread.data_live[instrument][variablekey] = []
+                        self.data_live[instrument][variablekey] = []
+                        if all([x not in variablekey for x in self.noCalc]):
+                            for calc in self.calculations:
+                                self.data_live[instrument][
+                                    '{key}_calc_{c}'.format(key=variablekey, c=calc)] = []
+                            for calc in self.slopes:
+                                self.data_live[instrument][
+                                    '{key}_calc_{c}'.format(key=variablekey, c=calc)] = []
         self.initialised = True
+
+    def setLength(self, length):
+        """set the number of measurements the calculation should be conducted over"""
+
+        if self.length_list > length:
+            with self.dataLock_live:
+                for instr in self.data_live:
+                    for varkey in self.data_live[instr]:
+                        self.data_live[instr][varkey] = self.data_live[
+                            instr][varkey][(self.length_list - length):]
+        elif self.length_list < length:
+            with self.dataLock_live:
+                for instr in self.data_live:
+                    for varkey in self.data_live[instr]:
+                        self.data_live[instr][varkey] = [
+                            np.nan] * (length - self.length_list) + self.data_live[instr][varkey]
+        self.length_list = length
 
     def update_conf(self, conf):
         """

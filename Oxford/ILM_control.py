@@ -1,10 +1,13 @@
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
-from .Drivers.ilm200 import ilm211
+# from .Drivers.ilm211 import ilm211
+import Oxford
+# import Oxford.Drivers as Drivers
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
+from importlib import reload
 # from util import AbstractThread
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -36,8 +39,8 @@ class ILM_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAddress=''):
         super().__init__()
-
-        # here the class instance of the ITC should be handed
+        global Oxford
+        ilm211 = reload(Oxford.ilm211).ilm211
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'ILM_Updater ' + InstrumentAddress
         self.control_state = 3
