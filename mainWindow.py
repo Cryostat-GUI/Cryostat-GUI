@@ -541,7 +541,7 @@ class mainWindow(QtWidgets.QMainWindow):
             try:
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
-                getInfodata = running_thread_control(ITC_Updater(
+                getInfodata = self.running_thread_control(ITC_Updater(
                     ITC_Instrumentadress), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
@@ -803,7 +803,7 @@ class mainWindow(QtWidgets.QMainWindow):
         ILM_Updater = O_ILM.ILM_Updater
         if boolean:
             try:
-                getInfodata = running_thread_control(ILM_Updater(
+                getInfodata = self.running_thread_control(ILM_Updater(
                     InstrumentAddress=ILM_Instrumentadress), 'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
@@ -894,7 +894,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                getInfodata = running_thread_control(IPS_Updater(
+                getInfodata = self.running_thread_control(IPS_Updater(
                     InstrumentAddress=IPS_Instrumentadress), 'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
@@ -1042,7 +1042,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                getInfodata = running_thread_control(LakeShore350_Updater(
+                getInfodata = self.running_thread_control(LakeShore350_Updater(
                     InstrumentAddress=LakeShore_InstrumentAddress), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
@@ -1324,7 +1324,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if boolean:
             try:
-                worker = running_thread_control(
+                worker = self.running_thread_control(
                     clas(InstrumentAddress=instradress), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
@@ -1511,7 +1511,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = running_thread_control(
+            logger = self.running_thread_control(
                 main_Logger(self), None, 'logger')
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
@@ -1537,7 +1537,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             # try:
 
-            getInfodata = running_thread_control(
+            getInfodata = self.running_thread_control(
                 live_Logger(self), None, 'control_Logging_live')
             getInfodata.sig_assertion.connect(self.show_error_general)
 
@@ -1568,7 +1568,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def run_OneShot(self, boolean):
         if boolean:
 
-            OneShot = running_thread_control(
+            OneShot = self.running_thread_control(
                 OneShot_Thread(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
@@ -1586,7 +1586,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
-            running_thread_control(
+            self.running_thread_control(
                 measurement_Logger(self), None, 'save_OneShot')
             # this is for saving the respective data
         else:
