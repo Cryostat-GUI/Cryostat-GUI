@@ -32,7 +32,8 @@ class Keithley2182_Updater(AbstractLoopThread):
         global Keithley
         K_2182 = reload(Keithley.Keithley2182)
 
-        self.Keithley2182 = K_2182.Keithley2182(InstrumentAddress=InstrumentAddress)
+        self.Keithley2182 = K_2182.Keithley2182(
+            InstrumentAddress=InstrumentAddress)
         self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
 
     # @control_checks
@@ -64,7 +65,6 @@ class Keithley2182_Updater(AbstractLoopThread):
         else:
             self.Keithley2182.DisplayOff()
 
-
     @pyqtSlot()
     @ExceptionHandling
     def ToggleFrontAutozero(self, bools):
@@ -72,7 +72,6 @@ class Keithley2182_Updater(AbstractLoopThread):
             self.Keithley2182.FrontAutozeroOn()
         else:
             self.Keithley2182.FrontAutozeroOff()
-
 
     @pyqtSlot()
     @ExceptionHandling
@@ -82,7 +81,6 @@ class Keithley2182_Updater(AbstractLoopThread):
         else:
             self.Keithley2182.AutozeroOff()
 
-
     @pyqtSlot()
     @ExceptionHandling
     def ToggleAutorange(self, bools):
@@ -90,4 +88,3 @@ class Keithley2182_Updater(AbstractLoopThread):
             self.Keithley2182.AutorangeOn()
         else:
             self.Keithley2182.AutorangeOff()
-

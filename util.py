@@ -66,6 +66,9 @@ def loopcontrol_threads(threads, loopcondition):
 
 
 def shaping(entry):
+    """adjust the shape of data-arrays given to matplotlib,
+        to prevent mismatches
+    """
     ent0 = deepcopy(np.array(entry[0]))
     ent1 = deepcopy(np.array(entry[1]))
     if ent0.shape > ent1.shape:
@@ -79,8 +82,86 @@ def shaping(entry):
     return ent0, ent1
 
 
+def running_thread(worker, info=None, **kwargs):
+    """Set up a new Thread, and insert the worker class, which runs in the new thread
+        Args:
+            worker - the class (as a class instance) which should run inside
+            dataname - the name for which a dict entry should be made in the self.data dict,
+                    in case the Thread is passing data (e.g. sensors, instrument status...)
+            threadname - the name as which the thread will be listed in self.threads,
+                    to be used for e.g. signals
+                    listing the thread in self.threads is also important to protect it
+                    from garbage collection!
+        Returns:
+            the worker class instance, useful for connecting signals directly
+    """
+
+    thread = QThread()
+    worker.moveToThread(thread)
+
+    thread.started.connect(worker.work)
+    thread.start()
+    return worker, thread
+
+
+def ExceptionHandling(func):
+    @functools.wraps(func)
+    def wrapper_ExceptionHandling(*args, **kwargs):
+        if inspect.isclass(type(args[0])):
+            try:
+                return func(*args, **kwargs)
+            except AssertionError as e_ass:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__,
+                    func.__name__,
+                    'Assertion',
+                    e_ass.args[0]))
+            except TypeError as e_type:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__,
+                    func.__name__,
+                    'Type',
+                    e_type.args[0]))
+            except KeyError as e_key:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__,
+                    func.__name__,
+                    'Key',
+                    e_key.args[0]))
+            except ValueError as e_val:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__,
+                    func.__name__,
+                    'Value',
+                    e_val.args[0]))
+            except AttributeError as e_attr:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__,
+                    func.__name__,
+                    'Attribute',
+                    e_attr.args[0]))
+            except NotImplementedError as e_implement:
+                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
+                    args[0].__name__, func.__name__,
+                    'NotImplemented',
+                    e_implement.args[0]))
+            except VisaIOError as e_visa:
+                if isinstance(e_visa, type(args[0].timeouterror)) and e_visa.args == args[0].timeouterror.args:
+                    args[0].sig_visatimeout.emit()
+                else:
+                    args[0].sig_visaerror.emit('{}: {}: {}: {}'.format(
+                        args[0].__name__,
+                        func.__name__,
+                        'VisaIO',
+                        e_visa.args[0]))
+        else:
+            print('There is a bug!! ' + func.__name__)
+    return wrapper_ExceptionHandling
+
+
 class dummy:
     """docstring for dummy"""
+
     def __init__(self):
         pass
 
@@ -141,61 +222,6 @@ class controls_hardware_disabled:
         for thread in self._threads:
             self._threads[thread][0].toggle_frontpanel(True)
         self._lock.release()
-
-
-def ExceptionHandling(func):
-    @functools.wraps(func)
-    def wrapper_ExceptionHandling(*args, **kwargs):
-        if inspect.isclass(type(args[0])):
-            try:
-                return func(*args, **kwargs)
-            except AssertionError as e_ass:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Assertion',
-                    e_ass.args[0]))
-            except TypeError as e_type:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Type',
-                    e_type.args[0]))
-            except KeyError as e_key:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Key',
-                    e_key.args[0]))
-            except ValueError as e_val:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Value',
-                    e_val.args[0]))
-            except AttributeError as e_attr:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Attribute',
-                    e_attr.args[0]))
-            except NotImplementedError as e_implement:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__,
-                    'NotImplemented',
-                    e_implement.args[0]))
-            except VisaIOError as e_visa:
-                if isinstance(e_visa, type(args[0].timeouterror)) and e_visa.args == args[0].timeouterror.args:
-                    args[0].sig_visatimeout.emit()
-                else:
-                    args[0].sig_visaerror.emit('{}: {}: {}: {}'.format(
-                        args[0].__name__,
-                        func.__name__,
-                        'VisaIO',
-                        e_visa.args[0]))
-        else:
-            print('There is a bug!! ' + func.__name__)
-    return wrapper_ExceptionHandling
 
 
 class AbstractThread(QObject):
@@ -284,6 +310,7 @@ class AbstractEventhandlingThread(AbstractThread):
 
 class Workerclass(QObject):
     """tiny class for performing one single task ()"""
+
     def __init__(self, workfunction, *args, **kwargs):
         super(Workerclass, self).__init__()
         self.workfunction = workfunction
@@ -291,8 +318,9 @@ class Workerclass(QObject):
         self.kwargs = kwargs
 
     def work(self):
+        """run the passed function"""
         self.workfunction(*self.args, **self.kwargs)
-        
+
 
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
@@ -394,7 +422,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         except ValueError as e_val:
             print('ValueError: ', e_val.args[0])
             # for x in self.data:
-                # print(x)
+            # print(x)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)
 

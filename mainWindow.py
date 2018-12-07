@@ -64,6 +64,7 @@ from util import Window_ui, Window_plotting
 from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
+from util import running_thread
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -109,6 +110,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.app.quit()
 
     def initialize_all_windows(self):
+        """window and GUI initialisatoins"""
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -127,42 +129,36 @@ class mainWindow(QtWidgets.QMainWindow):
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
 
-    def running_thread(self, worker, info=None, **kwargs):
-        """Set up a new Thread, and insert the worker class, which runs in the new thread
-            Args:
-                worker - the class (as a class instance) which should run inside
-                dataname - the name for which a dict entry should be made in the self.data dict,
-                        in case the Thread is passing data (e.g. sensors, instrument status...)
-                threadname - the name as which the thread will be listed in self.threads,
-                        to be used for e.g. signals
-                        listing the thread in self.threads is also important to protect it
-                        from garbage collection!
-            Returns:
-                the worker class instance, useful for connecting signals directly
-        """
-
-        thread = QThread()
-        worker.moveToThread(thread)
-
-        thread.started.connect(worker.work)
-        thread.start()
-        return worker, thread
-
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
-        worker, thread = self.running_thread(worker)
+        """
+            run a specified worker class in a thread
+                this should be a device controlling thread
+            add a corresponding entry in the data dictionary
+            add the thread and worker-class instances to the threads dictionary
+
+            return: the worker-class instance
+        """
+        worker, thread = running_thread(worker)
 
         if dataname in self.data or dataname is None:
             pass
         else:
             with self.dataLock:
-                self.data[dataname] = dict()        
+                self.data[dataname] = dict()
         self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
         return worker
-        
+
     def running_thread_tiny(self, worker):
-        worker, thread = self.running_thread(worker)
+        """
+            run a specified worker class in a thread
+                this is a small worker which performs one single task
+                intended to be used in conjuction with util.Workerclass
+
+            return: None
+        """
+        worker, thread = running_thread(worker)
         self.threads_tiny.append((worker, thread))
         # TODO there should be another worker, who regularly checks which of these
         # are still alive, and removes the dead ones from the list, in order
@@ -419,6 +415,9 @@ class mainWindow(QtWidgets.QMainWindow):
         window.show()
 
     def plotting_deleting_window(self, window, number):
+        """delete the window entry in the list of windows
+            was planned to fix the memory leak, not sure if it really works
+        """
         for ct, w in enumerate(self.windows_plotting):
             if w.number == number:
                 del self.windows_plotting[ct]
@@ -580,24 +579,35 @@ class mainWindow(QtWidgets.QMainWindow):
                     lambda: self.threads['control_ITC'][0].setTemperature())
 
                 def change_gas(self):
+                    """to be worked in a separate worker thread (separate
+                        time.sleep() from GUI)
+                        change the opening percentage of the needle valve in a
+                        repeatable fashion (go to zero, go to new value)
+                        disable the GUI element during the operation
+
+                        should be changed, to use signals to change GUI,
+                        and possibly timers instead of time.sleep()
+                        (QTimer not usefil in the second case)
+                    """
                     gas_new = self.threads['control_ITC'][0].set_gas_output
                     with self.dataLock:
                         gas_old = int(self.data['ITC']['gas_flow_output'])
                     if gas_new == 0:
-                        time_wait = 60/1e2*gas_old + 5
+                        time_wait = 60 / 1e2 * gas_old + 5
                         self.threads['control_ITC'][0].setGasOutput()
 
                         self.ITC_window.spinsetGasOutput.setEnabled(False)
                         time.sleep(time_wait)
                         self.ITC_window.spinsetGasOutput.setEnabled(True)
                     else:
-                        time1 = 60/1e2*gas_old + 5
-                        time2 = 60/1e2*gas_new + 5
+                        time1 = 60 / 1e2 * gas_old + 5
+                        time2 = 60 / 1e2 * gas_new + 5
                         self.threads['control_ITC'][0].gettoset_GasOutput(0)
                         self.threads['control_ITC'][0].setGasOutput()
                         self.ITC_window.spinsetGasOutput.setEnabled(False)
                         time.sleep(time1)
-                        self.threads['control_ITC'][0].gettoset_GasOutput(gas_new)
+                        self.threads['control_ITC'][
+                            0].gettoset_GasOutput(gas_new)
                         self.threads['control_ITC'][0].setGasOutput()
                         time.sleep(time2)
                         self.ITC_window.spinsetGasOutput.setEnabled(True)
@@ -1302,8 +1312,8 @@ class mainWindow(QtWidgets.QMainWindow):
     def run_Keithley(self, boolean, clas, instradress, dataname, threadname, GUI_menu_action, **kwargs):
         """start/stop the Keithley thread"""
         global Keithley
-        global Keithley6221_Updater
-        global Keithley2182_Updater
+        # global Keithley6221_Updater
+        # global Keithley2182_Updater
         K_2182 = reload(Keithley.Keithley2182_Control)
         K_6221 = reload(Keithley.Keithley6221_Control)
 
@@ -1501,7 +1511,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = self.running_thread_control(main_Logger(self), None, 'logger')
+            logger = self.running_thread_control(
+                main_Logger(self), None, 'logger')
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1575,7 +1586,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
-            self.running_thread_control(measurement_Logger(self), None, 'save_OneShot')
+            self.running_thread_control(
+                measurement_Logger(self), None, 'save_OneShot')
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')

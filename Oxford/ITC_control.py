@@ -215,7 +215,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.ITC.setGasOutput(self.set_gas_output)
 
-
     @pyqtSlot()
     @ExceptionHandling
     def setAutoControl(self, value):

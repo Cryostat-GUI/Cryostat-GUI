@@ -9,7 +9,7 @@ from PyQt5 import QtCore
 
 def ScanningN(start, end, N):
     N += 1
-    stepsize = abs(end-start)/(N-1)
+    stepsize = abs(end - start) / (N - 1)
     stepsize = abs(stepsize) if start < end else -abs(stepsize)
     seq = []
     for __ in range(int(N)):
@@ -37,9 +37,10 @@ class SequenceListModel(QtCore.QAbstractListModel):
 
     sig_send = QtCore.pyqtSignal(list)
 
-    def __init__(self, sequence = [], parent = None):
+    def __init__(self, sequence=None, parent=None):
         QtCore.QAbstractListModel.__init__(self, parent)
-        self.__sequence = sequence
+        self.__sequence = [] if sequence is None else sequence
+
         # self.countinserted = 0
         # self.root = Node(dict(DisplayText='specialnode', arbdata='weha'))
         # self.debug_running()
@@ -48,15 +49,14 @@ class SequenceListModel(QtCore.QAbstractListModel):
         try:
             print(self.__sequence)
         finally:
-            QTimer.singleShot(2*1e3,self.debug_running)
+            QTimer.singleShot(2 * 1e3, self.debug_running)
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 return "Sequence"
             else:
-                return '{}'.format(section+1)
-
+                return '{}'.format(section + 1)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.__sequence)
@@ -82,20 +82,18 @@ class SequenceListModel(QtCore.QAbstractListModel):
     #         return True
     #     return False
 
-
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#| \
-               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
-
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable  # | \
+        # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
 
     #=====================================================#
     #INSERTING & REMOVING
     #=====================================================#
 
     def addItem(self, item):
-        parent=QtCore.QModelIndex()
+        parent = QtCore.QModelIndex()
         # print(item, self.rowCount(), self.__sequence)
         self.beginInsertRows(parent, self.rowCount(), self.rowCount())
         self.__sequence.append(item)
@@ -104,24 +102,21 @@ class SequenceListModel(QtCore.QAbstractListModel):
         self.dataChanged.emit(parent, parent)
 
     def clear_all(self):
-        parent=QtCore.QModelIndex()
+        parent = QtCore.QModelIndex()
         self.beginRemoveRows(parent, self.rowCount(), self.rowCount())
         self.__sequence = []
         self.endRemoveRows()
         self.dataChanged.emit(parent, parent)
 
-
     # -------------------  passing to Gui and writing to file --------------
 
     def pass_data(self):
         # print(self.__sequence)
-        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
+        # important for sequence!
+        self.sig_send.emit(deepcopy(self.__sequence))
         return deepcopy(self.__sequence)
 
-
-
     # ------------------------    drag'n'drop
-
 
     # def insertRows(self, position, rows, parent = QtCore.QModelIndex()):
     #     self.beginInsertRows(parent, position, position + rows - 1)
@@ -158,7 +153,6 @@ class SequenceListModel(QtCore.QAbstractListModel):
     #     print ('dropMimeData {} {} {} {}'.format(data.data('text/xml'), action, row, parent) )
     #     return True
 
-
     # def mimeTypes(self):
     #     types = []
     #     types.append('application/x-ets-qt4-instance')
@@ -168,7 +162,6 @@ class SequenceListModel(QtCore.QAbstractListModel):
     #     node = self.__sequence[index[0].row()]
     #     mimeData = PyMimeData(node)
     #     return mimeData
-
 
     # def dropMimeData(self, mimedata, action, row, column, parentIndex):
     #     if action == QtCore.Qt.IgnoreAction:
@@ -184,15 +177,12 @@ class SequenceListModel(QtCore.QAbstractListModel):
     #     self.dataChanged.emit(parentIndex, parentIndex)
     #     return True
 
-
     # def index(self, row, column, parent):
     #     node = self.nodeFromIndex(parent)
     #     return self.createIndex(row, column)
 
     # def nodeFromIndex(self, index):
     #     return index.internalPointer() if index.isValid() else self.root
-
-
 
 
 class ScanListModel(QtCore.QAbstractListModel):
@@ -206,7 +196,8 @@ class ScanListModel(QtCore.QAbstractListModel):
 
         self.signalreceiver = signalreceiver
         self.__sequence = []
-        self.dic = dict(start=start, end=end, Nsteps=Nsteps, SizeSteps=SizeSteps)
+        self.dic = dict(start=start, end=end,
+                        Nsteps=Nsteps, SizeSteps=SizeSteps)
         self.updateData(self.dic)
         self.signalreceiver.sig_updateScanListModel.connect(self.updateData)
 
@@ -217,9 +208,11 @@ class ScanListModel(QtCore.QAbstractListModel):
 
     def updateData(self, dic):
         if dic['SizeSteps']:
-            self.__sequence = self.Build_Scan_Size(dic['start'], dic['end'], dic['SizeSteps'])
+            self.__sequence = self.Build_Scan_Size(
+                dic['start'], dic['end'], dic['SizeSteps'])
         elif dic['Nsteps']:
-            self.__sequence = self.Build_Scan_N(dic['start'], dic['end'], dic['Nsteps'])
+            self.__sequence = self.Build_Scan_N(
+                dic['start'], dic['end'], dic['Nsteps'])
         self.debug_running()
 
     def Build_Scan_N(self, start, end, N):
@@ -238,7 +231,8 @@ class ScanListModel(QtCore.QAbstractListModel):
 
     def pass_data(self):
         # print(self.__sequence)
-        self.sig_send.emit(deepcopy(self.__sequence)) # important for sequence!
+        # important for sequence!
+        self.sig_send.emit(deepcopy(self.__sequence))
         return deepcopy(self.__sequence)
 
     def debug_running(self):
@@ -258,7 +252,7 @@ class ScanListModel(QtCore.QAbstractListModel):
             value = self.__sequence[row]
             return value
 
-    def setData(self, index, value, role = QtCore.Qt.EditRole):
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
         if role == QtCore.Qt.EditRole:
             row = index.row()
             self.__sequence[row] = value
@@ -272,9 +266,9 @@ class ScanListModel(QtCore.QAbstractListModel):
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable#  | \
-                # QtCore.Qt.ItemIsEditable
-               # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable  # | \
+        # QtCore.Qt.ItemIsEditable
+        # QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled
 
 
 # class PyMimeData(QtCore.QMimeData):
@@ -353,7 +347,6 @@ class ScanListModel(QtCore.QAbstractListModel):
 #         return None
 
 
-
 # # class Node(object):
 # #     """docstring for Node"""
 # #     def __init__(self, data):
@@ -361,16 +354,12 @@ class ScanListModel(QtCore.QAbstractListModel):
 # #         self.data = data
 
 
-
-
-
 if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("plastique")
 
-
-    #ALL OF OUR VIEWS
+    # ALL OF OUR VIEWS
     listView = QtWidgets.QListView()
     listView.show()
     # listView.setAcceptDrops(True)
@@ -386,18 +375,11 @@ if __name__ == '__main__':
     # listView.setFlow(QtWidgets.QListView.TopToBottom)
     # listView.showDropIndicator()
 
-
-    first = dict(DisplayText='first', arbdata = 'arvb')
-    second = dict(DisplayText='second', arbdata = 'arvb')
-    third = dict(DisplayText='third', arbdata = 'arvb')
-    fourth = dict(DisplayText='fourth', arbdata = 'arvb')
-    five = dict(DisplayText='five', arbdata = 'arvb')
-
-
-
-
-
-
+    first = dict(DisplayText='first', arbdata='arvb')
+    second = dict(DisplayText='second', arbdata='arvb')
+    third = dict(DisplayText='third', arbdata='arvb')
+    fourth = dict(DisplayText='fourth', arbdata='arvb')
+    five = dict(DisplayText='five', arbdata='arvb')
 
     model = SequenceListModel([first, second, third])
     model.addItem(fourth)
