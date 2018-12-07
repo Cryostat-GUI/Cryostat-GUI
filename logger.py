@@ -634,7 +634,7 @@ class live_Logger(AbstractLoopThread):
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
                     self.calculations[calc](times, self.data_live[instr][varkey]))
 
-            except TypeError as e_type:
+            except TypeError:
                 # raise AssertionError(e_type.args[0])
                 # print('TYPE CALC')
                 pass
