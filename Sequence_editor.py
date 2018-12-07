@@ -401,7 +401,8 @@ class Sequence_builder(Window_ui):
                     f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {SpacingCode} {ApproachMode}\n'.format(
                         **entry))  # TODO: make sure Rampcondition is actually where it is!
                     for command in entry['commands']:
-                        f.write('{measuretype} 00 00 00 11 11 00\n'.format(**command))
+                        f.write(
+                            '{measuretype} 00 00 00 11 11 00\n'.format(**command))
                     f.write('ENT EOS\n')
                 if entry['typ'] == 'Wait':
                     Temp = 1 if entry['Temp'] else 0
@@ -519,7 +520,8 @@ class Sequence_builder(Window_ui):
                 dic['commands'] = []
                 for commandline in comm.splitlines()[1:]:
                     if commandline[:3] == 'RES':
-                        nums = [float(x) for x in self.number.findall(commandline)]
+                        nums = [float(x)
+                                for x in self.number.findall(commandline)]
                         dic['commands'].append(dict(measuretype='RES',
                                                     RES_arbnum1=nums[0],
                                                     RES_arbnum2=nums[1]))

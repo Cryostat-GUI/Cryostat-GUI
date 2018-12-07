@@ -155,12 +155,12 @@ class mainWindow(QtWidgets.QMainWindow):
             pass
         else:
             with self.dataLock:
-                self.data[dataname] = dict()        
+                self.data[dataname] = dict()
         self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
         return worker
-        
+
     def running_thread_tiny(self, worker):
         worker, thread = self.running_thread(worker)
         self.threads_tiny.append((worker, thread))
@@ -584,20 +584,21 @@ class mainWindow(QtWidgets.QMainWindow):
                     with self.dataLock:
                         gas_old = int(self.data['ITC']['gas_flow_output'])
                     if gas_new == 0:
-                        time_wait = 60/1e2*gas_old + 5
+                        time_wait = 60 / 1e2 * gas_old + 5
                         self.threads['control_ITC'][0].setGasOutput()
 
                         self.ITC_window.spinsetGasOutput.setEnabled(False)
                         time.sleep(time_wait)
                         self.ITC_window.spinsetGasOutput.setEnabled(True)
                     else:
-                        time1 = 60/1e2*gas_old + 5
-                        time2 = 60/1e2*gas_new + 5
+                        time1 = 60 / 1e2 * gas_old + 5
+                        time2 = 60 / 1e2 * gas_new + 5
                         self.threads['control_ITC'][0].gettoset_GasOutput(0)
                         self.threads['control_ITC'][0].setGasOutput()
                         self.ITC_window.spinsetGasOutput.setEnabled(False)
                         time.sleep(time1)
-                        self.threads['control_ITC'][0].gettoset_GasOutput(gas_new)
+                        self.threads['control_ITC'][
+                            0].gettoset_GasOutput(gas_new)
                         self.threads['control_ITC'][0].setGasOutput()
                         time.sleep(time2)
                         self.ITC_window.spinsetGasOutput.setEnabled(True)
@@ -1501,7 +1502,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = self.running_thread_control(main_Logger(self), None, 'logger')
+            logger = self.running_thread_control(
+                main_Logger(self), None, 'logger')
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1575,7 +1577,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
 
-            self.running_thread_control(measurement_Logger(self), None, 'save_OneShot')
+            self.running_thread_control(
+                measurement_Logger(self), None, 'save_OneShot')
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')

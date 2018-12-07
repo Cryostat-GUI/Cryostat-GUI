@@ -75,6 +75,7 @@ def shaping(entry):
 
 class dummy:
     """docstring for dummy"""
+
     def __init__(self):
         pass
 
@@ -278,6 +279,7 @@ class AbstractEventhandlingThread(AbstractThread):
 
 class Workerclass(QObject):
     """tiny class for performing one single task ()"""
+
     def __init__(self, workfunction, *args, **kwargs):
         super(Workerclass, self).__init__()
         self.workfunction = workfunction
@@ -286,7 +288,7 @@ class Workerclass(QObject):
 
     def work(self):
         self.workfunction(*self.args, **self.kwargs)
-        
+
 
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
@@ -388,7 +390,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         except ValueError as e_val:
             print('ValueError: ', e_val.args[0])
             # for x in self.data:
-                # print(x)
+            # print(x)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)
 

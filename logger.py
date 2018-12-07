@@ -506,13 +506,16 @@ class live_Logger(AbstractLoopThread):
                              'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
                              'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
                              # 'test': lambda time, value: print(time),
-                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),  # still need to convert to minutes
+                             # still need to convert to minutes
+                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
                              'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
                              }
         self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
-                       'slope_rel': lambda value, mean: value[0][1] / mean * 60,  # minutes,
+                       # minutes,
+                       'slope_rel': lambda value, mean: value[0][1] / mean * 60,
                        'slope_residuals': lambda value, mean: value[1][0][0] * 60 if len(value[1][0]) > 0 else np.nan}
-        self.noCalc = ['time', 'Time', 'logging', 'band', 'Loop', 'Range', 'Setup', 'calc']
+        self.noCalc = ['time', 'Time', 'logging',
+                       'band', 'Loop', 'Range', 'Setup', 'calc']
         self.pre_init()
         self.initialisation()
         mainthread.sig_running_new_thread.connect(self.pre_init)
@@ -619,11 +622,11 @@ class live_Logger(AbstractLoopThread):
         elif calc == 'slope_of_mean':
             times_spec = deepcopy(times)
             # if self.counting:
-                # print('cutting the time')
+            # print('cutting the time')
             while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
                 times_spec.pop(0)
             # print(len(times_spec), len(self.data_live[instr][
-                  # '{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+                # '{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
             fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
                 self.calculations[calc](times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
         else:
