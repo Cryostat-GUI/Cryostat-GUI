@@ -37,7 +37,7 @@ class BreakCondition(Exception):
     pass
 
 
-def measure_resistance_singlechannels(threads,
+def measure_resistance_singlechannel(threads,
     excitation_current_A,
     threadname_RES,
     threadname_CURR,
@@ -173,7 +173,7 @@ def measure_resistance_multichannel(threads,
                     threads[name_curr][0].disable()
 
         temp2 = threads[threadname_Temp][0].read_Temperatures()
-        for key in temps: 
+        for key in temps:
             temps[key].append(temp2[key])
 
     data['T_mean_K'] = {key: np.mean(temps[key]) for key in temps}
@@ -361,8 +361,41 @@ class OneShot_Thread(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         try:
             with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
-                conf['store_signal'].emit(deepcopy(measure_resistance(**conf)))
+                conf['store_signal'].emit(deepcopy(measure_resistance_singlechannel(**conf)))
                 print('measuring', convert_time(time.time()))
         finally:
             QTimer.singleShot(
                 30 * 1e3, lambda: self.measure_oneshot(self.conf))
+
+
+class OneShot_Thread_multichannel(AbstractEventhandlingThread):
+    """docstring for OneShot_Thread"""
+
+    def __init__(self, mainthread):
+        super(OneShot_Thread, self).__init__()
+        self.mainthread = mainthread
+
+        self.mainthread.sig_measure_oneshot.connect(
+            lambda: self.measure_oneshot(self.conf))
+        self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
+                         threads=self.mainthread.threads,
+                         threadname_Temp='control_LakeShore350',
+                         threadname_RES=['control_Keithley2182_1', 'control_Keithley2182_2'],
+                         threadname_CURR=['control_Keithley6221_1', 'control_Keithley6221_2'],
+                         excitation_current_A=[0.004, 0.004])  # [A] needs to be set - thus communicated!
+        self.__name__ = 'OneShot_Thread_multichannel'
+
+    def update_conf(self, key, value):
+        self.conf[key] = value
+
+    @pyqtSlot(dict)
+    @ExceptionHandling
+    def measure_oneshot(self, conf):
+        """invoke a single measurement and send it to saving the data"""
+        try:
+            with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
+                conf['store_signal'].emit(deepcopy(measure_resistance_singlechannel(**conf)))
+                print('measuring', convert_time(time.time()))
+        finally:
+            QTimer.singleShot(
+                30 * 1e3, lambda: self.measure_oneshot(self.conf))            
