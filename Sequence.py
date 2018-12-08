@@ -19,6 +19,7 @@ from PyQt5.QtCore import QTimer
 import time
 from copy import deepcopy
 import numpy as np
+from itertools import combinations_with_replacement as comb
 
 
 from util import AbstractEventhandlingThread
@@ -36,14 +37,14 @@ class BreakCondition(Exception):
     pass
 
 
-def measure_resistance(threads,
-                       excitation_current_A,
-                       threadname_RES,
-                       threadname_CURR,
-                       threadname_Temp='control_LakeShore350',
-                       temperature_sensor='Sensor_1_K',
-                       n_measurements=1,
-                       **kwargs):
+def measure_resistance_singlechannels(threads,
+    excitation_current_A,
+    threadname_RES,
+    threadname_CURR,
+    threadname_Temp='control_LakeShore350',
+    temperature_sensor='Sensor_1_K',
+    n_measurements=1,
+    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -96,6 +97,92 @@ def measure_resistance(threads,
 
     data['R_mean_Ohm'] = np.mean(resistances)
     data['R_std_Ohm'] = np.std(resistances)
+    data['datafile'] = kwargs['datafile']
+    timedict = {'timeseconds': time.time(),
+                'ReadableTime': convert_time(time.time()),
+                'SearchableTime': convert_time_searchable(time.time())}
+    data.update(timedict)
+    return data
+
+
+def measure_resistance_multichannel(threads,
+    excitation_currents_A,
+    threadnames_RES,
+    threadnames_CURR,
+    threadname_Temp='control_LakeShore350',
+    # temperature_sensor='Sensor_1_K',
+    n_measurements=1,
+    **kwargs):
+    """conduct one 'full' measurement of resistance:
+        arguments: dict conf
+            threads = dict of threads running of the mainWindow class
+            threadname_Temp  = name of the (LakeShore) Temperature thread
+            threadnames_RES  = list of names of the (Keithley) Voltage measure threads 
+            threadnames_CURR  = list of names of the (Keithley) Current set threads 
+            n_measurements  = number of measurements (dual polarity) to be averaged over
+                            default = 1 (no reason to do much more)
+            excitation_currents_A = list of excitations currents for the measurement 
+        returns: dict data
+            T_mean_K : dict of means of temperature readings
+                    before and after measurement [K]
+            T_std_K : dict of stds of temperature readings
+                    before and after measurement [K]
+            R_mean_Ohm : dict of means of all n_measurements resistance measurements [Ohm]
+            R_std_Ohm : dict of stds of all n_measurements resistance measurements [Ohm]
+            timeseconds: pythons time.time()
+            ReadableTime: Time in %Y-%m-%d %H:%M:%S
+            SearchableTime: Time in %Y%m%d%H%M%S
+    """
+    # measured current reversal = 40ms.
+    # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
+
+    lengths = [len(threadnames_CURR), len(
+        threadnames_RES), len(excitation_currents_A)]
+    for c in comb(lengths, 2):
+        if c[1] != c[2]:
+            raise AssertionError(
+                'number of excitation currents, current sources and voltmeters does not coincide!')
+
+    current_reversal_time = 0.06
+
+    data = dict()
+    resistances = {key: [] for key in threadnames_CURR}
+
+    with loops_off(threads):
+
+        temp1 = threads[threadname_Temp][0].read_Temperatures()
+        temps = {key: [val] for key, val in zip(temp1.keys(), temp1.values())}
+
+        for ct, (name_curr, exc_curr, name_volt) in enumerate(zip(threadnames_CURR, excitation_currents_A, threadnames_RES)):
+
+            for idx in range(n_measurements):
+                # as first time, apply positive current --> pos voltage
+                # (correct)
+                for currentfactor in [1, -1]:
+                    threads[name_curr][0].enable()
+                    threads[name_curr][0].gettoset_Current_A(
+                        exc_curr * currentfactor)
+                    threads[name_curr][0].setCurrent_A()
+                    # wait for the current to be changed:
+                    time.sleep(current_reversal_time)
+                    voltage = threads[name_volt][
+                        0].read_Voltage() * currentfactor
+                    # pure V/I, I hope that is fine.
+                    resistances[name_curr].append(
+                        voltage / (exc_curr * currentfactor))
+                    threads[name_curr][0].disable()
+
+        temp2 = threads[threadname_Temp][0].read_Temperatures()
+        for key in temps: 
+            temps[key].append(temp2[key])
+
+    data['T_mean_K'] = {key: np.mean(temps[key]) for key in temps}
+    data['T_std_K'] = {key: np.std(temps[key]) for key in temps}
+
+    data['R_mean_Ohm'] = {key: np.mean(resistances[key])
+                          for key in resistances}
+    data['R_std_Ohm'] = {key: np.std(resistances[key]) for key in resistances}
+
     data['datafile'] = kwargs['datafile']
     timedict = {'timeseconds': time.time(),
                 'ReadableTime': convert_time(time.time()),
