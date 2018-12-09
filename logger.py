@@ -614,7 +614,7 @@ class live_Logger(AbstractLoopThread):
     def calculations_perform(self, instr, varkey, calc, times):
         """
             perform one specified calculation on all corresponding datasets
-            
+
             return: None
         """
         if calc == 'slope':
@@ -784,16 +784,47 @@ class measurement_Logger(AbstractEventhandlingThread):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
-        # timedict = {'timeseconds': time.time(),
-        #             'ReadableTime': convert_time(time.time())}
-        # try:
-        #     if not self.data:
-        #         self.sig_assertion.emit("DataSaver: empty filename! (at least!)")
-        # except NameError:
-        #     # configuration not yet done
-        #     self.sig_assertion.emit("DataSaver: you need to specify the configuration before storing data!")
-        datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(
-            **data)
+
+        if data['type'] == 'multichannel':
+            full_data = dict(timeseconds=data['timeseconds'], ReadableTime=data['ReadableTime'])
+            full_data.update(data['T_mean_K'])
+            full_data.update(data['T_std_K'])
+            full_data.update(data['R_mean_Ohm'])
+            full_data.update(data['R_std_Ohm'])
+
+            datastring = '\n '
+            temperatures = ["{{{mean}}} {{{std}}} ".format(
+                mean=mean, std=std) for mean, std in zip(
+                    data['T_mean_K'], data['T_std_K'])]
+            for t in temperatures:
+                datastring += t
+            resistances = ["{{{mean}}} {{{std}}} ".format(
+                mean=mean, std=std) for mean, std in zip(
+                    data['R_mean_Ohm'], data['R_std_Ohm'])]
+            for r in resistances:
+                datastring += r
+            datastring += '{timeseconds} {ReadableTime}'
+            datastring = datastring.format(**full_data)
+
+            temperatures = ["{mean}, {std}; ".format(
+                mean=mean, std=std) for mean, std in zip(
+                    data['T_mean_K'], data['T_std_K'])]
+            temp = ''
+            for t in temperatures:
+                temp += t
+            resistances = ["{mean}, {std}; ".format(
+                mean=mean, std=std) for mean, std in zip(
+                    data['R_mean_Ohm'], data['R_std_Ohm'])]
+            res = ''
+            for r in resistances:
+                res += r
+            headerstring = str("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) + temp + res +
+                               "time [s]; date")
+        else:
+            datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(
+                **data)
+            headerstring = str("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
+                               "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time [s], date \n")
 
         if os.path.isfile(data['datafile']):
             try:
@@ -804,8 +835,7 @@ class measurement_Logger(AbstractEventhandlingThread):
         else:
             try:
                 with open(data['datafile'], 'w') as f:
-                    f.write("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) +
-                            "# temp_sample [K], T_std [K], resistance [Ohm], R_std [Ohm], time[s], date \n")
+                    f.write(headerstring)
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])

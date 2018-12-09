@@ -180,9 +180,10 @@ def measure_resistance_multichannel(threads,
     data['T_mean_K'] = {key: np.mean(temps[key]) for key in temps}
     data['T_std_K'] = {key: np.std(temps[key]) for key in temps}
 
-    data['R_mean_Ohm'] = {key: np.mean(resistances[key])
+    data['R_mean_Ohm'] = {key.strip('control'): np.mean(resistances[key])
                           for key in resistances}
-    data['R_std_Ohm'] = {key: np.std(resistances[key]) for key in resistances}
+    data['R_std_Ohm'] = {key.strip('control'): np.std(resistances[key])
+                         for key in resistances}
 
     data['datafile'] = kwargs['datafile']
     timedict = {'timeseconds': time.time(),
@@ -213,7 +214,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.sensor_sample = None   # needs to be set!
 
     def running(self):
-        with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_lock):
+        with locking(self.mainthread.controls_lock):
             try:
                 for entry in self.sequence:
                     self.execute_sequence_entry(entry)
@@ -402,10 +403,11 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
             print(self.mainthread.controls_Lock)
             with locking(self.mainthread.controls_Lock):
                 data = measure_resistance_singlechannel(**conf)
+                data['type'] = 'multichannel'
             self.sig_storing.emit(deepcopy(data))
 
         # except AttributeError as e_arr:
-        #     print(e_arr)                
+        #     print(e_arr)
         finally:
             QTimer.singleShot(
                 10 * 1e3, lambda: self.measure_oneshot(self.conf))
