@@ -70,27 +70,27 @@ def measure_resistance_singlechannel(threads,
     temps = []
     resistances = []  # pos & neg
 
-    with loops_off(threads):
-        threads[threadname_CURR][0].enable()
-        temps.append(threads[threadname_Temp][
-                     0].read_Temperatures()[temperature_sensor])
+    # with loops_off(threads):
+    threads[threadname_CURR][0].enable()
+    temps.append(threads[threadname_Temp][
+                 0].read_Temperatures()[temperature_sensor])
 
-        for idx in range(n_measurements):
-            # as first time, apply positive current --> pos voltage (correct)
-            for currentfactor in [1, -1]:
-                threads[threadname_CURR][0].gettoset_Current_A(
-                    excitation_current_A * currentfactor)
-                threads[threadname_CURR][0].setCurrent_A()
-                # wait for the current to be changed:
-                time.sleep(current_reversal_time)
-                voltage = threads[threadname_RES][
-                    0].read_Voltage() * currentfactor
-                # pure V/I, I hope that is fine.
-                resistances.append(
-                    voltage / (excitation_current_A * currentfactor))
+    for idx in range(n_measurements):
+        # as first time, apply positive current --> pos voltage (correct)
+        for currentfactor in [1, -1]:
+            threads[threadname_CURR][0].gettoset_Current_A(
+                excitation_current_A * currentfactor)
+            threads[threadname_CURR][0].setCurrent_A()
+            # wait for the current to be changed:
+            time.sleep(current_reversal_time)
+            voltage = threads[threadname_RES][
+                0].read_Voltage() * currentfactor
+            # pure V/I, I hope that is fine.
+            resistances.append(
+                voltage / (excitation_current_A * currentfactor))
 
-        temps.append(threads[threadname_Temp][
-                     0].read_Temperatures()[temperature_sensor])
+    temps.append(threads[threadname_Temp][
+                 0].read_Temperatures()[temperature_sensor])
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
@@ -372,14 +372,15 @@ class OneShot_Thread(AbstractEventhandlingThread):
 class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     """docstring for OneShot_Thread"""
 
+    sig_storing = pyqtSignal(dict)
+
     def __init__(self, mainthread):
-        super(OneShot_Thread, self).__init__()
+        super().__init__()
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(
             lambda: self.measure_oneshot(self.conf))
-        self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
-                         threads=self.mainthread.threads,
+        self.conf = dict(threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadname_RES=[
                              'control_Keithley2182_1', 'control_Keithley2182_2'],
@@ -396,12 +397,13 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
         try:
+            print('measuring', convert_time(time.time()), '----------------------------------------')
             with controls_software_disabled(self.mainthread.controls,
                                             self.mainthread.controls_Lock,
                                             self.mainthread.sig_softwarecontrols):
-                conf['store_signal'].emit(
-                    deepcopy(measure_resistance_singlechannel(**conf)))
-                print('measuring', convert_time(time.time()))
+                data = measure_resistance_singlechannel(**conf)
+            self.sig_storing.emit(deepcopy(data))
+                
         finally:
             QTimer.singleShot(
-                30 * 1e3, lambda: self.measure_oneshot(self.conf))
+                10 * 1e3, lambda: self.measure_oneshot(self.conf))

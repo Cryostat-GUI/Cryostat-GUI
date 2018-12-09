@@ -195,20 +195,22 @@ class controls_software_disabled:
         self._signal = signal
 
     def __enter__(self, *args, **kwargs):
-        self._lock.acquire()
-        if self.signal is None:
+        if self._signal is None:
+            self._lock.acquire()
             for control in self._controls:
                 control.setEnabled(False)
         else:
+            print('emitting signal, set Enabled: ', False)
             self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=False))
 
     def __exit__(self, *args, **kwargs):
-        if self.signal is None:
+        if self._signal is None:
             for control in self._controls:
                 control.setEnabled(True)
+            self._lock.release()
         else:
+            print('emitting signal, set Enabled: ', True)
             self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=True))
-        self._lock.release()
 
 
 class controls_hardware_disabled:

@@ -56,6 +56,7 @@ import Keithley
 # from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
+from Sequence import OneShot_Thread_multichannel
 
 from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration
@@ -133,12 +134,16 @@ class mainWindow(QtWidgets.QMainWindow):
         self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
     def softwarecontrol_toggle(self, controls, lock, bools):
+        print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
+        print('locked: ', lock.locked())
         if not bools:
             lock.acquire()
-        for control in self._controls:
+        for control in controls:
                 control.setEnabled(bools)
+                print('working on it')
         if bools:
             lock.release()
+        print('locked: ', lock.locked())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
@@ -1580,7 +1585,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
 
             OneShot = self.running_thread_control(
-                OneShot_Thread(self), None, 'control_OneShot')
+                OneShot_Thread_multichannel(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
             self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(
@@ -1599,6 +1604,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.running_thread_control(
                 measurement_Logger(self), None, 'save_OneShot')
+            OneShot.sig_storing.connect(lambda value: self.sig_log_measurement.emit(value))
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')

@@ -763,10 +763,10 @@ class measurement_Logger(AbstractEventhandlingThread):
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
         self.mainthread = mainthread
+        self.mainthread.sig_log_measurement.connect(self.store_data)
 
         self.starttime = time.time()
 
-        self.mainthread.sig_log_measurement.connect(self.store_data)
         # self.mainthread.sig_log_measurement_newconf.connect(self.update_conf)
 
         # QTimer.singleShot(5e2, lambda: self.sig_configuring.emit(True))
