@@ -21,13 +21,14 @@ from matplotlib.figure import Figure
 
 import functools
 import inspect
-from datetime import datetime
 import time
-from visa import VisaIOError
 import numpy as np
 
 from contextlib import suppress
 from copy import deepcopy
+from datetime import datetime
+from visa import VisaIOError
+from threading import Lock
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -53,17 +54,18 @@ def convert_time_searchable(ts):
     return datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
 
-def loopcontrol_threads(threads, loopcondition):
-    """
-        temporarily turn off the loop function of
-        an AbstractLoopThread class instance
-    """
-    for thread in threads:
-        with suppress(AttributeError):  # eventhandlingThread somewhere....
-            while bool(thread[0].loop) is bool(loopcondition):
-                time.sleep(0.2)  # wait
-            thread[0].loop = loopcondition
-
+# def loopcontrol_threads(threads, loopcondition):
+#     """
+#         temporarily turn off the loop function of
+#         an AbstractLoopThread class instance
+#     """
+#     for thread in threads:
+#         # with suppress(AttributeError):  # eventhandlingThread somewhere....
+#         #     while bool(thread[0].loop) is bool(loopcondition):
+#         #         time.sleep(0.1)  # wait
+#         #     thread[0].loop = loopcondition
+#         if loopcondition:
+#             thread[0].lock.release()
 
 def shaping(entry):
     """adjust the shape of data-arrays given to matplotlib,
@@ -179,38 +181,28 @@ class loops_off:
         self._threads = threads
 
     def __enter__(self, *args, **kwargs):
-        loopcontrol_threads(self._threads, False)
-        time.sleep(0.1)
+        for thread in self._threads:
+            thread[0].lock.acquire()
+        # loopcontrol_threads(self._threads, False)
+        # time.sleep(0.1)
 
     def __exit__(self, *args, **kwargs):
-        loopcontrol_threads(self._threads, True)
+        # loopcontrol_threads(self._threads, True)
+        for thread in self._threads:
+            thread[0].lock.release()
 
 
-class controls_software_disabled:
-    """Context manager for disabling all controls in GUI"""
+# class controls_software_disabled:
+#     """Context manager for disabling all controls in GUI"""
 
-    def __init__(self, controls, lock, signal=None):
-        self._controls = controls
-        self._lock = lock
-        self._signal = signal
+#     def __init__(self, lock):
+#         self._lock = lock
 
-    def __enter__(self, *args, **kwargs):
-        if self._signal is None:
-            self._lock.acquire()
-            for control in self._controls:
-                control.setEnabled(False)
-        else:
-            print('emitting signal, set Enabled: ', False)
-            self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=False))
+#     def __enter__(self, *args, **kwargs):
+#         self._lock.acquire()
 
-    def __exit__(self, *args, **kwargs):
-        if self._signal is None:
-            for control in self._controls:
-                control.setEnabled(True)
-            self._lock.release()
-        else:
-            print('emitting signal, set Enabled: ', True)
-            self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=True))
+#     def __exit__(self, *args, **kwargs):
+#         self._lock.release()
 
 
 class controls_hardware_disabled:
@@ -231,6 +223,19 @@ class controls_hardware_disabled:
         for thread in self._threads:
             self._threads[thread][0].toggle_frontpanel(True)
         self._lock.release()
+
+
+class locking:
+    """Context manager for handling a simple lock"""
+
+    def __init__(self, lock):
+        self._lock = lock
+
+    def __enter__(self, *args, **kwargs):
+        self.lock.acquire()
+
+    def __exit__(self, *args, **kwargs):
+        self.lock.release()
 
 
 class AbstractThread(QObject):
@@ -263,6 +268,7 @@ class AbstractLoopThread(AbstractThread):
         self.interval = 0.5  # second
         # self.__isRunning = True
         self.loop = True
+        self.lock = Lock()
 
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
@@ -270,10 +276,12 @@ class AbstractLoopThread(AbstractThread):
         """class method which is working all the time while the thread is running. """
         # while self.__isRunning:
         try:
-            if self.loop:
+
+            while not self.loop:
+                time.sleep(0.05)
+            with locking(self.lock):
                 self.running()
-            else:
-                pass
+
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
@@ -300,6 +308,7 @@ class AbstractEventhandlingThread(AbstractThread):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.interval = 500
+        self.lock = Lock()
 
     @pyqtSlot()
     def work(self):

@@ -87,7 +87,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
-    sig_softwarecontrols = pyqtSignal(dict)
+    # sig_softwarecontrols = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -131,19 +131,37 @@ class mainWindow(QtWidgets.QMainWindow):
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
 
-        self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+        self.softwarecontrol_check()
+        # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
-    def softwarecontrol_toggle(self, controls, lock, bools):
-        print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
-        print('locked: ', lock.locked())
-        if not bools:
-            lock.acquire()
-        for control in controls:
-                control.setEnabled(bools)
-                print('working on it')
-        if bools:
-            lock.release()
-        print('locked: ', lock.locked())
+    # def softwarecontrol_toggle(self, controls, lock, bools):
+    #     print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
+    #     print('locked: ', lock.locked())
+    #     if not bools:
+    #         lock.acquire()
+    #     for control in controls:
+    #             control.setEnabled(bools)
+    #             print('working on it')
+    #     if bools:
+    #         lock.release()
+    #     print('locked: ', lock.locked())
+
+    def softwarecontrol_toggle_locking(self, value):
+        if value:
+            self.controls_Lock.acquire()
+        else:
+            self.controls_Lock.release()
+
+    def softwarecontrol_check(self):
+        try:
+            if self.controls_Lock.locked():
+                for c in self.controls:
+                    c.setEnabled(False)
+            else:
+                for c in self.controls:
+                    c.setEnabled(True)
+        finally:
+            QTimer.singleShot(0.1, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """

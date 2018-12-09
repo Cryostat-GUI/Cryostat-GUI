@@ -24,7 +24,8 @@ from itertools import combinations_with_replacement as comb
 
 from util import AbstractEventhandlingThread
 from util import loops_off
-from util import controls_software_disabled
+from util import locking
+# from util import controls_software_disabled
 from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
@@ -70,27 +71,27 @@ def measure_resistance_singlechannel(threads,
     temps = []
     resistances = []  # pos & neg
 
-    # with loops_off(threads):
-    threads[threadname_CURR][0].enable()
-    temps.append(threads[threadname_Temp][
-                 0].read_Temperatures()[temperature_sensor])
+    with loops_off(threads):
+        threads[threadname_CURR][0].enable()
+        temps.append(threads[threadname_Temp][
+                     0].read_Temperatures()[temperature_sensor])
 
-    for idx in range(n_measurements):
-        # as first time, apply positive current --> pos voltage (correct)
-        for currentfactor in [1, -1]:
-            threads[threadname_CURR][0].gettoset_Current_A(
-                excitation_current_A * currentfactor)
-            threads[threadname_CURR][0].setCurrent_A()
-            # wait for the current to be changed:
-            time.sleep(current_reversal_time)
-            voltage = threads[threadname_RES][
-                0].read_Voltage() * currentfactor
-            # pure V/I, I hope that is fine.
-            resistances.append(
-                voltage / (excitation_current_A * currentfactor))
+        for idx in range(n_measurements):
+            # as first time, apply positive current --> pos voltage (correct)
+            for currentfactor in [1, -1]:
+                threads[threadname_CURR][0].gettoset_Current_A(
+                    excitation_current_A * currentfactor)
+                threads[threadname_CURR][0].setCurrent_A()
+                # wait for the current to be changed:
+                time.sleep(current_reversal_time)
+                voltage = threads[threadname_RES][
+                    0].read_Voltage() * currentfactor
+                # pure V/I, I hope that is fine.
+                resistances.append(
+                    voltage / (excitation_current_A * currentfactor))
 
-    temps.append(threads[threadname_Temp][
-                 0].read_Temperatures()[temperature_sensor])
+        temps.append(threads[threadname_Temp][
+                     0].read_Temperatures()[temperature_sensor])
 
     data['T_mean_K'] = np.mean(temps)
     data['T_std_K'] = np.std(temps)
@@ -397,10 +398,8 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
         try:
-            print('measuring', convert_time(time.time()), '----------------------------------------')
-            with controls_software_disabled(self.mainthread.controls,
-                                            self.mainthread.controls_Lock,
-                                            self.mainthread.sig_softwarecontrols):
+            print('measuring', convert_time(time.time()), '-------------')
+            with locking(self.mainthread.controls_Lock):
                 data = measure_resistance_singlechannel(**conf)
             self.sig_storing.emit(deepcopy(data))
                 
