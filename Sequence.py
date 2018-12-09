@@ -140,14 +140,14 @@ def measure_resistance_multichannel(threads,
     lengths = [len(threadnames_CURR), len(
         threadnames_RES), len(excitation_currents_A)]
     for c in comb(lengths, 2):
-        if c[1] != c[2]:
+        if c[0] != c[1]:
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
 
     current_reversal_time = 0.06
 
     data = dict()
-    resistances = {key: [] for key in threadnames_CURR}
+    resistances = {key: [] for key in threadnames_RES}
 
     with loops_off(threads):
 
@@ -169,7 +169,7 @@ def measure_resistance_multichannel(threads,
                     voltage = threads[name_volt][
                         0].read_Voltage() * currentfactor
                     # pure V/I, I hope that is fine.
-                    resistances[name_curr].append(
+                    resistances[name_volt].append(
                         voltage / (exc_curr * currentfactor))
                     threads[name_curr][0].disable()
 
@@ -177,12 +177,12 @@ def measure_resistance_multichannel(threads,
         for key in temps:
             temps[key].append(temp2[key])
 
-    data['T_mean_K'] = {key: np.mean(temps[key]) for key in temps}
-    data['T_std_K'] = {key: np.std(temps[key]) for key in temps}
+    data['T_mean_K'] = {key + '_mean': np.mean(temps[key]) for key in temps}
+    data['T_std_K'] = {key + '_std': np.std(temps[key]) for key in temps}
 
-    data['R_mean_Ohm'] = {key.strip('control'): np.mean(resistances[key])
+    data['R_mean_Ohm'] = {key.strip('control_') + '_mean': np.mean(resistances[key])
                           for key in resistances}
-    data['R_std_Ohm'] = {key.strip('control'): np.std(resistances[key])
+    data['R_std_Ohm'] = {key.strip('control_') + '_std': np.std(resistances[key])
                          for key in resistances}
 
     data['datafile'] = kwargs['datafile']
@@ -190,6 +190,7 @@ def measure_resistance_multichannel(threads,
                 'ReadableTime': convert_time(time.time()),
                 'SearchableTime': convert_time_searchable(time.time())}
     data.update(timedict)
+    print(data)
     return data
 
 
@@ -362,7 +363,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
         try:
-            with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
+            with locking(self.mainthread.controls_Lock):
                 conf['store_signal'].emit(
                     deepcopy(measure_resistance_singlechannel(**conf)))
                 print('measuring', convert_time(time.time()))
@@ -384,11 +385,11 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
             lambda: self.measure_oneshot(self.conf))
         self.conf = dict(threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
-                         threadname_RES=[
+                         threadnames_RES=[
                              'control_Keithley2182_1', 'control_Keithley2182_2'],
-                         threadname_CURR=[
+                         threadnames_CURR=[
                              'control_Keithley6221_1', 'control_Keithley6221_2'],
-                         excitation_current_A=[0.004, 0.004])  # [A] needs to be set - thus communicated!
+                         excitation_currents_A=[0.004, 0.004])  # [A] needs to be set - thus communicated!
         self.__name__ = 'OneShot_Thread_multichannel'
 
     def update_conf(self, key, value):
@@ -400,9 +401,8 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         try:
             print('measuring', convert_time(time.time()), '-------------')
-            print(self.mainthread.controls_Lock)
             with locking(self.mainthread.controls_Lock):
-                data = measure_resistance_singlechannel(**conf)
+                data = measure_resistance_multichannel(**conf)
                 data['type'] = 'multichannel'
             self.sig_storing.emit(deepcopy(data))
 

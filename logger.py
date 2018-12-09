@@ -786,25 +786,25 @@ class measurement_Logger(AbstractEventhandlingThread):
         """
 
         if data['type'] == 'multichannel':
-            full_data = dict(timeseconds=data['timeseconds'], ReadableTime=data['ReadableTime'])
-            full_data.update(data['T_mean_K'])
-            full_data.update(data['T_std_K'])
-            full_data.update(data['R_mean_Ohm'])
-            full_data.update(data['R_std_Ohm'])
 
             datastring = '\n '
-            temperatures = ["{{{mean}}} {{{std}}} ".format(
+            temperatures = ["{{{mean}:.3E}} {{{std}:.3E}} ".format(
                 mean=mean, std=std) for mean, std in zip(
                     data['T_mean_K'], data['T_std_K'])]
             for t in temperatures:
                 datastring += t
-            resistances = ["{{{mean}}} {{{std}}} ".format(
+            # print(datastring)
+            datastring = datastring.format(**data['T_mean_K'], **data['T_std_K'])
+            resistances = ["{{{mean}:.14E}} {{{std}:.14E}} ".format(
                 mean=mean, std=std) for mean, std in zip(
                     data['R_mean_Ohm'], data['R_std_Ohm'])]
             for r in resistances:
                 datastring += r
-            datastring += '{timeseconds} {ReadableTime}'
-            datastring = datastring.format(**full_data)
+            # print(datastring)
+            datastring = datastring.format(**data['R_mean_Ohm'], **data['R_std_Ohm'])
+            datastring = '{timeseconds} {ReadableTime}'.format(
+                **data) + datastring
+            # print(datastring)
 
             temperatures = ["{mean}, {std}; ".format(
                 mean=mean, std=std) for mean, std in zip(
