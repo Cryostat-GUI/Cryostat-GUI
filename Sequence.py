@@ -156,11 +156,11 @@ def measure_resistance_multichannel(threads,
 
         for ct, (name_curr, exc_curr, name_volt) in enumerate(zip(threadnames_CURR, excitation_currents_A, threadnames_RES)):
 
+            threads[name_curr][0].enable()
             for idx in range(n_measurements):
                 # as first time, apply positive current --> pos voltage
                 # (correct)
                 for currentfactor in [1, -1]:
-                    threads[name_curr][0].enable()
                     threads[name_curr][0].gettoset_Current_A(
                         exc_curr * currentfactor)
                     threads[name_curr][0].setCurrent_A()
@@ -171,7 +171,7 @@ def measure_resistance_multichannel(threads,
                     # pure V/I, I hope that is fine.
                     resistances[name_volt].append(
                         voltage / (exc_curr * currentfactor))
-                    threads[name_curr][0].disable()
+            threads[name_curr][0].disable()
 
         temp2 = threads[threadname_Temp][0].read_Temperatures()
         for key in temps:
@@ -190,7 +190,6 @@ def measure_resistance_multichannel(threads,
                 'ReadableTime': convert_time(time.time()),
                 'SearchableTime': convert_time_searchable(time.time())}
     data.update(timedict)
-    print(data)
     return data
 
 
@@ -400,7 +399,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
         try:
-            print('measuring', convert_time(time.time()), '-------------')
+            # print('measuring', convert_time(time.time()), '-------------')
             with locking(self.mainthread.controls_Lock):
                 data = measure_resistance_multichannel(**conf)
                 data['type'] = 'multichannel'
@@ -410,4 +409,4 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         #     print(e_arr)
         finally:
             QTimer.singleShot(
-                10 * 1e3, lambda: self.measure_oneshot(self.conf))
+                2 * 1e3, lambda: self.measure_oneshot(self.conf))
