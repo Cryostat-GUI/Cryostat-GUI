@@ -399,10 +399,13 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         try:
             print('measuring', convert_time(time.time()), '-------------')
+            print(self.mainthread.controls_Lock)
             with locking(self.mainthread.controls_Lock):
                 data = measure_resistance_singlechannel(**conf)
             self.sig_storing.emit(deepcopy(data))
-                
+
+        # except AttributeError as e_arr:
+        #     print(e_arr)                
         finally:
             QTimer.singleShot(
                 10 * 1e3, lambda: self.measure_oneshot(self.conf))

@@ -132,6 +132,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.controls_Lock = Lock()
 
         self.softwarecontrol_check()
+        self.softwarecontrol_timer = QTimer()
+        self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
+        self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
     # def softwarecontrol_toggle(self, controls, lock, bools):
@@ -153,15 +156,15 @@ class mainWindow(QtWidgets.QMainWindow):
             self.controls_Lock.release()
 
     def softwarecontrol_check(self):
-        try:
-            if self.controls_Lock.locked():
-                for c in self.controls:
-                    c.setEnabled(False)
-            else:
-                for c in self.controls:
-                    c.setEnabled(True)
-        finally:
-            QTimer.singleShot(0.1, self.softwarecontrol_check())
+        # try:
+        if self.controls_Lock.locked():
+            for c in self.controls:
+                c.setEnabled(False)
+        else:
+            for c in self.controls:
+                c.setEnabled(True)
+        # finally:
+            # QTimer.singleShot(100, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
