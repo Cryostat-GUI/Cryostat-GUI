@@ -181,14 +181,14 @@ class loops_off:
         self._threads = threads
 
     def __enter__(self, *args, **kwargs):
-        for thread in self._threads:
+        for thread in self._threads.values():
             thread[0].lock.acquire()
         # loopcontrol_threads(self._threads, False)
         # time.sleep(0.1)
 
     def __exit__(self, *args, **kwargs):
         # loopcontrol_threads(self._threads, True)
-        for thread in self._threads:
+        for thread in self._threads.values():
             thread[0].lock.release()
 
 
@@ -229,7 +229,8 @@ class locking:
     """Context manager for handling a simple lock"""
 
     def __init__(self, lock):
-        self._lock = lock
+        self.lock = lock
+        # print(lock)
 
     def __enter__(self, *args, **kwargs):
         self.lock.acquire()
