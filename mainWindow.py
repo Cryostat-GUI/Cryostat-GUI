@@ -86,6 +86,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
+    sig_softwarecontrols = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -128,6 +129,16 @@ class mainWindow(QtWidgets.QMainWindow):
             self.IPS_window.groupSettings,
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
+
+        self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+
+    def softwarecontrol_toggle(self, controls, lock, bools):
+        if not bools:
+            lock.acquire()
+        for control in self._controls:
+                control.setEnabled(bools)
+        if bools:
+            lock.release()
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """

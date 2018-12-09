@@ -189,18 +189,25 @@ class loops_off:
 class controls_software_disabled:
     """Context manager for disabling all controls in GUI"""
 
-    def __init__(self, controls, lock):
+    def __init__(self, controls, lock, signal=None):
         self._controls = controls
         self._lock = lock
+        self._signal = signal
 
     def __enter__(self, *args, **kwargs):
         self._lock.acquire()
-        for control in self._controls:
-            control.setEnabled(False)
+        if self.signal is None:
+            for control in self._controls:
+                control.setEnabled(False)
+        else:
+            self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=False))
 
     def __exit__(self, *args, **kwargs):
-        for control in self._controls:
-            control.setEnabled(True)
+        if self.signal is None:
+            for control in self._controls:
+                control.setEnabled(True)
+        else:
+            self._signal.emit(dict(controls=self._controls, lock=self._lock, bools=True))
         self._lock.release()
 
 

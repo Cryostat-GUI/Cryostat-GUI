@@ -38,13 +38,13 @@ class BreakCondition(Exception):
 
 
 def measure_resistance_singlechannel(threads,
-    excitation_current_A,
-    threadname_RES,
-    threadname_CURR,
-    threadname_Temp='control_LakeShore350',
-    temperature_sensor='Sensor_1_K',
-    n_measurements=1,
-    **kwargs):
+                                     excitation_current_A,
+                                     threadname_RES,
+                                     threadname_CURR,
+                                     threadname_Temp='control_LakeShore350',
+                                     temperature_sensor='Sensor_1_K',
+                                     n_measurements=1,
+                                     **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -106,13 +106,13 @@ def measure_resistance_singlechannel(threads,
 
 
 def measure_resistance_multichannel(threads,
-    excitation_currents_A,
-    threadnames_RES,
-    threadnames_CURR,
-    threadname_Temp='control_LakeShore350',
-    # temperature_sensor='Sensor_1_K',
-    n_measurements=1,
-    **kwargs):
+                                    excitation_currents_A,
+                                    threadnames_RES,
+                                    threadnames_CURR,
+                                    threadname_Temp='control_LakeShore350',
+                                    # temperature_sensor='Sensor_1_K',
+                                    n_measurements=1,
+                                    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -361,7 +361,8 @@ class OneShot_Thread(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         try:
             with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
-                conf['store_signal'].emit(deepcopy(measure_resistance_singlechannel(**conf)))
+                conf['store_signal'].emit(
+                    deepcopy(measure_resistance_singlechannel(**conf)))
                 print('measuring', convert_time(time.time()))
         finally:
             QTimer.singleShot(
@@ -380,8 +381,10 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
                          threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
-                         threadname_RES=['control_Keithley2182_1', 'control_Keithley2182_2'],
-                         threadname_CURR=['control_Keithley6221_1', 'control_Keithley6221_2'],
+                         threadname_RES=[
+                             'control_Keithley2182_1', 'control_Keithley2182_2'],
+                         threadname_CURR=[
+                             'control_Keithley6221_1', 'control_Keithley6221_2'],
                          excitation_current_A=[0.004, 0.004])  # [A] needs to be set - thus communicated!
         self.__name__ = 'OneShot_Thread_multichannel'
 
@@ -393,9 +396,12 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self, conf):
         """invoke a single measurement and send it to saving the data"""
         try:
-            with controls_software_disabled(self.mainthread.controls, self.mainthread.controls_Lock):
-                conf['store_signal'].emit(deepcopy(measure_resistance_singlechannel(**conf)))
+            with controls_software_disabled(self.mainthread.controls,
+                                            self.mainthread.controls_Lock,
+                                            self.mainthread.sig_softwarecontrols):
+                conf['store_signal'].emit(
+                    deepcopy(measure_resistance_singlechannel(**conf)))
                 print('measuring', convert_time(time.time()))
         finally:
             QTimer.singleShot(
-                30 * 1e3, lambda: self.measure_oneshot(self.conf))            
+                30 * 1e3, lambda: self.measure_oneshot(self.conf))
