@@ -787,7 +787,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 
         if data['type'] == 'multichannel':
 
-            datastring = '\n '
+            datastring = '\n'
             temperatures = ["{{{mean}:.3E}} {{{std}:.3E}} ".format(
                 mean=mean, std=std) for mean, std in zip(
                     data['T_mean_K'], data['T_std_K'])]
@@ -802,8 +802,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                 datastring += r
             # print(datastring)
             datastring = datastring.format(**data['R_mean_Ohm'], **data['R_std_Ohm'])
-            datastring = '{timeseconds} {ReadableTime}'.format(
-                **data) + datastring
+            datastring += '{timeseconds} {ReadableTime} '.format(**data)
             # print(datastring)
 
             temperatures = ["{mean}, {std}; ".format(
