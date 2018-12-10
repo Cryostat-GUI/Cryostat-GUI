@@ -136,9 +136,9 @@ def measure_resistance_multichannel(threads,
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
-
-    lengths = [len(threadnames_CURR), len(
-        threadnames_RES), len(excitation_currents_A)]
+    lengths = [len(threadnames_CURR),
+               len(threadnames_RES),
+               len(excitation_currents_A)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
             raise AssertionError(
@@ -148,7 +148,6 @@ def measure_resistance_multichannel(threads,
 
     data = dict()
     resistances = {key: [] for key in threadnames_RES}
-
     with loops_off(threads):
 
         temp1 = threads[threadname_Temp][0].read_Temperatures()
@@ -159,7 +158,6 @@ def measure_resistance_multichannel(threads,
             threads[name_curr][0].enable()
             for idx in range(n_measurements):
                 # as first time, apply positive current --> pos voltage
-                # (correct)
                 for currentfactor in [1, -1]:
                     threads[name_curr][0].gettoset_Current_A(
                         exc_curr * currentfactor)
@@ -168,7 +166,6 @@ def measure_resistance_multichannel(threads,
                     time.sleep(current_reversal_time)
                     voltage = threads[name_volt][
                         0].read_Voltage() * currentfactor
-                    # pure V/I, I hope that is fine.
                     resistances[name_volt].append(
                         voltage / (exc_curr * currentfactor))
             threads[name_curr][0].disable()
@@ -380,8 +377,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         super().__init__()
         self.mainthread = mainthread
 
-        self.mainthread.sig_measure_oneshot.connect(
-            lambda: self.measure_oneshot(self.conf))
+        self.mainthread.sig_measure_oneshot.connect(self.measure_oneshot)
         self.conf = dict(threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadnames_RES=[
@@ -394,14 +390,14 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def update_conf(self, key, value):
         self.conf[key] = value
 
-    @pyqtSlot(dict)
+    @pyqtSlot()
     @ExceptionHandling
-    def measure_oneshot(self, conf):
+    def measure_oneshot(self):
         """invoke a single measurement and send it to saving the data"""
         try:
-            # print('measuring', convert_time(time.time()), '-------------')
+            print('measuring', convert_time(time.time()), 'entering')
             with locking(self.mainthread.controls_Lock):
-                data = measure_resistance_multichannel(**conf)
+                data = measure_resistance_multichannel(**self.conf)
                 data['type'] = 'multichannel'
             self.sig_storing.emit(deepcopy(data))
 
@@ -409,4 +405,4 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         #     print(e_arr)
         finally:
             QTimer.singleShot(
-                2 * 1e3, lambda: self.measure_oneshot(self.conf))
+                20 * 1e3, lambda: self.measure_oneshot())
