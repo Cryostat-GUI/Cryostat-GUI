@@ -787,38 +787,133 @@ class measurement_Logger(AbstractEventhandlingThread):
 
         if data['type'] == 'multichannel':
 
-            datastring = '\n'
-            temperatures = ["{{{mean}:.3E}} {{{std}:.3E}} ".format(
+            datastring = ''
+            temperatures = ["{{{mean}:.5E}} {{{std}:.5E}} ".format(
                 mean=mean, std=std) for mean, std in zip(
                     data['T_mean_K'], data['T_std_K'])]
             for t in temperatures:
                 datastring += t
-            # print(datastring)
             datastring = datastring.format(**data['T_mean_K'], **data['T_std_K'])
-            resistances = ["{{{mean}:.14E}} {{{std}:.14E}} ".format(
-                mean=mean, std=std) for mean, std in zip(
-                    data['R_mean_Ohm'], data['R_std_Ohm'])]
-            for r in resistances:
-                datastring += r
-            # print(datastring)
-            datastring = datastring.format(**data['R_mean_Ohm'], **data['R_std_Ohm'])
-            datastring += '{timeseconds} {ReadableTime} '.format(**data)
+
+            for instrument in data['resistances']:
+                res_instr = ["{{{name}:.10E}} ".format(name=key) for key in data[
+                    'resistances'][instrument]]
+                for r in res_instr:
+                    datastring += r
+                datastring = datastring.format(
+                    **data['resistances'][instrument])
+
+            for instrument in data['voltages']:
+                voltages = ["{{{num}:.5E}} ".format(
+                    num=ct) for ct, value in enumerate(data['voltages'][instrument])]
+                for v in voltages:
+                    datastring += v
+                datastring = datastring.format(*data['voltages'][instrument])
+
+            for instrument in data['currents']:
+                currents = ["{{{num}:.5E}} ".format(
+                    num=ct) for ct, value in enumerate(data['currents'][instrument])]
+                for v in currents:
+                    datastring += v
+                datastring = datastring.format(*data['currents'][instrument])
+
+            datastring = '\n{ReadableTime} '.format(
+                **data) + datastring
             # print(datastring)
 
-            temperatures = ["{mean}, {std}; ".format(
-                mean=mean, std=std) for mean, std in zip(
-                    data['T_mean_K'], data['T_std_K'])]
-            temp = ''
-            for t in temperatures:
-                temp += t
-            resistances = ["{mean}, {std}; ".format(
-                mean=mean, std=std) for mean, std in zip(
-                    data['R_mean_Ohm'], data['R_std_Ohm'])]
-            res = ''
-            for r in resistances:
-                res += r
-            headerstring = str("# Measurement started on {date} \n".format(date=convert_time(self.starttime)) + temp + res +
-                               "time [s]; date")
+            headerstring = """\
+# Measurement started on {date}
+#
+# date, Sensor 1 (A) [K] arithmetic mean, Sensor 1 (A) [K] uncertainty, Sensor 2 (B) [K] arithmetic mean, Sensor 2 (B) [K] uncertainty, Sensor 3 (C) [K] arithmetic mean, Sensor 3 (C) [K] uncertainty, Sensor 4 (D) [K] arithmetic mean, Sensor 4 (D) [K] uncertainty, Keith1: resistance [Ohm] (slope of 4 points), Keith1: residuals (of fit for slope), Keith1: non-ohmicity: 0 if ohmic 1 if nonohmic, Keith2: resistance [Ohm] (slope of 4 points), Keith2: residuals (of fit for slope), Keith2: non-ohmicity: 0 if ohmic 1 if nonohmic, Keith1 voltage 1, Keith1 voltage 2, Keith1 voltage 3, Keith1 voltage 4, Keith2 voltage 1, Keith2 voltage 2, Keith2 voltage 3, Keith2 voltage 4, Keith1 current 1, Keith1 current 2, Keith1 current 3, Keith1 current 4, Keith2 current 1, Keith2 current 2, Keith2 current 3, Keith2 current 4,
+# columns -1 based / zero based / one based
+#
+# -1 / 0 /  1 date
+#
+#   -- temperatures
+#  0 /  1 /  2 Sensor 1 (A) [K] arithmetic mean
+#  1 /  2 /  3 Sensor 1 (A) [K] uncertainty
+#  2 /  3 /  4 Sensor 2 (B) [K] arithmetic mean
+#  3 /  4 /  5 Sensor 2 (B) [K] uncertainty
+#  4 /  5 /  6 Sensor 3 (C) [K] arithmetic mean
+#  5 /  6 /  7 Sensor 3 (C) [K] uncertainty
+#  6 /  7 /  8 Sensor 4 (D) [K] arithmetic mean
+#  7 /  8 /  9 Sensor 4 (D) [K] uncertainty
+#
+#   -- resistances Keithley2182_1
+#  8 /  9 / 10 resistance [Ohm] (slope of 4 points)
+#  9 / 10 / 11 residuals (of fit for slope)
+# 10 / 11 / 12 non-ohmicity: 0 if ohmic, 1 if nonohmic
+#
+#   -- resistances Keithley2182_2
+# 11 / 12 / 13 resistance [Ohm] (slope of 4 points)
+# 12 / 13 / 14 residuals (of fit for slope)
+# 13 / 14 / 15 non-ohmicity: 0 if ohmic, 1 if nonohmic
+#
+#   -- voltages Keithley2182_1
+# 14 / 15 / 16 voltage 1
+# 15 / 16 / 17 voltage 2
+# 16 / 17 / 18 voltage 3
+# 17 / 18 / 19 voltage 4
+#
+#   -- voltages Keithley2182_2
+# 18 / 19 / 20 voltage 1
+# 19 / 20 / 21 voltage 2
+# 20 / 21 / 22 voltage 3
+# 21 / 22 / 23 voltage 4
+#
+#   -- currents Keithley6221_1
+# 22 / 23 / 24 current 1
+# 23 / 24 / 25 current 2
+# 24 / 25 / 26 current 3
+# 25 / 26 / 27 current 4
+#
+#   -- currents Keithley6221_2
+# 26 / 27 / 28 current 1
+# 27 / 28 / 29 current 2
+# 28 / 29 / 30 current 3
+# 29 / 30 / 31 current 4
+#
+# 30 / 31 / 32 unused
+# 31 / 32 / 33 unused
+# 32 / 33 / 34 unused
+# 33 / 34 / 35 unused
+# 34 / 35 / 36 unused
+# 35 / 36 / 37 unused
+# 36 / 37 / 38 unused
+# 37 / 38 / 39 unused
+# 38 / 39 / 40 unused
+# 39 / 40 / 41 unused
+# 40 / 41 / 42 unused
+# 41 / 42 / 43 unused
+# 42 / 43 / 44 unused
+# 43 / 44 / 45 unused
+# 44 / 45 / 46 unused
+# 45 / 46 / 47 unused
+# 46 / 47 / 48 unused
+# 47 / 48 / 49 unused
+# 48 / 49 / 50 unused
+# 49 / 50 / 51 unused
+# 50 / 51 / 52 unused
+# 51 / 52 / 53 unused
+# 52 / 53 / 54 unused
+# 53 / 54 / 55 unused
+# 54 / 55 / 56 unused
+# 55 / 56 / 57 unused
+# 56 / 57 / 58 unused
+# 57 / 58 / 59 unused
+# 58 / 59 / 60 unused
+# 59 / 60 / 61 unused
+# 60 / 61 / 62 unused
+# 61 / 62 / 63 unused
+# 62 / 63 / 64 unused
+# 63 / 64 / 65 unused
+# 64 / 65 / 66 unused
+# 65 / 66 / 67 unused
+# 66 / 67 / 68 unused
+# 67 / 68 / 69 unused
+#68 /
+""".format(date=convert_time(self.starttime))
+
         else:
             datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(
                 **data)

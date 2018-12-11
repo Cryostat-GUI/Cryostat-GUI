@@ -46,7 +46,7 @@ def convert_time_date(ts):
 
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
-    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d::%H:%M:%S')
 
 
 def convert_time_searchable(ts):
