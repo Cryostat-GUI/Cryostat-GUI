@@ -28,6 +28,11 @@ searchf_string = re.compile(r'''["'](.*?)["']''')
 textnesting = '  '
 
 
+class EOSException(Exception):
+    """Exception to raise if an EOS was encountered"""
+    pass
+
+
 def read_nums(comm):
     """convert a string of numbers into a list of floats"""
     return [float(x) for x in searchf_number.findall(comm)]
@@ -77,15 +82,15 @@ def displaytext_waiting(data):
 
 def displaytext_scan_T(data):
     """generate the displaytext for the temperature scan"""
-    if data['ApproachMode'] == 0:
-        mode = 'Fast Settle (single Set Temperature)'
-    if data['ApproachMode'] == 1:
-        mode = "No o'shoot (slow - not yet implemented!)"
-        raise NotImplementedError('There is no "No o\'shoot" mode yet!')
-    if data['ApproachMode'] == 2:
-        mode = 'Sweep'
+    # if data['ApproachMode'] == 0:
+    #     mode = 'Fast Settle (single Set Temperature)'
+    # if data['ApproachMode'] == 1:
+    #     mode = "No o'shoot (slow - not yet implemented!)"
+    #     raise NotImplementedError('There is no "No o\'shoot" mode yet!')
+    # if data['ApproachMode'] == 2:
+    #     mode = 'Sweep'
 
-    return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {mode}'.format(mode=mode, **data)
+    return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {ApproachMode}, {SpacingCode}'.format(**data)
 
 
 def displaytext_set_temp(data):
@@ -684,12 +689,12 @@ class Sequence_builder(Window_ui):
             #        r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
             exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)$',
                    r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$', r'DFC(.*?)$',
-                   r'LPI(.*?)$', r'SHT SHUTDOWN', r'EOS$', r'RES(.*?)$']
+                   r'LPI(.*?)$', r'SHT(.*?)DOWN', r'EN(.*?)EOS$', r'RES(.*?)$']
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
 
-            sequence = self.read_sequence(sequence_file)
-            for command in sequence:
+            sequence, textsequence = self.read_sequence(sequence_file)
+            for command in textsequence:
                 # print(command)
                 self.model.addItem(command)
         else:
@@ -699,13 +704,14 @@ class Sequence_builder(Window_ui):
         """read the whole sequence from a file"""
         with open(file, 'r') as myfile:
             data = myfile.readlines()  # .replace('\n', '')
-
+        # print(data)
         commands = self.parsing_list_of_lines(data)
         return commands
 
     def parsing_list_of_lines(self, lines):
         """parse a list of lines in a sequence file"""
         commands = []
+        textsequence = []
         self.jumping_count = 0
         for ct, line in enumerate(lines):
             if self.jumping_count > 0:
@@ -714,63 +720,84 @@ class Sequence_builder(Window_ui):
             self.nesting_level = 0
             dic = self.parse_line(lines, line, ct)
             commands.append(dic)
+            textsequence.append(dic)
+            self.add_text(textsequence, dic)
 
         for x in commands:
             print(x)
-        return commands
+        return commands, textsequence
+
+    def add_text(self, text_list, dic):
+        if 'commands' in dic:
+            for c in dic['commands']:
+                text_list.append(c['DisplayText'])
+                self.add_text(text_list, c)
 
     def parse_line(self, lines_file, line, line_index):
         """parse one line of a sequence file, possibly more if it is a scan"""
-        line_found = self.p.findall(line)
+        line_found = self.p.findall(line)[0]
+        print('parsing a line: ', line_found)
         dic = dict(typ=None)
         if line_found[0]:
             # set temperature
+            print('I found set_temp')
             dic = parse_set_temp(line, self.nesting_level)
-        if line_found[1]:
+        elif line_found[1]:
             # set field
+            print('I found set_field')
             dic = parse_set_field(line, self.nesting_level)
-        if line_found[2]:
+        elif line_found[2]:
             # scan something
+            print('I foundg_level ')
             self.nesting_level += 1
             dic = self.parse_scan_arb(lines_file, line, line_index)
             # much stuff to do!
-        if line_found[3]:
+        elif line_found[3]:
             # waitfor
+            print('I found waiting')
             dic = parse_waiting(line, self.nesting_level)
-        if line_found[4]:
+        elif line_found[4]:
             # chain sequence
+            print('I found chain_sequence')
             dic = parse_chain_sequence(line, self.nesting_level)
-        if line_found[5]:
+        elif line_found[5]:
             # resistivity change datafile
+            print('I found res_change_datafile')
             dic = parse_res_change_datafile(line, self.nesting_level)
-        if line_found[6]:
+        elif line_found[6]:
             # resistivity datafile comment
+            print('I found res_datafilecomment')
             dic = parse_res_datafilecomment(line, self.nesting_level)
-        if line_found[7]:
+        elif line_found[7]:
             # resistivity scan excitation
+            print('I found res_scan_excitation')
             dic = parse_res_scan_excitation(line, self.nesting_level)
-        if line_found[8]:
+        elif line_found[8]:
             dic = dict(typ='Shutdown')
-        if line_found[9]:
+        elif line_found[9]:
             # end of a scan
             # break or raise exception
-            dic = dict(typ='EOS', DisplayText='EOS')
-        if line_found[10]:
+            # dic = dict(typ='EOS', DisplayText='EOS')
+            print('I found eption')
+            raise EOSException()
+        elif line_found[10]:
             # resistivity - measure
+            print('I found res')
             dic = parse_res(line, self.nesting_level)
         return dic
 
     def parse_scan_arb(self, lines_file, line, lines_index):
         """parse a line in which a scan was defined"""
         # parse this scan instructions
-        line_found = self.p.findall(line)
+        line_found = self.p.findall(line)[0]
+        print('parsing a scan: ', line_found)
         dic = dict(typ=None)
         if line_found[2][0] == 'H':
             # Field
             pass
         if line_found[2][0] == 'T':
             # temperature
-            dic = parse_scan_T(line)
+            dic = parse_scan_T(line, self.nesting_level)
 
         if line_found[2][0] == 'P':
             # position
@@ -779,9 +806,14 @@ class Sequence_builder(Window_ui):
             # time
             pass
         commands = []
-        for ct, line_further in enumerate(lines_file[lines_index:]):
-            dic_loop = self.parse_line(
-                lines_file, line_further, lines_index + ct)
+        for ct, line_further in enumerate(lines_file[lines_index+1:]):
+            self.jumping_count += 1
+            try:
+                dic_loop = self.parse_line(
+                    lines_file, line_further, lines_index + 1 + ct)
+            except EOSException:
+                self.nesting_level -= 1
+                break
             commands.append(dic_loop)
         dic.update(dict(commands=commands))
         return dic
