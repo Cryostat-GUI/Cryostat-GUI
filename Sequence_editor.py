@@ -461,8 +461,8 @@ class Sequence_builder(Window_ui):
                 return pat[1:]
                 # set temp,            set field,       scan Something,  Wait
                 # for something, chain sequence, change data file
-            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)EOS$',
-                   r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
+            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$',r'SCAN(.*?)SCAN(.*?)EOS(.*?)EOS$', r'SCAN(.*?)EOS$',
+                   r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$' ]
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
             self.number = re.compile(r'([0-9]+[.]*[0-9]*)')
@@ -481,6 +481,7 @@ class Sequence_builder(Window_ui):
         exp_datafile = re.compile(r'''["'](.*?)["']''')
 
         sequence_raw = self.p.findall(data)
+        print(sequence_raw)
         commands = []
         for part in sequence_raw:
             # dic = dict()
@@ -552,6 +553,8 @@ class Sequence_builder(Window_ui):
                            # directly into opening statement
                            DisplayText='Change data file: {}'.format(file))
                 print('CDF', comm)
+            elif part[6]:
+                pass
 
             commands.append(dic)
         # for x in commands:
@@ -563,6 +566,7 @@ if __name__ == '__main__':
 
     file = 'Hg1201_UD88_17Aug2018_dn.seq'
     file = 'SEQ_20180914_Tscans.seq'
+    file = 'Tempscan.seq'
     file = None
     # file = 't.seq'
 
