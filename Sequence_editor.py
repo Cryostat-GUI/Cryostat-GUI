@@ -23,6 +23,223 @@ from qlistmodel import ScanListModel
 
 
 dropstring = re.compile(r'([a-zA-Z0-9])')
+searchf_number = re.compile(r'([0-9]+[.]*[0-9]*)')
+searchf_string = re.compile(r'''["'](.*?)["']''')
+
+
+def read_nums(comm):
+    return [float(x) for x in searchf_number.findall(comm)]
+
+
+def parse_binary(number):
+    nums = list(reversed('{:b}'.format(number)))
+    print(nums)
+    for ct, num in enumerate(nums):
+        nums[ct] = True if int(num) else False
+    return nums
+
+
+def parse_binary_dataflags(number):
+    nums = parse_binary(number)
+    names = ['General Status', 'Temperature',
+             'Magnetic Field', 'Sample Position',
+             'Chan 1 Resistivity', 'Chan 1 Excitation',
+             'Chan 2 Resistivity', 'Chan 2 Excitation',
+             'Chan 3 Resistivity', 'Chan 3 Excitation',
+             'Chan 4 Resistivity', 'Chan 4 Excitation']
+    empty = [False for x in names]
+    bare = dict(zip(names, empty))
+    bare.update(dict(zip(names, nums)))
+    return bare
+
+
+def displaytext_waiting(data):
+    string = 'Wait for '
+    separator = ', ' if data['Temp'] and data['Field'] else ''
+    sep_taken = False
+
+    if data['Temp']:
+        string += 'Temperature' + separator
+        sep_taken = True
+    if data['Field']:
+        string = string + 'Field' if sep_taken else string + 'Field' + separator
+        sep_taken = True
+    string += ' & {} seconds more'.format(data['Delay'])
+    return string
+
+
+def displaytext_scan_T(data):
+    if data['ApproachMode'] == 0:
+        mode = 'Fast Settle (single Set Temperature)'
+    if data['ApproachMode'] == 1:
+        mode = "No o'shoot (slow - not yet implemented!)"
+        raise NotImplementedError('There is no "No o\'shoot" mode yet!')
+    if data['ApproachMode'] == 2:
+        mode = 'Sweep'
+
+    return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {mode}'.format(mode=mode, **data)
+
+
+def displaytext_set_temp(data):
+    return 'Set Temperature to {Temp} at {SweepRate}K/min (rate is only a wish...)'.format(**data)
+
+
+def parse_set_temp(comm):
+    # TODO: Fast settle
+    nums = read_nums(comm)
+    dic = dict(typ='set_T', Temp=nums[0], SweepRate=nums[1])
+    dic['DisplayText'] = displaytext_set_temp(dic)
+    return dic
+
+
+def displaytext_set_field(data):
+    return 'Set Field to {Field} at {SweepRate}T/min (rate is only a wish...)'.format(**data)
+
+
+def parse_set_field(comm):
+    nums = read_nums(comm)
+    dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1])
+    dic['DisplayText'] = parse_set_field(dic)
+    return dic
+
+
+def parse_waiting(comm):
+    nums = read_nums(comm)
+    dic = dict(typ='Wait',
+               Temp=bool(int(nums[1])),
+               Field=bool(int(nums[2])),
+               Position=bool(int(nums[3])),
+               Chamber=bool(int(nums[4])),
+               Delay=nums[0])
+    dic['DisplayText'] = displaytext_waiting(dic)
+    return dic
+    # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
+
+
+def parse_chain_sequence(comm):
+    file = comm[4:]
+    return dict(typ='chain sequence', new_file_seq=file,
+                DisplayText='Chain sequence: {}'.format(comm))
+    # print('CHN', comm, dic)
+    # return dic
+
+
+def parse_res_change_datafile(comm):
+    file = searchf_string.findall(comm)
+    return dict(typ='change datafile', new_file_data=file,
+                mode='a' if comm[-1] == '1' else 'w',
+                # a - appending, w - writing, can be inserted
+                # directly into opening statement
+                DisplayText='Change data file: {}'.format(file))
+    # print('CDF', comm, dic)
+    # return dic
+
+
+def parse_res_datafilecomment(comm):
+    comment = searchf_string.findall(comm)
+    return dict(typ='datafilecomment', comment=comment)
+
+
+def parse_res_bridge_setup(nums):
+    bridge_setup = []
+    bridge_setup.append(nums[:5])
+    bridge_setup.append(nums[5:10])
+    bridge_setup.append(nums[10:15])
+    bridge_setup.append(nums[15:20])
+    for ct, channel in enumerate(bridge_setup):
+        bridge_setup[ct] = dict(limit_power_uW=channel[
+                                1], limit_voltage_mV=channel[4])
+        bridge_setup[ct]['ac_dc'] = 'AC' if channel[2] == 0 else 'DC'
+        bridge_setup[ct]['on_off'] = True if channel[0] == 2 else False
+        bridge_setup[ct]['calibration_mode'] = 'Standard' if channel[
+            3] == 0 else 'Fast'
+    return bridge_setup
+
+
+def parse_res_bridge_configuration(comm):
+    nums = read_nums(comm)
+    dataflags = parse_binary_dataflags(nums[0])
+    reading_count = nums[1]
+    nums = nums[2:]
+    bridge_conf = []
+    bridge_conf.append(nums[:6])
+    bridge_conf.append(nums[6:12])
+    bridge_conf.append(nums[12:18])
+    bridge_conf.append(nums[18:24])
+    for ct, channel in enumerate(bridge_conf):
+        bridge_conf[ct] = dict(limit_power_uW=channel[2], limit_current_uA=channel[
+                               1], limit_voltage_mV=channel[5])
+        bridge_conf[ct]['on_off'] = True if channel[0] == 2 else False
+        bridge_conf[ct]['ac_dc'] = 'AC' if channel[3] == 0 else 'DC'
+        bridge_conf[ct]['calibration_mode'] = 'Standard' if channel[
+            4] == 0 else 'Fast'
+    data = dict(dataflags=dataflags, reading_count=reading_count,
+                bridge_conf=bridge_conf)
+    return data
+
+
+def parse_res_scan_excitation(comm):
+    nums = read_nums(comm)
+    scan_setup = []
+    scan_setup.append(nums[:3])  # 1
+    scan_setup.append(nums[3:6])  # 2
+    scan_setup.append(nums[6:9])  # 3
+    scan_setup.append(nums[9:12])  # 4
+    for ct, channel in enumerate(scan_setup):
+        scan_setup[ct] = dict(start=channel[0], stop=[channel[1]])
+        if channel[-1] == 0:
+            scan_setup[ct]['Spacing'] = 'linear'
+        if channel[-1] == 1:
+            scan_setup[ct]['Spacing'] = 'log'
+        if channel[-1] == 2:
+            scan_setup[ct]['Spacing'] = 'power'
+
+    dataflags = parse_binary_dataflags(nums[14])
+    n_steps = nums[12]
+    reading_count = nums[13]
+    bridge_setup = parse_res_bridge_setup(nums[15:35])
+    data = dict(scan_setup=scan_setup, bridge_setup=bridge_setup,
+                dataflags=dataflags, n_steps=n_steps,
+                reading_count=reading_count)
+    return data
+
+
+def parse_scan_T(comm):
+    temps = read_nums(comm)
+    # temps are floats!
+    if len(temps) < 6:
+        raise AssertionError(
+            'not enough specifying numbers for T-scan!')
+
+    dic = dict(typ='scan_T', start=temps[0],
+               end=temps[1],
+               SweepRate=temps[2],
+               Nsteps=temps[3],
+               SpacingCode=temps[4],
+               ApproachMode=temps[5])
+    if temps[4] == 0:
+        dic['SpacingCode'] = 'uniform'
+    elif temps[4] == 1:
+        dic['SpacingCode'] = '1/T'
+    elif temps[4] == 2:
+        dic['SpacingCode'] = 'logT'
+
+    if temps[5] == 0:
+        dic['ApproachMode'] = 'Fast'
+    elif temps[5] == 1:
+        dic['ApproachMode'] = 'No O\'Shoot'
+    elif temps[5] == 2:
+        dic['ApproachMode'] = 'Sweep'
+    dic['DisplayText'] = displaytext_scan_T(dic)
+    # dic['commands'] = []
+    # for commandline in comm.splitlines()[1:]:
+    #     if commandline[:3] == 'RES':
+    #         nums = [float(x)
+    #                 for x in searchf_number.findall(commandline)]
+    #         dic['commands'].append(dict(measuretype='RES',
+    #                                     RES_arbnum1=nums[0],
+    #                                     RES_arbnum2=nums[1]))
+
 
 
 class Window_ChangeDataFile(QtWidgets.QDialog):
@@ -342,37 +559,6 @@ class Sequence_builder(Window_ui):
         if text.text(0) == 'Shutdown Temperature Control':
             raise NotImplementedError
 
-    def parse_waiting(self, data):
-        string = 'Wait for '
-        separator = ', ' if data['Temp'] and data['Field'] else ''
-        sep_taken = False
-
-        if data['Temp']:
-            string += 'Temperature' + separator
-            sep_taken = True
-        if data['Field']:
-            string = string + 'Field' if sep_taken else string + 'Field' + separator
-            sep_taken = True
-        string += ' & {} seconds more'.format(data['Delay'])
-        return string
-
-    def parse_Tscan(self, data):
-        if data['ApproachMode'] == 0:
-            mode = 'Fast Settle (single Set Temperature)'
-        if data['ApproachMode'] == 1:
-            mode = "No o'shoot (slow - not yet implemented!)"
-            raise NotImplementedError('There is no "No o\'shoot" mode yet!')
-        if data['ApproachMode'] == 2:
-            mode = 'Sweep'
-
-        return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {mode}'.format(mode=mode, **data)
-
-    def parse_set_temp(self, data):
-        return 'Set Temperature to {Temp} at {rate}K/min (rate is only a wish...)'.format(**data)
-
-    def parse_set_field(self, data):
-        return 'Set Field to {Field} at {rate}T/min (rate is only a wish...)'.format(**data)
-
     def addWaiting(self, data):
         string = self.parse_waiting(data)
         data.update(dict(DisplayText=string))
@@ -461,11 +647,13 @@ class Sequence_builder(Window_ui):
                 return pat[1:]
                 # set temp,            set field,       scan Something,  Wait
                 # for something, chain sequence, change data file
-            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$',r'SCAN(.*?)SCAN(.*?)EOS(.*?)EOS$', r'SCAN(.*?)EOS$',
-                   r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$' ]
+            # exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)EOS$',
+            #        r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
+            exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)$',
+                   r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$', r'DFC(.*?)$',
+                   r'LPI(.*?)$', r'SHT SHUTDOWN', r'EOS$', r'RES(.*?)$']
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
-            self.number = re.compile(r'([0-9]+[.]*[0-9]*)')
 
             sequence = self.read_sequence(sequence_file)
             for command in sequence:
@@ -474,92 +662,242 @@ class Sequence_builder(Window_ui):
         else:
             self.sequence_file = ['']
 
+    def parse_scan_arb(self, lines_file, line, lines_index):
+        # parse this scan instructions
+        line_found = self.p.findall(line)
+        dic = dict(typ=None)
+        if line_found[2][0] == 'H':
+            # Field
+            pass
+        if line_found[2][0] == 'T':
+            # temperature
+            pass
+        if line_found[2][0] == 'P':
+            # position
+            pass
+        if line_found[2][0] == 'C':
+            # time
+            pass
+        commands = []
+        for ct, line_further in enumerate(lines_file[lines_index:]):
+            dic_loop = self.parse_line(lines_file, line_further, lines_index+ct)
+            commands.append(dic_loop)
+        dic.update(dict(commands=commands))
+        return dic
+
+    def parse_line(self, lines_file, line, line_index):
+        line_found = self.p.findall(line)
+        dic = dict(typ=None)
+        if line_found[0]:
+            # set temperature
+            dic = parse_set_temp(line)
+        if line_found[1]:
+            # set field
+            dic = parse_set_field(line)
+        if line_found[2]:
+            # scan something
+            dic = self.parse_scan_arb(lines_file, line, line_index)
+            # much stuff to do!
+        if line_found[3]:
+            # waitfor
+            dic = parse_waiting(line)
+        if line_found[4]:
+            # chain sequence
+            dic = parse_chain_sequence(line)
+        if line_found[5]:
+            # resistivity change datafile
+            dic = parse_res_change_datafile(line)
+        if line_found[6]:
+            # resistivity datafile comment
+            dic = parse_res_datafilecomment(line)
+        if line_found[7]:
+            # resistivity scan excitation 
+            dic = parse_res_scan_excitation(line)
+        if line_found[8]:
+            dic = dict(typ='Shutdown')
+        if line_found[9]:
+            # end of a scan
+            # break or raise exception
+            pass
+        if line_found[10]:
+            # resistivity - measure
+            dic = parse_res_bridge_configuration(line)
+        return dic
+
+    def parsing_list_of_lines(self, lines):
+        commands = []
+        self.jumping_count = 0
+        for ct, line in enumerate(lines):
+            if self.jumping_count > 0:
+                self.jumping_count -= 1
+                continue
+            self.nesting_level = 0
+            dic = self.parse_line(lines, line, ct)
+            commands.append(dic)
+
+        # exp_datafile = re.compile(r'''["'](.*?)["']''')
+
+        # sequence_raw = self.p.findall(data)
+        # print(sequence_raw)
+        # commands = []
+        # for part in sequence_raw:
+        #     # dic = dict()
+        #     # print(part)
+        #     if part[0]:
+        #         # set temperature
+        #         dic = parse_set_temp(part[0])
+
+        #     elif part[1]:
+        #         # set field
+        #         dic = parse_set_field(part[1])
+
+        #     elif part[2]:
+        #         # scan temperature
+        #         comm = part[2]
+        #         if comm[0] == 'T':
+        #             templine = comm.splitlines()[0]
+        #             temps = [float(x)
+        #                      for x in searchf_number.findall(templine)]
+        #             # temps are floats!
+        #             if len(temps) < 6:
+        #                 raise AssertionError(
+        #                     'not enough specifying numbers for T-scan!')
+        #             dic = dict(typ='scan_T', start=temps[0],
+        #                        end=temps[1],
+        #                        SweepRate=temps[2],
+        #                        Nsteps=temps[3],
+        #                        SpacingCode=temps[4],
+        #                        ApproachMode=temps[5])
+        #             dic['DisplayText'] = parse_Tscan(dic)
+        #         dic['commands'] = []
+        #         for commandline in comm.splitlines()[1:]:
+        #             if commandline[:3] == 'RES':
+        #                 nums = [float(x)
+        #                         for x in searchf_number.findall(commandline)]
+        #                 dic['commands'].append(dict(measuretype='RES',
+        #                                             RES_arbnum1=nums[0],
+        #                                             RES_arbnum2=nums[1]))
+        #     elif part[3]:
+        #         # waiting
+        #         comm = part[3]
+        #         nums = [float(x) for x in searchf_number.findall(comm)]
+        #         seconds = nums[0]
+        #         Field = True if int(nums[2]) == 1 else False
+        #         Temp = True if int(nums[1]) == 1 else False
+
+        #         dic = dict(typ='Wait', Temp=Temp, Field=Field, Delay=seconds)
+        #         dic['DisplayText'] = parse_waiting(dic)
+        #         # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
+        #     elif part[4]:
+        #         # chain sequence
+        #         comm = part[4]
+        #         dic = dict(typ='chain sequence', new_file_seq=comm,
+        #                    DisplayText='Chain sequence: {}'.format(comm))
+        #         print('CHN', comm)
+        #     elif part[5]:
+        #         # change data file
+        #         comm = part[5]
+        #         file = exp_datafile.findall(comm)[0]
+        #         dic = dict(typ='change datafile', new_file_data=file,
+        #                    mode='a' if comm[-1] == '1' else 'w',
+        #                    # a - appending, w - writing, can be inserted
+        #                    # directly into opening statement
+        #                    DisplayText='Change data file: {}'.format(file))
+        #         print('CDF', comm)
+        #     elif part[6]:
+        #         pass
+
+        #     commands.append(dic)
+        for x in commands:
+            print(x)
+        return commands
+
     def read_sequence(self, file):
         with open(file, 'r') as myfile:
-            data = myfile.read()  # .replace('\n', '')
+            data = myfile.readlines()  # .replace('\n', '')
 
-        exp_datafile = re.compile(r'''["'](.*?)["']''')
-
-        sequence_raw = self.p.findall(data)
-        print(sequence_raw)
-        commands = []
-        for part in sequence_raw:
-            # dic = dict()
-            # print(part)
-            if part[0]:
-                # set temperature
-                comm = part[0]
-                nums = [float(x) for x in self.number.findall(comm)]
-                dic = dict(typ='set_T', Temp=nums[0], SweepRate=nums[1])
-
-                dic['DisplayText'] = self.parse_set_temp(dic)
-
-            elif part[1]:
-                # set field
-                comm = part[1]
-                nums = [float(x) for x in self.number.findall(comm)]
-                dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1])
-                dic['DisplayText'] = self.parse_set_field(dic)
-
-            elif part[2]:
-                # scan temperature
-                comm = part[2]
-                if comm[0] == 'T':
-                    templine = comm.splitlines()[0]
-                    temps = [float(x) for x in self.number.findall(templine)]
-                    # temps are floats!
-                    if len(temps) < 6:
-                        raise AssertionError(
-                            'not enough specifying numbers for T-scan!')
-                    dic = dict(typ='scan_T', start=temps[0],
-                               end=temps[1],
-                               SweepRate=temps[2],
-                               Nsteps=temps[3],
-                               SpacingCode=temps[4],
-                               ApproachMode=temps[5])
-                    dic['DisplayText'] = self.parse_Tscan(dic)
-                dic['commands'] = []
-                for commandline in comm.splitlines()[1:]:
-                    if commandline[:3] == 'RES':
-                        nums = [float(x)
-                                for x in self.number.findall(commandline)]
-                        dic['commands'].append(dict(measuretype='RES',
-                                                    RES_arbnum1=nums[0],
-                                                    RES_arbnum2=nums[1]))
-            elif part[3]:
-                # waiting
-                comm = part[3]
-                nums = [float(x) for x in self.number.findall(comm)]
-                seconds = nums[0]
-                Field = True if int(nums[2]) == 1 else False
-                Temp = True if int(nums[1]) == 1 else False
-
-                dic = dict(typ='Wait', Temp=Temp, Field=Field, Delay=seconds)
-                dic['DisplayText'] = self.parse_waiting(dic)
-                # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
-            elif part[4]:
-                # chain sequence
-                comm = part[4]
-                dic = dict(typ='chain sequence', new_file_seq=comm,
-                           DisplayText='Chain sequence: {}'.format(comm))
-                print('CHN', comm)
-            elif part[5]:
-                # change data file
-                comm = part[5]
-                file = exp_datafile.findall(comm)[0]
-                dic = dict(typ='change datafile', new_file_data=file,
-                           mode='a' if comm[-1] == '1' else 'w',
-                           # a - appending, w - writing, can be inserted
-                           # directly into opening statement
-                           DisplayText='Change data file: {}'.format(file))
-                print('CDF', comm)
-            elif part[6]:
-                pass
-
-            commands.append(dic)
-        # for x in commands:
-        #     print(x)
+        commands = self.parsing_list_of_lines(data)
         return commands
+    # def read_sequence_old(self, file):
+    #     with open(file, 'r') as myfile:
+    #         data = myfile.read()  # .replace('\n', '')
+
+    #     exp_datafile = re.compile(r'''["'](.*?)["']''')
+
+    #     sequence_raw = self.p.findall(data)
+    #     print(sequence_raw)
+    #     commands = []
+    #     for part in sequence_raw:
+    #         # dic = dict()
+    #         # print(part)
+    #         if part[0]:
+    #             # set temperature
+    #             dic = parse_set_temp(part[0])
+
+    #         elif part[1]:
+    #             # set field
+    #             dic = parse_set_field(part[1])
+
+    #         elif part[2]:
+    #             # scan temperature
+    #             comm = part[2]
+    #             if comm[0] == 'T':
+    #                 templine = comm.splitlines()[0]
+    #                 temps = [float(x)
+    #                          for x in searchf_number.findall(templine)]
+    #                 # temps are floats!
+    #                 if len(temps) < 6:
+    #                     raise AssertionError(
+    #                         'not enough specifying numbers for T-scan!')
+    #                 dic = dict(typ='scan_T', start=temps[0],
+    #                            end=temps[1],
+    #                            SweepRate=temps[2],
+    #                            Nsteps=temps[3],
+    #                            SpacingCode=temps[4],
+    #                            ApproachMode=temps[5])
+    #                 dic['DisplayText'] = parse_Tscan(dic)
+    #             dic['commands'] = []
+    #             for commandline in comm.splitlines()[1:]:
+    #                 if commandline[:3] == 'RES':
+    #                     nums = [float(x)
+    #                             for x in searchf_number.findall(commandline)]
+    #                     dic['commands'].append(dict(measuretype='RES',
+    #                                                 RES_arbnum1=nums[0],
+    #                                                 RES_arbnum2=nums[1]))
+    #         elif part[3]:
+    #             # waiting
+    #             comm = part[3]
+    #             nums = [float(x) for x in searchf_number.findall(comm)]
+    #             seconds = nums[0]
+    #             Field = True if int(nums[2]) == 1 else False
+    #             Temp = True if int(nums[1]) == 1 else False
+
+    #             dic = dict(typ='Wait', Temp=Temp, Field=Field, Delay=seconds)
+    #             dic['DisplayText'] = parse_waiting(dic)
+    #             # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
+    #         elif part[4]:
+    #             # chain sequence
+    #             comm = part[4]
+    #             dic = dict(typ='chain sequence', new_file_seq=comm,
+    #                        DisplayText='Chain sequence: {}'.format(comm))
+    #             print('CHN', comm)
+    #         elif part[5]:
+    #             # change data file
+    #             comm = part[5]
+    #             file = exp_datafile.findall(comm)[0]
+    #             dic = dict(typ='change datafile', new_file_data=file,
+    #                        mode='a' if comm[-1] == '1' else 'w',
+    #                        # a - appending, w - writing, can be inserted
+    #                        # directly into opening statement
+    #                        DisplayText='Change data file: {}'.format(file))
+    #             print('CDF', comm)
+    #         elif part[6]:
+    #             pass
+
+    #         commands.append(dic)
+    #     # for x in commands:
+    #     #     print(x)
+    #     return commands
 
 
 if __name__ == '__main__':
