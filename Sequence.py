@@ -255,8 +255,10 @@ class Sequence_Thread(AbstractEventhandlingThread):
             self.scan_T_execute(**entry)
 
         if entry['typ'] == 'Wait':
-            self.wait_for_Temp(Temp_target=self.temp_setpoint, bools=entry['Temp'])
-            self.wait_for_Field(Temp_target=self.temp_setpoint, bools=entry['Field'])
+            self.wait_for_Temp(
+                Temp_target=self.temp_setpoint, bools=entry['Temp'])
+            self.wait_for_Field(
+                Field_target=self.temp_setpoint, bools=entry['Field'])
             time.sleep(entry['Delay'])
 
     def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
@@ -337,7 +339,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
                 # sleep for short time OUTSIDE of Lock
                 time.sleep(0.1)
 
-    def wait_for_Field(self, Field, bools=True):
+    def wait_for_Field(self, Field_target, bools=True):
         """repeatedly check whether the field was reached,
             given the respective threshold, return once it has
             produce a possibility to abort the sequence, through

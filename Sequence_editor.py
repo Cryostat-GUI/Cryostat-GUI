@@ -29,6 +29,7 @@ textnesting = '  '
 
 
 def read_nums(comm):
+    """convert a string of numbers into a list of floats"""
     return [float(x) for x in searchf_number.findall(comm)]
 
 
@@ -123,7 +124,7 @@ def parse_set_field(comm, nesting_level):
     """parse a command to set a single field"""
     nums = read_nums(comm)
     dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1])
-    dic['DisplayText'] = textnesting * nesting_level + parse_set_field(dic)
+    dic['DisplayText'] = textnesting * nesting_level + displaytext_set_field(dic)
     return dic
 
 
@@ -694,6 +695,71 @@ class Sequence_builder(Window_ui):
         else:
             self.sequence_file = ['']
 
+    def read_sequence(self, file):
+        """read the whole sequence from a file"""
+        with open(file, 'r') as myfile:
+            data = myfile.readlines()  # .replace('\n', '')
+
+        commands = self.parsing_list_of_lines(data)
+        return commands
+
+    def parsing_list_of_lines(self, lines):
+        """parse a list of lines in a sequence file"""
+        commands = []
+        self.jumping_count = 0
+        for ct, line in enumerate(lines):
+            if self.jumping_count > 0:
+                self.jumping_count -= 1
+                continue
+            self.nesting_level = 0
+            dic = self.parse_line(lines, line, ct)
+            commands.append(dic)
+
+        for x in commands:
+            print(x)
+        return commands
+
+    def parse_line(self, lines_file, line, line_index):
+        """parse one line of a sequence file, possibly more if it is a scan"""
+        line_found = self.p.findall(line)
+        dic = dict(typ=None)
+        if line_found[0]:
+            # set temperature
+            dic = parse_set_temp(line, self.nesting_level)
+        if line_found[1]:
+            # set field
+            dic = parse_set_field(line, self.nesting_level)
+        if line_found[2]:
+            # scan something
+            self.nesting_level += 1
+            dic = self.parse_scan_arb(lines_file, line, line_index)
+            # much stuff to do!
+        if line_found[3]:
+            # waitfor
+            dic = parse_waiting(line, self.nesting_level)
+        if line_found[4]:
+            # chain sequence
+            dic = parse_chain_sequence(line, self.nesting_level)
+        if line_found[5]:
+            # resistivity change datafile
+            dic = parse_res_change_datafile(line, self.nesting_level)
+        if line_found[6]:
+            # resistivity datafile comment
+            dic = parse_res_datafilecomment(line, self.nesting_level)
+        if line_found[7]:
+            # resistivity scan excitation
+            dic = parse_res_scan_excitation(line, self.nesting_level)
+        if line_found[8]:
+            dic = dict(typ='Shutdown')
+        if line_found[9]:
+            # end of a scan
+            # break or raise exception
+            dic = dict(typ='EOS', DisplayText='EOS')
+        if line_found[10]:
+            # resistivity - measure
+            dic = parse_res(line, self.nesting_level)
+        return dic
+
     def parse_scan_arb(self, lines_file, line, lines_index):
         """parse a line in which a scan was defined"""
         # parse this scan instructions
@@ -720,70 +786,6 @@ class Sequence_builder(Window_ui):
         dic.update(dict(commands=commands))
         return dic
 
-    def parse_line(self, lines_file, line, line_index):
-        """parse one line of a sequence file, possibly more if it is a scan"""
-        line_found = self.p.findall(line)
-        dic = dict(typ=None)
-        if line_found[0]:
-            # set temperature
-            dic = parse_set_temp(line)
-        if line_found[1]:
-            # set field
-            dic = parse_set_field(line)
-        if line_found[2]:
-            # scan something
-            self.nesting_level += 1
-            dic = self.parse_scan_arb(lines_file, line, line_index)
-            # much stuff to do!
-        if line_found[3]:
-            # waitfor
-            dic = parse_waiting(line)
-        if line_found[4]:
-            # chain sequence
-            dic = parse_chain_sequence(line)
-        if line_found[5]:
-            # resistivity change datafile
-            dic = parse_res_change_datafile(line)
-        if line_found[6]:
-            # resistivity datafile comment
-            dic = parse_res_datafilecomment(line)
-        if line_found[7]:
-            # resistivity scan excitation
-            dic = parse_res_scan_excitation(line)
-        if line_found[8]:
-            dic = dict(typ='Shutdown')
-        if line_found[9]:
-            # end of a scan
-            # break or raise exception
-            dic = dict(typ='EOS', DisplayText='EOS')
-        if line_found[10]:
-            # resistivity - measure
-            dic = parse_res(line)
-        return dic
-
-    def parsing_list_of_lines(self, lines):
-        """parse a list of lines in a sequence file"""
-        commands = []
-        self.jumping_count = 0
-        for ct, line in enumerate(lines):
-            if self.jumping_count > 0:
-                self.jumping_count -= 1
-                continue
-            self.nesting_level = 0
-            dic = self.parse_line(lines, line, ct)
-            commands.append(dic)
-
-        for x in commands:
-            print(x)
-        return commands
-
-    def read_sequence(self, file):
-        """read the whole sequence from a file"""
-        with open(file, 'r') as myfile:
-            data = myfile.readlines()  # .replace('\n', '')
-
-        commands = self.parsing_list_of_lines(data)
-        return commands
     # def read_sequence_old(self, file):
     #     with open(file, 'r') as myfile:
     #         data = myfile.read()  # .replace('\n', '')
