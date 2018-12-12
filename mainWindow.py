@@ -1067,6 +1067,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(
                     lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
+                # turns off heater output
+                self.LakeShore350_window.pushButtonHeateraOut.clicked.connect(
+                    lambda: self.threads['control_LakeShore350'][0].setHeater_Range(0))
+
                 # allows to choose from different inputs to connect to output 1
                 # control loop. default is input 1.
 
@@ -1080,14 +1084,20 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 """ NEW GUI controls P, I and D values for Control Loop PID Values Command
                 # """
-                # self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
-                # self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
+                self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(
+                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
+                self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(
+                    lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
 
-                # self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
-                # self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
+                self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(
+                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
+                self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(
+                    lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
 
-                # self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
-                # self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
+                self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(
+                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
+                self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(
+                    lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
 
                 """ NEW GUI Heater Range and Ouput Zone
                 """
@@ -1223,9 +1233,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
             """NEW GUI to display P,I and D Parameters
             """
-            # self.LakeShore350_window.lcdLoopP_Param.display(self.data['LakeShore350']['Loop_P_Param'])
-            # self.LakeShore350_window.lcdLoopI_Param.display(self.data['LakeShore350']['Loop_I_Param'])
-            # self.LakeShore350_window.lcdLoopD_Param.display(self.data['LakeShore350']['Loop_D_Param'])
+            self.LakeShore350_window.lcdLoopP_Param.display(
+                self.data['LakeShore350']['Loop_P_Param'])
+            self.LakeShore350_window.lcdLoopI_Param.display(
+                self.data['LakeShore350']['Loop_I_Param'])
+            self.LakeShore350_window.lcdLoopD_Param.display(
+                self.data['LakeShore350']['Loop_D_Param'])
 
             # self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
 
