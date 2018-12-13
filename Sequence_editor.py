@@ -10,7 +10,7 @@ from copy import deepcopy
 
 import sys
 # import datetime
-# import pickle
+import pickle
 # import os
 import re
 import threading
@@ -544,21 +544,25 @@ class Sequence_builder(Window_ui):
 
         self.treeOptions.itemDoubleClicked[
             'QTreeWidgetItem*', 'int'].connect(lambda value: self.addItem_toSequence(value))
-        self.pushSaving.clicked.connect(lambda: self.model.pass_data())
+        self.pushSaving.clicked.connect(self.saving)
         self.pushBrowse.clicked.connect(self.window_FileDialogSave)
         self.pushOpen.clicked.connect(self.window_FileDialogOpen)
         self.lineFileLocation.setText(self.sequence_file)
         self.lineFileLocation.textChanged.connect(
             lambda value: self.change_file_location(value))
         self.pushClear.clicked.connect(lambda: self.model.clear_all())
+        self.pushClear.clicked.connect(self.init_data)
 
-        self.Button_RunSequence.clicked.connect(self.running_sequence)
+        # self.Button_RunSequence.clicked.connect(self.running_sequence)
         self.Button_AbortSequence.clicked.connect(
             lambda: self.sig_abortSequence.emit())
         # self.model.sig_send.connect(lambda value: self.printing(value))
-        self.model.sig_send.connect(self.saving)
+        # self.model.sig_send.connect(self.saving)
         # self.treeOptions.itemDoubleClicked['QTreeWidgetItem*', 'int'].connect(lambda value: self.listSequence.repaint())
         self.show()
+
+    def init_data(self):
+        self.data = []
 
     def running_sequence(self):
         self.data = self.model.pass_data()
@@ -598,7 +602,7 @@ class Sequence_builder(Window_ui):
             raise NotImplementedError
 
     def addWaiting(self, data):
-        string = self.parse_waiting(data)
+        string = self.displaytext_waiting(data)
         data.update(dict(DisplayText=string))
         # self.listSequence.addItem(string)
         self.model.addItem(data)
@@ -606,7 +610,7 @@ class Sequence_builder(Window_ui):
         # QTimer.singleShot(10, self.model.)
 
     def addTscan(self, data):
-        string = self.parse_Tscan(data)
+        string = self.displaytext_scan_T(data)
         data.update(dict(DisplayText=string))
         self.model.addItem(data)
         QTimer.singleShot(1, lambda: self.listSequence.repaint())
@@ -617,22 +621,24 @@ class Sequence_builder(Window_ui):
     def printing(self, data):
         print(data)
 
-    def saving(self, data):
-        with open(self.sequence_file, 'w') as f:
-            for entry in data:
-                print(entry)
-                if entry['typ'] == 'scan_T':
-                    f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {SpacingCode} {ApproachMode}\n'.format(
-                        **entry))  # TODO: make sure Rampcondition is actually where it is!
-                    for command in entry['commands']:
-                        f.write(
-                            '{measuretype} 00 00 00 11 11 00\n'.format(**command))
-                    f.write('ENT EOS\n')
-                if entry['typ'] == 'Wait':
-                    Temp = 1 if entry['Temp'] else 0
-                    Field = 1 if entry['Field'] else 0
-                    f.write('WAI WAITFOR {Delay} {Temp} {Field}\n'.format(
-                        Delay=entry['Delay'], Temp=Temp, Field=Field))
+    def saving(self):
+        with open(self.sequence_file_p, 'wb') as output:
+            pickle.dump(self.data, output, pickle.HIGHEST_PROTOCOL)
+        # with open(self.sequence_file, 'w') as f:
+        #     for entry in data:
+        #         print(entry)
+        #         if entry['typ'] == 'scan_T':
+        #             f.write('LPT SCANT {start} {end} {SweepRate} {Nsteps} {SpacingCode} {ApproachMode}\n'.format(
+        #                 **entry))  # TODO: make sure Rampcondition is actually where it is!
+        #             for command in entry['commands']:
+        #                 f.write(
+        #                     '{measuretype} 00 00 00 11 11 00\n'.format(**command))
+        #             f.write('ENT EOS\n')
+        #         if entry['typ'] == 'Wait':
+        #             Temp = 1 if entry['Temp'] else 0
+        #             Field = 1 if entry['Field'] else 0
+        #             f.write('WAI WAITFOR {Delay} {Temp} {Field}\n'.format(
+        #                 Delay=entry['Delay'], Temp=Temp, Field=Field))
 
     def initialize_all_windows(self):
         self.initialise_window_waiting()
@@ -658,6 +664,7 @@ class Sequence_builder(Window_ui):
         self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As',
                                                                        'c:\\', "Sequence files (*.seq)")
         self.lineFileLocation.setText(self.sequence_file)
+        self.sequence_file_p = self.sequence_file[:-3] + 'pkl'
 
     def window_FileDialogOpen(self):
         self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As',
@@ -667,6 +674,7 @@ class Sequence_builder(Window_ui):
 
     def change_file_location(self, fname):
         self.sequence_file = fname
+        self.sequence_file_p = self.sequence_file[:-3] + 'pkl'
 
     # def update_filelocation(self):
     #     try:
@@ -700,6 +708,8 @@ class Sequence_builder(Window_ui):
                 self.model.addItem(command)
             print(
                 'done -----------------------------------------------------------------')
+            self.data = sequence
+
         else:
             self.sequence_file = ['']
 
@@ -749,13 +759,6 @@ class Sequence_builder(Window_ui):
         del self.jumping_count[-1]
         print("done with this nesting level: ", self.nesting_level)
         return commands, textsequence
-
-    # def parsing_list_of_lines(self, lines):
-    #     """parse a list of lines in a sequence file"""
-    #     commands = []
-    #     textsequence = []
-
-    #     return commands, textsequence
 
     def add_text(self, text_list, dic):
         # pass
@@ -851,87 +854,6 @@ class Sequence_builder(Window_ui):
         return dic
 
 
-
-    # def read_sequence_old(self, file):
-    #     with open(file, 'r') as myfile:
-    #         data = myfile.read()  # .replace('\n', '')
-
-    #     exp_datafile = re.compile(r'''["'](.*?)["']''')
-
-    #     sequence_raw = self.p.findall(data)
-    #     print(sequence_raw)
-    #     commands = []
-    #     for part in sequence_raw:
-    #         # dic = dict()
-    #         # print(part)
-    #         if part[0]:
-    #             # set temperature
-    #             dic = parse_set_temp(part[0])
-
-    #         elif part[1]:
-    #             # set field
-    #             dic = parse_set_field(part[1])
-
-    #         elif part[2]:
-    #             # scan temperature
-    #             comm = part[2]
-    #             if comm[0] == 'T':
-    #                 templine = comm.splitlines()[0]
-    #                 temps = [float(x)
-    #                          for x in searchf_number.findall(templine)]
-    #                 # temps are floats!
-    #                 if len(temps) < 6:
-    #                     raise AssertionError(
-    #                         'not enough specifying numbers for T-scan!')
-    #                 dic = dict(typ='scan_T', start=temps[0],
-    #                            end=temps[1],
-    #                            SweepRate=temps[2],
-    #                            Nsteps=temps[3],
-    #                            SpacingCode=temps[4],
-    #                            ApproachMode=temps[5])
-    #                 dic['DisplayText'] = parse_Tscan(dic)
-    #             dic['commands'] = []
-    #             for commandline in comm.splitlines()[1:]:
-    #                 if commandline[:3] == 'RES':
-    #                     nums = [float(x)
-    #                             for x in searchf_number.findall(commandline)]
-    #                     dic['commands'].append(dict(measuretype='RES',
-    #                                                 RES_arbnum1=nums[0],
-    #                                                 RES_arbnum2=nums[1]))
-    #         elif part[3]:
-    #             # waiting
-    #             comm = part[3]
-    #             nums = [float(x) for x in searchf_number.findall(comm)]
-    #             seconds = nums[0]
-    #             Field = True if int(nums[2]) == 1 else False
-    #             Temp = True if int(nums[1]) == 1 else False
-
-    #             dic = dict(typ='Wait', Temp=Temp, Field=Field, Delay=seconds)
-    #             dic['DisplayText'] = parse_waiting(dic)
-    #             # dic.update(local_dic.update(dict(DisplayText=self.parse_waiting(local_dic))))
-    #         elif part[4]:
-    #             # chain sequence
-    #             comm = part[4]
-    #             dic = dict(typ='chain sequence', new_file_seq=comm,
-    #                        DisplayText='Chain sequence: {}'.format(comm))
-    #             print('CHN', comm)
-    #         elif part[5]:
-    #             # change data file
-    #             comm = part[5]
-    #             file = exp_datafile.findall(comm)[0]
-    #             dic = dict(typ='change datafile', new_file_data=file,
-    #                        mode='a' if comm[-1] == '1' else 'w',
-    #                        # a - appending, w - writing, can be inserted
-    #                        # directly into opening statement
-    #                        DisplayText='Change data file: {}'.format(file))
-    #             print('CDF', comm)
-    #         elif part[6]:
-    #             pass
-
-    #         commands.append(dic)
-    #     # for x in commands:
-    #     #     print(x)
-    #     return commands
 
 
 if __name__ == '__main__':
