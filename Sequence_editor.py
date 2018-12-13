@@ -24,8 +24,8 @@ from qlistmodel import ScanListModel
 
 dropstring = re.compile(r'([a-zA-Z0-9])')
 searchf_number = re.compile(r'([0-9]+[.]*[0-9]*)')
-searchf_string = re.compile(r'''["'](.*?)["']''')
-textnesting = '  '
+searchf_string = re.compile(r'''["']{2}(.*?)["']{2}''')
+textnesting = '   '
 
 
 class EOSException(Exception):
@@ -129,7 +129,8 @@ def parse_set_field(comm, nesting_level):
     """parse a command to set a single field"""
     nums = read_nums(comm)
     dic = dict(typ='set_Field', Field=nums[0], SweepRate=nums[1])
-    dic['DisplayText'] = textnesting * nesting_level + displaytext_set_field(dic)
+    dic['DisplayText'] = textnesting * \
+        nesting_level + displaytext_set_field(dic)
     return dic
 
 
@@ -170,7 +171,7 @@ def parse_res_change_datafile(comm, nesting_level):
 
 def parse_res_datafilecomment(comm, nesting_level):
     """parse a command to write a comment to the datafile"""
-    comment = searchf_string.findall(comm)
+    comment = searchf_string.findall(comm)[0]
     dic = dict(typ='datafilecomment',
                comment=comment,
                DisplayText=textnesting * nesting_level +
@@ -697,6 +698,8 @@ class Sequence_builder(Window_ui):
             for command in textsequence:
                 # print(command)
                 self.model.addItem(command)
+            print(
+                'done -----------------------------------------------------------------')
         else:
             self.sequence_file = ['']
 
@@ -705,32 +708,64 @@ class Sequence_builder(Window_ui):
         with open(file, 'r') as myfile:
             data = myfile.readlines()  # .replace('\n', '')
         # print(data)
-        commands = self.parsing_list_of_lines(data)
-        return commands
-
-    def parsing_list_of_lines(self, lines):
-        """parse a list of lines in a sequence file"""
-        commands = []
-        textsequence = []
-        self.jumping_count = 0
-        for ct, line in enumerate(lines):
-            if self.jumping_count > 0:
-                self.jumping_count -= 1
-                continue
-            self.nesting_level = 0
-            dic = self.parse_line(lines, line, ct)
-            commands.append(dic)
-            textsequence.append(dic)
-            self.add_text(textsequence, dic)
-
-        for x in commands:
-            print(x)
+        self.jumping_count = [0, 0]
+        self.nesting_level = 0
+        commands, textsequence = self.parse_nesting(data, -1)
+        print(commands)
         return commands, textsequence
 
+    def parse_nesting(self, lines_file, lines_index):
+
+        commands = []
+        if lines_index == -1:
+            textsequence = []
+        else:
+            textsequence = None
+        # print(lines_file[lines_index+1:])
+        for ct, line_further in enumerate(lines_file[lines_index + 1:]):
+            # print(lines_index, ct, leave)
+            if self.jumping_count[self.nesting_level + 1] > 0:
+                self.jumping_count[self.nesting_level + 1] -= 1
+                # print('just reduced the jumpting count', self.jumping_count)
+                # print(self.jumping_count, self.nesting_level, self.jumping_count[self.nesting_level + 1] )
+                continue
+            for count, jump in enumerate(self.jumping_count[:-1]):
+                self.jumping_count[count] += 1
+            # print(self.jumping_count)
+            try:
+
+                dic_loop = self.parse_line(
+                    lines_file, line_further, lines_index + 1 + ct)
+            except EOSException:
+                self.nesting_level -= 1
+                dic_loop = dict(
+                    typ="EOS", DisplayText=textnesting * (self.nesting_level) + 'EOS')
+                commands.append(dic_loop)
+                break
+            commands.append(dic_loop)
+            if lines_index == -1:
+                textsequence.append(dic_loop)
+                self.add_text(textsequence, dic_loop)
+        del self.jumping_count[-1]
+        print("done with this nesting level: ", self.nesting_level)
+        return commands, textsequence
+
+    # def parsing_list_of_lines(self, lines):
+    #     """parse a list of lines in a sequence file"""
+    #     commands = []
+    #     textsequence = []
+
+    #     return commands, textsequence
+
     def add_text(self, text_list, dic):
+        # pass
         if 'commands' in dic:
             for c in dic['commands']:
-                text_list.append(c['DisplayText'])
+
+                try:
+                    text_list.append(dict(DisplayText=c['DisplayText']))
+                except KeyError:
+                    print(c)
                 self.add_text(text_list, c)
 
     def parse_line(self, lines_file, line, line_index):
@@ -748,8 +783,9 @@ class Sequence_builder(Window_ui):
             dic = parse_set_field(line, self.nesting_level)
         elif line_found[2]:
             # scan something
-            print('I foundg_level ')
-            self.nesting_level += 1
+            print('I found a scan ')
+            # self.jumping_count[self.nesting_level] += 1
+            self.jumping_count.append(0)
             dic = self.parse_scan_arb(lines_file, line, line_index)
             # much stuff to do!
         elif line_found[3]:
@@ -778,11 +814,11 @@ class Sequence_builder(Window_ui):
             # end of a scan
             # break or raise exception
             # dic = dict(typ='EOS', DisplayText='EOS')
-            print('I found eption')
+            print('I found EOS')
             raise EOSException()
         elif line_found[10]:
             # resistivity - measure
-            print('I found res')
+            print('I found res meausrement')
             dic = parse_res(line, self.nesting_level)
         return dic
 
@@ -790,11 +826,13 @@ class Sequence_builder(Window_ui):
         """parse a line in which a scan was defined"""
         # parse this scan instructions
         line_found = self.p.findall(line)[0]
-        print('parsing a scan: ', line_found)
+        # print('parsing a scan: ', line_found)
         dic = dict(typ=None)
         if line_found[2][0] == 'H':
             # Field
             pass
+            dic = dict(typ='scan_H', DisplayText=textnesting*self.nesting_level+'Scan Field....')
+
         if line_found[2][0] == 'T':
             # temperature
             dic = parse_scan_T(line, self.nesting_level)
@@ -805,18 +843,14 @@ class Sequence_builder(Window_ui):
         if line_found[2][0] == 'C':
             # time
             pass
-        commands = []
-        for ct, line_further in enumerate(lines_file[lines_index+1:]):
-            self.jumping_count += 1
-            try:
-                dic_loop = self.parse_line(
-                    lines_file, line_further, lines_index + 1 + ct)
-            except EOSException:
-                self.nesting_level -= 1
-                break
-            commands.append(dic_loop)
+        self.nesting_level += 1
+
+        commands, nothing = self.parse_nesting(lines_file, lines_index)
+
         dic.update(dict(commands=commands))
         return dic
+
+
 
     # def read_sequence_old(self, file):
     #     with open(file, 'r') as myfile:
@@ -912,3 +946,4 @@ if __name__ == '__main__':
     form = Sequence_builder(file)
     form.show()
     sys.exit(app.exec_())
+l
