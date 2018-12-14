@@ -40,13 +40,13 @@ class BreakCondition(Exception):
 
 
 def measure_resistance_singlechannel(threads,
-                                     excitation_current_A,
-                                     threadname_RES,
-                                     threadname_CURR,
-                                     threadname_Temp='control_LakeShore350',
-                                     temperature_sensor='Sensor_1_K',
-                                     n_measurements=1,
-                                     **kwargs):
+    excitation_current_A,
+    threadname_RES,
+    threadname_CURR,
+    threadname_Temp='control_LakeShore350',
+    temperature_sensor='Sensor_1_K',
+    n_measurements=1,
+    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -108,13 +108,13 @@ def measure_resistance_singlechannel(threads,
 
 
 def measure_resistance_multichannel(threads,
-                                    excitation_currents_A,
-                                    threadnames_RES,
-                                    threadnames_CURR,
-                                    threadname_Temp='control_LakeShore350',
-                                    # temperature_sensor='Sensor_1_K',
-                                    n_measurements=1,
-                                    **kwargs):
+    excitation_currents_A,
+    threadnames_RES,
+    threadnames_CURR,
+    threadname_Temp='control_LakeShore350',
+    # temperature_sensor='Sensor_1_K',
+    n_measurements=1,
+    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -179,6 +179,130 @@ def measure_resistance_multichannel(threads,
             resistances[name_volt]['coeff'] = c[1]
             resistances[name_volt]['residuals'] = stats[0][0]
             c_wrong = polyfit(currents[name_curr], voltages[name_volt], deg=4)
+            # print(stats[0], c_wrong)
+
+            if stats[0] > threshold_residuals:
+                resistances[name_volt]['nonohmic'] = 1
+            # if np.any(np.array([x > threshold_coefficients for x in stats[2:]])):
+            #     resistances[name_volt]['nonohmic'] = 1
+
+            threads[name_curr][0].disable()
+
+        temp2 = threads[threadname_Temp][0].read_Temperatures()
+        for key in temps:
+            temps[key].append(temp2[key])
+
+    data['T_mean_K'] = {key + '_mean': np.mean(temps[key]) for key in temps}
+    data['T_std_K'] = {
+        key + '_std': np.std(temps[key], ddof=1) for key in temps}
+
+    data['resistances'] = {key.strip('control_'): value for key, value in zip(
+        resistances.keys(), resistances.values())}
+    data['voltages'] = {key.strip('control_'): value for key, value in zip(
+        voltages.keys(), voltages.values())}
+    data['currents'] = {key.strip('control_'): value for key, value in zip(
+        currents.keys(), currents.values())}
+    # data['R_mean_Ohm'] = {key.strip('control_') + '_mean': np.mean(resistances[key])
+    #                       for key in resistances}
+    # data['R_std_Ohm'] = {key.strip('control_') + '_std': np.std(resistances[key], ddof=1)
+    #                      for key in resistances}
+
+    # for key in resistances:
+    #     print(resistances[key])
+
+    data['datafile'] = kwargs['datafile']
+    timedict = {'timeseconds': time.time(),
+                'ReadableTime': convert_time(time.time()),
+                'SearchableTime': convert_time_searchable(time.time())}
+    data.update(timedict)
+    # print(data)
+    # for x in data: print(x)
+    return data
+
+
+def measure_resistance_multichannel_new(threads,
+                                        excitation_currents_A,
+                                        threadnames_RES,
+                                        threadnames_CURR,
+                                        iv_characteristic,
+                                        threadname_Temp='control_LakeShore350',
+                                        # temperature_sensor='Sensor_1_K',
+                                        # n_measurements=1,
+
+                                        **kwargs):
+    """conduct one 'full' measurement of resistance:
+        arguments: dict conf
+            threads = dict of threads running of the mainWindow class
+            threadname_Temp  = name of the (LakeShore) Temperature thread
+            threadnames_RES  = list of names of the (Keithley) Voltage measure threads 
+            threadnames_CURR  = list of names of the (Keithley) Current set threads 
+            n_measurements  = number of measurements (dual polarity) to be averaged over
+                            default = 1 (no reason to do much more)
+            excitation_currents_A = list of excitations currents for the measurement 
+        returns: dict data
+            T_mean_K : dict of means of temperature readings
+                    before and after measurement [K]
+            T_std_K : dict of stds of temperature readings
+                    before and after measurement [K]
+            R_mean_Ohm : dict of means of all n_measurements resistance measurements [Ohm]
+            R_std_Ohm : dict of stds of all n_measurements resistance measurements [Ohm]
+            timeseconds: pythons time.time()
+            ReadableTime: Time in %Y-%m-%d %H:%M:%S
+            SearchableTime: Time in %Y%m%d%H%M%S
+    """
+    # measured current reversal = 40ms.
+    # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
+    lengths = [len(threadnames_CURR),
+               len(threadnames_RES),
+               len(excitation_currents_A)]
+    for c in comb(lengths, 2):
+        if c[0] != c[1]:
+            raise AssertionError(
+                'number of excitation currents, current sources and voltmeters does not coincide!')
+
+    current_reversal_time = 0.08
+
+    # print('test')
+    # for current_base in iv_characteristic:
+    #     for currentfactor in [-1,  1]:
+    #         currentfactor *= current_base
+    #         print(currentfactor)
+
+    data = dict()
+    resistances = {key: dict(coeff=0, residuals=0, nonohmic=0)
+                   for key in threadnames_RES}
+    voltages = {key: [] for key in threadnames_RES}
+    currents = {key: [] for key in threadnames_CURR}
+
+    with loops_off(threads):
+
+        temp1 = threads[threadname_Temp][0].read_Temperatures()
+        temps = {key: [val] for key, val in zip(temp1.keys(), temp1.values())}
+
+        for ct, (name_curr, exc_curr, name_volt) in enumerate(zip(threadnames_CURR, excitation_currents_A, threadnames_RES)):
+            threshold_residuals = 1e4
+            # threshold_coefficients = 1e4
+
+            threads[name_curr][0].enable()
+            # for idx in range(n_measurements):
+            # as first time, apply positive current --> pos voltage
+            for current_base in iv_characteristic:
+                for currentfactor in [-1,  1]:
+                    current = exc_curr * currentfactor * current_base
+                    # print(current)
+                    currents[name_curr].append(current)
+                    threads[name_curr][0].gettoset_Current_A(current)
+                    threads[name_curr][0].setCurrent_A()
+                    # wait for the current to be changed:
+                    time.sleep(current_reversal_time)
+                    voltage = threads[name_volt][0].read_Voltage()
+                    voltages[name_volt].append(voltage)
+            c, stats = polyfit(currents[name_curr], voltages[
+                               name_volt], deg=1, full=True)
+            resistances[name_volt]['coeff'] = c[1]
+            resistances[name_volt]['residuals'] = stats[0][0]
+            c_wrong = polyfit(currents[name_curr], voltages[
+                              name_volt], deg=4)
             # print(stats[0], c_wrong)
 
             if stats[0] > threshold_residuals:
@@ -407,32 +531,70 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         super().__init__()
         self.mainthread = mainthread
 
-        self.mainthread.sig_measure_oneshot.connect(self.measure_oneshot)
+        self.mainthread.sig_measure_oneshot.connect(self.measure_oneshot_once)
+        # self.mainthread.sig_measure_oneshot_start.connect(self.series_start)
+        # self.mainthread.sig_measure_oneshot_stop.connect(self.series_stop)
+        self.iv_specs = [0.5, 1, 2]  # start/stop/nsteps
+        self.iv_curve = list(reversed(np.linspace(
+            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])))
+        # print('iv default:', self.iv_curve)
+
         self.conf = dict(threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadnames_RES=[
                              'control_Keithley2182_1', 'control_Keithley2182_2'],
                          threadnames_CURR=[
                              'control_Keithley6221_1', 'control_Keithley6221_2'],
-                         excitation_currents_A=[0.004, 0.004])  # [A] needs to be set - thus communicated!
+                         # [A] needs to be set - thus communicated!
+                         excitation_currents_A=[0.004, 0.004],
+                         iv_characteristic=self.iv_curve,
+                         interval=10)
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.measure_oneshot_once)
         self.__name__ = 'OneShot_Thread_multichannel'
 
     def update_conf(self, key, value):
         self.conf[key] = value
 
+    def update_exc(self, channel, value):
+        """update the excitation current for a specific channel"""
+        self.conf['excitation_currents_A'][channel - 1] = value
+
+    def update_iv(self, spec, value):
+        self.iv_specs[spec] = value
+        self.iv_curve = list(reversed(np.linspace(
+            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])))
+        self.update_conf('iv_characteristic', self.iv_curve)
+
+    # @pyqtSlot()
+    # def series_start(self):
+    #     """start the timer for the series, with the current interval"""
+    #     self.timer.start(self.conf['interval']*1e3)
+
+    # @pyqtSlot()
+    # def series_stop(self):
+    #     """stop the timer for the series"""
+    #     self.timer.stop()
+
     @pyqtSlot()
     @ExceptionHandling
+    def measure_oneshot_once(self):
+        """invoke a single measurement and send it to saving the data"""
+        with locking(self.mainthread.controls_Lock):
+            data = measure_resistance_multichannel_new(**self.conf)
+            data['type'] = 'multichannel'
+        self.sig_storing.emit(deepcopy(data))
+
+    @pyqtSlot()
+    # @ExceptionHandling
     def measure_oneshot(self):
         """invoke a single measurement and send it to saving the data"""
         try:
             # print('measuring', convert_time(time.time()), 'entering')
-            with locking(self.mainthread.controls_Lock):
-                data = measure_resistance_multichannel(**self.conf)
-                data['type'] = 'multichannel'
-            self.sig_storing.emit(deepcopy(data))
+            self.measure_oneshot_once()
 
         # except AttributeError as e_arr:
         #     print(e_arr)
         finally:
             QTimer.singleShot(
-                5 * 1e3, lambda: self.measure_oneshot())
+                self.conf['interval'] * 1e3, lambda: self.measure_oneshot())

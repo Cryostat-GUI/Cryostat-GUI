@@ -66,6 +66,7 @@ from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
+from util import locking
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -87,13 +88,16 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
+    sig_measure_oneshot_start = pyqtSignal()
+    sig_measure_oneshot_stop = pyqtSignal()
     # sig_softwarecontrols = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
-        self.threads = dict()
+        self.threads = dict(Lock=Lock())
+        # self.threads = dict()
         self.threads_tiny = list()
         self.data = dict()
         self.logging_bools = dict()
@@ -182,7 +186,8 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             with self.dataLock:
                 self.data[dataname] = dict()
-        self.threads[threadname] = (worker, thread)
+        with locking(self.threads['Lock']):
+            self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
         return worker
@@ -207,7 +212,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.threads[threadname][0].stop()
         self.threads[threadname][1].quit()
         self.threads[threadname][1].wait()
-        del self.threads[threadname]
+        with locking(self.threads['Lock']):
+            del self.threads[threadname]
 
     def show_error_general(self, text):
         self.show_error_textBrowser(text)
@@ -349,8 +355,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        # self.dataplot_live_conf.buttonBox.clicked.connect(
-        #     lambda: self.dataplot_live_conf.close())
+        self.dataplot_live_conf.buttonBox.clicked.connect(
+            lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -1550,6 +1556,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             logger = self.running_thread_control(
                 main_Logger(self), None, 'logger')
+            # logger.sig_log.connect(self.logging_send_all)
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1558,6 +1565,13 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread('logger')
             self.logging_running_logger = False
+
+    @pyqtSlot()
+    def logging_send_all(self):
+        newdata = deepcopy(self.data)
+        newdata.update(deepcopy(self.data_live))
+        print(newdata)
+        self.sig_logging.emit(newdata)
 
     @pyqtSlot(bool)
     def show_logging_configuration(self, boolean):
@@ -1588,10 +1602,13 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
+            self.data_live = dict()
 
     def initialize_window_OneShot(self):
         self.window_OneShot = Window_ui(
-            ui_file='.\\configurations\\OneShotMeasurement.ui')
+            # ui_file='.\\configurations\\OneShotMeasurement.ui')
+            ui_file='.\\configurations\\OneShotMeasurement_multichannel.ui')
+
         # self.window_OneShot.pushChoose_Datafile.connect()
         # self.window_OneShot.comboCurrentSource.addItems([])
         self.window_OneShot.commandMeasure.setEnabled(False)
@@ -1602,7 +1619,7 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_OneShot)
 
     @pyqtSlot(bool)
-    def run_OneShot(self, boolean):
+    def run_OneShot_old(self, boolean):
         if boolean:
 
             OneShot = self.running_thread_control(
@@ -1625,31 +1642,86 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.running_thread_control(
                 measurement_Logger(self), None, 'save_OneShot')
-            OneShot.sig_storing.connect(lambda value: self.sig_log_measurement.emit(value))
+            OneShot.sig_storing.connect(
+                lambda value: self.sig_log_measurement.emit(value))
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')
             self.stopping_thread('save_OneShot')
             self.window_OneShot.commandMeasure.setEnabled(False)
 
-    def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None,
-                           'control_Keithley6221_1',
-                           'control_Keithley6221_2']
-        Nanovolts = [None,
-                     'control_Keithley2182_1',
-                     'control_Keithley2182_2',
-                     'control_Keithley2182_3']
-        if mode == "RES":
-            OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
-        elif mode == "CURR":
-            OneShot.update_conf('threadname_CURR', current_sources[comboInt])
+    @pyqtSlot(bool)
+    def run_OneShot(self, boolean):
+        if boolean:
+
+            OneShot = self.running_thread_control(
+                OneShot_Thread_multichannel(self), 'measured', 'control_OneShot')
+            OneShot.sig_assertion.connect(self.OneShot_errorHandling)
+
+            self.logging_timer = QTimer()
+            self.logging_timer.timeout.connect(
+                lambda: self.sig_measure_oneshot.emit())
+
+            self.window_OneShot.dspinExcitationCurrent_1_A.valueChanged.connect(
+                lambda value: OneShot.update_exc(1, value))
+            self.window_OneShot.dspinExcitationCurrent_2_A.valueChanged.connect(
+                lambda value: OneShot.update_exc(2, value))
+
+            self.window_OneShot.dspinIVstart.valueChanged.connect(
+                lambda value: OneShot.update_iv(0, value))
+            self.window_OneShot.dspinIVstop.valueChanged.connect(
+                lambda value: OneShot.update_iv(1, value))
+            self.window_OneShot.spinIVsteps.valueChanged.connect(
+                lambda value: OneShot.update_iv(2, value))
+
+            self.window_OneShot.commandMeasure.setEnabled(True)
+            self.window_OneShot.commandStartSeries.setEnabled(True)
+            self.window_OneShot.commandStopSeries.setEnabled(True)
+
+            self.window_OneShot.commandMeasure.clicked.connect(
+                lambda: self.sig_measure_oneshot.emit())
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                lambda: self.logging_timer.start(OneShot.conf['interval'] * 1e3))
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                lambda: self.logging_timer.stop())
+
+            self.window_OneShot.dspinInterval_s.valueChanged.connect(
+                lambda value: OneShot.update_conf('interval', value))
+
+            self.window_OneShot.pushChoose_Datafile.clicked.connect(
+                lambda: self.OneShot_chooseDatafile(OneShot))
+
+            self.running_thread_control(
+                measurement_Logger(self), None, 'save_OneShot')
+            OneShot.sig_storing.connect(
+                lambda value: self.sig_log_measurement.emit(value))
+            # this is for saving the respective data
+        else:
+            self.stopping_thread('control_OneShot')
+            self.stopping_thread('save_OneShot')
+            self.window_OneShot.commandMeasure.setEnabled(False)
+            self.window_OneShot.commandStartSeries.setEnabled(False)
+            self.window_OneShot.commandStopSeries.setEnabled(False)
+
+    # def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
+    #     current_sources = [None,
+    #                        'control_Keithley6221_1',
+    #                        'control_Keithley6221_2']
+    #     Nanovolts = [None,
+    #                  'control_Keithley2182_1',
+    #                  'control_Keithley2182_2',
+    #                  'control_Keithley2182_3']
+    #     if mode == "RES":
+    #         OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
+    #     elif mode == "CURR":
+    #         OneShot.update_conf('threadname_CURR', current_sources[comboInt])
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
                                                                   'c:\\', "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
+        self.window_OneShot.lineDatafileLocation.setText(new_file_data)
         # print(OneShot)
 
     def OneShot_errorHandling(self, errortext):

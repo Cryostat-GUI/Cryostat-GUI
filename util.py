@@ -178,18 +178,22 @@ class loops_off:
     """Context manager for disabling all AbstractLoopThread loops"""
 
     def __init__(self, threads):
-        self._threads = threads
+        self._threads = [thread[0] for thread in threads.values(
+        ) if not isinstance(thread, type(Lock()))]
+        self.lock = threads['Lock']
 
     def __enter__(self, *args, **kwargs):
-        for thread in self._threads.values():
-            thread[0].lock.acquire()
+        self.lock.acquire()
+        for thread in self._threads:
+            thread.lock.acquire()
         # loopcontrol_threads(self._threads, False)
         # time.sleep(0.1)
 
     def __exit__(self, *args, **kwargs):
         # loopcontrol_threads(self._threads, True)
-        for thread in self._threads.values():
-            thread[0].lock.release()
+        self.lock.release()
+        for thread in self._threads:
+            thread.lock.release()
 
 
 # class controls_software_disabled:
