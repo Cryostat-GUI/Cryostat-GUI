@@ -119,11 +119,11 @@ def measure_resistance_multichannel(threads,
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
             threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadnames_RES  = list of names of the (Keithley) Voltage measure threads 
-            threadnames_CURR  = list of names of the (Keithley) Current set threads 
+            threadnames_RES  = list of names of the (Keithley) Voltage measure threads
+            threadnames_CURR  = list of names of the (Keithley) Current set threads
             n_measurements  = number of measurements (dual polarity) to be averaged over
                             default = 1 (no reason to do much more)
-            excitation_currents_A = list of excitations currents for the measurement 
+            excitation_currents_A = list of excitations currents for the measurement
         returns: dict data
             T_mean_K : dict of means of temperature readings
                     before and after measurement [K]
@@ -158,7 +158,7 @@ def measure_resistance_multichannel(threads,
         temp1 = threads[threadname_Temp][0].read_Temperatures()
         temps = {key: [val] for key, val in zip(temp1.keys(), temp1.values())}
 
-        for ct, (name_curr, exc_curr, name_volt) in enumerate(zip(threadnames_CURR, excitation_currents_A, threadnames_RES)):
+        for name_curr, exc_curr, name_volt in zip(threadnames_CURR, excitation_currents_A, threadnames_RES):
             threshold_residuals = 1e4
             # threshold_coefficients = 1e4
 
@@ -178,7 +178,7 @@ def measure_resistance_multichannel(threads,
                                name_volt], deg=1, full=True)
             resistances[name_volt]['coeff'] = c[1]
             resistances[name_volt]['residuals'] = stats[0][0]
-            c_wrong = polyfit(currents[name_curr], voltages[name_volt], deg=4)
+            # c_wrong = polyfit(currents[name_curr], voltages[name_volt], deg=4)
             # print(stats[0], c_wrong)
 
             if stats[0] > threshold_residuals:
@@ -365,6 +365,7 @@ class Sequence_Thread(AbstractEventhandlingThread):
         self.sensor_sample = None   # needs to be set!
 
     def running(self):
+        self.temp_setpoint = 0
         with locking(self.mainthread.controls_lock):
             try:
                 for entry in self.sequence:
@@ -378,8 +379,10 @@ class Sequence_Thread(AbstractEventhandlingThread):
             self.scan_T_execute(**entry)
 
         if entry['typ'] == 'Wait':
-            self.wait_for_Temp(entry['Temp'])
-            self.wait_for_Field(entry['Field'])
+            self.wait_for_Temp(
+                Temp_target=self.temp_setpoint, bools=entry['Temp'])
+            self.wait_for_Field(
+                Field_target=self.temp_setpoint, bools=entry['Field'])
             time.sleep(entry['Delay'])
 
     def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
@@ -387,24 +390,16 @@ class Sequence_Thread(AbstractEventhandlingThread):
         temperatures, stepsize = ScanningN(start=start,
                                            end=end,
                                            N=Nsteps)
-        try:
-            if ApproachMode == 0:
-                mode_scan = 'Fast Settle - Set Temps'
-            elif ApproachMode == 1:
-                mode_scan = "No o'shoot"
-                raise NotImplementedError(
-                    "No o'shoot is not yet implemented - highly device specific!")
-            elif ApproachMode == 2:
-                mode_scan = 'Sweep'
-            else:
-                raise AssertionError('bad Temperature ApproachMode variable!')
-        except NotImplementedError:
-            mode_scan = 'Fast Settle - Set Temps'
-            self.sig_assertion.emit(
-                'Sequence: Tscan: Mode not impelemented yet! \n I am using Fast Settle instead!')
 
-        if mode_scan == 'Fast Settle - Set Temps':
+        if ApproachMode == "No O'Shoot":
+            ApproachMode = 'Sweep'
+            SweepRate = 0.05  # supposed minimum
+            self.sig_assertion.emit(
+                'Sequence: Tscan: Mode not impelemented yet! \n I am using a super-slow sweep instead!')
+
+        if ApproachMode == 'Fast':
             for temp_setpoint_sample in temperatures:
+                self.temp_setpoint = temp_setpoint_sample
                 temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
                 temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
 
@@ -414,13 +409,17 @@ class Sequence_Thread(AbstractEventhandlingThread):
                 self.check_Temp_in_Scan(temp_setpoint_sample)
 
                 for entry in commands:
-                    self.scan_runCommand(entry)
+                    self.execute_sequence_entry(entry)
 
-        elif mode_scan == 'Sweep':
+        if ApproachMode == 'Sweep':
             pass
             # program VTI sweep, in accordance to the VTI Offset
             # set temp and RampRate for Lakeshore
             # if T_sweepentry is arrived: do stuff
+            for temp_setpoint_sample in temperatures:
+                # do checking and so on
+                for entry in commands:
+                    self.execute_sequence_entry(entry)
 
     def setTemperatures_hard(self, VTI, Sample):
         self.mainthread.threads['control_ITC'][0].gettoset_Temperature(VTI)
@@ -438,14 +437,12 @@ class Sequence_Thread(AbstractEventhandlingThread):
         """
         pass
 
-    def scan_T_checkTemp(self, Temp, direction=0):
+    def scan_T_checkTemp_stable(self, Temp, direction=0):
+        """wait for the temperature to stabilize - can be read from calculated data"""
         # must block until the temperature has arrived at the specified point!
         pass
 
-    def scan_runCommand(self, command):
-        pass
-
-    def wait_for_Temp(self, Temp_target, threshold=0.01):
+    def wait_for_Temp(self, Temp_target, threshold=0.1, bools=True):
         """repeatedly check whether the temperature was reached,
             given the respective threshold, return once it has
             produce a possibility to abort the sequence, through
@@ -454,16 +451,19 @@ class Sequence_Thread(AbstractEventhandlingThread):
         # check for break condition
         if not self.__isRunning:
             raise BreakCondition
-        with self.dataLock:
-            Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
-        while abs(Temp_now - Temp_target) > threshold:
-            with self.dataLock:
-                # check for value
-                Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
-            # sleep for short time OUTSIDE of Lock
-            time.sleep(0.1)
+        if bools:
 
-    def wait_for_Field(self, Field):
+            with self.dataLock:
+                Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
+            while abs(Temp_now - Temp_target) > threshold:
+                with self.dataLock:
+                    # check for value
+                    Temp_now = self.mainthread.data[
+                        'LakeShore350']['Sensor_1_K']
+                # sleep for short time OUTSIDE of Lock
+                time.sleep(0.1)
+
+    def wait_for_Field(self, Field_target, bools=True):
         """repeatedly check whether the field was reached,
             given the respective threshold, return once it has
             produce a possibility to abort the sequence, through
@@ -472,12 +472,13 @@ class Sequence_Thread(AbstractEventhandlingThread):
         # check for break condition
         if not self.__isRunning:
             raise BreakCondition
-        with self.dataLock:
-            # check for value
-            pass
+        if bools:
+            with self.dataLock:
+                # check for value
+                pass
 
-        # sleep for short time OUTSIDE of Lock
-        time.sleep(0.1)
+            # sleep for short time OUTSIDE of Lock
+            time.sleep(0.1)
 
     def stop(self):
         """stop the sequence execution by setting self.__isRunning to False"""
