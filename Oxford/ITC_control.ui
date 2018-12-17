@@ -348,7 +348,7 @@ all performed queries</string>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox">
+          <widget class="QDoubleSpinBox" name="dspinSetRamp">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -357,7 +357,7 @@ all performed queries</string>
          <item row="1" column="0">
           <widget class="QLabel" name="label_18">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Rate [K/min]</string>
@@ -382,23 +382,6 @@ all performed queries</string>
            <property name="text">
             <string>Autocontrol</string>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QComboBox" name="comboBox">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <item>
-            <property name="text">
-             <string>Sweep</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Setpoint</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item row="4" column="0">
@@ -496,6 +479,16 @@ all performed queries</string>
            </property>
            <property name="singleStep">
             <double>0.500000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QCheckBox" name="checkSweep">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Ramping</string>
            </property>
           </widget>
          </item>
@@ -624,8 +617,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>spin_threadinterval</tabstop>
   <tabstop>textBrowser</tabstop>
   <tabstop>spinsetTemp</tabstop>
-  <tabstop>doubleSpinBox</tabstop>
-  <tabstop>comboBox</tabstop>
+  <tabstop>dspinSetRamp</tabstop>
   <tabstop>combosetAutocontrol</tabstop>
   <tabstop>spinsetGasOutput</tabstop>
   <tabstop>combosetHeatersens</tabstop>

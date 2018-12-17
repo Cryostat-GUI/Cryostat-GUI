@@ -60,6 +60,10 @@ class ITC_Updater(AbstractLoopThread):
         self.set_gas_output = 0
         self.set_auto_manual = 0
         self.sweep_parameters = None
+        self.sweep_running = False
+        self.sweep_running_device = False
+        self.sweep_ramp = 0
+        self.sweep_first = True
 
         self.setControl()
         self.interval = 0.05
@@ -116,20 +120,51 @@ class ITC_Updater(AbstractLoopThread):
     def set_delay_sending(self, delay):
         self.ITC.set_delay_measuring(delay)
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setNeedle(self):
-    #     """class method to be called to set Needle
-    #         this is necessary, so it can be invoked by a signal
-    #         self.gasoutput between 0 and 100 %
-    #     """
-    #     value = self.set_GasOutput
-    #     print(value)
-    #     if 0 <= value <= 100:
-    #         self.ITC.setGasOutput(value)
-    #     else:
-    #         raise AssertionError(
-    #             'ITC_control: setNeedle: Gas output setting must be between 0 and 100%!')
+    @pyqtSlot(bool)
+    @ExceptionHandling
+    def setSweep(self, setpoint_temp, rate):
+        with self.lock:
+            setpoint_now = self.ITC.getValue(0)
+            if rate == 0:
+                sweep_time = 0
+            else:
+                sweep_time = abs(setpoint_now - setpoint_temp) / rate
+            s = {'1': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '2': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '3': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '4': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '5': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '6': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '7': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '8': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '9': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '10': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '11': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '12': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '13': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '14': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
+                 '15': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0)}
+            s.update({'16': dict(
+                set_point=setpoint_temp, hold_time=0, sweep_time=sweep_time)})
+            self.sweep_parameters = s
+            self.ITC.setSweeps(self.sweep_parameters)
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def setSweepStatus(self, bools):
+        self.sweep_running = bools
+        with self.lock:
+            if bools:
+                self.setTemperature()
+            else:
+                self.ITC.SweepStop()
+                self.sweep_running_device = False
+                self.ITC.setTemperature(self.set_temperature)
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def gettoset_sweepRamp(self, value):
+        self.sweep_ramp = value
 
     @pyqtSlot()
     @ExceptionHandling
@@ -145,7 +180,32 @@ class ITC_Updater(AbstractLoopThread):
         """class method to be called to set Temperature
             this is to be invoked by a signal
         """
-        self.ITC.setTemperature(self.set_temperature)
+        with self.lock:
+            if not self.sweep_running:
+                self.ITC.setTemperature(self.set_temperature)
+            else:
+                if self.sweep_running_device or self.sweep_first:
+                    self.ITC.SweepStop()
+                    self.sweep_first = False
+                    self.sweep_running_device = False
+                self.setSweep(self.set_temperature, self.sweep_ramp)
+                print('starting sweep!')
+                self.ITC.SweepStart()
+                self.sweep_running_device = True
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def setSweepRamp(self, ramp):
+        with self.lock:
+            self.sweep_ramp = ramp
+            if self.sweep_running:
+                if self.sweep_running_device or self.sweep_first:
+                    self.ITC.SweepStop()
+                    self.sweep_first = False
+                    self.sweep_running_device = False
+                self.setSweep(self.set_temperature, self.sweep_ramp)
+                self.ITC.SweepStart()
+                self.sweep_running_device = True
 
     @pyqtSlot()
     @ExceptionHandling
@@ -231,13 +291,13 @@ class ITC_Updater(AbstractLoopThread):
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def setSweeps(self):
-        """class method to be called to set Sweeps
-            this is to be invoked by a signal
-        """
-        self.ITC.setSweeps(self.sweep_parameters)
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setSweeps(self):
+    #     """class method to be called to set Sweeps
+    #         this is to be invoked by a signal
+    #     """
+    #     self.ITC.setSweeps(self.sweep_parameters)
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
@@ -288,12 +348,12 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.set_gas_output = value
 
-    @pyqtSlot()
-    def gettoset_Sweeps(self, value):
-        """class method to receive and store the value to for the sweep_parameters
-            to set them later on, when the command to enforce the value is sent
-        """
-        self.sweep_parameters = value
+    # @pyqtSlot()
+    # def gettoset_Sweeps(self, value):
+    #     """class method to receive and store the value to for the sweep_parameters
+    #         to set them later on, when the command to enforce the value is sent
+    #     """
+    #     self.sweep_parameters = value
 
     # @pyqtSlot()
     # def gettoset_HeaterSensor(self, value):

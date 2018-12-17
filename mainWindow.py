@@ -689,6 +689,12 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ITC_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_ITC'][0].setInterval(value))
 
+                self.ITC_window.dspinSetRamp.valueChanged.connect(
+                    lambda value: self.threads['control_ITC'][0].setSweepRamp(value))
+
+                self.ITC_window.checkSweep.toggled['bool'].connect(
+                    lambda value: self.threads['control_ITC'][0].setSweepStatus(value))
+
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
                 self.action_run_ITC.setChecked(True)

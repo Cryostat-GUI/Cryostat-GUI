@@ -303,7 +303,7 @@ class itc503(AbstractSerialDeviceDriver):
     def SweepStartAtPoint(self, point):
         """start walking through the sweep table at a specific point"""
 
-        if 32 > point < 2:
+        if 32 < point < 2:
             raise AssertionError(
                 'ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
         self.write('$S{}'.format(point))
