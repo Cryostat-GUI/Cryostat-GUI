@@ -1376,8 +1376,10 @@ class mainWindow(QtWidgets.QMainWindow):
                     delta = abs(self.data[dataname]['Internal_K'] - self.data[dataname]['Present_K'])
                     if delta > 1:
                         self.sig_acal_needed.emit()
-                        kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
-                            lambda: self.sig_acal_active.emit())
+#                        kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
+#                            lambda: self.sig_acal_active.emit())
+#                        kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
+#                            lambda: self.threads[threadname][0].more_ACAL())
 
                 # setting values for current source
 

@@ -91,6 +91,32 @@ class Keithley2182(object):
             answer = answer[1:]
         return float(answer)
 
+    def ForceFast(self):
+        """
+            *RST
+            :INITiate:CONTinuous OFF;:ABORt
+            :SENSe:FUNCtion ‘VOLTage:DC’
+            :SENSe:VOLTage:DC:RANGe 10      // Use fixed range for fastest readings.
+            :SENSe:VOLTage:DC:NPLC 0.01       // Use lowest NPLC setting for fastest readings.
+            :DISPlay:ENABle OFF             // Turn off display to increase speed.
+            :SYSTem:AZERo:STATe OFF         // Disable autozero to increase speed, but may cause drift over time
+            :SENSe:VOLTage:DC:LPASs OFF     // Turn off analog filter for speed.
+            :SENSe:VOLTage:DC:DFILter OFF   // Turn off digital filter for speed.
+            :TRIGger:COUNt 1
+            :READ?
+            (Enter reading)
+        """
+        self.go(':INIT:CONT OFF')
+        self.go(':SENSe:VOLTage:DC:NPLC 0.01')
+        self.go(':DISPlay:ENABle OFF')
+        self.go(':SENSe:VOLTage:DC:LPASs OFF')
+        self.go(':SENSe:VOLTage:DC:DFILter OFF')
+        self.go(':TRIGger:COUNt 1')
+        answer = self.query(':READ?')[0]
+        if answer[0:2] == '--':
+            answer = answer[1:]
+        return float(answer)
+
     def DisplayOn(self):
         self.go(':DISPlay:ENABle ON')
 
@@ -220,9 +246,9 @@ class Keithley2182(object):
                             mode)” for details).
         """
 
-        # self.go(':CAL:UNPR:ACAL:INIT')
-        # self.go(':CAL:UNPR:ACAL:STEP2')
-        # self.go(':CAL:UNPR:ACAL:DONE')
+        self.go(':CAL:UNPR:ACAL:INIT')
+        self.go(':CAL:UNPR:ACAL:STEP2')
+        self.go(':CAL:UNPR:ACAL:DONE')
         pass
 
     def more_Range(self):
