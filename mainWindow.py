@@ -18,7 +18,7 @@
         The main GUI class for the PyQt application
      Author(s):
         bklebel (Benjamin Klebel)
-        adtera
+        adtera (Armin Tezer)
         Acronis
 ----------------------------------------------------------------------------------------
 """
@@ -86,6 +86,8 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
+    sig_acal_active = pyqtSignal()
+    sig_acal_needed = pyqtSignal()
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -1262,7 +1264,10 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_1,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_1,
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
-                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1,
+                              GUI_lcd_IntTemp=self.Keithley_window.lcdInternalTemp_1,
+                              GUI_lcd_PreTemp=self.Keithley_window.lcdPresentTemp_1,
+                              GUI_CBox_ACAL=self.Keithley_window.checkBox_ACAL_1)
 
         confdict2182_2 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
@@ -1275,7 +1280,10 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_2,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_2,
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
-                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2,
+                              GUI_lcd_IntTemp=self.Keithley_window.lcdInternalTemp_2,
+                              GUI_lcd_PreTemp=self.Keithley_window.lcdPresentTemp_2,
+                              GUI_CBox_ACAL=self.Keithley_window.checkBox_ACAL_2)
 
         confdict2182_3 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
@@ -1288,7 +1296,10 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_3,
                               GUI_CBox_FronAutozero=self.Keithley_window.checkBox_FrontAutozero_3,
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_3,
-                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
+                              GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3,
+                              GUI_lcd_IntTemp=self.Keithley_window.lcdInternalTemp_3,
+                              GUI_lcd_PreTemp=self.Keithley_window.lcdPresentTemp_3,
+                              GUI_CBox_ACAL=self.Keithley_window.checkBox_ACAL_3)
 
         # -------- Current Sources
         confdict6221_1 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
@@ -1359,6 +1370,14 @@ class mainWindow(QtWidgets.QMainWindow):
                         lambda value: self.threads[threadname][0].ToggleFrontAutozero(value))
                     kwargs['GUI_CBox_Autorange'].toggled['bool'].connect(
                         lambda value: self.threads[threadname][0].ToggleAutorange(value))
+
+                    # check if delta between internal and present temperature is greater than 1 Kelvin
+                    # if so then perform an ACAL and emit a signal
+                    delta = abs(self.data[dataname]['Internal_K'] - self.data[dataname]['Present_K'])
+                    if delta > 1:
+                        self.sig_acal_needed.emit()
+                        kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
+                            lambda: self.sig_acal_active.emit())
 
                 # setting values for current source
 
@@ -1479,7 +1498,9 @@ class mainWindow(QtWidgets.QMainWindow):
             # since the command failed in the communication with the device,
             # the last value is retained
             if 'GUI_number1' in kwargs:
+            # alternative: if 'Keithley2182' in dataname:
                 try:
+                    # calculate and display resistance and voltage
                     if not str(kwargs['GUI_Box'].currentText()) == '--':
                         self.data[dataname]['Resistance_Ohm'] = self.data[dataname][
                             'Voltage_V'] / (self.data[str(kwargs['GUI_Box'].currentText()).strip(')').split('(')[1]]['Current_A'])
@@ -1488,6 +1509,12 @@ class mainWindow(QtWidgets.QMainWindow):
                     if 'Resistance_Ohm' in self.data[dataname]:
                         kwargs['GUI_Display'].display(
                             self.data[dataname]['Resistance_Ohm'])
+                    # display internal and present temperature inside the voltmeter
+                    kwargs['GUI_lcd_IntTemp'].display(
+                        self.data[dataname]['Internal_K'])
+                    kwargs['GUI_lcd_PreTemp'].display(
+                        self.data[dataname]['Present_K'])
+
                 except AttributeError as a_err:
                     if not a_err.args[0] == "'NoneType' object has no attribute 'display'":
                         self.show_error_general('{name}: {err}'.format(

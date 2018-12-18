@@ -24,7 +24,10 @@ class Keithley2182_Updater(AbstractLoopThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(Voltage_V=None)
+    sensors = dict(
+        Voltage_V=None,
+        Internal_K=None,
+        Present_K=None)
 
     def __init__(self, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
@@ -41,6 +44,8 @@ class Keithley2182_Updater(AbstractLoopThread):
     def running(self):
         """Measure Voltage, send the data"""
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
+        self.sennsors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
+        self.sensors['Present_K'] = self.Keithley2182.measurePresentTemperature()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 

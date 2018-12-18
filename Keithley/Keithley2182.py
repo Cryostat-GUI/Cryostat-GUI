@@ -64,11 +64,18 @@ class Keithley2182(object):
         with self.CommunicationLock:
             self.device.write(command)
 
+    def measureInternalTemperature(self):
+        answer = self.query('CAL:UNPR:ACAL:TEMP?')[0]
+        if answer[0:2] == '--': # not sure if necessary
+            answer = answer[1:]
+        return float(answer)
 
-#    def measureTemperature(self):
-#        self.sendcmd("SENS:CHAN 1")
-#        self.sendcmd("SENS:FUNC 'TEMP'")
-#        return self.query("SENS:DATA:FRES?")[0]
+    def measurePresentTemperature(self):
+#        self.go("SENS:CHAN 1")
+        answer = self.query('SENS:TEMP:RTEM?')[0]
+        if answer[0:2] == '--': # not sure if necessary
+            answer = answer[1:]
+        return float(answer)
 
     def measureVoltage(self):
         """measure voltage
@@ -127,6 +134,10 @@ class Keithley2182(object):
             measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
             This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
             amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
+
+            For Front Autozero:
+                :SYSTem SYSTem Subsystem:
+                    :FAZero [state] <b> Enable or disable Front Autozero. ON
         """
         self.go(':SYST:FAZ ON')
 
@@ -146,6 +157,10 @@ class Keithley2182(object):
             will not be updated immediately. This will initially result in inaccurate measurements, especially
             if the ambient temperature has changed by several degrees. A faster update of reference points
             can be forced by setting a faster integration rate.
+
+            For Autozero:
+                :SYSTem SYSTem Subsystem:
+                    :AZERo [state] <b> Enable or disable Autozero. ON
         """
         self.go(':SYST:AZER ON')
 
@@ -169,26 +184,29 @@ class Keithley2182(object):
         self.go(':SENS:VOLT:RANG:AUTO OFF')
 
     def more_ACAL(self):
-        """Commands Description Default
+        """
+            There are two ACAL options. FULL ACAL calibrates the 10mV and 100V ranges, while
+            LOW-LVL (low-level) ACAL only calibrates the 10mV range. If you are not going to use the
+            100V range, it is recommended that you only perform LOW-LVL ACAL.
+            The message “ACAL” will be displayed while calibration is in process.
+            It takes around five minutes to complete LOW-LVL ACAL and a little more than five
+            minutes to complete FULL ACAL. When finished, the instrument returns to the normal
+            display state.
+
             For ACAL:
                 :CALibration CALibration Subsystem:
                     :UNPRotected
-                    :ACALibration ACAL:
-                    :INITiate Prepare 2182 for ACAL.
-                    :STEP1 Perform full ACAL (100V and 10mV).
-                    :STEP2 Perform low level ACAL (10mV only).
-                    :DONE Exit ACAL (see Note).
-                    :TEMPerature? Read the internal temperature (in °C) at the time
-                            of the last ACAL.
-            :SENSe SENSe Subsystem:
-                :TEMPerature
-                    :RTEMperature? Measure the present internal temperature (in °C).
-            For Front Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :FAZero [state] <b> Enable or disable Front Autozero. ON
-            For Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :AZERo [state] <b> Enable or disable Autozero. ON
+                        :ACALibration ACAL:
+                            :INITiate Prepare 2182 for ACAL.
+                            :STEP1 Perform full ACAL (100V and 10mV).
+                            :STEP2 Perform low level ACAL (10mV only).
+                            :DONE Exit ACAL (see Note).
+                            :TEMPerature? Read the internal temperature (in °C) at the time
+                                of the last ACAL.
+                :SENSe SENSe Subsystem:
+                    :TEMPerature
+                        :RTEMperature? Measure the present internal temperature (in °C).
+
             For LYSNC:
                 :SYSTem SYSTem Subsystem:
                     :LSYNc [state] <b> Enable or disable line cycle synchronization. OFF
@@ -201,6 +219,10 @@ class Keithley2182(object):
                             Channel 2 (see “Pumpout current (low charge injection
                             mode)” for details).
         """
+
+        # self.go(':CAL:UNPR:ACAL:INIT')
+        # self.go(':CAL:UNPR:ACAL:STEP2')
+        # self.go(':CAL:UNPR:ACAL:DONE')
         pass
 
     def more_Range(self):
