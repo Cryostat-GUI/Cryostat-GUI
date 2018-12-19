@@ -195,7 +195,11 @@ p, li { white-space: pre-wrap; }
     <widget class="QLineEdit" name="lineDatafileLocation"/>
    </item>
    <item row="5" column="4">
-    <widget class="QDoubleSpinBox" name="dspinInterval_s"/>
+    <widget class="QDoubleSpinBox" name="dspinInterval_s">
+     <property name="maximum">
+      <double>20000.000000000000000</double>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
