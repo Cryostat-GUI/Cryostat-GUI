@@ -63,9 +63,10 @@ class ITC_Updater(AbstractLoopThread):
         self.sweep_running = False
         self.sweep_running_device = False
         self.sweep_ramp = 0
-        self.sweep_first = True
+        self.sweep_first = False
 
         self.setControl()
+        # self.ITC.SweepStop()
         self.interval = 0.05
         # self.__isRunning = True
 
@@ -85,6 +86,7 @@ class ITC_Updater(AbstractLoopThread):
         # get key-value pairs of the sensors dict,
         # so I can then transmit one single dict
         # starttime = time.time()
+        # data['status'] = self.read_status()
         for key in self.sensors.keys():
             try:
 
@@ -94,7 +96,7 @@ class ITC_Updater(AbstractLoopThread):
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                     self.read_buffer()
                     data[key] = None
@@ -113,8 +115,13 @@ class ITC_Updater(AbstractLoopThread):
         try:
             return self.ITC.read()
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 pass
+
+    @ExceptionHandling
+    def read_status(self, run=True):
+        self.device_status = self.ITC.getStatus(run)
+        return self.device_status
 
     @pyqtSlot(int)
     def set_delay_sending(self, delay):
@@ -123,56 +130,82 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot(bool)
     @ExceptionHandling
     def setSweep(self, setpoint_temp, rate):
-        with self.lock:
-            setpoint_now = self.ITC.getValue(0)
-            if rate == 0:
-                sweep_time = 0
-            else:
-                sweep_time = abs(setpoint_now - setpoint_temp) / rate
-            s = {'1': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '2': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '3': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '4': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '5': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '6': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '7': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '8': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '9': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '10': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '11': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '12': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '13': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '14': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0),
-                 '15': dict(set_point=setpoint_temp, hold_time=0, sweep_time=0)}
-            s.update({'16': dict(
-                set_point=setpoint_temp, hold_time=0, sweep_time=sweep_time)})
-            self.sweep_parameters = s
-            self.ITC.setSweeps(self.sweep_parameters)
+        # with self.lock:
+        setpoint_now = self.ITC.getValue(0)
+        print('setpoint now = ', setpoint_now)
+        if rate == 0:
+            sweep_time = 0.1
+            print('rate was zero!')
+        else:
+            sweep_time = abs(setpoint_now - setpoint_temp) / rate
+            if sweep_time < 0.1:
+                print('sweeptime below 0.1: ', sweep_time)
+                sweep_time = 0.1
+        sp = {str(z): dict(set_point=setpoint_temp,
+                           hold_time=0,
+                           sweep_time=0) for z in range(1, 17)}
+        sp.update({str(1): dict(set_point=setpoint_now,
+                                hold_time=0,
+                                sweep_time=0),
+                   str(2): dict(set_point=setpoint_temp,
+                                hold_time=0,
+                                sweep_time=sweep_time),
+                   str(15): dict(set_point=setpoint_temp,
+                                 hold_time=0,
+                                 sweep_time=0),
+                   str(16): dict(set_point=setpoint_temp,
+                                 hold_time=0,
+                                 sweep_time=0.1)})
+        self.sweep_parameters = sp
+        # print('setting sweep to', self.sweep_parameters)
+        self.ITC.setSweeps(self.sweep_parameters)
+        # self.ITC.getValue(0)
+        for x in self.ITC.readSweepTable():
+            print(x)
+        pass
 
     @pyqtSlot(float)
     @ExceptionHandling
     def setSweepStatus(self, bools):
         self.sweep_running = bools
+        print('set sweep status to', bools)
         with self.lock:
-            if bools:
-                self.setTemperature()
-            else:
-                self.ITC.SweepStop()
-                self.sweep_running_device = False
+            print('sweepstatus: I locked the thread!')
+            if not bools:
+                print('sweepstatus: stopping the sweep')
+                self.checksweep()
                 self.ITC.setTemperature(self.set_temperature)
+        print('sweepstatus: I unlocked the device')
+        if bools:
+            print('set the sweep status: ', bools)
+        #     print('sweepstatus: set the temperature')
+        #     self.setTemperature()
 
     @pyqtSlot(float)
     @ExceptionHandling
     def gettoset_sweepRamp(self, value):
         self.sweep_ramp = value
+        print('set sweep ramp to', value)
 
-    @pyqtSlot()
     @ExceptionHandling
-    def setControl(self):
-        """class method to be called to set Control
-            this is to be invoked by a signal
-        """
-        self.ITC.setControl(self.control_state)
+    def checksweep(self):
+        print('checking sweep')
+        status = self.read_status(run=False)
+        # print(status)
+        try:
+            int(status['sweep'])
+            status['sweep'] = bool(int(status['sweep']))
+        except ValueError:
+            status['sweep'] = True
+        print('sweep status: ', status['sweep'])
+        if status['sweep'] or self.sweep_first:
+            print('setTemp: sweep running, stopping sweep')
+            self.ITC.SweepStop()
+            self.sweep_first = False
+        else:
+            print('I did not see a running sweep!',
+                  self.device_status['sweep'])
+        print('sweep was/is running: ', self.device_status['sweep'])
 
     @pyqtSlot()
     @ExceptionHandling
@@ -181,31 +214,34 @@ class ITC_Updater(AbstractLoopThread):
             this is to be invoked by a signal
         """
         with self.lock:
+            self.checksweep()
             if not self.sweep_running:
                 self.ITC.setTemperature(self.set_temperature)
+                # self.set_temperature = temp
             else:
-                if self.sweep_running_device or self.sweep_first:
-                    self.ITC.SweepStop()
-                    self.sweep_first = False
-                    self.sweep_running_device = False
+                print('setTemp: setting sweep.')
                 self.setSweep(self.set_temperature, self.sweep_ramp)
                 print('starting sweep!')
                 self.ITC.SweepStart()
-                self.sweep_running_device = True
+                self.ITC.getValue(0)
 
     @pyqtSlot(float)
     @ExceptionHandling
-    def setSweepRamp(self, ramp):
+    def setSweepRamp(self):
         with self.lock:
-            self.sweep_ramp = ramp
             if self.sweep_running:
-                if self.sweep_running_device or self.sweep_first:
-                    self.ITC.SweepStop()
-                    self.sweep_first = False
-                    self.sweep_running_device = False
+                self.checksweep()
                 self.setSweep(self.set_temperature, self.sweep_ramp)
                 self.ITC.SweepStart()
-                self.sweep_running_device = True
+                self.ITC.getValue(0)
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def setControl(self):
+        """class method to be called to set Control
+            this is to be invoked by a signal
+        """
+        self.ITC.setControl(self.control_state)
 
     @pyqtSlot()
     @ExceptionHandling
@@ -312,6 +348,7 @@ class ITC_Updater(AbstractLoopThread):
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
+        print('got a new temp:', value)
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):

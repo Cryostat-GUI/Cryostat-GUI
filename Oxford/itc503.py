@@ -87,9 +87,9 @@ class itc503(AbstractSerialDeviceDriver):
         command = '$T{}'.format(temperature)  # + str(int(1000*temperature))
         self.write(command)
 
-    def getStatus(self):
+    def getStatus(self, run=True):
         answer = self.query('X')
-        # print(answer)
+        print(answer, run)
         autoanswer = ['heater man, gas man', 'heater auto, gas man',
                       'heater man, gas auto', 'heater auto, gas auto']
         locanswer = ['local locked', 'remote locked',
@@ -330,7 +330,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def SweepStop(self):
         """Stop any sweep which is currently running"""
-        self.write('$S0')
+        self.write('$S31')
 
     def readSweepTable(self):
         """read the Sweep Table which is stored in the device"""
@@ -351,4 +351,5 @@ class itc503(AbstractSerialDeviceDriver):
                 self._visa_resource.write(step_setting)  # just in case
                 self._visa_resource.write('$y3')
                 stepdict[step]['hold_time'] = self._visa_resource.query('r')
+        print(stepdict)
         return stepdict

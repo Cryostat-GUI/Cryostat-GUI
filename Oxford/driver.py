@@ -37,7 +37,7 @@ class AbstractSerialDeviceDriver(object):
         self._visa_resource.stop_bits = vconst.StopBits.two
         self._visa_resource.parity = vconst.Parity.none
         self.ComLock = threading.Lock()
-        self.delay = 0.0
+        self.delay = 0.1
 
     # def res_open(self):
     #     self._visa_resource = resource_manager.open_resource(InstrumentAddress)

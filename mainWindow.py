@@ -67,6 +67,7 @@ from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
 from util import locking
+from util import noKeyError
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -186,7 +187,7 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             with self.dataLock:
                 self.data[dataname] = dict()
-        with locking(self.threads['Lock']):
+        with self.threads['Lock']:
             self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
@@ -212,7 +213,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.threads[threadname][0].stop()
         self.threads[threadname][1].quit()
         self.threads[threadname][1].wait()
-        with locking(self.threads['Lock']):
+        with self.threads['Lock']:
             del self.threads[threadname]
 
     def show_error_general(self, text):
@@ -355,8 +356,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        self.dataplot_live_conf.buttonBox.clicked.connect(
-            lambda: self.dataplot_live_conf.close())
+        # self.dataplot_live_conf.buttonBox.clicked.connect(
+        #     lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -573,6 +574,26 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
         # self.mdiArea.addSubWindow(self.ITC_window)
 
+    @pyqtSlot(float)
+    @noKeyError
+    def ITC_fun_setTemp_valcha(self, value):
+        self.threads['control_ITC'][0].gettoset_Temperature(value)
+
+    @pyqtSlot()
+    @noKeyError
+    def ITC_fun_setTemp_edfin(self):
+        self.threads['control_ITC'][0].setTemperature()
+
+    @pyqtSlot(float)
+    @noKeyError
+    def ITC_fun_setRamp_valcha(self, value):
+        self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+
+    @pyqtSlot()
+    @noKeyError
+    def ITC_fun_setRamp_edfin(self):
+        self.threads['control_ITC'][0].setSweepRamp()
+
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
         """method to start/stop the thread which controls the Oxford ITC"""
@@ -595,31 +616,19 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('ITC: timeout'))
 
-                self.data['ITC'] = dict(set_temperature=0,
-                                        Sensor_1_K=0,
-                                        Sensor_2_K=0,
-                                        Sensor_3_K=0,
-                                        temperature_error=0,
-                                        heater_output_as_percent=0,
-                                        heater_output_as_voltage=0,
-                                        gas_flow_output=0,
-                                        proportional_band=0,
-                                        integral_action_time=0,
-                                        derivative_action_time=0)
-                integration_length = 7
-                self.ITC_Kpmin = dict(newtime=[time.time()] * integration_length,
-                                      Sensor_1_K=[0] * integration_length,
-                                      Sensor_2_K=[0] * integration_length,
-                                      Sensor_3_K=[0] * integration_length,
-                                      Sensor_4_K=[0] * integration_length)
-
-                # self.time_itc = [0]
-
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
+                    self.ITC_fun_setTemp_valcha)
                 self.ITC_window.spinsetTemp.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setTemperature())
+                    self.ITC_fun_setTemp_edfin)
+
+                self.ITC_window.checkSweep.toggled['bool'].connect(
+                    lambda value: getInfodata.setSweepStatus(value))
+
+                self.ITC_window.dspinSetRamp.valueChanged.connect(
+                    self.ITC_fun_setRamp_valcha)
+                self.ITC_window.dspinSetRamp.editingFinished.connect(
+                    self.ITC_fun_setRamp_edfin)
 
                 def change_gas(self):
                     """to be worked in a separate worker thread (separate
@@ -656,44 +665,38 @@ class mainWindow(QtWidgets.QMainWindow):
                         self.ITC_window.spinsetGasOutput.setEnabled(True)
 
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
+                    lambda value: getInfodata.gettoset_GasOutput(value))
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
                     lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
+                    lambda value: getInfodata.gettoset_HeaterOutput(value))
                 self.ITC_window.spinsetHeaterPercent.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setHeaterOutput())
+                    lambda: getInfodata.setHeaterOutput())
 
                 self.ITC_window.spinsetProportionalID.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Proportional(value))
+                    lambda value: getInfodata.gettoset_Proportional(value))
                 self.ITC_window.spinsetProportionalID.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setProportional())
+                    lambda: getInfodata.setProportional())
 
                 self.ITC_window.spinsetPIntegrationD.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Integral(value))
+                    lambda value: getInfodata.gettoset_Integral(value))
                 self.ITC_window.spinsetPIntegrationD.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setIntegral())
+                    lambda: getInfodata.setIntegral())
 
                 self.ITC_window.spinsetPIDerivative.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Derivative(value))
+                    lambda value: getInfodata.gettoset_Derivative(value))
                 self.ITC_window.spinsetPIDerivative.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setDerivative())
+                    lambda: getInfodata.setDerivative())
 
                 self.ITC_window.combosetHeatersens.activated['int'].connect(
-                    lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
+                    lambda value: getInfodata.setHeaterSensor(value + 1))
 
                 self.ITC_window.combosetAutocontrol.activated['int'].connect(
-                    lambda value: self.threads['control_ITC'][0].setAutoControl(value))
+                    lambda value: getInfodata.setAutoControl(value))
 
                 self.ITC_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].setInterval(value))
-
-                self.ITC_window.dspinSetRamp.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].setSweepRamp(value))
-
-                self.ITC_window.checkSweep.toggled['bool'].connect(
-                    lambda value: self.threads['control_ITC'][0].setSweepStatus(value))
+                    lambda value: getInfodata.setInterval(value))
 
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
@@ -741,50 +744,6 @@ class mainWindow(QtWidgets.QMainWindow):
             Store ITC data in self.data['ITC'], update ITC_window
         """
 
-        timediffs = [(entry - self.ITC_Kpmin['newtime'][i + 1]) / 60 for i,
-                     entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]  # -self.ITC_Kpmin['newtime'])/60
-        tempdiffs = dict(Sensor_1_Kpmin=[entry - self.ITC_Kpmin['Sensor_1_K'][i + 1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
-                         Sensor_2_Kpmin=[entry - self.ITC_Kpmin['Sensor_2_K'][i + 1]
-                                         for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
-                         Sensor_3_Kpmin=[entry - self.ITC_Kpmin['Sensor_3_K'][i + 1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
-        # integrating over the lists, to get an integrated rate of Kelvin/min
-        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin']) / np.array(timediffs)),
-                               Sensor_2_Kpmin=np.mean(
-                                   np.array(tempdiffs['Sensor_2_Kpmin']) / np.array(timediffs)),
-                               Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin']) / np.array(timediffs)))
-
-        if not integrated_diff['Sensor_1_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens1_Kpmin.display(
-                integrated_diff['Sensor_1_Kpmin'])
-        if not integrated_diff['Sensor_2_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens2_Kpmin.display(
-                integrated_diff['Sensor_2_Kpmin'])
-        if not integrated_diff['Sensor_3_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens3_Kpmin.display(
-                integrated_diff['Sensor_3_Kpmin'])
-
-        # advancing entries to the next slot
-        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
-            self.ITC_Kpmin['newtime'][i + 1] = entry
-            self.ITC_Kpmin['Sensor_1_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_1_K'][i]
-            self.ITC_Kpmin['Sensor_2_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_2_K'][i]
-            self.ITC_Kpmin['Sensor_3_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_3_K'][i]
-
-        # including the new values
-        self.ITC_Kpmin['newtime'][0] = time.time()
-        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K']) if not data[
-            'Sensor_1_K'] is None else 0
-        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data[
-            'Sensor_2_K'] is None else 0
-        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data[
-            'Sensor_3_K'] is None else 0
-        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
-                         Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
-                         Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
-
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time()),
                     'SearchableTime': convert_time_searchable(time.time())}
@@ -796,43 +755,47 @@ class mainWindow(QtWidgets.QMainWindow):
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
-            if not self.data['ITC']['Sensor_1_K'] is None:
-                self.ITC_window.lcdTemp_sens1_K.display(
-                    self.data['ITC']['Sensor_1_K'])
-            if not self.data['ITC']['Sensor_2_K'] is None:
-                self.ITC_window.lcdTemp_sens2_K.display(
-                    self.data['ITC']['Sensor_2_K'])
-            if not self.data['ITC']['Sensor_3_K'] is None:
-                self.ITC_window.lcdTemp_sens3_K.display(
-                    self.data['ITC']['Sensor_3_K'])
 
-            if not self.data['ITC']['set_temperature'] is None:
-                self.ITC_window.lcdTemp_set.display(
-                    self.data['ITC']['set_temperature'])
-            if not self.data['ITC']['temperature_error'] is None:
-                self.ITC_window.lcdTemp_err.display(
-                    self.data['ITC']['temperature_error'])
-            if not self.data['ITC']['heater_output_as_percent'] is None:
-                self.ITC_window.progressHeaterPercent.setValue(
-                    self.data['ITC']['heater_output_as_percent'])
-            if not self.data['ITC']['heater_output_as_voltage'] is None:
-                self.ITC_window.lcdHeaterVoltage.display(
-                    self.data['ITC']['heater_output_as_voltage'])
-            if not self.data['ITC']['gas_flow_output'] is None:
-                self.ITC_window.progressNeedleValve.setValue(
-                    self.data['ITC']['gas_flow_output'])
-            if not self.data['ITC']['gas_flow_output'] is None:
-                self.ITC_window.lcdNeedleValve_percent.display(
-                    self.data['ITC']['gas_flow_output'])
-            if not self.data['ITC']['proportional_band'] is None:
-                self.ITC_window.lcdProportionalID.display(
-                    self.data['ITC']['proportional_band'])
-            if not self.data['ITC']['integral_action_time'] is None:
-                self.ITC_window.lcdPIntegrationD.display(
-                    self.data['ITC']['integral_action_time'])
-            if not self.data['ITC']['derivative_action_time'] is None:
-                self.ITC_window.lcdPIDerivative.display(
-                    self.data['ITC']['derivative_action_time'])
+            for key in self.data['ITC']:
+                if self.data['ITC'][key] is None:
+                    self.data['ITC'][key] = np.nan
+            # if not self.data['ITC']['Sensor_1_K'] is None:
+            self.ITC_window.lcdTemp_sens1_K.display(
+                self.data['ITC']['Sensor_1_K'])
+            # if not self.data['ITC']['Sensor_2_K'] is None:
+            self.ITC_window.lcdTemp_sens2_K.display(
+                self.data['ITC']['Sensor_2_K'])
+            # if not self.data['ITC']['Sensor_3_K'] is None:
+            self.ITC_window.lcdTemp_sens3_K.display(
+                self.data['ITC']['Sensor_3_K'])
+
+            # if not self.data['ITC']['set_temperature'] is None:
+            self.ITC_window.lcdTemp_set.display(
+                self.data['ITC']['set_temperature'])
+            # if not self.data['ITC']['temperature_error'] is None:
+            self.ITC_window.lcdTemp_err.display(
+                self.data['ITC']['temperature_error'])
+            # if not self.data['ITC']['heater_output_as_percent'] is None:
+            self.ITC_window.progressHeaterPercent.setValue(
+                int(self.data['ITC']['heater_output_as_percent']))
+            # if not self.data['ITC']['heater_output_as_voltage'] is None:
+            self.ITC_window.lcdHeaterVoltage.display(
+                self.data['ITC']['heater_output_as_voltage'])
+            # if not self.data['ITC']['gas_flow_output'] is None:
+            self.ITC_window.progressNeedleValve.setValue(
+                self.data['ITC']['gas_flow_output'])
+            # if not self.data['ITC']['gas_flow_output'] is None:
+            self.ITC_window.lcdNeedleValve_percent.display(
+                self.data['ITC']['gas_flow_output'])
+            # if not self.data['ITC']['proportional_band'] is None:
+            self.ITC_window.lcdProportionalID.display(
+                self.data['ITC']['proportional_band'])
+            # if not self.data['ITC']['integral_action_time'] is None:
+            self.ITC_window.lcdPIntegrationD.display(
+                self.data['ITC']['integral_action_time'])
+            # if not self.data['ITC']['derivative_action_time'] is None:
+            self.ITC_window.lcdPIDerivative.display(
+                self.data['ITC']['derivative_action_time'])
 
     # ------- ------- ILM
     def initialize_window_ILM(self):

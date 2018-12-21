@@ -161,6 +161,18 @@ def ExceptionHandling(func):
     return wrapper_ExceptionHandling
 
 
+def noKeyError(func):
+    @functools.wraps(func)
+    def wrapper_noKeyError(*args, **kwargs):
+        # if inspect.isclass(type(args[0])):
+        try:
+            return func(*args, **kwargs)
+
+        except KeyError as e_key:
+            pass
+    return wrapper_noKeyError
+
+
 class dummy:
     """docstring for dummy"""
 
@@ -178,8 +190,8 @@ class loops_off:
     """Context manager for disabling all AbstractLoopThread loops"""
 
     def __init__(self, threads):
-        self._threads = [thread[0] for thread in threads.values(
-        ) if not isinstance(thread, type(Lock()))]
+        self._threads = [threads[thread][0] for thread in threads.keys()
+        if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
         self.lock = threads['Lock']
 
     def __enter__(self, *args, **kwargs):
