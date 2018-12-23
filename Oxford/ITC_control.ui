@@ -212,24 +212,10 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="spinsetProportionalID">
-           <property name="maximum">
-            <number>1000</number>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>I</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="spinsetPIntegrationD">
-           <property name="maximum">
-            <number>1000</number>
            </property>
           </widget>
          </item>
@@ -240,12 +226,14 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetProportionalID"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetPIntegrationD"/>
+         </item>
          <item row="2" column="1">
-          <widget class="QSpinBox" name="spinsetPIDerivative">
-           <property name="maximum">
-            <number>1000</number>
-           </property>
-          </widget>
+          <widget class="QDoubleSpinBox" name="spinsetPIDerivative"/>
          </item>
         </layout>
        </widget>
@@ -400,7 +388,7 @@ all performed queries</string>
             <number>2</number>
            </property>
            <property name="minimum">
-            <double>4.000000000000000</double>
+            <double>2.000000000000000</double>
            </property>
            <property name="maximum">
             <double>400.000000000000000</double>
