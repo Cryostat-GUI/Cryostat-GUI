@@ -349,8 +349,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
 
     sig_aborted = pyqtSignal()
 
-    def __init__(self, mainthread, sequence):
-        super(Sequence_Thread, self).__init__()
+    def __init__(self, mainthread, sequence, **kwargs):
+        super().__init__(**kwargs)
         self.__isRunning = True
         self.sequence = sequence
         self.mainthread = mainthread
@@ -492,8 +492,8 @@ class Sequence_Thread(AbstractEventhandlingThread):
 class OneShot_Thread(AbstractEventhandlingThread):
     """docstring for OneShot_Thread"""
 
-    def __init__(self, mainthread):
-        super(OneShot_Thread, self).__init__()
+    def __init__(self, mainthread, **kwargs):
+        super().__init__(**kwargs)
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(

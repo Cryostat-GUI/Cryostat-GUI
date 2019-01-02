@@ -347,7 +347,7 @@ class Workerclass(QObject):
     """tiny class for performing one single task ()"""
 
     def __init__(self, workfunction, *args, **kwargs):
-        super(Workerclass, self).__init__()
+        super().__init__()
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs

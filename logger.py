@@ -111,7 +111,7 @@ class Logger_configuration(Window_ui):
         derivative_action_time=False)
 
     def __init__(self, parent=None, **kwargs):
-        super(Logger_configuration, self).__init__(
+        super().__init__(
             ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
@@ -489,7 +489,7 @@ class live_Logger(AbstractLoopThread):
     """docstring for live_Logger"""
 
     def __init__(self, mainthread, **kwargs):
-        super(live_Logger, self).__init__()
+        super().__init__()
         self.mainthread = mainthread
         self.interval = 1
         self.length_list = 60

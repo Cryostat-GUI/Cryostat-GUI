@@ -92,7 +92,7 @@ class IPS_Updater(AbstractLoopThread):
                                  '4': 'output clamped (requested)'})
 
     def __init__(self, InstrumentAddress):
-        super(IPS_Updater, self).__init__()
+        super().__init__()
         # QThread.__init__(self)
         global Oxford
         ips120 = reload(Oxford.ips120).ips120

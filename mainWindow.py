@@ -113,7 +113,7 @@ class mainWindow(QtWidgets.QMainWindow):
         QTimer.singleShot(0, self.initialize_all_windows)
 
     def closeEvent(self, event):
-        super(mainWindow, self).closeEvent(event)
+        super().closeEvent(event)
         self.app.quit()
 
     def initialize_all_windows(self):

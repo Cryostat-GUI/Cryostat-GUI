@@ -288,7 +288,7 @@ class Window_ChangeDataFile(QtWidgets.QDialog):
 
     def __init__(self, ui_file='.\\configurations\\Sequence_change_datafile.ui'):
         """build ui, build dict, connect to signals"""
-        super(Window_ChangeDataFile, self).__init__()
+        super().__init__()
         loadUi(ui_file, self)
 
         self.conf = dict(typ='change datafile', new_file_data='',
@@ -334,7 +334,7 @@ class Window_waiting(QtWidgets.QDialog):
 
     def __init__(self, ui_file='.\\configurations\\sequence_waiting.ui'):
         """build ui, build dict, connect to signals"""
-        super(Window_waiting, self).__init__()
+        super().__init__()
         loadUi(ui_file, self)
 
         self.conf = dict(typ='Wait', Temp=False, Field=False, Delay=0)
@@ -371,7 +371,7 @@ class Window_Tscan(QtWidgets.QDialog):
     sig_updateScanListModel = pyqtSignal(dict)
 
     def __init__(self, ui_file='.\\configurations\\sequence_scan_temperature.ui', **kwargs):
-        super(Window_Tscan, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         loadUi(ui_file, self)
 
         QTimer.singleShot(0, self.initialisations)
@@ -529,7 +529,7 @@ class Sequence_builder(Window_ui):
     sig_abortSequence = pyqtSignal()
 
     def __init__(self, sequence_file=None, parent=None, **kwargs):
-        super(Sequence_builder, self).__init__(
+        super().__init__(
             ui_file='.\\configurations\\sequence.ui', **kwargs)
 
         # self.listSequence.sig_dropped.connect(lambda value: self.dropreact(value))

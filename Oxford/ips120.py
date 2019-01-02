@@ -45,7 +45,7 @@ class ips120(AbstractSerialDeviceDriver):
         Args:
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
-        super(ips120, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # self.setControl() # done in thread
 
     def read_buffer(self):
