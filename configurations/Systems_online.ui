@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>258</width>
+    <width>255</width>
     <height>470</height>
    </rect>
   </property>
@@ -49,13 +49,13 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>199</width>
+            <width>196</width>
             <height>483</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="9" column="0">
-            <widget class="QCheckBox" name="checkBox_12">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_2">
              <property name="text">
               <string>Nanovoltmeter 2 
    (Keithley 2182A)</string>
@@ -63,7 +63,7 @@
             </widget>
            </item>
            <item row="10" column="0">
-            <widget class="QCheckBox" name="checkBox_13">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_3">
              <property name="text">
               <string>Nanovoltmeter 3 
    (Keithley 2182A)</string>
@@ -71,7 +71,7 @@
             </widget>
            </item>
            <item row="8" column="0">
-            <widget class="QCheckBox" name="checkBox_14">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_1">
              <property name="text">
               <string>Nanovoltmeter 1 
    (Keithley 2182A)</string>
@@ -97,7 +97,7 @@
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QCheckBox" name="checkBox_16">
+            <widget class="QCheckBox" name="checkaction_run_LakeShore350">
              <property name="text">
               <string>Sample Temperature Controller 
    (LakeShore350)</string>
@@ -105,7 +105,7 @@
             </widget>
            </item>
            <item row="3" column="0">
-            <widget class="QCheckBox" name="checkBox_17">
+            <widget class="QCheckBox" name="checkaction_run_IPS">
              <property name="text">
               <string>VTI Magnet Power Supply 
    (Oxford IPS 120-10)</string>
@@ -131,7 +131,7 @@
             </widget>
            </item>
            <item row="13" column="0">
-            <widget class="QCheckBox" name="checkBox_19">
+            <widget class="QCheckBox" name="checkaction_run_ILM">
              <property name="text">
               <string>Cryogen Level Meter 
    (Oxford ILM 211)</string>
@@ -139,7 +139,7 @@
             </widget>
            </item>
            <item row="6" column="0">
-            <widget class="QCheckBox" name="checkBox_20">
+            <widget class="QCheckBox" name="checkaction_run_Current_1">
              <property name="text">
               <string>Current Source 1 
    (Keithley 6221)</string>
@@ -147,7 +147,7 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_21">
+            <widget class="QCheckBox" name="checkaction_run_ITC">
              <property name="text">
               <string>VTI Temperature Controller 
    (Oxford ITC 503)</string>
@@ -155,7 +155,7 @@
             </widget>
            </item>
            <item row="7" column="0">
-            <widget class="QCheckBox" name="checkBox_22">
+            <widget class="QCheckBox" name="checkaction_run_Current_2">
              <property name="text">
               <string>Current Source 2 
    (Keithley 6221)</string>
@@ -204,27 +204,27 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>214</width>
+            <width>211</width>
             <height>406</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="2" column="0">
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="checkactionLogging_LIVE">
              <property name="text">
               <string>Logging LIVE data</string>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="checkaction_Logging">
              <property name="text">
-              <string>Logging into database</string>
+              <string>Logging Database</string>
              </property>
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="checkaction_run_OneShot_Measuring">
              <property name="text">
               <string>OneShot Measurements</string>
              </property>
