@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>229</width>
-    <height>427</height>
+    <width>258</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -21,156 +21,217 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
      </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOn</enum>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>194</width>
-        <height>483</height>
-       </rect>
-      </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Devices</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="scrollArea">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOn</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>199</width>
+            <height>483</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="9" column="0">
+            <widget class="QCheckBox" name="checkBox_12">
+             <property name="text">
+              <string>Nanovoltmeter 2 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QCheckBox" name="checkBox_13">
+             <property name="text">
+              <string>Nanovoltmeter 3 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QCheckBox" name="checkBox_14">
+             <property name="text">
+              <string>Nanovoltmeter 1 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0">
+            <widget class="QCheckBox" name="checkBox_15">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Measuring Multimeter 
+   (Keithley DMM7510)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Cryostat Control Systems</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_16">
+             <property name="text">
+              <string>Sample Temperature Controller 
+   (LakeShore350)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkBox_17">
+             <property name="text">
+              <string>VTI Magnet Power Supply 
+   (Oxford IPS 120-10)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="0">
+            <widget class="QCheckBox" name="checkBox_18">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Multimeter Switch 
+   (Keithley 2700)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Transport Measuring Devices:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <widget class="QCheckBox" name="checkBox_19">
+             <property name="text">
+              <string>Cryogen Level Meter 
+   (Oxford ILM 211)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="checkBox_20">
+             <property name="text">
+              <string>Current Source 1 
+   (Keithley 6221)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_21">
+             <property name="text">
+              <string>VTI Temperature Controller 
+   (Oxford ITC 503)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QCheckBox" name="checkBox_22">
+             <property name="text">
+              <string>Current Source 2 
+   (Keithley 6221)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Auxiliary Systems</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Software</string>
+      </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Cryostat Control Systems</string>
+        <widget class="QScrollArea" name="scrollArea_2">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QCheckBox" name="checkBox_7">
-         <property name="text">
-          <string>Nanovoltmeter 1 
-   (Keithley 2182A)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QCheckBox" name="checkBox_8">
-         <property name="text">
-          <string>Nanovoltmeter 2 
-   (Keithley 2182A)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QCheckBox" name="checkBox_9">
-         <property name="text">
-          <string>Nanovoltmeter 3 
-   (Keithley 2182A)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="0">
-        <widget class="QCheckBox" name="checkBox_10">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Measuring Multimeter 
-   (Keithley DMM7510)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Transport Measuring Devices:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0">
-        <widget class="QCheckBox" name="checkBox">
-         <property name="text">
-          <string>Cryogen Level Meter 
-   (Oxford ILM 211)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="0">
-        <widget class="QCheckBox" name="checkBox_11">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Multimeter Switch 
-   (Keithley 2700)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="checkBox_4">
-         <property name="text">
-          <string>Sample Temperature Controller 
-   (LakeShore350)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="checkBox_2">
-         <property name="text">
-          <string>VTI Magnet Power Supply 
-   (Oxford IPS 120-10)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QCheckBox" name="checkBox_5">
-         <property name="text">
-          <string>Current Source 1 
-   (Keithley 6221)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Auxiliary Systems</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="checkBox_3">
-         <property name="text">
-          <string>VTI Temperature Controller 
-   (Oxford ITC 503)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="checkBox_6">
-         <property name="text">
-          <string>Current Source 2 
-   (Keithley 6221)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>214</width>
+            <height>406</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>Logging LIVE data</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>Logging into database</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_3">
+             <property name="text">
+              <string>OneShot Measurements</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
