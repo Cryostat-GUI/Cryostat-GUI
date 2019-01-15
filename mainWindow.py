@@ -356,8 +356,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        # self.dataplot_live_conf.buttonBox.clicked.connect(
-        #     lambda: self.dataplot_live_conf.close())
+        self.dataplot_live_conf.buttonBox.clicked.connect(
+            lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
