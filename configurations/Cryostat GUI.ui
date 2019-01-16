@@ -47,7 +47,7 @@
      <x>0</x>
      <y>0</y>
      <width>554</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuControl">
@@ -62,52 +62,11 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <widget class="QMenu" name="menuShow_Info_Dock">
-     <property name="title">
-      <string>Show</string>
-     </property>
-     <addaction name="action_show_Info_Dock"/>
-     <addaction name="action_show_Errors"/>
-    </widget>
-    <addaction name="menuShow_Info_Dock"/>
+    <addaction name="actionSystems_Online"/>
+    <addaction name="separator"/>
+    <addaction name="action_show_Info_Dock"/>
+    <addaction name="action_show_Errors"/>
     <addaction name="action_Logging_configuration"/>
-   </widget>
-   <widget class="QMenu" name="menuSystems_Online">
-    <property name="title">
-     <string>Systems Online</string>
-    </property>
-    <widget class="QMenu" name="menuOxford_Cryostat">
-     <property name="title">
-      <string>Oxford Cryostat</string>
-     </property>
-     <addaction name="action_run_ITC"/>
-     <addaction name="action_run_ILM"/>
-     <addaction name="action_run_IPS"/>
-    </widget>
-    <widget class="QMenu" name="menuKeithley">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="title">
-      <string>Keithley</string>
-     </property>
-     <addaction name="action_run_Nanovolt_1"/>
-     <addaction name="action_run_Nanovolt_2"/>
-     <addaction name="action_run_Nanovolt_3"/>
-     <addaction name="separator"/>
-     <addaction name="action_run_Current_1"/>
-     <addaction name="action_run_Current_2"/>
-    </widget>
-    <addaction name="menuOxford_Cryostat"/>
-    <addaction name="separator"/>
-    <addaction name="action_run_LakeShore350"/>
-    <addaction name="separator"/>
-    <addaction name="menuKeithley"/>
-    <addaction name="separator"/>
-    <addaction name="action_Logging"/>
-    <addaction name="actionLogging_LIVE"/>
-    <addaction name="separator"/>
-    <addaction name="action_run_OneShot_Measuring"/>
    </widget>
    <widget class="QMenu" name="menuShow_Data">
     <property name="title">
@@ -118,7 +77,7 @@
    </widget>
    <widget class="QMenu" name="menuShow_Instruments">
     <property name="title">
-     <string>Show Instruments</string>
+     <string>Show Windows</string>
     </property>
     <addaction name="action_show_ITC"/>
     <addaction name="action_show_ILM"/>
@@ -127,19 +86,13 @@
     <addaction name="action_show_LakeShore350"/>
     <addaction name="separator"/>
     <addaction name="action_show_Keithley"/>
-   </widget>
-   <widget class="QMenu" name="menuControls">
-    <property name="title">
-     <string>Measuring</string>
-    </property>
+    <addaction name="separator"/>
     <addaction name="action_show_OneShot_Measuring"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
-   <addaction name="menuSystems_Online"/>
    <addaction name="menuShow_Data"/>
    <addaction name="menuShow_Instruments"/>
-   <addaction name="menuControls"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="Main_dock_infobox">
@@ -417,16 +370,25 @@
    </widget>
   </widget>
   <action name="actionNew_Sequence">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>New Sequence</string>
    </property>
   </action>
   <action name="actionOpen">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
   </action>
   <action name="actionSave_As">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save As</string>
    </property>
@@ -436,7 +398,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Info Dock</string>
+    <string>Show Info Dock</string>
    </property>
   </action>
   <action name="action_show_Data">
@@ -567,7 +529,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Errors</string>
+    <string>Show Errors</string>
    </property>
   </action>
   <action name="action_plotLive">
@@ -576,6 +538,9 @@
    </property>
   </action>
   <action name="action_plotDatabase">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Database</string>
    </property>
@@ -649,6 +614,14 @@
     <string>Current Source 2</string>
    </property>
   </action>
+  <action name="actionSystems_Online">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Systems Online</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -664,7 +637,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>110</x>
-     <y>416</y>
+     <y>220</y>
     </hint>
    </hints>
   </connection>

@@ -44,6 +44,7 @@ import sqlite3
 
 from pyvisa.errors import VisaIOError
 
+
 import Oxford
 import LakeShore
 import Keithley
@@ -118,6 +119,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
+        self.window_SystemsOnline = Window_ui(
+            ui_file='.\\configurations\\Systems_online.ui')
+        self.actionSystems_Online.triggered.connect(
+            lambda: self.window_SystemsOnline.show())
+
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -126,7 +132,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_Keithley()
         self.initialize_window_Errors()
         self.show_data()
-        self.actionLogging_LIVE.triggered['bool'].connect(self.run_logger_live)
+        self.window_SystemsOnline.checkactionLogging_LIVE.toggled[
+            'bool'].connect(self.run_logger_live)
 
         self.initialize_window_OneShot()
         self.controls = [
@@ -570,7 +577,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ITC_window.sig_closing.connect(
             lambda: self.action_show_ITC.setChecked(False))
 
-        self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
+        self.window_SystemsOnline.checkaction_run_ITC.clicked[
+            'bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
         # self.mdiArea.addSubWindow(self.ITC_window)
 
@@ -700,10 +708,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
-                self.action_run_ITC.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
             except VisaIOError as e:
-                self.action_run_ITC.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
 
@@ -726,7 +734,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.spin_threadinterval.valueChanged.disconnect()
 
             self.stopping_thread('control_ITC')
-            self.action_run_ITC.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
             self.logging_running_ITC = False
 
     @pyqtSlot(bool)
@@ -804,7 +812,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ILM_window.sig_closing.connect(
             lambda: self.action_show_ILM.setChecked(False))
 
-        self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
+        self.window_SystemsOnline.checkaction_run_ILM.clicked[
+            'bool'].connect(self.run_ILM)
         self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
 
     @pyqtSlot(bool)
@@ -834,14 +843,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ILM_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_ILM'][0].setInterval(value))
 
-                self.action_run_ILM.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_ILM.setChecked(True)
 
             except VisaIOError as e:
-                self.action_run_ILM.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_ILM.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
-            self.action_run_ILM.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_ILM.setChecked(False)
             self.stopping_thread('control_ILM')
 
     @pyqtSlot(bool)
@@ -888,7 +897,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.IPS_window.sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False))
 
-        self.action_run_IPS.triggered['bool'].connect(self.run_IPS)
+        self.window_SystemsOnline.checkaction_run_IPS.clicked[
+            'bool'].connect(self.run_IPS)
         self.action_show_IPS.triggered['bool'].connect(self.show_IPS)
 
         self.IPS_window.labelStatusMagnet.setText('')
@@ -936,14 +946,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.IPS_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_IPS'][0].setInterval(value))
 
-                self.action_run_IPS.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_IPS.setChecked(True)
 
             except VisaIOError as e:
-                self.action_run_IPS.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
-            self.action_run_IPS.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
             self.stopping_thread('control_IPS')
 
     @pyqtSlot(bool)
@@ -1014,7 +1024,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # self.LakeShore350_window.textSensor1_Kpmin.setAlignment(QtAlignRight)
 
-        self.action_run_LakeShore350.triggered[
+        self.window_SystemsOnline.checkaction_run_LakeShore350.clicked[
             'bool'].connect(self.run_LakeShore350)
         self.action_show_LakeShore350.triggered[
             'bool'].connect(self.show_LakeShore350)
@@ -1120,13 +1130,16 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LakeShore350_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
 
-                self.action_run_LakeShore350.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    True)
 
             except VisaIOError as e:
-                self.action_run_LakeShore350.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    False)
                 self.show_error_general('running: {}'.format(e))
         else:
-            self.action_run_LakeShore350.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                False)
             self.stopping_thread('control_LakeShore350')
 
             self.LakeShore350_window.spinSetTemp_K.valueChanged.disconnect()
@@ -1255,7 +1268,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
                               GUI_number1=self.Keithley_window.lcdSensor1_V,
-                              GUI_menu_action=self.action_run_Nanovolt_1,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_1,
                               GUI_Box=self.Keithley_window.comboBox_1,
                               GUI_Display=self.Keithley_window.lcdResistance1,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_1,
@@ -1268,7 +1281,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
                               GUI_number1=self.Keithley_window.lcdSensor2_V,
-                              GUI_menu_action=self.action_run_Nanovolt_2,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_2,
                               GUI_Box=self.Keithley_window.comboBox_2,
                               GUI_Display=self.Keithley_window.lcdResistance2,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_2,
@@ -1281,7 +1294,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
                               GUI_number1=self.Keithley_window.lcdSensor3_V,
-                              GUI_menu_action=self.action_run_Nanovolt_3,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_3,
                               GUI_Box=self.Keithley_window.comboBox_3,
                               GUI_Display=self.Keithley_window.lcdResistance3,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_3,
@@ -1296,7 +1309,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley6221_1',
                               GUI_number2=self.Keithley_window.spinSetCurrent1_A,
                               GUI_push=self.Keithley_window.pushToggleOut_1,
-                              GUI_menu_action=self.action_run_Current_1)
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_1)
 
         confdict6221_2 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_2_InstrumentAddress,
@@ -1304,18 +1317,18 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley6221_2',
                               GUI_number2=self.Keithley_window.spinSetCurrent2_A,
                               GUI_push=self.Keithley_window.pushToggleOut_2,
-                              GUI_menu_action=self.action_run_Current_2)
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_2)
 
-        self.action_run_Nanovolt_1.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_1.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_1))
-        self.action_run_Nanovolt_2.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_2.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_2))
-        self.action_run_Nanovolt_3.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_3.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_3))
 
-        self.action_run_Current_1.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Current_1.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict6221_1))
-        self.action_run_Current_2.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Current_2.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict6221_2))
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
@@ -1511,7 +1524,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Log_conf_window.sig_send_conf.connect(
             lambda conf: self.sig_logging_newconf.emit(conf))
 
-        self.action_Logging.triggered['bool'].connect(self.run_logger)
+        self.window_SystemsOnline.checkaction_Logging.toggled[
+            'bool'].connect(self.run_logger)
         self.action_Logging_configuration.triggered[
             'bool'].connect(self.show_logging_configuration)
 
@@ -1582,7 +1596,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.window_OneShot.comboCurrentSource.addItems([])
         self.window_OneShot.commandMeasure.setEnabled(False)
 
-        self.action_run_OneShot_Measuring.triggered[
+        self.window_SystemsOnline.checkaction_run_OneShot_Measuring.clicked[
             'bool'].connect(self.run_OneShot)
         self.action_show_OneShot_Measuring.triggered[
             'bool'].connect(self.show_OneShot)
