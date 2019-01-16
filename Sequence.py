@@ -181,6 +181,8 @@ def measure_resistance_multichannel(threads,
             # c_wrong = polyfit(currents[name_curr], voltages[name_volt], deg=4)
             # print(stats[0], c_wrong)
 
+            # print(c, stats)
+
             if stats[0] > threshold_residuals:
                 resistances[name_volt]['nonohmic'] = 1
             # if np.any(np.array([x > threshold_coefficients for x in stats[2:]])):
@@ -547,7 +549,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
                          threadnames_CURR=[
                              'control_Keithley6221_1', 'control_Keithley6221_2'],
                          # [A] needs to be set - thus communicated!
-                         excitation_currents_A=[0.004, 0.004],
+                         excitation_currents_A=[0.0005, 0.0005],
                          iv_characteristic=self.iv_curve,
                          interval=10)
         # self.timer = QTimer()
