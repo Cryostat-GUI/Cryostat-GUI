@@ -121,7 +121,8 @@ class mainWindow(QtWidgets.QMainWindow):
         """window and GUI initialisatoins"""
         self.window_SystemsOnline = Window_ui(
             ui_file='.\\configurations\\Systems_online.ui')
-        self.actionSystems_Online.triggered.connect(lambda: self.window_SystemsOnline.show())
+        self.actionSystems_Online.triggered.connect(
+            lambda: self.window_SystemsOnline.show())
 
         self.initialize_window_ITC()
         self.initialize_window_ILM()
@@ -131,7 +132,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_Keithley()
         self.initialize_window_Errors()
         self.show_data()
-        self.window_SystemsOnline.checkactionLogging_LIVE.toggled['bool'].connect(self.run_logger_live)
+        self.window_SystemsOnline.checkactionLogging_LIVE.toggled[
+            'bool'].connect(self.run_logger_live)
 
         self.initialize_window_OneShot()
         self.controls = [
@@ -146,9 +148,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
-
-    def show_systemsOnline(self):
-        self.window_SystemsOnline.show()
 
     # def softwarecontrol_toggle(self, controls, lock, bools):
     #     print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
@@ -1525,7 +1524,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Log_conf_window.sig_send_conf.connect(
             lambda conf: self.sig_logging_newconf.emit(conf))
 
-        self.window_SystemsOnline.checkaction_Logging.toggled['bool'].connect(self.run_logger)
+        self.window_SystemsOnline.checkaction_Logging.toggled[
+            'bool'].connect(self.run_logger)
         self.action_Logging_configuration.triggered[
             'bool'].connect(self.show_logging_configuration)
 
