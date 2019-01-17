@@ -241,36 +241,30 @@ diff to Setpoint</string>
       <item row="0" column="0" colspan="4">
        <widget class="QWidget" name="widget" native="true">
         <layout class="QGridLayout" name="gridLayout">
-         <item row="2" column="0" colspan="3">
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+         <item row="1" column="2">
+          <widget class="QCheckBox" name="checkSweep">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="mouseTracking">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Ramping</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="1" colspan="2">
-          <widget class="QComboBox" name="combosetHeatersens">
-           <item>
-            <property name="text">
-             <string>Sensor 1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 3</string>
-            </property>
-           </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Gas Output [%]</string>
+           </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="dspinSetRamp">
-           <property name="enabled">
-            <bool>true</bool>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Autocontrol</string>
            </property>
           </widget>
          </item>
@@ -297,17 +291,34 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Autocontrol</string>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="dspinSetRamp">
+           <property name="enabled">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_17">
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetTemp">
+           <property name="decimals">
+            <number>2</number>
+           </property>
+           <property name="minimum">
+            <double>2.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>400.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>4.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Gas Output [%]</string>
+            <string>Heater Output 
+[% of max]</string>
            </property>
           </widget>
          </item>
@@ -322,14 +333,6 @@ diff to Setpoint</string>
           <widget class="QLabel" name="label_6">
            <property name="text">
             <string>Heater Sensor</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Heater Output 
-[% of max]</string>
            </property>
           </widget>
          </item>
@@ -357,22 +360,6 @@ diff to Setpoint</string>
            </item>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="spinsetTemp">
-           <property name="decimals">
-            <number>2</number>
-           </property>
-           <property name="minimum">
-            <double>2.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>400.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>4.000000000000000</double>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="2">
           <widget class="QLCDNumber" name="lcdTemp_set">
            <property name="sizePolicy">
@@ -389,7 +376,33 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1" colspan="2">
+         <item row="5" column="1" colspan="2">
+          <widget class="QComboBox" name="combosetHeatersens">
+           <item>
+            <property name="text">
+             <string>Sensor 1</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 2</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 3</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="3">
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
           <widget class="QDoubleSpinBox" name="spinsetGasOutput">
            <property name="inputMethodHints">
             <set>Qt::ImhFormattedNumbersOnly|Qt::ImhMultiLine</set>
@@ -402,16 +415,10 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
-          <widget class="QCheckBox" name="checkSweep">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="mouseTracking">
-            <bool>false</bool>
-           </property>
+         <item row="4" column="2">
+          <widget class="QCheckBox" name="checkGas_gothroughzero">
            <property name="text">
-            <string>Ramping</string>
+            <string>go through zero</string>
            </property>
           </widget>
          </item>
