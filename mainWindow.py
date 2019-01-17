@@ -649,7 +649,7 @@ class mainWindow(QtWidgets.QMainWindow):
                         and possibly timers instead of time.sleep()
                         (QTimer not usefil in the second case)
                     """
-                    if self.checkGas_gothroughzero.isChecked():
+                    if self.ITC_window.checkGas_gothroughzero.isChecked():
                         gas_new = self.threads['control_ITC'][0].set_gas_output
                         with self.dataLock:
                             gas_old = int(self.data['ITC']['gas_flow_output'])
