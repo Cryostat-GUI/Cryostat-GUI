@@ -826,7 +826,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             headerstring = """\
 # Measurement started on {date}
 #
-# date, Sensor 1 (A) [K] arithmetic mean, Sensor 1 (A) [K] uncertainty, Sensor 2 (B) [K] arithmetic mean, Sensor 2 (B) [K] uncertainty, Sensor 3 (C) [K] arithmetic mean, Sensor 3 (C) [K] uncertainty, Sensor 4 (D) [K] arithmetic mean, Sensor 4 (D) [K] uncertainty, Keith1: resistance [Ohm] (slope of 4 points), Keith1: residuals (of fit for slope), Keith1: non-ohmicity: 0 if ohmic 1 if nonohmic, Keith2: resistance [Ohm] (slope of 4 points), Keith2: residuals (of fit for slope), Keith2: non-ohmicity: 0 if ohmic 1 if nonohmic, descr, Keith1 voltage 1, Keith1 voltage 2, Keith1 voltage 3, Keith1 voltage 4, Keith2 voltage 1, Keith2 voltage 2, Keith2 voltage 3, Keith2 voltage 4, descr, Keith1 current 1, Keith1 current 2, Keith1 current 3, Keith1 current 4, Keith2 current 1, Keith2 current 2, Keith2 current 3, Keith2 current 4,
+# date, Sensor 1 (A) [K] arithmetic mean, Sensor 1 (A) [K] uncertainty, Sensor 2 (B) [K] arithmetic mean, Sensor 2 (B) [K] uncertainty, Sensor 3 (C) [K] arithmetic mean, Sensor 3 (C) [K] uncertainty, Sensor 4 (D) [K] arithmetic mean, Sensor 4 (D) [K] uncertainty, Keith1: resistance [Ohm] (slope of 4 points), Keith1: residuals (of fit for slope), Keith1: non-ohmicity: 0 if ohmic 1 if nonohmic, Keith2: resistance [Ohm] (slope of 4 points), Keith2: residuals (of fit for slope), Keith2: non-ohmicity: 0 if ohmic 1 if nonohmic, descr, Keith1 voltage 1, Keith1 voltage 2, Keith1 voltage 3, Keith1 voltage 4, descr, Keith2 voltage 1, Keith2 voltage 2, Keith2 voltage 3, Keith2 voltage 4, descr, Keith1 current 1, Keith1 current 2, Keith1 current 3, Keith1 current 4, descr, Keith2 current 1, Keith2 current 2, Keith2 current 3, Keith2 current 4,
 # columns -1 based / zero based / one based
 #
 # -1 / 0 /  1 date
@@ -852,6 +852,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 # 13 / 14 / 15 non-ohmicity: 0 if ohmic, 1 if nonohmic
 #
 #   the following numbers only apply if the number of points for the iv-fit is 4
+
 #   -- voltages Keithley2182_1
 # 14 / 15 / 16 number of voltages
 # 15 / 16 / 17 voltage 1
@@ -860,25 +861,25 @@ class measurement_Logger(AbstractEventhandlingThread):
 # 18 / 19 / 20 voltage 4
 
 #   -- voltages Keithley2182_2
-# 19 / 20 / 21 voltage 1
-# 20 / 21 / 22 voltage 2
-# 21 / 22 / 23 voltage 3
-# 22 / 23 / 24 voltage 4
+# 19 / 20 / 21 number of voltages
+# 20 / 21 / 22 voltage 1
+# 21 / 22 / 23 voltage 2
+# 22 / 23 / 24 voltage 3
+# 23 / 24 / 25 voltage 4
 
-# 23 / 24 / 25 number of currents
 #   -- currents Keithley6221_1
-# 24 / 25 / 26 current 1
-# 25 / 26 / 27 current 2
-# 26 / 27 / 28 current 3
-# 27 / 28 / 29 current 4
+# 24 / 25 / 26 number of currents
+# 25 / 26 / 27 current 1
+# 26 / 27 / 28 current 2
+# 27 / 28 / 29 current 3
+# 28 / 29 / 30 current 4
 
 #   -- currents Keithley6221_2
-# 28 / 29 / 30 current 1
-# 29 / 30 / 31 current 2
-# 30 / 31 / 32 current 3
-# 31 / 32 / 33 current 4
-# 32 / 33 / 34 unused
-# 33 / 34 / 35 unused
+# 29 / 30 / 31 number of currents
+# 30 / 31 / 32 current 1
+# 31 / 32 / 33 current 2
+# 32 / 33 / 34 current 3
+# 33 / 34 / 35 current 4
 # 34 / 35 / 36 unused
 # 35 / 36 / 37 unused
 # 36 / 37 / 38 unused
