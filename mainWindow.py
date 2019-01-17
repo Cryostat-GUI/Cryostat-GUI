@@ -663,7 +663,8 @@ class mainWindow(QtWidgets.QMainWindow):
                         else:
                             time1 = 60 / 1e2 * gas_old + 5
                             time2 = 60 / 1e2 * gas_new + 5
-                            self.threads['control_ITC'][0].gettoset_GasOutput(0)
+                            self.threads['control_ITC'][
+                                0].gettoset_GasOutput(0)
                             self.threads['control_ITC'][0].setGasOutput()
                             self.ITC_window.spinsetGasOutput.setEnabled(False)
                             time.sleep(time1)
@@ -674,7 +675,6 @@ class mainWindow(QtWidgets.QMainWindow):
                             self.ITC_window.spinsetGasOutput.setEnabled(True)
                     else:
                         self.threads['control_ITC'][0].setGasOutput()
-
 
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
                     lambda value: getInfodata.gettoset_GasOutput(value))
