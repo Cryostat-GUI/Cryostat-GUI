@@ -649,28 +649,32 @@ class mainWindow(QtWidgets.QMainWindow):
                         and possibly timers instead of time.sleep()
                         (QTimer not usefil in the second case)
                     """
-                    gas_new = self.threads['control_ITC'][0].set_gas_output
-                    with self.dataLock:
-                        gas_old = int(self.data['ITC']['gas_flow_output'])
-                    if gas_new == 0:
-                        time_wait = 60 / 1e2 * gas_old + 5
+                    if self.checkGas_gothroughzero.isChecked():
+                        gas_new = self.threads['control_ITC'][0].set_gas_output
+                        with self.dataLock:
+                            gas_old = int(self.data['ITC']['gas_flow_output'])
+                        if gas_new == 0:
+                            time_wait = 60 / 1e2 * gas_old + 5
+                            self.threads['control_ITC'][0].setGasOutput()
+
+                            self.ITC_window.spinsetGasOutput.setEnabled(False)
+                            time.sleep(time_wait)
+                            self.ITC_window.spinsetGasOutput.setEnabled(True)
+                        else:
+                            time1 = 60 / 1e2 * gas_old + 5
+                            time2 = 60 / 1e2 * gas_new + 5
+                            self.threads['control_ITC'][0].gettoset_GasOutput(0)
+                            self.threads['control_ITC'][0].setGasOutput()
+                            self.ITC_window.spinsetGasOutput.setEnabled(False)
+                            time.sleep(time1)
+                            self.threads['control_ITC'][
+                                0].gettoset_GasOutput(gas_new)
+                            self.threads['control_ITC'][0].setGasOutput()
+                            time.sleep(time2)
+                            self.ITC_window.spinsetGasOutput.setEnabled(True)
+                    else:
                         self.threads['control_ITC'][0].setGasOutput()
 
-                        self.ITC_window.spinsetGasOutput.setEnabled(False)
-                        time.sleep(time_wait)
-                        self.ITC_window.spinsetGasOutput.setEnabled(True)
-                    else:
-                        time1 = 60 / 1e2 * gas_old + 5
-                        time2 = 60 / 1e2 * gas_new + 5
-                        self.threads['control_ITC'][0].gettoset_GasOutput(0)
-                        self.threads['control_ITC'][0].setGasOutput()
-                        self.ITC_window.spinsetGasOutput.setEnabled(False)
-                        time.sleep(time1)
-                        self.threads['control_ITC'][
-                            0].gettoset_GasOutput(gas_new)
-                        self.threads['control_ITC'][0].setGasOutput()
-                        time.sleep(time2)
-                        self.ITC_window.spinsetGasOutput.setEnabled(True)
 
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
                     lambda value: getInfodata.gettoset_GasOutput(value))
