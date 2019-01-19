@@ -14,6 +14,7 @@ import pickle
 # import os
 import re
 import threading
+import json
 
 from util import Window_ui
 
@@ -624,6 +625,8 @@ class Sequence_builder(Window_ui):
     def saving(self):
         with open(self.sequence_file_p, 'wb') as output:
             pickle.dump(self.data, output, pickle.HIGHEST_PROTOCOL)
+        with open(self.sequence_file_json, 'w') as output:
+            output.write(json.dumps(self.data))
         # with open(self.sequence_file, 'w') as f:
         #     for entry in data:
         #         print(entry)
@@ -661,10 +664,12 @@ class Sequence_builder(Window_ui):
             lambda value: self.addChangeDataFile(value))
 
     def window_FileDialogSave(self):
-        self.sequence_file, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As',
-                                                                       'c:\\', "Sequence files (*.seq)")
-        self.lineFileLocation.setText(self.sequence_file)
-        self.sequence_file_p = self.sequence_file[:-3] + 'pkl'
+        self.sequence_file_json, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save As',
+                                                                            'c:\\', "Serialised (*.json)")
+        # last option is a file specifier, like 'Sequence Files (*.seq)'
+        self.lineFileLocation_serialised.setText(self.sequence_file_json)
+        self.sequence_file_p = self.sequence_file_json[:-4] + 'pkl'
+        # self.sequence_file_json = self.sequence_file[:-3] + 'json'
 
     def window_FileDialogOpen(self):
         self.sequence_file, __ = QtWidgets.QFileDialog.getOpenFileName(self, 'Save As',
@@ -675,6 +680,7 @@ class Sequence_builder(Window_ui):
     def change_file_location(self, fname):
         self.sequence_file = fname
         self.sequence_file_p = self.sequence_file[:-3] + 'pkl'
+        self.sequence_file_json = self.sequence_file[:-3] + 'json'
 
     # def update_filelocation(self):
     #     try:
@@ -721,7 +727,7 @@ class Sequence_builder(Window_ui):
         self.jumping_count = [0, 0]
         self.nesting_level = 0
         commands, textsequence = self.parse_nesting(data, -1)
-        print(commands)
+        print('parsed commands:', commands)
         return commands, textsequence
 
     def parse_nesting(self, lines_file, lines_index):
@@ -774,42 +780,42 @@ class Sequence_builder(Window_ui):
     def parse_line(self, lines_file, line, line_index):
         """parse one line of a sequence file, possibly more if it is a scan"""
         line_found = self.p.findall(line)[0]
-        print('parsing a line: ', line_found)
+        # print('parsing a line: ', line_found)
         dic = dict(typ=None)
         if line_found[0]:
             # set temperature
-            print('I found set_temp')
+            # print('I found set_temp')
             dic = parse_set_temp(line, self.nesting_level)
         elif line_found[1]:
             # set field
-            print('I found set_field')
+            # print('I found set_field')
             dic = parse_set_field(line, self.nesting_level)
         elif line_found[2]:
             # scan something
-            print('I found a scan ')
+            # print('I found a scan ')
             # self.jumping_count[self.nesting_level] += 1
             self.jumping_count.append(0)
             dic = self.parse_scan_arb(lines_file, line, line_index)
             # much stuff to do!
         elif line_found[3]:
             # waitfor
-            print('I found waiting')
+            # print('I found waiting')
             dic = parse_waiting(line, self.nesting_level)
         elif line_found[4]:
             # chain sequence
-            print('I found chain_sequence')
+            # print('I found chain_sequence')
             dic = parse_chain_sequence(line, self.nesting_level)
         elif line_found[5]:
             # resistivity change datafile
-            print('I found res_change_datafile')
+            # print('I found res_change_datafile')
             dic = parse_res_change_datafile(line, self.nesting_level)
         elif line_found[6]:
             # resistivity datafile comment
-            print('I found res_datafilecomment')
+            # print('I found res_datafilecomment')
             dic = parse_res_datafilecomment(line, self.nesting_level)
         elif line_found[7]:
             # resistivity scan excitation
-            print('I found res_scan_excitation')
+            # print('I found res_scan_excitation')
             dic = parse_res_scan_excitation(line, self.nesting_level)
         elif line_found[8]:
             dic = dict(typ='Shutdown')
@@ -817,11 +823,11 @@ class Sequence_builder(Window_ui):
             # end of a scan
             # break or raise exception
             # dic = dict(typ='EOS', DisplayText='EOS')
-            print('I found EOS')
+            # print('I found EOS')
             raise EOSException()
         elif line_found[10]:
             # resistivity - measure
-            print('I found res meausrement')
+            # print('I found res meausrement')
             dic = parse_res(line, self.nesting_level)
         return dic
 
@@ -834,7 +840,8 @@ class Sequence_builder(Window_ui):
         if line_found[2][0] == 'H':
             # Field
             pass
-            dic = dict(typ='scan_H', DisplayText=textnesting*self.nesting_level+'Scan Field....')
+            dic = dict(typ='scan_H', DisplayText=textnesting *
+                       self.nesting_level + 'Scan Field....NotImplemented')
 
         if line_found[2][0] == 'T':
             # temperature
@@ -842,18 +849,19 @@ class Sequence_builder(Window_ui):
 
         if line_found[2][0] == 'P':
             # position
-            pass
+            dic = dict(typ='scan_P', DisplayText=textnesting *
+                       self.nesting_level + 'Scan Position....NotImplemented')
+
         if line_found[2][0] == 'C':
             # time
-            pass
+            dic = dict(typ='scan_C', DisplayText=textnesting *
+                       self.nesting_level + 'Scan Time....NotImplemented')
         self.nesting_level += 1
 
         commands, nothing = self.parse_nesting(lines_file, lines_index)
 
         dic.update(dict(commands=commands))
         return dic
-
-
 
 
 if __name__ == '__main__':
