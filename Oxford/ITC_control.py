@@ -176,7 +176,7 @@ class ITC_Updater(AbstractLoopThread):
                 self.checksweep()
                 self.ITC.setTemperature(self.set_temperature)
         # print('sweepstatus: I unlocked the device')
-        if bools:
+        # if bools:
             # print('set the sweep status: ', bools)
         #     print('sweepstatus: set the temperature')
         #     self.setTemperature()
