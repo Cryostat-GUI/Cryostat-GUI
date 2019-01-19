@@ -89,7 +89,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def getStatus(self, run=True):
         answer = self.query('X')
-        print(answer, run)
+        # print(answer, run)
         autoanswer = ['heater man, gas man', 'heater auto, gas man',
                       'heater man, gas auto', 'heater auto, gas auto']
         locanswer = ['local locked', 'remote locked',

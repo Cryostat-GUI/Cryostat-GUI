@@ -202,7 +202,7 @@ class ITC_Updater(AbstractLoopThread):
             # print('setTemp: sweep running, stopping sweep')
             self.ITC.SweepStop()
             self.sweep_first = False
-        else:
+        # else:
             # print('I did not see a running sweep!',
                   # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
