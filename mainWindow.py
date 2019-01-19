@@ -231,6 +231,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Errors_window.textErrors.append(
             '{} - {}'.format(convert_time(time.time()), text))
 
+    def show_window(self, window, boolean):
+        if boolean:
+            window.show()
+        else:
+            window.close()
+
     # ------- plotting
     def connectdb(self, dbname):
         """connect to the database, provide the cursor for the whole class"""
@@ -579,7 +585,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_ITC.clicked[
             'bool'].connect(self.run_ITC)
-        self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
+        self.action_show_ITC.triggered['bool'].connect(lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
     @pyqtSlot(float)
@@ -741,13 +747,13 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
             self.logging_running_ITC = False
 
-    @pyqtSlot(bool)
-    def show_ITC(self, boolean):
-        """display/close the ITC data & control window"""
-        if boolean:
-            self.ITC_window.show()
-        else:
-            self.ITC_window.close()
+    # @pyqtSlot(bool)
+    # def show_ITC(self, boolean):
+    #     """display/close the ITC data & control window"""
+    #     if boolean:
+    #         self.ITC_window.show()
+    #     else:
+    #         self.ITC_window.close()
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
@@ -1217,7 +1223,7 @@ class mainWindow(QtWidgets.QMainWindow):
                                         self.LakeShore350_window.textSensor2_Kpmin,
                                         self.LakeShore350_window.textSensor3_Kpmin,
                                         self.LakeShore350_window.textSensor4_Kpmin],
-                                       [self.data_live['LakeShore350'][value] for value in slopes]):
+                                       [self.data_live['LakeShore350'][value][-1] for value in slopes]):
                 if not co == 0:
                     GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
