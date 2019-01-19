@@ -132,14 +132,14 @@ class ITC_Updater(AbstractLoopThread):
     def setSweep(self, setpoint_temp, rate):
         # with self.lock:
         setpoint_now = self.ITC.getValue(0)
-        print('setpoint now = ', setpoint_now)
+        # print('setpoint now = ', setpoint_now)
         if rate == 0:
             sweep_time = 0.1
-            print('rate was zero!')
+            # print('rate was zero!')
         else:
             sweep_time = abs(setpoint_now - setpoint_temp) / rate
             if sweep_time < 0.1:
-                print('sweeptime below 0.1: ', sweep_time)
+                # print('sweeptime below 0.1: ', sweep_time)
                 sweep_time = 0.1
         sp = {str(z): dict(set_point=setpoint_temp,
                            hold_time=0,
@@ -168,16 +168,16 @@ class ITC_Updater(AbstractLoopThread):
     @ExceptionHandling
     def setSweepStatus(self, bools):
         self.sweep_running = bools
-        print('set sweep status to', bools)
+        # print('set sweep status to', bools)
         with self.lock:
-            print('sweepstatus: I locked the thread!')
+            # print('sweepstatus: I locked the thread!')
             if not bools:
-                print('sweepstatus: stopping the sweep')
+                # print('sweepstatus: stopping the sweep')
                 self.checksweep()
                 self.ITC.setTemperature(self.set_temperature)
-        print('sweepstatus: I unlocked the device')
+        # print('sweepstatus: I unlocked the device')
         if bools:
-            print('set the sweep status: ', bools)
+            # print('set the sweep status: ', bools)
         #     print('sweepstatus: set the temperature')
         #     self.setTemperature()
 
@@ -185,11 +185,11 @@ class ITC_Updater(AbstractLoopThread):
     @ExceptionHandling
     def gettoset_sweepRamp(self, value):
         self.sweep_ramp = value
-        print('set sweep ramp to', value)
+        # print('set sweep ramp to', value)
 
     @ExceptionHandling
     def checksweep(self):
-        print('checking sweep')
+        # print('checking sweep')
         status = self.read_status(run=False)
         # print(status)
         try:
@@ -197,15 +197,15 @@ class ITC_Updater(AbstractLoopThread):
             status['sweep'] = bool(int(status['sweep']))
         except ValueError:
             status['sweep'] = True
-        print('sweep status: ', status['sweep'])
+        # print('sweep status: ', status['sweep'])
         if status['sweep'] or self.sweep_first:
-            print('setTemp: sweep running, stopping sweep')
+            # print('setTemp: sweep running, stopping sweep')
             self.ITC.SweepStop()
             self.sweep_first = False
         else:
-            print('I did not see a running sweep!',
-                  self.device_status['sweep'])
-        print('sweep was/is running: ', self.device_status['sweep'])
+            # print('I did not see a running sweep!',
+                  # self.device_status['sweep'])
+        # print('sweep was/is running: ', self.device_status['sweep'])
 
     @pyqtSlot()
     @ExceptionHandling
@@ -219,9 +219,9 @@ class ITC_Updater(AbstractLoopThread):
                 self.ITC.setTemperature(self.set_temperature)
                 # self.set_temperature = temp
             else:
-                print('setTemp: setting sweep.')
+                # print('setTemp: setting sweep.')
                 self.setSweep(self.set_temperature, self.sweep_ramp)
-                print('starting sweep!')
+                # print('starting sweep!')
                 self.ITC.SweepStart()
                 self.ITC.getValue(0)
 
@@ -348,7 +348,7 @@ class ITC_Updater(AbstractLoopThread):
             later on, when the command to enforce the value is sent
         """
         self.set_temperature = value
-        print('got a new temp:', value)
+        # print('got a new temp:', value)
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):
