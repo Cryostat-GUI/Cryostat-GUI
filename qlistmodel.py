@@ -192,7 +192,7 @@ class ScanListModel(QtCore.QAbstractListModel):
     sig_Nsteps = QtCore.pyqtSignal(int)
 
     def __init__(self, signalreceiver, start=None, end=None, Nsteps=None, SizeSteps=None, **kwargs):
-        super(ScanListModel, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.signalreceiver = signalreceiver
         self.__sequence = []

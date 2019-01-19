@@ -7,7 +7,7 @@ class ilm211(AbstractSerialDeviceDriver):
     """docstring for ilm200"""
 
     def __init__(self, **kwargs):
-        super(ilm211, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the Oxford controller

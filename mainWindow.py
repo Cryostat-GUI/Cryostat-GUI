@@ -44,6 +44,7 @@ import sqlite3
 
 from pyvisa.errors import VisaIOError
 
+
 import Oxford
 import LakeShore
 import Keithley
@@ -56,6 +57,7 @@ import Keithley
 # from Keithley.Keithley6221_Control import Keithley6221_Updater
 
 from Sequence import OneShot_Thread
+from Sequence import OneShot_Thread_multichannel
 
 from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration
@@ -65,6 +67,8 @@ from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
+from util import locking
+from util import noKeyError
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -86,12 +90,16 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_running_new_thread = pyqtSignal()
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
+    sig_measure_oneshot_start = pyqtSignal()
+    sig_measure_oneshot_stop = pyqtSignal()
+    # sig_softwarecontrols = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
-        self.threads = dict()
+        self.threads = dict(Lock=Lock())
+        # self.threads = dict()
         self.threads_tiny = list()
         self.data = dict()
         self.logging_bools = dict()
@@ -106,11 +114,16 @@ class mainWindow(QtWidgets.QMainWindow):
         QTimer.singleShot(0, self.initialize_all_windows)
 
     def closeEvent(self, event):
-        super(mainWindow, self).closeEvent(event)
+        super().closeEvent(event)
         self.app.quit()
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
+        self.window_SystemsOnline = Window_ui(
+            ui_file='.\\configurations\\Systems_online.ui')
+        self.actionSystems_Online.triggered.connect(
+            lambda: self.window_SystemsOnline.show())
+
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -119,7 +132,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_Keithley()
         self.initialize_window_Errors()
         self.show_data()
-        self.actionLogging_LIVE.triggered['bool'].connect(self.run_logger_live)
+        self.window_SystemsOnline.checkactionLogging_LIVE.toggled[
+            'bool'].connect(self.run_logger_live)
 
         self.initialize_window_OneShot()
         self.controls = [
@@ -128,6 +142,41 @@ class mainWindow(QtWidgets.QMainWindow):
             self.IPS_window.groupSettings,
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
+
+        self.softwarecontrol_check()
+        self.softwarecontrol_timer = QTimer()
+        self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
+        self.softwarecontrol_timer.start(100)
+        # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+
+    # def softwarecontrol_toggle(self, controls, lock, bools):
+    #     print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
+    #     print('locked: ', lock.locked())
+    #     if not bools:
+    #         lock.acquire()
+    #     for control in controls:
+    #             control.setEnabled(bools)
+    #             print('working on it')
+    #     if bools:
+    #         lock.release()
+    #     print('locked: ', lock.locked())
+
+    def softwarecontrol_toggle_locking(self, value):
+        if value:
+            self.controls_Lock.acquire()
+        else:
+            self.controls_Lock.release()
+
+    def softwarecontrol_check(self):
+        # try:
+        if self.controls_Lock.locked():
+            for c in self.controls:
+                c.setEnabled(False)
+        else:
+            for c in self.controls:
+                c.setEnabled(True)
+        # finally:
+            # QTimer.singleShot(100, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
@@ -145,7 +194,8 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             with self.dataLock:
                 self.data[dataname] = dict()
-        self.threads[threadname] = (worker, thread)
+        with self.threads['Lock']:
+            self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
         return worker
@@ -170,7 +220,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.threads[threadname][0].stop()
         self.threads[threadname][1].quit()
         self.threads[threadname][1].wait()
-        del self.threads[threadname]
+        with self.threads['Lock']:
+            del self.threads[threadname]
 
     def show_error_general(self, text):
         self.show_error_textBrowser(text)
@@ -312,8 +363,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataplot_live_conf.buttonBox.clicked.connect(
             lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        # self.dataplot_live_conf.buttonBox.clicked.connect(
-        #     lambda: self.dataplot_live_conf.close())
+        self.dataplot_live_conf.buttonBox.clicked.connect(
+            lambda: self.dataplot_live_conf.close())
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
@@ -526,9 +577,30 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ITC_window.sig_closing.connect(
             lambda: self.action_show_ITC.setChecked(False))
 
-        self.action_run_ITC.triggered['bool'].connect(self.run_ITC)
+        self.window_SystemsOnline.checkaction_run_ITC.clicked[
+            'bool'].connect(self.run_ITC)
         self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
         # self.mdiArea.addSubWindow(self.ITC_window)
+
+    @pyqtSlot(float)
+    @noKeyError
+    def ITC_fun_setTemp_valcha(self, value):
+        self.threads['control_ITC'][0].gettoset_Temperature(value)
+
+    @pyqtSlot()
+    @noKeyError
+    def ITC_fun_setTemp_edfin(self):
+        self.threads['control_ITC'][0].setTemperature()
+
+    @pyqtSlot(float)
+    @noKeyError
+    def ITC_fun_setRamp_valcha(self, value):
+        self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+
+    @pyqtSlot()
+    @noKeyError
+    def ITC_fun_setRamp_edfin(self):
+        self.threads['control_ITC'][0].setSweepRamp()
 
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
@@ -552,31 +624,19 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('ITC: timeout'))
 
-                self.data['ITC'] = dict(set_temperature=0,
-                                        Sensor_1_K=0,
-                                        Sensor_2_K=0,
-                                        Sensor_3_K=0,
-                                        temperature_error=0,
-                                        heater_output_as_percent=0,
-                                        heater_output_as_voltage=0,
-                                        gas_flow_output=0,
-                                        proportional_band=0,
-                                        integral_action_time=0,
-                                        derivative_action_time=0)
-                integration_length = 7
-                self.ITC_Kpmin = dict(newtime=[time.time()] * integration_length,
-                                      Sensor_1_K=[0] * integration_length,
-                                      Sensor_2_K=[0] * integration_length,
-                                      Sensor_3_K=[0] * integration_length,
-                                      Sensor_4_K=[0] * integration_length)
-
-                # self.time_itc = [0]
-
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Temperature(value))
+                    self.ITC_fun_setTemp_valcha)
                 self.ITC_window.spinsetTemp.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setTemperature())
+                    self.ITC_fun_setTemp_edfin)
+
+                self.ITC_window.checkSweep.toggled['bool'].connect(
+                    lambda value: getInfodata.setSweepStatus(value))
+
+                self.ITC_window.dspinSetRamp.valueChanged.connect(
+                    self.ITC_fun_setRamp_valcha)
+                self.ITC_window.dspinSetRamp.editingFinished.connect(
+                    self.ITC_fun_setRamp_edfin)
 
                 def change_gas(self):
                     """to be worked in a separate worker thread (separate
@@ -589,69 +649,73 @@ class mainWindow(QtWidgets.QMainWindow):
                         and possibly timers instead of time.sleep()
                         (QTimer not usefil in the second case)
                     """
-                    gas_new = self.threads['control_ITC'][0].set_gas_output
-                    with self.dataLock:
-                        gas_old = int(self.data['ITC']['gas_flow_output'])
-                    if gas_new == 0:
-                        time_wait = 60 / 1e2 * gas_old + 5
-                        self.threads['control_ITC'][0].setGasOutput()
+                    if self.ITC_window.checkGas_gothroughzero.isChecked():
+                        gas_new = self.threads['control_ITC'][0].set_gas_output
+                        with self.dataLock:
+                            gas_old = int(self.data['ITC']['gas_flow_output'])
+                        if gas_new == 0:
+                            time_wait = 60 / 1e2 * gas_old + 5
+                            self.threads['control_ITC'][0].setGasOutput()
 
-                        self.ITC_window.spinsetGasOutput.setEnabled(False)
-                        time.sleep(time_wait)
-                        self.ITC_window.spinsetGasOutput.setEnabled(True)
+                            self.ITC_window.spinsetGasOutput.setEnabled(False)
+                            time.sleep(time_wait)
+                            self.ITC_window.spinsetGasOutput.setEnabled(True)
+                        else:
+                            time1 = 60 / 1e2 * gas_old + 5
+                            time2 = 60 / 1e2 * gas_new + 5
+                            self.threads['control_ITC'][
+                                0].gettoset_GasOutput(0)
+                            self.threads['control_ITC'][0].setGasOutput()
+                            self.ITC_window.spinsetGasOutput.setEnabled(False)
+                            time.sleep(time1)
+                            self.threads['control_ITC'][
+                                0].gettoset_GasOutput(gas_new)
+                            self.threads['control_ITC'][0].setGasOutput()
+                            time.sleep(time2)
+                            self.ITC_window.spinsetGasOutput.setEnabled(True)
                     else:
-                        time1 = 60 / 1e2 * gas_old + 5
-                        time2 = 60 / 1e2 * gas_new + 5
-                        self.threads['control_ITC'][0].gettoset_GasOutput(0)
                         self.threads['control_ITC'][0].setGasOutput()
-                        self.ITC_window.spinsetGasOutput.setEnabled(False)
-                        time.sleep(time1)
-                        self.threads['control_ITC'][
-                            0].gettoset_GasOutput(gas_new)
-                        self.threads['control_ITC'][0].setGasOutput()
-                        time.sleep(time2)
-                        self.ITC_window.spinsetGasOutput.setEnabled(True)
 
                 self.ITC_window.spinsetGasOutput.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_GasOutput(value))
+                    lambda value: getInfodata.gettoset_GasOutput(value))
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
                     lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_HeaterOutput(value))
+                    lambda value: getInfodata.gettoset_HeaterOutput(value))
                 self.ITC_window.spinsetHeaterPercent.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setHeaterOutput())
+                    lambda: getInfodata.setHeaterOutput())
 
                 self.ITC_window.spinsetProportionalID.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Proportional(value))
+                    lambda value: getInfodata.gettoset_Proportional(value))
                 self.ITC_window.spinsetProportionalID.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setProportional())
+                    lambda: getInfodata.setProportional())
 
                 self.ITC_window.spinsetPIntegrationD.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Integral(value))
+                    lambda value: getInfodata.gettoset_Integral(value))
                 self.ITC_window.spinsetPIntegrationD.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setIntegral())
+                    lambda: getInfodata.setIntegral())
 
                 self.ITC_window.spinsetPIDerivative.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].gettoset_Derivative(value))
+                    lambda value: getInfodata.gettoset_Derivative(value))
                 self.ITC_window.spinsetPIDerivative.editingFinished.connect(
-                    lambda: self.threads['control_ITC'][0].setDerivative())
+                    lambda: getInfodata.setDerivative())
 
                 self.ITC_window.combosetHeatersens.activated['int'].connect(
-                    lambda value: self.threads['control_ITC'][0].setHeaterSensor(value + 1))
+                    lambda value: getInfodata.setHeaterSensor(value + 1))
 
                 self.ITC_window.combosetAutocontrol.activated['int'].connect(
-                    lambda value: self.threads['control_ITC'][0].setAutoControl(value))
+                    lambda value: getInfodata.setAutoControl(value))
 
                 self.ITC_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: self.threads['control_ITC'][0].setInterval(value))
+                    lambda value: getInfodata.setInterval(value))
 
                 # thread.started.connect(getInfodata.work)
                 # thread.start()
-                self.action_run_ITC.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
             except VisaIOError as e:
-                self.action_run_ITC.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
 
@@ -674,7 +738,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.spin_threadinterval.valueChanged.disconnect()
 
             self.stopping_thread('control_ITC')
-            self.action_run_ITC.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
             self.logging_running_ITC = False
 
     @pyqtSlot(bool)
@@ -692,50 +756,6 @@ class mainWindow(QtWidgets.QMainWindow):
             Store ITC data in self.data['ITC'], update ITC_window
         """
 
-        timediffs = [(entry - self.ITC_Kpmin['newtime'][i + 1]) / 60 for i,
-                     entry in enumerate(self.ITC_Kpmin['newtime'][:-1])]  # -self.ITC_Kpmin['newtime'])/60
-        tempdiffs = dict(Sensor_1_Kpmin=[entry - self.ITC_Kpmin['Sensor_1_K'][i + 1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_1_K'][:-1])],
-                         Sensor_2_Kpmin=[entry - self.ITC_Kpmin['Sensor_2_K'][i + 1]
-                                         for i, entry in enumerate(self.ITC_Kpmin['Sensor_2_K'][:-1])],
-                         Sensor_3_Kpmin=[entry - self.ITC_Kpmin['Sensor_3_K'][i + 1] for i, entry in enumerate(self.ITC_Kpmin['Sensor_3_K'][:-1])])
-        # integrating over the lists, to get an integrated rate of Kelvin/min
-        integrated_diff = dict(Sensor_1_Kpmin=np.mean(np.array(tempdiffs['Sensor_1_Kpmin']) / np.array(timediffs)),
-                               Sensor_2_Kpmin=np.mean(
-                                   np.array(tempdiffs['Sensor_2_Kpmin']) / np.array(timediffs)),
-                               Sensor_3_Kpmin=np.mean(np.array(tempdiffs['Sensor_3_Kpmin']) / np.array(timediffs)))
-
-        if not integrated_diff['Sensor_1_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens1_Kpmin.display(
-                integrated_diff['Sensor_1_Kpmin'])
-        if not integrated_diff['Sensor_2_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens2_Kpmin.display(
-                integrated_diff['Sensor_2_Kpmin'])
-        if not integrated_diff['Sensor_3_Kpmin'] == 0:
-            self.ITC_window.lcdTemp_sens3_Kpmin.display(
-                integrated_diff['Sensor_3_Kpmin'])
-
-        # advancing entries to the next slot
-        for i, entry in enumerate(self.ITC_Kpmin['newtime'][:-1]):
-            self.ITC_Kpmin['newtime'][i + 1] = entry
-            self.ITC_Kpmin['Sensor_1_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_1_K'][i]
-            self.ITC_Kpmin['Sensor_2_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_2_K'][i]
-            self.ITC_Kpmin['Sensor_3_K'][
-                i + 1] = self.ITC_Kpmin['Sensor_3_K'][i]
-
-        # including the new values
-        self.ITC_Kpmin['newtime'][0] = time.time()
-        self.ITC_Kpmin['Sensor_1_K'][0] = deepcopy(data['Sensor_1_K']) if not data[
-            'Sensor_1_K'] is None else 0
-        self.ITC_Kpmin['Sensor_2_K'][0] = deepcopy(data['Sensor_2_K']) if not data[
-            'Sensor_2_K'] is None else 0
-        self.ITC_Kpmin['Sensor_3_K'][0] = deepcopy(data['Sensor_3_K']) if not data[
-            'Sensor_3_K'] is None else 0
-        data.update(dict(Sensor_1_Kpmin=integrated_diff['Sensor_1_Kpmin'],
-                         Sensor_2_Kpmin=integrated_diff['Sensor_2_Kpmin'],
-                         Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin']))
-
         timedict = {'timeseconds': time.time(),
                     'ReadableTime': convert_time(time.time()),
                     'SearchableTime': convert_time_searchable(time.time())}
@@ -747,43 +767,47 @@ class mainWindow(QtWidgets.QMainWindow):
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
-            if not self.data['ITC']['Sensor_1_K'] is None:
-                self.ITC_window.lcdTemp_sens1_K.display(
-                    self.data['ITC']['Sensor_1_K'])
-            if not self.data['ITC']['Sensor_2_K'] is None:
-                self.ITC_window.lcdTemp_sens2_K.display(
-                    self.data['ITC']['Sensor_2_K'])
-            if not self.data['ITC']['Sensor_3_K'] is None:
-                self.ITC_window.lcdTemp_sens3_K.display(
-                    self.data['ITC']['Sensor_3_K'])
 
-            if not self.data['ITC']['set_temperature'] is None:
-                self.ITC_window.lcdTemp_set.display(
-                    self.data['ITC']['set_temperature'])
-            if not self.data['ITC']['temperature_error'] is None:
-                self.ITC_window.lcdTemp_err.display(
-                    self.data['ITC']['temperature_error'])
-            if not self.data['ITC']['heater_output_as_percent'] is None:
-                self.ITC_window.progressHeaterPercent.setValue(
-                    self.data['ITC']['heater_output_as_percent'])
-            if not self.data['ITC']['heater_output_as_voltage'] is None:
-                self.ITC_window.lcdHeaterVoltage.display(
-                    self.data['ITC']['heater_output_as_voltage'])
-            if not self.data['ITC']['gas_flow_output'] is None:
-                self.ITC_window.progressNeedleValve.setValue(
-                    self.data['ITC']['gas_flow_output'])
-            if not self.data['ITC']['gas_flow_output'] is None:
-                self.ITC_window.lcdNeedleValve_percent.display(
-                    self.data['ITC']['gas_flow_output'])
-            if not self.data['ITC']['proportional_band'] is None:
-                self.ITC_window.lcdProportionalID.display(
-                    self.data['ITC']['proportional_band'])
-            if not self.data['ITC']['integral_action_time'] is None:
-                self.ITC_window.lcdPIntegrationD.display(
-                    self.data['ITC']['integral_action_time'])
-            if not self.data['ITC']['derivative_action_time'] is None:
-                self.ITC_window.lcdPIDerivative.display(
-                    self.data['ITC']['derivative_action_time'])
+            for key in self.data['ITC']:
+                if self.data['ITC'][key] is None:
+                    self.data['ITC'][key] = np.nan
+            # if not self.data['ITC']['Sensor_1_K'] is None:
+            self.ITC_window.lcdTemp_sens1_K.display(
+                self.data['ITC']['Sensor_1_K'])
+            # if not self.data['ITC']['Sensor_2_K'] is None:
+            self.ITC_window.lcdTemp_sens2_K.display(
+                self.data['ITC']['Sensor_2_K'])
+            # if not self.data['ITC']['Sensor_3_K'] is None:
+            self.ITC_window.lcdTemp_sens3_K.display(
+                self.data['ITC']['Sensor_3_K'])
+
+            # if not self.data['ITC']['set_temperature'] is None:
+            self.ITC_window.lcdTemp_set.display(
+                self.data['ITC']['set_temperature'])
+            # if not self.data['ITC']['temperature_error'] is None:
+            self.ITC_window.lcdTemp_err.display(
+                self.data['ITC']['temperature_error'])
+            # if not self.data['ITC']['heater_output_as_percent'] is None:
+            self.ITC_window.progressHeaterPercent.setValue(
+                int(self.data['ITC']['heater_output_as_percent']))
+            # if not self.data['ITC']['heater_output_as_voltage'] is None:
+            self.ITC_window.lcdHeaterVoltage.display(
+                self.data['ITC']['heater_output_as_voltage'])
+            # if not self.data['ITC']['gas_flow_output'] is None:
+            self.ITC_window.progressNeedleValve.setValue(
+                self.data['ITC']['gas_flow_output'])
+            # if not self.data['ITC']['gas_flow_output'] is None:
+            self.ITC_window.lcdNeedleValve_percent.display(
+                self.data['ITC']['gas_flow_output'])
+            # if not self.data['ITC']['proportional_band'] is None:
+            self.ITC_window.lcdProportionalID.display(
+                self.data['ITC']['proportional_band'])
+            # if not self.data['ITC']['integral_action_time'] is None:
+            self.ITC_window.lcdPIntegrationD.display(
+                self.data['ITC']['integral_action_time'])
+            # if not self.data['ITC']['derivative_action_time'] is None:
+            self.ITC_window.lcdPIDerivative.display(
+                self.data['ITC']['derivative_action_time'])
 
     # ------- ------- ILM
     def initialize_window_ILM(self):
@@ -792,7 +816,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ILM_window.sig_closing.connect(
             lambda: self.action_show_ILM.setChecked(False))
 
-        self.action_run_ILM.triggered['bool'].connect(self.run_ILM)
+        self.window_SystemsOnline.checkaction_run_ILM.clicked[
+            'bool'].connect(self.run_ILM)
         self.action_show_ILM.triggered['bool'].connect(self.show_ILM)
 
     @pyqtSlot(bool)
@@ -822,14 +847,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ILM_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_ILM'][0].setInterval(value))
 
-                self.action_run_ILM.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_ILM.setChecked(True)
 
             except VisaIOError as e:
-                self.action_run_ILM.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_ILM.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
-            self.action_run_ILM.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_ILM.setChecked(False)
             self.stopping_thread('control_ILM')
 
     @pyqtSlot(bool)
@@ -876,7 +901,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.IPS_window.sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False))
 
-        self.action_run_IPS.triggered['bool'].connect(self.run_IPS)
+        self.window_SystemsOnline.checkaction_run_IPS.clicked[
+            'bool'].connect(self.run_IPS)
         self.action_show_IPS.triggered['bool'].connect(self.show_IPS)
 
         self.IPS_window.labelStatusMagnet.setText('')
@@ -924,14 +950,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.IPS_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_IPS'][0].setInterval(value))
 
-                self.action_run_IPS.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_IPS.setChecked(True)
 
             except VisaIOError as e:
-                self.action_run_IPS.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
-            self.action_run_IPS.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
             self.stopping_thread('control_IPS')
 
     @pyqtSlot(bool)
@@ -1002,7 +1028,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # self.LakeShore350_window.textSensor1_Kpmin.setAlignment(QtAlignRight)
 
-        self.action_run_LakeShore350.triggered[
+        self.window_SystemsOnline.checkaction_run_LakeShore350.clicked[
             'bool'].connect(self.run_LakeShore350)
         self.action_show_LakeShore350.triggered[
             'bool'].connect(self.show_LakeShore350)
@@ -1108,13 +1134,16 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LakeShore350_window.spin_threadinterval.valueChanged.connect(
                     lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
 
-                self.action_run_LakeShore350.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    True)
 
             except VisaIOError as e:
-                self.action_run_LakeShore350.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    False)
                 self.show_error_general('running: {}'.format(e))
         else:
-            self.action_run_LakeShore350.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                False)
             self.stopping_thread('control_LakeShore350')
 
             self.LakeShore350_window.spinSetTemp_K.valueChanged.disconnect()
@@ -1243,7 +1272,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
                               GUI_number1=self.Keithley_window.lcdSensor1_V,
-                              GUI_menu_action=self.action_run_Nanovolt_1,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_1,
                               GUI_Box=self.Keithley_window.comboBox_1,
                               GUI_Display=self.Keithley_window.lcdResistance1,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_1,
@@ -1256,7 +1285,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
                               GUI_number1=self.Keithley_window.lcdSensor2_V,
-                              GUI_menu_action=self.action_run_Nanovolt_2,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_2,
                               GUI_Box=self.Keithley_window.comboBox_2,
                               GUI_Display=self.Keithley_window.lcdResistance2,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_2,
@@ -1269,7 +1298,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
                               GUI_number1=self.Keithley_window.lcdSensor3_V,
-                              GUI_menu_action=self.action_run_Nanovolt_3,
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Nanovolt_3,
                               GUI_Box=self.Keithley_window.comboBox_3,
                               GUI_Display=self.Keithley_window.lcdResistance3,
                               GUI_CBox_Autozero=self.Keithley_window.checkBox_Autozero_3,
@@ -1284,7 +1313,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley6221_1',
                               GUI_number2=self.Keithley_window.spinSetCurrent1_A,
                               GUI_push=self.Keithley_window.pushToggleOut_1,
-                              GUI_menu_action=self.action_run_Current_1)
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_1)
 
         confdict6221_2 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
                               instradress=Keithley6221_2_InstrumentAddress,
@@ -1292,18 +1321,18 @@ class mainWindow(QtWidgets.QMainWindow):
                               threadname='control_Keithley6221_2',
                               GUI_number2=self.Keithley_window.spinSetCurrent2_A,
                               GUI_push=self.Keithley_window.pushToggleOut_2,
-                              GUI_menu_action=self.action_run_Current_2)
+                              GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_2)
 
-        self.action_run_Nanovolt_1.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_1.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_1))
-        self.action_run_Nanovolt_2.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_2.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_2))
-        self.action_run_Nanovolt_3.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Nanovolt_3.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict2182_3))
 
-        self.action_run_Current_1.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Current_1.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict6221_1))
-        self.action_run_Current_2.triggered['bool'].connect(
+        self.window_SystemsOnline.checkaction_run_Current_2.clicked['bool'].connect(
             lambda value: self.run_Keithley(value, **confdict6221_2))
 
         self.action_show_Keithley.triggered['bool'].connect(self.show_Keithley)
@@ -1499,7 +1528,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Log_conf_window.sig_send_conf.connect(
             lambda conf: self.sig_logging_newconf.emit(conf))
 
-        self.action_Logging.triggered['bool'].connect(self.run_logger)
+        self.window_SystemsOnline.checkaction_Logging.toggled[
+            'bool'].connect(self.run_logger)
         self.action_Logging_configuration.triggered[
             'bool'].connect(self.show_logging_configuration)
 
@@ -1513,6 +1543,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             logger = self.running_thread_control(
                 main_Logger(self), None, 'logger')
+            # logger.sig_log.connect(self.logging_send_all)
             logger.sig_log.connect(
                 lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
@@ -1521,6 +1552,13 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread('logger')
             self.logging_running_logger = False
+
+    @pyqtSlot()
+    def logging_send_all(self):
+        newdata = deepcopy(self.data)
+        newdata.update(deepcopy(self.data_live))
+        print(newdata)
+        self.sig_logging.emit(newdata)
 
     @pyqtSlot(bool)
     def show_logging_configuration(self, boolean):
@@ -1551,25 +1589,28 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread('control_Logging_live')
             self.actionLogging_LIVE.setChecked(False)
+            self.data_live = dict()
 
     def initialize_window_OneShot(self):
         self.window_OneShot = Window_ui(
-            ui_file='.\\configurations\\OneShotMeasurement.ui')
+            # ui_file='.\\configurations\\OneShotMeasurement.ui')
+            ui_file='.\\configurations\\OneShotMeasurement_multichannel.ui')
+
         # self.window_OneShot.pushChoose_Datafile.connect()
         # self.window_OneShot.comboCurrentSource.addItems([])
         self.window_OneShot.commandMeasure.setEnabled(False)
 
-        self.action_run_OneShot_Measuring.triggered[
+        self.window_SystemsOnline.checkaction_run_OneShot_Measuring.clicked[
             'bool'].connect(self.run_OneShot)
         self.action_show_OneShot_Measuring.triggered[
             'bool'].connect(self.show_OneShot)
 
     @pyqtSlot(bool)
-    def run_OneShot(self, boolean):
+    def run_OneShot_old(self, boolean):
         if boolean:
 
             OneShot = self.running_thread_control(
-                OneShot_Thread(self), None, 'control_OneShot')
+                OneShot_Thread_multichannel(self), None, 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
             self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(
@@ -1588,30 +1629,86 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.running_thread_control(
                 measurement_Logger(self), None, 'save_OneShot')
+            OneShot.sig_storing.connect(
+                lambda value: self.sig_log_measurement.emit(value))
             # this is for saving the respective data
         else:
             self.stopping_thread('control_OneShot')
             self.stopping_thread('save_OneShot')
             self.window_OneShot.commandMeasure.setEnabled(False)
 
-    def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
-        current_sources = [None,
-                           'control_Keithley6221_1',
-                           'control_Keithley6221_2']
-        Nanovolts = [None,
-                     'control_Keithley2182_1',
-                     'control_Keithley2182_2',
-                     'control_Keithley2182_3']
-        if mode == "RES":
-            OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
-        elif mode == "CURR":
-            OneShot.update_conf('threadname_CURR', current_sources[comboInt])
+    @pyqtSlot(bool)
+    def run_OneShot(self, boolean):
+        if boolean:
+
+            OneShot = self.running_thread_control(
+                OneShot_Thread_multichannel(self), 'measured', 'control_OneShot')
+            OneShot.sig_assertion.connect(self.OneShot_errorHandling)
+
+            self.logging_timer = QTimer()
+            self.logging_timer.timeout.connect(
+                lambda: self.sig_measure_oneshot.emit())
+
+            self.window_OneShot.dspinExcitationCurrent_1_A.valueChanged.connect(
+                lambda value: OneShot.update_exc(1, value))
+            self.window_OneShot.dspinExcitationCurrent_2_A.valueChanged.connect(
+                lambda value: OneShot.update_exc(2, value))
+
+            self.window_OneShot.dspinIVstart.valueChanged.connect(
+                lambda value: OneShot.update_iv(0, value))
+            self.window_OneShot.dspinIVstop.valueChanged.connect(
+                lambda value: OneShot.update_iv(1, value))
+            self.window_OneShot.spinIVsteps.valueChanged.connect(
+                lambda value: OneShot.update_iv(2, value))
+
+            self.window_OneShot.commandMeasure.setEnabled(True)
+            self.window_OneShot.commandStartSeries.setEnabled(True)
+            self.window_OneShot.commandStopSeries.setEnabled(True)
+
+            self.window_OneShot.commandMeasure.clicked.connect(
+                lambda: self.sig_measure_oneshot.emit())
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                lambda: self.logging_timer.start(OneShot.conf['interval'] * 1e3))
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                lambda: self.logging_timer.stop())
+
+            self.window_OneShot.dspinInterval_s.valueChanged.connect(
+                lambda value: OneShot.update_conf('interval', value))
+
+            self.window_OneShot.pushChoose_Datafile.clicked.connect(
+                lambda: self.OneShot_chooseDatafile(OneShot))
+
+            self.running_thread_control(
+                measurement_Logger(self), None, 'save_OneShot')
+            OneShot.sig_storing.connect(
+                lambda value: self.sig_log_measurement.emit(value))
+            # this is for saving the respective data
+        else:
+            self.stopping_thread('control_OneShot')
+            self.stopping_thread('save_OneShot')
+            self.window_OneShot.commandMeasure.setEnabled(False)
+            self.window_OneShot.commandStartSeries.setEnabled(False)
+            self.window_OneShot.commandStopSeries.setEnabled(False)
+
+    # def OneShot_chooseInstrument(self, comboInt, mode, OneShot):
+    #     current_sources = [None,
+    #                        'control_Keithley6221_1',
+    #                        'control_Keithley6221_2']
+    #     Nanovolts = [None,
+    #                  'control_Keithley2182_1',
+    #                  'control_Keithley2182_2',
+    #                  'control_Keithley2182_3']
+    #     if mode == "RES":
+    #         OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
+    #     elif mode == "CURR":
+    #         OneShot.update_conf('threadname_CURR', current_sources[comboInt])
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
                                                                   'c:\\', "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
+        self.window_OneShot.lineDatafileLocation.setText(new_file_data)
         # print(OneShot)
 
     def OneShot_errorHandling(self, errortext):

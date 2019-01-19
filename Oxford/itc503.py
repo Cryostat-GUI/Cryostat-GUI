@@ -22,6 +22,7 @@ Classes:
 
 """
 import logging
+# import time
 
 from Oxford.driver import AbstractSerialDeviceDriver
 import visa
@@ -44,7 +45,7 @@ class itc503(AbstractSerialDeviceDriver):
     """class for interfacing with a ITC 503 temperature controller"""
 
     def __init__(self, **kwargs):
-        super(itc503, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         # self.write('$M0')
@@ -85,6 +86,22 @@ class itc503(AbstractSerialDeviceDriver):
 
         command = '$T{}'.format(temperature)  # + str(int(1000*temperature))
         self.write(command)
+
+    def getStatus(self, run=True):
+        answer = self.query('X')
+        print(answer, run)
+        autoanswer = ['heater man, gas man', 'heater auto, gas man',
+                      'heater man, gas auto', 'heater auto, gas auto']
+        locanswer = ['local locked', 'remote locked',
+                     'local unlocked', 'remote unlocked']
+
+        a = dict(auto=autoanswer[int(answer[3])],
+                 loc_rem=locanswer[int(answer[5])],
+                 sweep=answer[7],
+                 sensor_control=answer[9],
+                 autopid=answer[11])
+        # print(a)
+        return a
 
     def getValue(self, variable=0):
         """Read the variable defined by the index.
@@ -241,16 +258,18 @@ class itc503(AbstractSerialDeviceDriver):
         if not isinstance(sweep_parameters, dict):
             raise AssertionError(
                 'ITC: setSweeps: Input should be a dict (of dicts)!')
-        steps = range(1, 17)
+        steps = [str(x) for x in range(1, 17)]
         parameters_keys = sweep_parameters.keys()
-        null_parameter = {'set_point': 5,
+        null_parameter = {'set_point': 100,
                           'sweep_time': 0,
                           'hold_time': 0}
 
         for step in steps:
-            if step in parameters_keys:
+            if str(step) in parameters_keys:
+                print('changing step: ', step, 'to ', sweep_parameters[step])
                 self._setSweepStep(step, sweep_parameters[step])
             else:
+                print('setting step to null_parameter: ', step)
                 self._setSweepStep(step, null_parameter)
 
     def _setSweepStep(self, sweep_step, sweep_table):
@@ -266,28 +285,29 @@ class itc503(AbstractSerialDeviceDriver):
             sweep_table: A dictionary of parameters describing the
                 sweep. Keys: set_point, sweep_time, hold_time.
         """
-        self.ComLock.acquire()
-        step_setting = '$x{}'.format(sweep_step)
-        self._visa_resource.write(step_setting)
+        with self.ComLock:
+            step_setting = '$x{}'.format(sweep_step)
+            self._visa_resource.write(step_setting)
 
-        setpoint_setting = '$s{}'.format(
-            sweep_table['set_point'])
-        sweeptime_setting = '$s{}'.format(
-                            sweep_table['sweep_time'])
-        holdtime_setting = '$s{}'.format(
-            sweep_table['hold_time'])
+            setpoint_setting = '$s{}'.format(
+                sweep_table['set_point'])
+            sweeptime_setting = '$s{}'.format(
+                                sweep_table['sweep_time'])
+            holdtime_setting = '$s{}'.format(
+                sweep_table['hold_time'])
+            self._visa_resource.write(step_setting)
+            self._visa_resource.write('$y1')
+            self._visa_resource.write(setpoint_setting)
 
-        self._visa_resource.write('$y1')
-        self._visa_resource.write(setpoint_setting)
+            self._visa_resource.write(step_setting)  # just in case
+            self._visa_resource.write('$y2')
+            self._visa_resource.write(sweeptime_setting)
 
-        self._visa_resource.write('$y2')
-        self._visa_resource.write(sweeptime_setting)
+            self._visa_resource.write(step_setting)  # just in case
+            self._visa_resource.write('$y3')
+            self._visa_resource.write(holdtime_setting)
 
-        self._visa_resource.write('$y3')
-        self._visa_resource.write(holdtime_setting)
-
-        self._resetSweepTablePointers()
-        self.ComLock.release()
+            self._resetSweepTablePointers()
 
     def _resetSweepTablePointers(self):
         """Resets the table pointers to x=0 and y=0 to prevent
@@ -303,11 +323,33 @@ class itc503(AbstractSerialDeviceDriver):
     def SweepStartAtPoint(self, point):
         """start walking through the sweep table at a specific point"""
 
-        if 32 > point < 2:
+        if 32 < point < 2:
             raise AssertionError(
                 'ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
         self.write('$S{}'.format(point))
 
     def SweepStop(self):
         """Stop any sweep which is currently running"""
-        self.write('$S0')
+        self.write('$S31')
+
+    def readSweepTable(self):
+        """read the Sweep Table which is stored in the device"""
+        steps = [str(i) for i in range(1, 17)]
+        stepdict = {key: dict(set_point='not read',
+                              sweep_time='not read', hold_time='not read') for key in steps}
+        with self.ComLock:
+            for step in steps:
+                step_setting = '$x{}'.format(step)
+                self._visa_resource.write(step_setting)
+                self._visa_resource.write('$y1')
+                stepdict[step]['set_point'] = self._visa_resource.query('r')
+
+                self._visa_resource.write(step_setting)  # just in case
+                self._visa_resource.write('$y2')
+                stepdict[step]['sweep_time'] = self._visa_resource.query('r')
+
+                self._visa_resource.write(step_setting)  # just in case
+                self._visa_resource.write('$y3')
+                stepdict[step]['hold_time'] = self._visa_resource.query('r')
+        print(stepdict)
+        return stepdict

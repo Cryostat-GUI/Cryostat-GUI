@@ -26,7 +26,7 @@ class AbstractSerialDeviceDriver(object):
     timeouterror = VisaIOError(-1073807339)
 
     def __init__(self, InstrumentAddress):
-        super(AbstractSerialDeviceDriver, self).__init__()
+        super().__init__()
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.query_delay = 0.
         self._visa_resource.timeout = 500
@@ -37,7 +37,7 @@ class AbstractSerialDeviceDriver(object):
         self._visa_resource.stop_bits = vconst.StopBits.two
         self._visa_resource.parity = vconst.Parity.none
         self.ComLock = threading.Lock()
-        self.delay = 0.0
+        self.delay = 0.1
 
     # def res_open(self):
     #     self._visa_resource = resource_manager.open_resource(InstrumentAddress)
