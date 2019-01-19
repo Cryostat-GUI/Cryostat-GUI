@@ -1557,7 +1557,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def logging_send_all(self):
         newdata = deepcopy(self.data)
         newdata.update(deepcopy(self.data_live))
-        print(newdata)
+        # print(newdata)
         self.sig_logging.emit(newdata)
 
     @pyqtSlot(bool)
@@ -1645,10 +1645,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 OneShot_Thread_multichannel(self), 'measured', 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
-            self.logging_timer = QTimer()
-            self.logging_timer.timeout.connect(
-                lambda: self.sig_measure_oneshot.emit())
-
             self.window_OneShot.dspinExcitationCurrent_1_A.valueChanged.connect(
                 lambda value: OneShot.update_exc(1, value))
             self.window_OneShot.dspinExcitationCurrent_2_A.valueChanged.connect(
@@ -1664,6 +1660,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(True)
             self.window_OneShot.commandStartSeries.setEnabled(True)
             self.window_OneShot.commandStopSeries.setEnabled(True)
+
+            self.logging_timer = QTimer()
+            self.logging_timer.timeout.connect(
+                lambda: self.sig_measure_oneshot.emit())
 
             self.window_OneShot.commandMeasure.clicked.connect(
                 lambda: self.sig_measure_oneshot.emit())
