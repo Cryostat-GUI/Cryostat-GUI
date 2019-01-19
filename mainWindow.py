@@ -1034,30 +1034,30 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_LakeShore350)
         self.LakeShore350_Kpmin = None
 
-    def func_LakeShore350_setKpminLength(self, length):
-        """set the number of measurements the calculation should be conducted over"""
-        if not self.LakeShore350_Kpmin:
-            self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
-                                           Sensors=dict(
-                Sensor_1_K=[np.nan] * length,
-                Sensor_2_K=[np.nan] * length,
-                Sensor_3_K=[np.nan] * length,
-                Sensor_4_K=[np.nan] * length),
-                length=length)
-        elif self.LakeShore350_Kpmin['length'] > length:
-            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
-                'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
-            for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
-                    'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
-            self.LakeShore350_Kpmin['length'] = length
-        elif self.LakeShore350_Kpmin['length'] < length:
-            self.LakeShore350_Kpmin['newtime'] = [time.time(
-            )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
-            for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][sensor] = [
-                    np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
-            self.LakeShore350_Kpmin['length'] = length
+    # def func_LakeShore350_setKpminLength(self, length):
+    #     """set the number of measurements the calculation should be conducted over"""
+    #     if not self.LakeShore350_Kpmin:
+    #         self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
+    #                                        Sensors=dict(
+    #             Sensor_1_K=[np.nan] * length,
+    #             Sensor_2_K=[np.nan] * length,
+    #             Sensor_3_K=[np.nan] * length,
+    #             Sensor_4_K=[np.nan] * length),
+    #             length=length)
+    #     elif self.LakeShore350_Kpmin['length'] > length:
+    #         self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
+    #             'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
+    #         for sensor in self.LakeShore350_Kpmin['Sensors']:
+    #             self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
+    #                 'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
+    #         self.LakeShore350_Kpmin['length'] = length
+    #     elif self.LakeShore350_Kpmin['length'] < length:
+    #         self.LakeShore350_Kpmin['newtime'] = [time.time(
+    #         )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
+    #         for sensor in self.LakeShore350_Kpmin['Sensors']:
+    #             self.LakeShore350_Kpmin['Sensors'][sensor] = [
+    #                 np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
+    #         self.LakeShore350_Kpmin['length'] = length
 
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
@@ -1080,7 +1080,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('LakeShore350: timeout'))
 
-                self.func_LakeShore350_setKpminLength(5)
+                # self.func_LakeShore350_setKpminLength(5)
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(
@@ -1161,29 +1161,29 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.LakeShore350_window.close()
 
-    def calculate_Kpmin(self, data):
-        """calculate the rate of change of Temperature"""
-        coeffs = []
-        for sensordata in self.LakeShore350_Kpmin['Sensors'].values():
-            coeffs.append(np.polynomial.polynomial.polyfit(
-                self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
+    # def calculate_Kpmin(self, data):
+        # """calculate the rate of change of Temperature"""
+        # coeffs = []
+        # for sensordata in self.LakeShore350_Kpmin['Sensors'].values():
+        #     coeffs.append(np.polynomial.polynomial.polyfit(
+        #         self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
 
-        integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1] * 60,
-                               Sensor_2_Kpmin=coeffs[1][1] * 60,
-                               Sensor_3_Kpmin=coeffs[2][1] * 60,
-                               Sensor_4_Kpmin=coeffs[3][1] * 60)
+        # integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1] * 60,
+        #                        Sensor_2_Kpmin=coeffs[1][1] * 60,
+        #                        Sensor_3_Kpmin=coeffs[2][1] * 60,
+        #                        Sensor_4_Kpmin=coeffs[3][1] * 60)
 
-        data.update(integrated_diff)
+        # data.update(integrated_diff)
 
-        # advancing entries to the next slot
-        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
-            self.LakeShore350_Kpmin['newtime'][i + 1] = entry
-            self.LakeShore350_Kpmin['newtime'][0] = time.time()
-            for key in self.LakeShore350_Kpmin['Sensors'].keys():
-                self.LakeShore350_Kpmin['Sensors'][key][
-                    i + 1] = self.LakeShore350_Kpmin['Sensors'][key][i]
-                self.LakeShore350_Kpmin['Sensors'][
-                    key][0] = deepcopy(data[key])
+        # # advancing entries to the next slot
+        # for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
+        #     self.LakeShore350_Kpmin['newtime'][i + 1] = entry
+        #     self.LakeShore350_Kpmin['newtime'][0] = time.time()
+        #     for key in self.LakeShore350_Kpmin['Sensors'].keys():
+        #         self.LakeShore350_Kpmin['Sensors'][key][
+        #             i + 1] = self.LakeShore350_Kpmin['Sensors'][key][i]
+        #         self.LakeShore350_Kpmin['Sensors'][
+        #             key][0] = deepcopy(data[key])
 
             # self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i]
             # self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i]
@@ -1199,7 +1199,7 @@ class mainWindow(QtWidgets.QMainWindow):
         #                     Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin'],
         #                     Sensor_4_Kpmin=integrated_diff['Sensor_4_Kpmin']))
 
-        return integrated_diff, data
+        # return integrated_diff, data
 
     @pyqtSlot(dict)
     def store_data_LakeShore350(self, data):
@@ -1208,15 +1208,18 @@ class mainWindow(QtWidgets.QMainWindow):
             Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
 
-        coeffs, data = self.calculate_Kpmin(data)
+        slopes = ['Sensor_1_K_calc_slope', 'Sensor_2_K_calc_slope',
+                  'Sensor_3_K_calc_slope', 'Sensor_4_K_calc_slope']
 
-        for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
-                                    self.LakeShore350_window.textSensor2_Kpmin,
-                                    self.LakeShore350_window.textSensor3_Kpmin,
-                                    self.LakeShore350_window.textSensor4_Kpmin],
-                                   coeffs.values()):
-            if not co == 0:
-                GUI_element.setText('{num:=+10.4f}'.format(num=co))
+        # coeffs, data = self.calculate_Kpmin(data)
+        with self.dataLock_live:
+            for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
+                                        self.LakeShore350_window.textSensor2_Kpmin,
+                                        self.LakeShore350_window.textSensor3_Kpmin,
+                                        self.LakeShore350_window.textSensor4_Kpmin],
+                                       [self.data_live['LakeShore350'][value] for value in slopes]):
+                if not co == 0:
+                    GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
         # data['date'] = convert_time(time.time())
         timedict = {'timeseconds': time.time(),
@@ -1557,7 +1560,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def logging_send_all(self):
         newdata = deepcopy(self.data)
         newdata.update(deepcopy(self.data_live))
-        print(newdata)
+        # print(newdata)
         self.sig_logging.emit(newdata)
 
     @pyqtSlot(bool)
@@ -1645,10 +1648,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 OneShot_Thread_multichannel(self), 'measured', 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
-            self.logging_timer = QTimer()
-            self.logging_timer.timeout.connect(
-                lambda: self.sig_measure_oneshot.emit())
-
             self.window_OneShot.dspinExcitationCurrent_1_A.valueChanged.connect(
                 lambda value: OneShot.update_exc(1, value))
             self.window_OneShot.dspinExcitationCurrent_2_A.valueChanged.connect(
@@ -1664,6 +1663,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandMeasure.setEnabled(True)
             self.window_OneShot.commandStartSeries.setEnabled(True)
             self.window_OneShot.commandStopSeries.setEnabled(True)
+
+            self.logging_timer = QTimer()
+            self.logging_timer.timeout.connect(
+                lambda: self.sig_measure_oneshot.emit())
 
             self.window_OneShot.commandMeasure.clicked.connect(
                 lambda: self.sig_measure_oneshot.emit())
