@@ -23,7 +23,7 @@
 ----------------------------------------------------------------------------------------
 """
 
-from PyQt5 import QtWidgets  # , QtGui
+from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
@@ -585,7 +585,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_ITC.clicked[
             'bool'].connect(self.run_ITC)
-        self.action_show_ITC.triggered['bool'].connect(lambda value: self.show_window(self.ITC_window, value))
+        self.action_show_ITC.triggered['bool'].connect(
+            lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
     @pyqtSlot(float)
@@ -1615,38 +1616,6 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_OneShot)
 
     @pyqtSlot(bool)
-    def run_OneShot_old(self, boolean):
-        if boolean:
-
-            OneShot = self.running_thread_control(
-                OneShot_Thread_multichannel(self), None, 'control_OneShot')
-            OneShot.sig_assertion.connect(self.OneShot_errorHandling)
-
-            self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(
-                lambda value: OneShot.update_conf('excitation_current_A', value))
-            self.window_OneShot.spinN_measurements.valueChanged.connect(
-                lambda value: OneShot.update_conf('n_measurements', value))
-            self.window_OneShot.comboCurrentSource.activated['int'].connect(
-                lambda value: self.OneShot_chooseInstrument(value, "CURR", OneShot))
-            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(
-                lambda value: self.OneShot_chooseInstrument(value, "RES", OneShot))
-            self.window_OneShot.commandMeasure.clicked.connect(
-                lambda: self.sig_measure_oneshot.emit())
-            self.window_OneShot.commandMeasure.setEnabled(True)
-            self.window_OneShot.pushChoose_Datafile.clicked.connect(
-                lambda: self.OneShot_chooseDatafile(OneShot))
-
-            self.running_thread_control(
-                measurement_Logger(self), None, 'save_OneShot')
-            OneShot.sig_storing.connect(
-                lambda value: self.sig_log_measurement.emit(value))
-            # this is for saving the respective data
-        else:
-            self.stopping_thread('control_OneShot')
-            self.stopping_thread('save_OneShot')
-            self.window_OneShot.commandMeasure.setEnabled(False)
-
-    @pyqtSlot(bool)
     def run_OneShot(self, boolean):
         if boolean:
 
@@ -1676,10 +1645,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.window_OneShot.commandMeasure.clicked.connect(
                 lambda: self.sig_measure_oneshot.emit())
-            self.window_OneShot.commandStartSeries.clicked.connect(
-                lambda: self.logging_timer.start(OneShot.conf['interval'] * 1e3))
-            self.window_OneShot.commandStopSeries.clicked.connect(
-                lambda: self.logging_timer.stop())
+            # for whatever reason, these need to be connected twice:
+            #   only then both text AND color of the state indicator change!
+            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
+            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
+            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
+            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
 
             self.window_OneShot.dspinInterval_s.valueChanged.connect(
                 lambda value: OneShot.update_conf('interval', value))
@@ -1711,6 +1682,28 @@ class mainWindow(QtWidgets.QMainWindow):
     #         OneShot.update_conf('threadname_RES', Nanovolts[comboInt])
     #     elif mode == "CURR":
     #         OneShot.update_conf('threadname_CURR', current_sources[comboInt])
+
+    def OneShot_start(self):
+        '''
+            get the timer seconds, change the state to "running", start the timer
+            this can only be invoked in case the control thread is working:
+                the button is otherwise disabled
+        '''
+        sec = self.threads['control_OneShot'][0].conf['interval']
+        msec = sec * 1e3
+        green = QtGui.QColor(0, 255, 0)
+        self.logging_timer.start(msec)
+        self.window_OneShot.textrunning.setText('Running')
+        self.window_OneShot.textrunning.setTextColor(green)
+        self.window_OneShot.textinterval.setText(
+            '{0:.2f} s ({1:.2f} min)'.format(sec, sec / 60))
+
+    def OneShot_stop(self):
+        '''stop the timer, change the state to "stopped" '''
+        blue = QtGui.QColor(0, 0, 255)
+        self.logging_timer.stop()
+        self.window_OneShot.textrunning.setText('Stopped')
+        self.window_OneShot.textrunning.setTextColor(blue)
 
     def OneShot_chooseDatafile(self, OneShot):
         new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
