@@ -1219,14 +1219,30 @@ class mainWindow(QtWidgets.QMainWindow):
                   'Sensor_3_K_calc_slope', 'Sensor_4_K_calc_slope']
 
         # coeffs, data = self.calculate_Kpmin(data)
-        with self.dataLock_live:
-            for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
-                                        self.LakeShore350_window.textSensor2_Kpmin,
-                                        self.LakeShore350_window.textSensor3_Kpmin,
-                                        self.LakeShore350_window.textSensor4_Kpmin],
-                                       [self.data_live['LakeShore350'][value][-1] for value in slopes]):
-                if not co == 0:
-                    GUI_element.setText('{num:=+10.4f}'.format(num=co))
+        try:
+            with self.dataLock_live:
+                if any([self.data_live['LakeShore350'][value]
+                        for value in slopes]):
+                    livedata = [self.data_live['LakeShore350'][value][-1]
+                                for value in slopes]
+                else:
+                    livedata = [0] * 4
+        except AttributeError:
+            self.show_error_general(
+                'please start live logging for LakeShore350 slope values!')
+            livedata = [0] * 4
+        except KeyError:
+            self.show_error_general(
+                'please start live logging for LakeShore350 slope values!')
+            livedata = [0] * 4
+        
+        for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
+                                    self.LakeShore350_window.textSensor2_Kpmin,
+                                    self.LakeShore350_window.textSensor3_Kpmin,
+                                    self.LakeShore350_window.textSensor4_Kpmin],
+                                   livedata):
+            if not co == 0:
+                GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
         # data['date'] = convert_time(time.time())
         timedict = {'timeseconds': time.time(),
@@ -1647,10 +1663,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 lambda: self.sig_measure_oneshot.emit())
             # for whatever reason, these need to be connected twice:
             #   only then both text AND color of the state indicator change!
-            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
-            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
-            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
-            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                self.OneShot_start)
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                self.OneShot_start)
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                self.OneShot_stop)
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                self.OneShot_stop)
 
             self.window_OneShot.dspinInterval_s.valueChanged.connect(
                 lambda value: OneShot.update_conf('interval', value))
