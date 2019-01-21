@@ -802,7 +802,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.data['ITC']['heater_output_as_voltage'])
             # if not self.data['ITC']['gas_flow_output'] is None:
             self.ITC_window.progressNeedleValve.setValue(
-                self.data['ITC']['gas_flow_output'])
+                int(self.data['ITC']['gas_flow_output']))
             # if not self.data['ITC']['gas_flow_output'] is None:
             self.ITC_window.lcdNeedleValve_percent.display(
                 self.data['ITC']['gas_flow_output'])
