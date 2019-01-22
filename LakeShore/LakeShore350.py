@@ -556,7 +556,7 @@ class LakeShore350(AbstractGPIBDeviceDriver):
             raise AssertionError(
                 "Temp_Value parameter must be a float with up to 6 digits.")
 
-        self.go('CRVPT ' + '{0:2d}.{1:3d},{2:3.2f},{3:3.2f}'.format(curve,
+        self.go('CRVPT ' + '{0:2d},{1:3d},{2:7.3f},{3:7.3f}'.format(curve,
                                                                     index, units_value, temp_value))  # improve formatting?
 
     def CurveDataPointQuery(self, curve, index):
