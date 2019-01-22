@@ -139,6 +139,28 @@ def displaytext_set_field(data):
     return 'Set Field to {Field} at {SweepRate}T/min (rate is only a wish...)'.format(**data)
 
 
+def parse_chamber(comm, nesting_level):
+    '''parse a command for a chamber operation'''
+    nums = read_nums(comm)
+    dic = dict(typ='chamber_operation')
+    if nums[0] == 0:
+        dic['operation'] = 'seal immediate'
+    if nums[0] == 1:
+        dic['operation'] = 'purge then seal'
+    if nums[0] == 2:
+        dic['operation'] = 'vent then seal'
+    if nums[0] == 3:
+        dic['operation'] = 'pump continuous'
+    if nums[0] == 4:
+        dic['operation'] = 'vent continuous'
+    if nums[0] == 5:
+        dic['operation'] = 'high vacuum'
+
+    dic['DisplayText'] = textnesting * nesting_level + \
+        'Chamber Op: {operation}'.format(**dic)
+    return dic
+
+
 def parse_set_temp(comm, nesting_level):
     """parse a command to set a single temperature"""
     # TODO: Fast settle
@@ -814,7 +836,7 @@ class Sequence_builder(Window_ui):
             exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)$',
                    r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$', r'DFC(.*?)$',
                    r'LPI(.*?)$', r'SHT(.*?)DOWN', r'EN(.*?)EOS$', r'RES(.*?)$',
-                   r'BEP BEEP(.*?)$']
+                   r'BEP BEEP(.*?)$', r'CMB CHAMBER(.*?)$']
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
 
@@ -838,7 +860,7 @@ class Sequence_builder(Window_ui):
         self.nesting_level = 0
         commands, textsequence = self.parse_nesting(data, -1)
         print('parsed commands:', commands)
-        for x in commands: print(x)
+        # for x in commands: print(x)
         return commands, textsequence
 
     def parse_nesting(self, lines_file, lines_index):
@@ -939,6 +961,9 @@ class Sequence_builder(Window_ui):
         elif line_found[11]:
             # beep of certain length and frequency
             dic = parse_beep(line, self.nesting_level)
+        elif line_found[12]:
+            # chamber operations
+            dic = parse_chamber(line, self.nesting_level)
 
         return dic
 
