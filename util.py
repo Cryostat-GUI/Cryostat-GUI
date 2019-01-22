@@ -191,7 +191,7 @@ class loops_off:
 
     def __init__(self, threads):
         self._threads = [threads[thread][0] for thread in threads.keys()
-        if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
+                         if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
         self.lock = threads['Lock']
 
     def __enter__(self, *args, **kwargs):
@@ -347,7 +347,7 @@ class Workerclass(QObject):
     """tiny class for performing one single task ()"""
 
     def __init__(self, workfunction, *args, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
@@ -380,7 +380,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     sig_closing = pyqtSignal()
 
     def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
@@ -418,7 +418,10 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.lines = []
         self.plot_base()
 
-        self.plot()
+        # self.plot()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.plot)
+        self.timer.start(self.interval * 1e3)
 
     def plot_base(self):
         # create an axis
@@ -461,6 +464,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         finally:
             QTimer.singleShot(self.interval * 1e3, self.plot)
 
-    # def closeEvent(self, event):
-    #     super().closeEvent(event)
+    def closeEvent(self, event):
+        self.timer.stop()
+        super().closeEvent(event)
     #     del self
