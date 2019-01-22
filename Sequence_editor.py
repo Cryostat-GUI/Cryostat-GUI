@@ -876,4 +876,4 @@ if __name__ == '__main__':
     form = Sequence_builder(file)
     form.show()
     sys.exit(app.exec_())
-l
+
