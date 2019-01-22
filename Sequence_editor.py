@@ -43,8 +43,10 @@ def parse_binary(number):
     """parse an integer number which represents a sum of bits
         returns a list with True and False, from back to front
     """
+    # print(number)
+    number = int(number)
     nums = list(reversed('{:b}'.format(number)))
-    print(nums)
+    # print(nums)
     for ct, num in enumerate(nums):
         nums[ct] = True if int(num) else False
     return nums
@@ -97,7 +99,7 @@ def displaytext_scan_T(data):
 def displaytext_scan_H(data):
     """generate the displaytext for the field scan"""
 
-    return 'Scan field from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {ApproachMode}, {SpacingCode}, {EndMode}'.format(**data)
+    return 'Scan Field from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {ApproachMode}, {SpacingCode}, {EndMode}'.format(**data)
 
 
 def displaytext_set_temp(data):
@@ -114,7 +116,22 @@ def displatext_res_scan_exc(data):
 def displaytext_res(data):
     """generate the displaytext for the resistivity measurement"""
     # TODO - finish this up
-    return 'Measuring Resistance'
+    text = 'Resistivity '
+    chans = []
+    chans.append('Ch1 ')
+    chans.append('Ch2 ')
+    chans.append('Ch3 ')
+    chans.append('Ch4 ')
+
+    for ct, chan_conf in enumerate(data['bridge_conf']):
+        if chan_conf['on_off'] is False:
+            chans[ct] += 'Off, '
+            continue
+        chans[ct] += '{limit_current_uA}uA, '.format(**chan_conf)
+    chans[-1].strip(',')
+    for c in chans:
+        text += c
+    return text
 
 
 def displaytext_set_field(data):
@@ -206,7 +223,7 @@ def parse_res_bridge_setup(nums):
 def parse_res(comm, nesting_level):
     """parse a command to measure resistivity"""
     nums = read_nums(comm)
-    dataflags = parse_binary_dataflags(nums[0])
+    dataflags = parse_binary_dataflags(int(nums[0]))
     reading_count = nums[1]
     nums = nums[2:]
     bridge_conf = []
@@ -821,6 +838,7 @@ class Sequence_builder(Window_ui):
         self.nesting_level = 0
         commands, textsequence = self.parse_nesting(data, -1)
         print('parsed commands:', commands)
+        for x in commands: print(x)
         return commands, textsequence
 
     def parse_nesting(self, lines_file, lines_index):
@@ -886,10 +904,8 @@ class Sequence_builder(Window_ui):
         elif line_found[2]:
             # scan something
             # print('I found a scan ')
-            # self.jumping_count[self.nesting_level] += 1
             self.jumping_count.append(0)
             dic = self.parse_scan_arb(lines_file, line, line_index)
-            # much stuff to do!
         elif line_found[3]:
             # waitfor
             # print('I found waiting')
@@ -914,8 +930,6 @@ class Sequence_builder(Window_ui):
             dic = dict(typ='Shutdown')
         elif line_found[9]:
             # end of a scan
-            # break or raise exception
-            # dic = dict(typ='EOS', DisplayText='EOS')
             # print('I found EOS')
             raise EOSException()
         elif line_found[10]:
@@ -949,7 +963,7 @@ class Sequence_builder(Window_ui):
         if line_found[2][0] == 'C':
             # time
             dic = parse_scan_time(line, self.nesting_level)
-            
+
         self.nesting_level += 1
 
         commands, nothing = self.parse_nesting(lines_file, lines_index)
