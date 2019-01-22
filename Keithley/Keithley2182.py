@@ -31,7 +31,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     """
 
     def __init__(self,  **kwargs):
-        super().__init(**kwargs)
+        super().__init__(**kwargs)
 
     def measureVoltage(self):
         """measure voltage
