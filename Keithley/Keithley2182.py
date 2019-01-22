@@ -33,6 +33,12 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def go(self, command):
+        return super().go(command)
+
+    def query(self, command):
+        return super().query(command)
+
     def measureVoltage(self):
         """measure voltage
         :return: voltage in V

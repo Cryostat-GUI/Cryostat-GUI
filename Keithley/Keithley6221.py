@@ -50,6 +50,12 @@ class Keithley6221(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def go(self, command):
+        return super().go(command)
+
+    def query(self, command):
+        return super().query(command)
+
     # METHODS #
     def disable_fully(self):
         """
