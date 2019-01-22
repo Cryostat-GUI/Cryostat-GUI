@@ -57,6 +57,9 @@
    </item>
    <item row="0" column="8">
     <widget class="QTreeWidget" name="treeOptions">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="dragEnabled">
       <bool>true</bool>
      </property>
@@ -185,6 +188,9 @@
    </item>
    <item row="4" column="0" colspan="5">
     <widget class="QCommandLinkButton" name="Button_RunSequence">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>RUN Sequence</string>
      </property>
@@ -226,6 +232,9 @@
    </item>
    <item row="4" column="8">
     <widget class="QCommandLinkButton" name="Button_AbortSequence">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>ABORT Sequence</string>
      </property>

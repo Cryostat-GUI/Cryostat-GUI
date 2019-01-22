@@ -410,6 +410,7 @@ def parse_beep(comm, nesting_level):
     dic = dict(typ='beep', length=nums[0], frequency=nums[1])
     dic['DisplayText'] = textnesting * nesting_level + \
         'Beep for {length}secs at {frequency}Hz'.format(**dic)
+    return dic
 
 
 class Window_ChangeDataFile(QtWidgets.QDialog):
@@ -836,7 +837,7 @@ class Sequence_builder(Window_ui):
             exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)$',
                    r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$', r'DFC(.*?)$',
                    r'LPI(.*?)$', r'SHT(.*?)DOWN', r'EN(.*?)EOS$', r'RES(.*?)$',
-                   r'BEP BEEP(.*?)$', r'CMB CHAMBER(.*?)$']
+                   r'BEP BEEP(.*?)$', r'CMB CHAMBER(.*?)$', r'REM(.*?)$']
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
 
@@ -859,7 +860,7 @@ class Sequence_builder(Window_ui):
         self.jumping_count = [0, 0]
         self.nesting_level = 0
         commands, textsequence = self.parse_nesting(data, -1)
-        print('parsed commands:', commands)
+        # print('parsed commands:', commands)
         # for x in commands: print(x)
         return commands, textsequence
 
@@ -891,12 +892,13 @@ class Sequence_builder(Window_ui):
                     typ="EOS", DisplayText=textnesting * (self.nesting_level) + 'EOS')
                 commands.append(dic_loop)
                 break
-            commands.append(dic_loop)
-            if lines_index == -1:
-                textsequence.append(dic_loop)
-                self.add_text(textsequence, dic_loop)
+            if dic_loop is not None:
+                commands.append(dic_loop)
+                if lines_index == -1:
+                    textsequence.append(dic_loop)
+                    self.add_text(textsequence, dic_loop)
         del self.jumping_count[-1]
-        print("done with this nesting level: ", self.nesting_level)
+        # print("done with this nesting level: ", self.nesting_level)
         return commands, textsequence
 
     def add_text(self, text_list, dic):
@@ -912,9 +914,14 @@ class Sequence_builder(Window_ui):
 
     def parse_line(self, lines_file, line, line_index):
         """parse one line of a sequence file, possibly more if it is a scan"""
-        line_found = self.p.findall(line)[0]
-        # print('parsing a line: ', line_found)
-        dic = dict(typ=None)
+        line_found = self.p.findall(line)
+
+        try:
+            line_found = line_found[0]
+        except IndexError:
+            return None
+
+        # print(line_found)
         if line_found[0]:
             # set temperature
             # print('I found set_temp')
@@ -964,6 +971,17 @@ class Sequence_builder(Window_ui):
         elif line_found[12]:
             # chamber operations
             dic = parse_chamber(line, self.nesting_level)
+
+        elif line_found[13]:
+            # remark
+            dic = dict(typ='remark', DisplayText=line_found[13])
+
+        # try:
+        #     print(dic)
+        # except NameError:
+        #     print(line_found)
+        # if dic['typ'] is None:
+        #     print(line_found)
 
         return dic
 
