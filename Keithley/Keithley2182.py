@@ -27,10 +27,10 @@ except OSError:
 class Keithley2182(AbstractGPIBDeviceDriver):
 
     """
-    The Keithley 2182 is a nano-voltmeter. 
+    The Keithley 2182 is a nano-voltmeter.
     """
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def measureVoltage(self):

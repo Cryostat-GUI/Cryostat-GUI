@@ -23,9 +23,23 @@ except OSError:
 
 
 class LakeShore350(AbstractGPIBDeviceDriver):
+    '''class to interface with a LakeShore350
+
+    in order to change the self.go() and self.query() commands,
+    just use inheritance injection:
+    class TCPLakeShore(LakeShore350, TCPInstrument):
+        pass
+    where in TCPInstrument you define self.go() and self.query()
+    '''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def go(self, command):
+        return super().go(command)
+
+    def query(self, command):
+        return super().query(command)
 
     def ClearInterfaceCommand(self):
         """Clears the bits in the Status Register, Standard Event Status Register, and Operation Event Register,
