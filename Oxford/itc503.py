@@ -1,10 +1,5 @@
 """Module containing a class to interface with an Oxford Instruments ITC 503.
 
-Note: Our (Mason Group) laboratory does not have a working motorized needle
-        valve, so the gas functions are not totally useful. However, if
-        it somehow is fixed or if someone not from the group decides to use
-        this module, then it may be of use.
-
 This module requires a National Instruments VISA driver, which can be found at
 https://www.ni.com/visa/
 
@@ -24,7 +19,8 @@ Classes:
 import logging
 # import time
 
-from Oxford.driver import AbstractSerialDeviceDriver
+# from Oxford.driver import AbstractSerialDeviceDriver
+from drivers import AbstractSerialDeviceDriver
 import visa
 from pyvisa.errors import VisaIOError
 
