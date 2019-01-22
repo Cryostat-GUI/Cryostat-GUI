@@ -1726,8 +1726,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot.textrunning.setTextColor(blue)
 
     def OneShot_chooseDatafile(self, OneShot):
-        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-                                                                  'c:\\', "Datafiles (*.dat)")
+        try:
+            current_file_data = OneShot.conf['datafile']
+        except KeyError:
+            current_file_data = 'c:/'
+        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self,
+                                                                  'Choose Datafile',
+                                                                  current_file_data,
+                                                                  "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         self.window_OneShot.lineDatafileLocation.setText(new_file_data)
