@@ -1235,7 +1235,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(
                 'please start live logging for LakeShore350 slope values!')
             livedata = [0] * 4
-        
+
         for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
                                     self.LakeShore350_window.textSensor2_Kpmin,
                                     self.LakeShore350_window.textSensor3_Kpmin,
