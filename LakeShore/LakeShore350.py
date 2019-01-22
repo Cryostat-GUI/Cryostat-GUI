@@ -2,7 +2,7 @@
 """
 Driver for the LakeShore 350 Cryogenic Temperature Controller
 """
-import threading
+# import threading
 import visa
 import logging
 from itertools import combinations

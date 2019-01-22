@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
-    NI_resource_manager = visa.ResourceManager()
-    Agilent_resource_manager = visa.ResourceManager(
+    NI_RESOURCE_MANAGER = visa.ResourceManager()
+    AGILENT_RESOURCE_MANAGER = visa.ResourceManager(
         'C:\\Windows\\System32\\agvisa32.dll')
 except OSError:
     logger.exception(
@@ -24,7 +24,7 @@ class AbstractSerialDeviceDriver(object):
 
     def __init__(self, InstrumentAddress, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, nivsag='ni', **kwargs):
         super().__init__(**kwargs)
-        resource_manager = Agilent_resource_manager if nivsag.strip() == 'ag' else NI_resource_manager
+        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip() == 'ag' else NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.query_delay = 0.
         self._visa_resource.timeout = timeout
@@ -34,7 +34,7 @@ class AbstractSerialDeviceDriver(object):
         self._visa_resource.data_bits = data_bits
         self._visa_resource.stop_bits = vconst.StopBits.two
         self._visa_resource.parity = vconst.Parity.none
-        self.ComLock = threading.Lock()
+        self._comLock = threading.Lock()
         self.delay = 0.1
 
     # def res_open(self):
@@ -52,7 +52,7 @@ class AbstractSerialDeviceDriver(object):
             low-level communication wrapper for visa.write with Communication Lock,
             to prevent multiple writes to serial adapter
         """
-        with self.ComLock:
+        with self._comLock:
             self._visa_resource.write(command)
             time.sleep(self.delay)
 
@@ -63,7 +63,7 @@ class AbstractSerialDeviceDriver(object):
             low-level communication wrapper for visa.query with Communication Lock,
             to prevent multiple writes to serial adapter
         """
-        with self.ComLock:
+        with self._comLock:
             answer = self._visa_resource.query(command)
             time.sleep(self.delay)
         return answer
@@ -77,7 +77,7 @@ class AbstractSerialDeviceDriver(object):
     #     return answer
 
     def read(self):
-        with self.ComLock:
+        with self._comLock:
             answer = self._visa_resource.read()
             # time.sleep(self.delay)
         return answer
@@ -85,7 +85,8 @@ class AbstractSerialDeviceDriver(object):
     def clear_buffers(self):
         self._visa_resource.timeout = 5
         try:
-            self.read()
+            with self._comLock:
+                self.read()
         except VisaIOError as e_visa:
             if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 pass
@@ -100,11 +101,11 @@ class AbstractGPIBDeviceDriver(object):
     def __init__(self, InstrumentAddress, nivsag='ag', **kwargs):
         super().__init__(**kwargs)
         # self.arg = arg
-        resource_manager = Agilent_resource_manager if nivsag.strip() == 'ag' else NI_resource_manager
+        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip() == 'ag' else NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
-        self.CommunicationLock = threading.Lock()
-        self.device = self._visa_resource
+        self._comLock = threading.Lock()
+        self._device = self._visa_resource
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
@@ -114,8 +115,8 @@ class AbstractGPIBDeviceDriver(object):
 
         :return: answer from the device
         """
-        with self.CommunicationLock:
-            received = self.device.query(command)
+        with self._comLock:
+            received = self._device.query(command)
         return received.strip().split(',')
 
     def go(self, command):
@@ -125,5 +126,5 @@ class AbstractGPIBDeviceDriver(object):
         :type command: str
 
         """
-        with self.CommunicationLock:
-            self.device.write(command)
+        with self._comLock:
+            self._device.write(command)
