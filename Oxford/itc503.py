@@ -17,7 +17,7 @@ Classes:
 
 """
 import logging
-# import time
+import time
 
 # from Oxford.driver import AbstractSerialDeviceDriver
 from drivers import AbstractSerialDeviceDriver
@@ -256,10 +256,9 @@ class itc503(AbstractSerialDeviceDriver):
                 'ITC: setSweeps: Input should be a dict (of dicts)!')
         steps = [str(x) for x in range(1, 17)]
         parameters_keys = sweep_parameters.keys()
-        null_parameter = {'set_point': 100,
+        null_parameter = {'set_point': 2,
                           'sweep_time': 0,
                           'hold_time': 0}
-
         for step in steps:
             if str(step) in parameters_keys:
                 print('changing step: ', step, 'to ', sweep_parameters[step])
@@ -281,9 +280,9 @@ class itc503(AbstractSerialDeviceDriver):
             sweep_table: A dictionary of parameters describing the
                 sweep. Keys: set_point, sweep_time, hold_time.
         """
-        with self.ComLock:
+        with self._comLock:
             step_setting = '$x{}'.format(sweep_step)
-            self._visa_resource.write(step_setting)
+            self.write(step_setting, f=True)
 
             setpoint_setting = '$s{}'.format(
                 sweep_table['set_point'])
@@ -291,17 +290,17 @@ class itc503(AbstractSerialDeviceDriver):
                                 sweep_table['sweep_time'])
             holdtime_setting = '$s{}'.format(
                 sweep_table['hold_time'])
-            self._visa_resource.write(step_setting)
-            self._visa_resource.write('$y1')
-            self._visa_resource.write(setpoint_setting)
+            self.write(step_setting, f=True)
+            self.write('$y1', f=True)
+            self.write(setpoint_setting, f=True)
 
-            self._visa_resource.write(step_setting)  # just in case
-            self._visa_resource.write('$y2')
-            self._visa_resource.write(sweeptime_setting)
+            self.write(step_setting, f=True)
+            self.write('$y2', f=True)
+            self.write(sweeptime_setting, f=True)
 
-            self._visa_resource.write(step_setting)  # just in case
-            self._visa_resource.write('$y3')
-            self._visa_resource.write(holdtime_setting)
+            self.write(step_setting, f=True)
+            self.write('$y3', f=True)
+            self.write(holdtime_setting, f=True)
 
             self._resetSweepTablePointers()
 
@@ -309,8 +308,8 @@ class itc503(AbstractSerialDeviceDriver):
         """Resets the table pointers to x=0 and y=0 to prevent
            accidental sweep table changes.
         """
-        self._visa_resource.write('$x0')
-        self._visa_resource.write('$y0')
+        self.write('$x0', f=True)
+        self.write('$y0', f=True)
 
     def SweepStart(self):
         """start the sweep, beginning at the first step in the table"""
@@ -329,23 +328,33 @@ class itc503(AbstractSerialDeviceDriver):
         self.write('$S31')
 
     def readSweepTable(self):
-        """read the Sweep Table which is stored in the device"""
+        """read the Sweep Table which is stored in the device
+            Not WORKING CURRENTLY
+
+        """
+        raise NotImplementedError
         steps = [str(i) for i in range(1, 17)]
         stepdict = {key: dict(set_point='not read',
-                              sweep_time='not read', hold_time='not read') for key in steps}
-        with self.ComLock:
+                              sweep_time='not read',
+                              hold_time='not read') for key in steps}
+        with self._comLock:
             for step in steps:
                 step_setting = '$x{}'.format(step)
-                self._visa_resource.write(step_setting)
-                self._visa_resource.write('$y1')
-                stepdict[step]['set_point'] = self._visa_resource.query('r')
+                self.write(step_setting, f=True)
+                self.write('$y1', f=True)
+                print('written1')
+                try:
+                    stepdict[step]['set_point'] = self.query('r', f=True)
+                except Exception as e:
+                    print(e)
+                print('received 1')
 
-                self._visa_resource.write(step_setting)  # just in case
-                self._visa_resource.write('$y2')
-                stepdict[step]['sweep_time'] = self._visa_resource.query('r')
+                self.write(step_setting)  # just in cas, f=Truee
+                self.write('$y2', f=True)
+                stepdict[step]['sweep_time'] = self.query('r', f=True)
 
-                self._visa_resource.write(step_setting)  # just in case
-                self._visa_resource.write('$y3')
-                stepdict[step]['hold_time'] = self._visa_resource.query('r')
+                self.write(step_setting)  # just in cas, f=Truee
+                self.write('$y3', f=True)
+                stepdict[step]['hold_time'] = self.query('r', f=True)
         print(stepdict)
         return stepdict

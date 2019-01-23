@@ -160,9 +160,9 @@ class ITC_Updater(AbstractLoopThread):
         # print('setting sweep to', self.sweep_parameters)
         self.ITC.setSweeps(self.sweep_parameters)
         # self.ITC.getValue(0)
-        for x in self.ITC.readSweepTable():
-            print(x)
-        pass
+        # print('sweep table read from device:')
+        # for x in self.ITC.readSweepTable():
+            # print(x)
 
     @pyqtSlot(float)
     @ExceptionHandling

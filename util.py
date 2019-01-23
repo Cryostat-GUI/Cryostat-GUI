@@ -365,6 +365,8 @@ class Window_ui(QtWidgets.QWidget):
     sig_closing = pyqtSignal()
 
     def __init__(self, ui_file=None, **kwargs):
+        if 'lock' in kwargs:
+            del kwargs['lock']
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)

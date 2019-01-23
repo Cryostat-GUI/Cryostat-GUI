@@ -795,14 +795,17 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.lcdTemp_err.display(
                 self.data['ITC']['temperature_error'])
             # if not self.data['ITC']['heater_output_as_percent'] is None:
-            self.ITC_window.progressHeaterPercent.setValue(
-                int(self.data['ITC']['heater_output_as_percent']))
+            try:
+                self.ITC_window.progressHeaterPercent.setValue(
+                    int(self.data['ITC']['heater_output_as_percent']))
+                # if not self.data['ITC']['gas_flow_output'] is None:
+                self.ITC_window.progressNeedleValve.setValue(
+                    int(self.data['ITC']['gas_flow_output']))
+            except ValueError:
+                pass
             # if not self.data['ITC']['heater_output_as_voltage'] is None:
             self.ITC_window.lcdHeaterVoltage.display(
                 self.data['ITC']['heater_output_as_voltage'])
-            # if not self.data['ITC']['gas_flow_output'] is None:
-            self.ITC_window.progressNeedleValve.setValue(
-                int(self.data['ITC']['gas_flow_output']))
             # if not self.data['ITC']['gas_flow_output'] is None:
             self.ITC_window.lcdNeedleValve_percent.display(
                 self.data['ITC']['gas_flow_output'])

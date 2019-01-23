@@ -304,7 +304,7 @@ diff to Setpoint</string>
             <number>2</number>
            </property>
            <property name="minimum">
-            <double>2.000000000000000</double>
+            <double>1.500000000000000</double>
            </property>
            <property name="maximum">
             <double>400.000000000000000</double>

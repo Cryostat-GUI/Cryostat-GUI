@@ -47,14 +47,23 @@ class AbstractSerialDeviceDriver(object):
     def res_close(self):
         self._visa_resource.close()
 
-    def write(self, command):
+    def write(self, command, f=False):
         """
             low-level communication wrapper for visa.write with Communication Lock,
             to prevent multiple writes to serial adapter
         """
-        with self._comLock:
+        if not f:
+            with self._comLock:
+                self._visa_resource.write(command)
+                time.sleep(self.delay)
+        else:
             self._visa_resource.write(command)
             time.sleep(self.delay)
+
+    def write_force(self, command):
+        """write a command to the device without waitingg for the communication lock"""
+        self._visa_resource.write(command)
+        time.sleep(0.05)
 
     # @do_check
 
