@@ -43,8 +43,10 @@ def parse_binary(number):
     """parse an integer number which represents a sum of bits
         returns a list with True and False, from back to front
     """
+    # print(number)
+    number = int(number)
     nums = list(reversed('{:b}'.format(number)))
-    print(nums)
+    # print(nums)
     for ct, num in enumerate(nums):
         nums[ct] = True if int(num) else False
     return nums
@@ -94,6 +96,12 @@ def displaytext_scan_T(data):
     return 'Scan Temperature from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {ApproachMode}, {SpacingCode}'.format(**data)
 
 
+def displaytext_scan_H(data):
+    """generate the displaytext for the field scan"""
+
+    return 'Scan Field from {start} to {end} in {Nsteps} steps, {SweepRate}K/min, {ApproachMode}, {SpacingCode}, {EndMode}'.format(**data)
+
+
 def displaytext_set_temp(data):
     """generate the displaytext for a set temperature"""
     return 'Set Temperature to {Temp} at {SweepRate}K/min (rate is only a wish...)'.format(**data)
@@ -108,12 +116,49 @@ def displatext_res_scan_exc(data):
 def displaytext_res(data):
     """generate the displaytext for the resistivity measurement"""
     # TODO - finish this up
-    return 'Measuring Resistance'
+    text = 'Resistivity '
+    chans = []
+    chans.append('Ch1 ')
+    chans.append('Ch2 ')
+    chans.append('Ch3 ')
+    chans.append('Ch4 ')
+
+    for ct, chan_conf in enumerate(data['bridge_conf']):
+        if chan_conf['on_off'] is False:
+            chans[ct] += 'Off, '
+            continue
+        chans[ct] += '{limit_current_uA}uA, '.format(**chan_conf)
+    chans[-1].strip(',')
+    for c in chans:
+        text += c
+    return text
 
 
 def displaytext_set_field(data):
     """generate the displaytext for a set field"""
     return 'Set Field to {Field} at {SweepRate}T/min (rate is only a wish...)'.format(**data)
+
+
+def parse_chamber(comm, nesting_level):
+    '''parse a command for a chamber operation'''
+    nums = read_nums(comm)
+    dic = dict(typ='chamber_operation')
+    if nums[0] == 0:
+        dic['operation'] = 'seal immediate'
+    if nums[0] == 1:
+        dic['operation'] = 'purge then seal'
+    if nums[0] == 2:
+        dic['operation'] = 'vent then seal'
+    if nums[0] == 3:
+        dic['operation'] = 'pump continuous'
+    if nums[0] == 4:
+        dic['operation'] = 'vent continuous'
+    if nums[0] == 5:
+        dic['operation'] = 'high vacuum'
+
+    dic['DisplayText'] = textnesting * nesting_level + \
+        'Chamber Op: {operation}'.format(**dic)
+    return dic
 
 
 def parse_set_temp(comm, nesting_level):
@@ -200,7 +245,7 @@ def parse_res_bridge_setup(nums):
 def parse_res(comm, nesting_level):
     """parse a command to measure resistivity"""
     nums = read_nums(comm)
-    dataflags = parse_binary_dataflags(nums[0])
+    dataflags = parse_binary_dataflags(int(nums[0]))
     reading_count = nums[1]
     nums = nums[2:]
     bridge_conf = []
@@ -278,6 +323,93 @@ def parse_scan_T(comm, nesting_level):
     elif int(temps[5]) == 2:
         dic['ApproachMode'] = 'Sweep'
     dic['DisplayText'] = textnesting * nesting_level + displaytext_scan_T(dic)
+    return dic
+
+
+def parse_scan_H(comm, nesting_level):
+    '''parse a command to do a field scan'''
+    numbers = read_nums(comm)
+    if len(numbers) < 7:
+        raise AssertionError('not enough specifying numbers for H-scan!')
+
+    dic = dict(typ='scan_H',
+               start=numbers[0],
+               end=numbers[1],
+               SweepRate=numbers[2],
+               Nsteps=numbers[3])
+    if int(numbers[4]) == 0:
+        dic['SpacingCode'] = 'uniform'
+    elif int(numbers[4]) == 1:
+        dic['SpacingCode'] = 'H*H'
+    elif int(numbers[4]) == 2:
+        dic['SpacingCode'] = 'H^1/2'
+    elif int(numbers[4]) == 3:
+        dic['SpacingCode'] = '1/H'
+    elif int(numbers[4]) == 4:
+        dic['SpacingCode'] = 'logH'
+
+    if int(numbers[5]) == 0:
+        dic['ApproachMode'] = 'linear'
+    if int(numbers[5]) == 1:
+        dic['ApproachMode'] = 'No O\'Shoot'
+    if int(numbers[5]) == 2:
+        dic['ApproachMode'] = 'oscillate'
+    if int(numbers[5]) == 3:
+        dic['ApproachMode'] = 'sweep'
+
+    if int(numbers[6]) == 0:
+        dic['EndMode'] = 'persistent'
+    if int(numbers[6]) == 1:
+        dic['EndMode'] = 'driven'
+    dic['DisplayText'] = textnesting * nesting_level + displaytext_scan_H(dic)
+    return dic
+
+
+def parse_scan_time(comm, nesting_level):
+    nums = read_nums(comm)
+    if len(nums) < 3:
+        raise AssertionError('not enough specifying numbers for time-scan!')
+
+    dic = dict(typ='scan_time', time=nums[0], Nsteps=nums[1])
+
+    if int(nums[2]) == 0:
+        dic['SpacingCode'] = 'uniform'
+    if int(nums[2]) == 1:
+        dic['SpacingCode'] = 'ln(t)'
+
+    dic['DisplayText'] = textnesting * nesting_level + \
+        'Scan Time {time}secs in {Nsteps} steps, {SpacingCode}'
+    return dic
+
+
+def parse_scan_P(comm, nesting_level):
+    nums = read_nums(comm)
+    if len(nums) < 3:
+        raise AssertionError(
+            'not enough specifying numbers for position-scan!')
+
+    dic = dict(typ='scan_position',
+               start=nums[0],
+               end=nums[1],
+               speedindex=nums[2],
+               Nsteps=nums[3])
+
+    dic['ApproachMode'] = 'Sweep' if len(nums) > 3 else 'Pause'
+    dic['DisplayText'] = textnesting * nesting_level + \
+        'Scan Position from {start} to {end} in {Nsteps} steps, {speedindex}, {ApproachMode} '.format(
+            **dic)
+    return dic
+
+
+def parse_beep(comm, nesting_level):
+    '''parse a command to beep for a certain time at a certain frequency'''
+    nums = read_nums(comm)
+    if len(nums) < 2:
+        raise AssertionError('not enough specifying numbers for beep!')
+
+    dic = dict(typ='beep', length=nums[0], frequency=nums[1])
+    dic['DisplayText'] = textnesting * nesting_level + \
+        'Beep for {length}secs at {frequency}Hz'.format(**dic)
     return dic
 
 
@@ -704,7 +836,8 @@ class Sequence_builder(Window_ui):
             #        r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$']
             exp = [r'TMP TEMP(.*?)$', r'FLD FIELD(.*?)$', r'SCAN(.*?)$',
                    r'WAITFOR(.*?)$', r'CHN(.*?)$', r'CDF(.*?)$', r'DFC(.*?)$',
-                   r'LPI(.*?)$', r'SHT(.*?)DOWN', r'EN(.*?)EOS$', r'RES(.*?)$']
+                   r'LPI(.*?)$', r'SHT(.*?)DOWN', r'EN(.*?)EOS$', r'RES(.*?)$',
+                   r'BEP BEEP(.*?)$', r'CMB CHAMBER(.*?)$', r'REM(.*?)$']
             self.p = re.compile(construct_pattern(
                 exp), re.DOTALL | re.M)  # '(.*?)[^\S]* EOS'
 
@@ -727,7 +860,8 @@ class Sequence_builder(Window_ui):
         self.jumping_count = [0, 0]
         self.nesting_level = 0
         commands, textsequence = self.parse_nesting(data, -1)
-        print('parsed commands:', commands)
+        # print('parsed commands:', commands)
+        # for x in commands: print(x)
         return commands, textsequence
 
     def parse_nesting(self, lines_file, lines_index):
@@ -758,12 +892,13 @@ class Sequence_builder(Window_ui):
                     typ="EOS", DisplayText=textnesting * (self.nesting_level) + 'EOS')
                 commands.append(dic_loop)
                 break
-            commands.append(dic_loop)
-            if lines_index == -1:
-                textsequence.append(dic_loop)
-                self.add_text(textsequence, dic_loop)
+            if dic_loop is not None:
+                commands.append(dic_loop)
+                if lines_index == -1:
+                    textsequence.append(dic_loop)
+                    self.add_text(textsequence, dic_loop)
         del self.jumping_count[-1]
-        print("done with this nesting level: ", self.nesting_level)
+        # print("done with this nesting level: ", self.nesting_level)
         return commands, textsequence
 
     def add_text(self, text_list, dic):
@@ -779,9 +914,14 @@ class Sequence_builder(Window_ui):
 
     def parse_line(self, lines_file, line, line_index):
         """parse one line of a sequence file, possibly more if it is a scan"""
-        line_found = self.p.findall(line)[0]
-        # print('parsing a line: ', line_found)
-        dic = dict(typ=None)
+        line_found = self.p.findall(line)
+
+        try:
+            line_found = line_found[0]
+        except IndexError:
+            return None
+
+        # print(line_found)
         if line_found[0]:
             # set temperature
             # print('I found set_temp')
@@ -793,10 +933,8 @@ class Sequence_builder(Window_ui):
         elif line_found[2]:
             # scan something
             # print('I found a scan ')
-            # self.jumping_count[self.nesting_level] += 1
             self.jumping_count.append(0)
             dic = self.parse_scan_arb(lines_file, line, line_index)
-            # much stuff to do!
         elif line_found[3]:
             # waitfor
             # print('I found waiting')
@@ -821,14 +959,30 @@ class Sequence_builder(Window_ui):
             dic = dict(typ='Shutdown')
         elif line_found[9]:
             # end of a scan
-            # break or raise exception
-            # dic = dict(typ='EOS', DisplayText='EOS')
             # print('I found EOS')
             raise EOSException()
         elif line_found[10]:
             # resistivity - measure
             # print('I found res meausrement')
             dic = parse_res(line, self.nesting_level)
+        elif line_found[11]:
+            # beep of certain length and frequency
+            dic = parse_beep(line, self.nesting_level)
+        elif line_found[12]:
+            # chamber operations
+            dic = parse_chamber(line, self.nesting_level)
+
+        elif line_found[13]:
+            # remark
+            dic = dict(typ='remark', DisplayText=line_found[13])
+
+        # try:
+        #     print(dic)
+        # except NameError:
+        #     print(line_found)
+        # if dic['typ'] is None:
+        #     print(line_found)
+
         return dic
 
     def parse_scan_arb(self, lines_file, line, lines_index):
@@ -839,9 +993,7 @@ class Sequence_builder(Window_ui):
         dic = dict(typ=None)
         if line_found[2][0] == 'H':
             # Field
-            pass
-            dic = dict(typ='scan_H', DisplayText=textnesting *
-                       self.nesting_level + 'Scan Field....NotImplemented')
+            dic = parse_scan_H(line, self.nesting_level)
 
         if line_found[2][0] == 'T':
             # temperature
@@ -849,13 +1001,12 @@ class Sequence_builder(Window_ui):
 
         if line_found[2][0] == 'P':
             # position
-            dic = dict(typ='scan_P', DisplayText=textnesting *
-                       self.nesting_level + 'Scan Position....NotImplemented')
+            dic = parse_scan_P(line, self.nesting_level)
 
         if line_found[2][0] == 'C':
             # time
-            dic = dict(typ='scan_C', DisplayText=textnesting *
-                       self.nesting_level + 'Scan Time....NotImplemented')
+            dic = parse_scan_time(line, self.nesting_level)
+
         self.nesting_level += 1
 
         commands, nothing = self.parse_nesting(lines_file, lines_index)
@@ -876,4 +1027,3 @@ if __name__ == '__main__':
     form = Sequence_builder(file)
     form.show()
     sys.exit(app.exec_())
-l

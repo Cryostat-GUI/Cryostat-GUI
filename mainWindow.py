@@ -1238,7 +1238,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(
                 'please start live logging for LakeShore350 slope values!')
             livedata = [0] * 4
-        
+
         for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
                                     self.LakeShore350_window.textSensor2_Kpmin,
                                     self.LakeShore350_window.textSensor3_Kpmin,
@@ -1729,8 +1729,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot.textrunning.setTextColor(blue)
 
     def OneShot_chooseDatafile(self, OneShot):
-        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-                                                                  'c:\\', "Datafiles (*.dat)")
+        try:
+            current_file_data = OneShot.conf['datafile']
+        except KeyError:
+            current_file_data = 'c:/'
+        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self,
+                                                                  'Choose Datafile',
+                                                                  current_file_data,
+                                                                  "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         self.window_OneShot.lineDatafileLocation.setText(new_file_data)

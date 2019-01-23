@@ -814,7 +814,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             for instrument in data['currents']:
                 currents = ["{{{num}:.5E}} ".format(
                     num=ct) for ct, value in enumerate(data['currents'][instrument])]
-                datastring += '{} '.format(len(currents))                
+                datastring += '{} '.format(len(currents))
                 for v in currents:
                     datastring += v
                 datastring = datastring.format(*data['currents'][instrument])
@@ -916,11 +916,6 @@ class measurement_Logger(AbstractEventhandlingThread):
 # 67 / 68 / 69 unused
 #68 /
 """.format(date=convert_time(self.starttime))
-
-
-
-
-
 
         else:
             datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(
