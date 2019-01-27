@@ -36,6 +36,7 @@ class AbstractSerialDeviceDriver(object):
         self._visa_resource.parity = vconst.Parity.none
         self._comLock = threading.Lock()
         self.delay = 0.1
+        self.delay_force = 0.1
 
     # def res_open(self):
     #     self._visa_resource = resource_manager.open_resource(InstrumentAddress)
@@ -58,7 +59,7 @@ class AbstractSerialDeviceDriver(object):
                 time.sleep(self.delay)
         else:
             self._visa_resource.write(command)
-            time.sleep(self.delay)
+            time.sleep(self.delay_force)
 
     def write_force(self, command):
         """write a command to the device without waitingg for the communication lock"""
