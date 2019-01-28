@@ -26,7 +26,6 @@ from itertools import combinations_with_replacement as comb
 from util import AbstractEventhandlingThread
 from util import loops_off
 from util import locking
-# from util import controls_software_disabled
 from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable

@@ -175,8 +175,6 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             for c in self.controls:
                 c.setEnabled(True)
-        # finally:
-            # QTimer.singleShot(100, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """

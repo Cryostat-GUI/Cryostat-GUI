@@ -1,16 +1,15 @@
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
+# from PyQt5.QtCore import pyqtSignal
 
-# from .Drivers.ilm211 import ilm211
-import Oxford
-# import Oxford.Drivers as Drivers
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
 from importlib import reload
-# from util import AbstractThread
+
 from util import AbstractLoopThread
 from util import ExceptionHandling
+import Oxford
 
 
 class ILM_Updater(AbstractLoopThread):
@@ -37,8 +36,8 @@ class ILM_Updater(AbstractLoopThread):
     # channel_2_wire_current=7,
     # needle_valve_position=10)
 
-    def __init__(self, InstrumentAddress=''):
-        super().__init__()
+    def __init__(self, InstrumentAddress='', **kwargs):
+        super().__init__(**kwargs)
         global Oxford
         ilm211 = reload(Oxford.ilm211).ilm211
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
@@ -81,7 +80,7 @@ class ILM_Updater(AbstractLoopThread):
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
                     self.read_buffer()
                 else:
@@ -92,7 +91,7 @@ class ILM_Updater(AbstractLoopThread):
         try:
             return self.ILM.read()
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 pass
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
