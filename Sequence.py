@@ -1,8 +1,7 @@
 """Module containing the class and possible helperfunctions to run a measuring sequence
 
-
-
-    Author(s): bklebel (Benjamin Klebel)
+Author(s):
+    bklebel (Benjamin Klebel)
 
 """
 
@@ -39,13 +38,13 @@ class BreakCondition(Exception):
 
 
 def measure_resistance_singlechannel(threads,
-    excitation_current_A,
-    threadname_RES,
-    threadname_CURR,
-    threadname_Temp='control_LakeShore350',
-    temperature_sensor='Sensor_1_K',
-    n_measurements=1,
-    **kwargs):
+                                     excitation_current_A,
+                                     threadname_RES,
+                                     threadname_CURR,
+                                     threadname_Temp='control_LakeShore350',
+                                     temperature_sensor='Sensor_1_K',
+                                     n_measurements=1,
+                                     **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -107,15 +106,15 @@ def measure_resistance_singlechannel(threads,
 
 
 def measure_resistance_multichannel(threads,
-                                        excitation_currents_A,
-                                        threadnames_RES,
-                                        threadnames_CURR,
-                                        iv_characteristic,
-                                        threadname_Temp='control_LakeShore350',
-                                        # temperature_sensor='Sensor_1_K',
-                                        # n_measurements=1,
+                                    excitation_currents_A,
+                                    threadnames_RES,
+                                    threadnames_CURR,
+                                    iv_characteristic,
+                                    threadname_Temp='control_LakeShore350',
+                                    # temperature_sensor='Sensor_1_K',
+                                    # n_measurements=1,
 
-                                        **kwargs):
+                                    **kwargs):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class

@@ -1,3 +1,10 @@
+"""Module containing a class to run a LakeShore 350 Cryogenic Temperature Controller in a pyqt5 application
+
+Classes:
+    LakeShore350_Updater: a class for interfacing with a LakeShore350 temperature controller
+            inherits from AbstractLoopThread
+                there, the looping behaviour of this thread is defined
+"""
 from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
@@ -10,9 +17,9 @@ from util import ExceptionHandling
 
 
 class LakeShore350_Updater(AbstractLoopThread):
-    """This is the worker thread, which updates all instrument data of the self.ITC 503.
+    """Updater class for the LakeShore350 Temperature controller
 
-        For each self.ITC503 function (except collecting data), there is a wrapping method,
+        For each Lakeshore350 function there is a wrapping method,
         which we can call by a signal, from the main thread. This wrapper sends
         the corresponding value to the device.
 

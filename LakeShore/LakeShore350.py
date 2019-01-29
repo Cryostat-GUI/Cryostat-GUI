@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*-
+"""Module containing a class to interface with a LakeShore 350 Cryogenic Temperature Controller
+
+Attributes:
+    logger: a python logger object
+
+Classes:
+    LakeShore350: a class for interfacing with a LakeShore350 temperature controller
+            inherits from AbstractGPIBDeviceDriver where the low-level visa
+            communications are defined.
 """
-Driver for the LakeShore 350 Cryogenic Temperature Controller
-"""
-# import threading
-import visa
 import logging
 from itertools import combinations
 
@@ -13,32 +17,38 @@ from drivers import AbstractGPIBDeviceDriver
 logger = logging.getLogger(__name__)
 # added so that log messages show up in Jupyter notebooks
 logger.addHandler(logging.StreamHandler())
-try:
-    # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager(
-        'C:\\Windows\\System32\\agvisa32.dll')
-except OSError:
-    logger.exception(
-        "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
+
+# try:
+#     # the pyvisa manager we'll use to connect to the GPIB resources
+#     resource_manager = visa.ResourceManager(
+#         'C:\\Windows\\System32\\agvisa32.dll')
+# except OSError:
+#     logger.exception(
+#         "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
 
 
 class LakeShore350(AbstractGPIBDeviceDriver):
     '''class to interface with a LakeShore350
 
     in order to change the self.go() and self.query() commands,
-    just use inheritance injection:
+    use inheritance injection:
     class TCPLakeShore(LakeShore350, TCPInstrument):
         pass
-    where in TCPInstrument you define self.go() and self.query()
+    where in TCPInstrument you must define 
+        self.go() 
+        self.query() 
+        self.__init__()
     '''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def go(self, command):
+        """write a command to the instrument"""
         return super().go(command)
 
     def query(self, command):
+        """write a command to the instrument and return its answer"""
         return super().query(command)
 
     def ClearInterfaceCommand(self):

@@ -1,5 +1,5 @@
 """
-Utility module for the Cryostat GUI
+Utility module for the Cryostat-GUI
 
 
 Classes:
@@ -11,8 +11,14 @@ Classes:
     AbstractEventhandlingThread: a thread class, inheriting from AbstractThread,
         which is designed to be used for handling signal-events, not continuous loops
 
-    Window_ui: a window class, which loads the UI definitions from a spcified .ui file,
+    Window_ui: a window class, which loads the UI definitions from a specified .ui file,
         emits a signal upon closing
+
+    Window_plotting: a window class, which enables an unsuspecting user to
+        plot data, with continuous updates to the plot
+
+Author(s):
+    bklebel (Benjamin Klebel)
 """
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas

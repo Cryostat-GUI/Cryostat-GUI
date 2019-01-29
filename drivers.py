@@ -1,3 +1,27 @@
+"""Module containing a classes to communicate with devices over a few distinct communication channels
+
+This module requires a National Instruments VISA driver, which can be found at
+https://www.ni.com/visa/
+It also requires an Agilent VISA driver - if there is need for either one 
+(at least one VISA driver is required, may depend on your instrumentation)
+
+Attributes:
+    logger: a python logger object
+
+Classes:
+        AbstractSerialDeviceDriver: used for interactions with a serial connection
+            the characteristics of the serial connection can be specified
+            defaults are good for connections with "Oxford Instruments" devices
+            over a serial connection
+
+        AbstractGPIBDeviceDriver: used for interactions with a GPIB connection
+            methods:
+                query() - send a command and wait for an answer
+
+                go() - send a command, not waiting for answers
+Author(s):
+    bklebel (Benjamin Klebel)
+"""
 import threading
 import logging
 import time
@@ -24,7 +48,8 @@ class AbstractSerialDeviceDriver(object):
 
     def __init__(self, InstrumentAddress, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, nivsag='ni', **kwargs):
         super().__init__(**kwargs)
-        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip() == 'ag' else NI_RESOURCE_MANAGER
+        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip(
+        ) == 'ag' else NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.query_delay = 0.
         self._visa_resource.timeout = timeout
@@ -78,16 +103,16 @@ class AbstractSerialDeviceDriver(object):
         return answer
 
     def clear_buffers(self):
-        self._visa_resource.timeout = 5
+        # self._visa_resource.timeout = 5
         try:
-            with self._comLock:
-                self.read()
+            # with self._comLock:
+            self.read()
         except VisaIOError as e_visa:
             if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 pass
             else:
                 raise e_visa
-        self._visa_resource.timeout = 500
+        # self._visa_resource.timeout = 500
 
 
 class AbstractGPIBDeviceDriver(object):
@@ -96,7 +121,8 @@ class AbstractGPIBDeviceDriver(object):
     def __init__(self, InstrumentAddress, nivsag='ag', **kwargs):
         super().__init__(**kwargs)
         # self.arg = arg
-        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip() == 'ag' else NI_RESOURCE_MANAGER
+        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip(
+        ) == 'ag' else NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'
         self._comLock = threading.Lock()

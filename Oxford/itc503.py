@@ -1,40 +1,15 @@
 """Module containing a class to interface with an Oxford Instruments ITC 503.
 
-This module requires a National Instruments VISA driver, which can be found at
-https://www.ni.com/visa/
-
-Attributes:
-    resource_manager: the pyvisa resource manager which provides the visa
-                      objects used for communicating over the GPIB interface
-
-    logger: a python logger object
-
-
 Classes:
-    itc503: a class for interfacing with a ITC 503 temperature controller+
+    itc503: a class for interfacing with a ITC 503 temperature controller
             inherits from AbstractSerialDeviceDriver where the low-level visa
             communications are defined.
-
+Author(s):
+    bklebel (Benjamin Klebel)
 """
-import logging
-import time
 
-# from Oxford.driver import AbstractSerialDeviceDriver
 from drivers import AbstractSerialDeviceDriver
-import visa
 from pyvisa.errors import VisaIOError
-
-# create a logger object for this module
-logger = logging.getLogger(__name__)
-# added so that log messages show up in Jupyter notebooks
-logger.addHandler(logging.StreamHandler())
-
-try:
-    # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager()
-except OSError:
-    logger.exception(
-        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 
 class itc503(AbstractSerialDeviceDriver):
@@ -134,7 +109,7 @@ class itc503(AbstractSerialDeviceDriver):
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
             # return None
@@ -144,7 +119,7 @@ class itc503(AbstractSerialDeviceDriver):
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
             # return None

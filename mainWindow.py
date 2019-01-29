@@ -13,10 +13,10 @@
         - 6221 Current Source (AC and DC)
         - DMM7510 7 1/2 Digital Multimeter
         - 2700 Multimeter / Data Acquisition System
- Classes:
+    Classes:
     mainWindow:
         The main GUI class for the PyQt application
-     Author(s):
+    Author(s):
         bklebel (Benjamin Klebel)
         adtera
         Acronis
