@@ -22,6 +22,8 @@
         Acronis
 ----------------------------------------------------------------------------------------
 """
+a = time.time()
+
 
 from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
@@ -175,8 +177,6 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             for c in self.controls:
                 c.setEnabled(True)
-        # finally:
-            # QTimer.singleShot(100, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
@@ -195,6 +195,9 @@ class mainWindow(QtWidgets.QMainWindow):
             with self.dataLock:
                 self.data[dataname] = dict()
         with self.threads['Lock']:
+            # this needs to be locked when a new thread is added, as otherwise
+            # the thread locking context manager would try to unlock the new thread
+            # before it was ever locked, resulting in a crash
             self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
@@ -1044,31 +1047,6 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_LakeShore350)
         self.LakeShore350_Kpmin = None
 
-    # def func_LakeShore350_setKpminLength(self, length):
-    #     """set the number of measurements the calculation should be conducted over"""
-    #     if not self.LakeShore350_Kpmin:
-    #         self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
-    #                                        Sensors=dict(
-    #             Sensor_1_K=[np.nan] * length,
-    #             Sensor_2_K=[np.nan] * length,
-    #             Sensor_3_K=[np.nan] * length,
-    #             Sensor_4_K=[np.nan] * length),
-    #             length=length)
-    #     elif self.LakeShore350_Kpmin['length'] > length:
-    #         self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
-    #             'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
-    #         for sensor in self.LakeShore350_Kpmin['Sensors']:
-    #             self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
-    #                 'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
-    #         self.LakeShore350_Kpmin['length'] = length
-    #     elif self.LakeShore350_Kpmin['length'] < length:
-    #         self.LakeShore350_Kpmin['newtime'] = [time.time(
-    #         )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
-    #         for sensor in self.LakeShore350_Kpmin['Sensors']:
-    #             self.LakeShore350_Kpmin['Sensors'][sensor] = [
-    #                 np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
-    #         self.LakeShore350_Kpmin['length'] = length
-
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
         """start/stop the LakeShore350 thread"""
@@ -1779,7 +1757,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    a = time.time()
     form = mainWindow(app=app)
     form.show()
     print(time.time() - a)

@@ -26,7 +26,6 @@ from itertools import combinations_with_replacement as comb
 from util import AbstractEventhandlingThread
 from util import loops_off
 from util import locking
-# from util import controls_software_disabled
 from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
@@ -121,11 +120,11 @@ def measure_resistance_multichannel(threads,
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
             threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadnames_RES  = list of names of the (Keithley) Voltage measure threads 
-            threadnames_CURR  = list of names of the (Keithley) Current set threads 
+            threadnames_RES  = list of names of the (Keithley) Voltage measure threads
+            threadnames_CURR  = list of names of the (Keithley) Current set threads
             n_measurements  = number of measurements (dual polarity) to be averaged over
                             default = 1 (no reason to do much more)
-            excitation_currents_A = list of excitations currents for the measurement 
+            excitation_currents_A = list of excitations currents for the measurement
         returns: dict data
             T_mean_K : dict of means of temperature readings
                     before and after measurement [K]

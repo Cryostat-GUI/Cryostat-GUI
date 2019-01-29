@@ -174,7 +174,7 @@ def noKeyError(func):
 
 
 class dummy:
-    """docstring for dummy"""
+    """dummy context manager doing nothing at all"""
 
     def __init__(self):
         pass
