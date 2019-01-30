@@ -79,10 +79,10 @@
     <property name="title">
      <string>Show Windows</string>
     </property>
-    <addaction name="action_show_ITC"/>
     <addaction name="action_show_ILM"/>
     <addaction name="action_show_IPS"/>
     <addaction name="separator"/>
+    <addaction name="action_show_ITC"/>
     <addaction name="action_show_LakeShore350"/>
     <addaction name="separator"/>
     <addaction name="action_show_Keithley"/>
@@ -438,7 +438,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>ITC 503 </string>
+    <string>Temperature Controller: Oxford ITC503 (VTI)</string>
    </property>
   </action>
   <action name="action_run_ITC">
@@ -505,7 +505,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>ILM 211</string>
+    <string>Cryogenic liquid Level Meter: Oxford ILM 211</string>
    </property>
   </action>
   <action name="action_show_IPS">
@@ -513,7 +513,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>IPS 120</string>
+    <string>Magnet Power Supply: Oxford IPS 120</string>
    </property>
   </action>
   <action name="action_show_LakeShore350">
@@ -521,7 +521,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Lakeshore 350</string>
+    <string>Temperature Controller: Lakeshore 350 (Sample)</string>
    </property>
   </action>
   <action name="action_show_Errors">

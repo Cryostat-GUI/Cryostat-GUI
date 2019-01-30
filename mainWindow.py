@@ -22,6 +22,9 @@
         Acronis
 ----------------------------------------------------------------------------------------
 """
+
+import time
+
 a = time.time()
 
 from PyQt5 import QtWidgets, QtGui
@@ -35,7 +38,6 @@ from PyQt5.uic import loadUi
 
 
 import sys
-import time
 # import datetime
 from threading import Lock
 import numpy as np
@@ -49,6 +51,7 @@ from pyvisa.errors import VisaIOError
 import Oxford
 import LakeShore
 import Keithley
+
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel

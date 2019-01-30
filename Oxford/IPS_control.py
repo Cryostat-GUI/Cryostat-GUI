@@ -142,7 +142,7 @@ class IPS_Updater(AbstractLoopThread):
             if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
                 # self.readField(nosend=True)
-                self.IPS.clear_buffers()
+                self.PS.clear_buffers()
                 # data[key_f_timeout] = self.read_buffer()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
