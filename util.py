@@ -366,7 +366,8 @@ class Workerclass(QObject):
 
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
-        emits a signal when being closed
+
+    emits a signal when being closed
     """
 
     sig_closing = pyqtSignal()
@@ -380,16 +381,18 @@ class Window_ui(QtWidgets.QWidget):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
-        # do stuff
+        """emit signal that the window is going to be closed and hand event to parent class method"""
         self.sig_closing.emit()
-        event.accept()  # let the window close
+        # event.accept()  # let the window close
+        super().closeEvent(event)
 
 
 class Window_plotting(QtWidgets.QDialog, Window_ui):
-    """Small window containing a plot, which can be udpated every so often"""
+    """Small window containing a plot, which updates itself regularly"""
     sig_closing = pyqtSignal()
 
     def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
+        """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
         self.data = data
         self.label_x = label_x
@@ -428,15 +431,14 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.lines = []
         self.plot_base()
 
-        # self.plot()
         self.timer = QTimer()
         self.timer.timeout.connect(self.plot)
         self.timer.start(self.interval * 1e3)
 
     def plot_base(self):
-        # create an axis
-        self.ax = self.figure.add_subplot(111)
+        """create the first plot"""
 
+        self.ax = self.figure.add_subplot(111)
         self.ax.set_title(self.title)
         self.ax.set_xlabel(self.label_x)
         self.ax.set_ylabel(self.label_y)
@@ -454,27 +456,21 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.ax.legend()
 
     def plot(self):
-        ''' plot some not so random stuff '''
+        ''' update the plotted data in-place '''
         try:
             with self.lock:
                 for ct, entry in enumerate(self.data):
                     ent0, ent1 = shaping(entry)
                     self.lines[ct].set_xdata(ent0)
                     self.lines[ct].set_ydata(ent1)
-
             self.ax.relim()
             self.ax.autoscale_view()
-
-            # refresh canvas
             self.canvas.draw()
         except ValueError as e_val:
             print('ValueError: ', e_val.args[0])
-            # for x in self.data:
-            # print(x)
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.plot)
 
     def closeEvent(self, event):
+        """stop the timer for updating the plot, super to parent class method"""
         self.timer.stop()
         super().closeEvent(event)
     #     del self
