@@ -42,6 +42,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 from PyQt5.uic import loadUi
 
 
@@ -376,6 +377,7 @@ class Window_ui(QtWidgets.QWidget):
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)
+        self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
         # do stuff

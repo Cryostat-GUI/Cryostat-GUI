@@ -24,7 +24,6 @@
 """
 a = time.time()
 
-
 from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
@@ -51,14 +50,7 @@ import Oxford
 import LakeShore
 import Keithley
 
-# from Oxford.ITC_control import ITC_Updater
-# from Oxford.ILM_control import ILM_Updater
-# from Oxford.IPS_control import IPS_Updater
-# from LakeShore.LakeShore350_Control import LakeShore350_Updater
-# from Keithley.Keithley2182_Control import Keithley2182_Updater
-# from Keithley.Keithley6221_Control import Keithley6221_Updater
-
-from Sequence import OneShot_Thread
+# from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
 
 from logger import main_Logger, live_Logger, measurement_Logger
@@ -69,7 +61,7 @@ from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
-from util import locking
+# from util import locking
 from util import noKeyError
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
@@ -114,6 +106,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.app = app
 
         QTimer.singleShot(0, self.initialize_all_windows)
+        self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
         super().closeEvent(event)
@@ -150,18 +143,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
-
-    # def softwarecontrol_toggle(self, controls, lock, bools):
-    #     print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
-    #     print('locked: ', lock.locked())
-    #     if not bools:
-    #         lock.acquire()
-    #     for control in controls:
-    #             control.setEnabled(bools)
-    #             print('working on it')
-    #     if bools:
-    #         lock.release()
-    #     print('locked: ', lock.locked())
 
     def softwarecontrol_toggle_locking(self, value):
         if value:
