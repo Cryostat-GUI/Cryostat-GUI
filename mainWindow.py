@@ -22,6 +22,9 @@
         Acronis
 ----------------------------------------------------------------------------------------
 """
+
+import time
+
 a = time.time()
 
 
@@ -36,7 +39,6 @@ from PyQt5.uic import loadUi
 
 
 import sys
-import time
 # import datetime
 from threading import Lock
 import numpy as np
@@ -58,7 +60,7 @@ import Keithley
 # from Keithley.Keithley2182_Control import Keithley2182_Updater
 # from Keithley.Keithley6221_Control import Keithley6221_Updater
 
-from Sequence import OneShot_Thread
+# from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
 
 from logger import main_Logger, live_Logger, measurement_Logger

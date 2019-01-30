@@ -29,7 +29,7 @@ from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
 
-from qlistmodel import ScanningN
+# from qlistmodel import ScanningN
 
 
 class BreakCondition(Exception):
@@ -229,149 +229,149 @@ def measure_resistance_multichannel(threads,
     return data
 
 
-class Sequence_Thread(AbstractEventhandlingThread):
-    """docstring for Sequence_Thread"""
+# class Sequence_Thread(AbstractEventhandlingThread):
+#     """docstring for Sequence_Thread"""
 
-    sig_aborted = pyqtSignal()
+#     sig_aborted = pyqtSignal()
 
-    def __init__(self, mainthread, sequence, **kwargs):
-        super().__init__(**kwargs)
-        self.__isRunning = True
-        self.sequence = sequence
-        self.mainthread = mainthread
-        self.dataLock = mainthread.dataLock
+#     def __init__(self, mainthread, sequence, **kwargs):
+#         super().__init__(**kwargs)
+#         self.__isRunning = True
+#         self.sequence = sequence
+#         self.mainthread = mainthread
+#         self.dataLock = mainthread.dataLock
 
-        self.threshold_Temp = 0.1
-        self.threshold_Field = 0.1
+#         self.threshold_Temp = 0.1
+#         self.threshold_Field = 0.1
 
-        self.temp_VTI_offset = 5
+#         self.temp_VTI_offset = 5
 
-        self.sensor_control = None  # needs to be set!
-        self.sensor_sample = None   # needs to be set!
+#         self.sensor_control = None  # needs to be set!
+#         self.sensor_sample = None   # needs to be set!
 
-    def running(self):
-        self.temp_setpoint = 0
-        with locking(self.mainthread.controls_lock):
-            try:
-                for entry in self.sequence:
-                    self.execute_sequence_entry(entry)
-            except BreakCondition:
-                self.sig_aborted.emit()
-                return 'Aborted!'
+#     def running(self):
+#         self.temp_setpoint = 0
+#         with locking(self.mainthread.controls_lock):
+#             try:
+#                 for entry in self.sequence:
+#                     self.execute_sequence_entry(entry)
+#             except BreakCondition:
+#                 self.sig_aborted.emit()
+#                 return 'Aborted!'
 
-    def execute_sequence_entry(self, entry):
-        if entry['typ'] == 'scan_T':
-            self.scan_T_execute(**entry)
+#     def execute_sequence_entry(self, entry):
+#         if entry['typ'] == 'scan_T':
+#             self.scan_T_execute(**entry)
 
-        if entry['typ'] == 'Wait':
-            self.wait_for_Temp(
-                Temp_target=self.temp_setpoint, bools=entry['Temp'])
-            self.wait_for_Field(
-                Field_target=self.temp_setpoint, bools=entry['Field'])
-            time.sleep(entry['Delay'])
+#         if entry['typ'] == 'Wait':
+#             self.wait_for_Temp(
+#                 Temp_target=self.temp_setpoint, bools=entry['Temp'])
+#             self.wait_for_Field(
+#                 Field_target=self.temp_setpoint, bools=entry['Field'])
+#             time.sleep(entry['Delay'])
 
-    def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
+#     def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
 
-        temperatures, stepsize = ScanningN(start=start,
-                                           end=end,
-                                           N=Nsteps)
+#         temperatures, stepsize = ScanningN(start=start,
+#                                            end=end,
+#                                            N=Nsteps)
 
-        if ApproachMode == "No O'Shoot":
-            ApproachMode = 'Sweep'
-            SweepRate = 0.1  # supposed minimum
-            self.sig_assertion.emit(
-                'Sequence: Tscan: Mode not impelemented yet! \n I am using a super-slow sweep instead!')
+#         if ApproachMode == "No O'Shoot":
+#             ApproachMode = 'Sweep'
+#             SweepRate = 0.1  # supposed minimum
+#             self.sig_assertion.emit(
+#                 'Sequence: Tscan: Mode not impelemented yet! \n I am using a super-slow sweep instead!')
 
-        if ApproachMode == 'Fast':
-            for temp_setpoint_sample in temperatures:
-                self.temp_setpoint = temp_setpoint_sample
-                temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
-                temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
+#         if ApproachMode == 'Fast':
+#             for temp_setpoint_sample in temperatures:
+#                 self.temp_setpoint = temp_setpoint_sample
+#                 temp_setpoint_VTI = temp_setpoint_sample - self.temp_VTI_offset
+#                 temp_setpoint_VTI = 4.3 if temp_setpoint_VTI < 4.3 else temp_setpoint_VTI
 
-                self.setTemperatures_hard(VTI=temp_setpoint_VTI,
-                                          Sample=temp_setpoint_sample)
+#                 self.setTemperatures_hard(VTI=temp_setpoint_VTI,
+#                                           Sample=temp_setpoint_sample)
 
-                self.check_Temp_in_Scan(temp_setpoint_sample)
+#                 self.check_Temp_in_Scan(temp_setpoint_sample)
 
-                for entry in commands:
-                    self.execute_sequence_entry(entry)
+#                 for entry in commands:
+#                     self.execute_sequence_entry(entry)
 
-        if ApproachMode == 'Sweep':
-            pass
-            # program VTI sweep, in accordance to the VTI Offset
-            # set temp and RampRate for Lakeshore
-            # if T_sweepentry is arrived: do stuff
-            for temp_setpoint_sample in temperatures:
-                # do checking and so on
-                for entry in commands:
-                    self.execute_sequence_entry(entry)
+#         if ApproachMode == 'Sweep':
+#             pass
+#             # program VTI sweep, in accordance to the VTI Offset
+#             # set temp and RampRate for Lakeshore
+#             # if T_sweepentry is arrived: do stuff
+#             for temp_setpoint_sample in temperatures:
+#                 # do checking and so on
+#                 for entry in commands:
+#                     self.execute_sequence_entry(entry)
 
-    def setTemperatures_hard(self, VTI, Sample):
-        self.mainthread.threads['control_ITC'][0].gettoset_Temperature(VTI)
-        self.mainthread.threads['control_ITC'][0].setTemperature()
+#     def setTemperatures_hard(self, VTI, Sample):
+#         self.mainthread.threads['control_ITC'][0].gettoset_Temperature(VTI)
+#         self.mainthread.threads['control_ITC'][0].setTemperature()
 
-        self.mainthread.threads['control_LakeShore350'][
-            0].gettoset_Temp_K(Sample)
-        self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
-        self.mainthread.threads['control_LakeShore350'][0].setStatusRamp(False)
+#         self.mainthread.threads['control_LakeShore350'][
+#             0].gettoset_Temp_K(Sample)
+#         self.mainthread.threads['control_LakeShore350'][0].setTemp_K()
+#         self.mainthread.threads['control_LakeShore350'][0].setStatusRamp(False)
 
-    def scan_T_programSweep(self, temperatures, SweepRate):
-        """
-            program sweep for VTI
-            program sweep for LakeShore
-        """
-        pass
+#     def scan_T_programSweep(self, temperatures, SweepRate):
+#         """
+#             program sweep for VTI
+#             program sweep for LakeShore
+#         """
+#         pass
 
-    def scan_T_checkTemp_stable(self, Temp, direction=0):
-        """wait for the temperature to stabilize - can be read from calculated data"""
-        # must block until the temperature has arrived at the specified point!
-        pass
+#     def scan_T_checkTemp_stable(self, Temp, direction=0):
+#         """wait for the temperature to stabilize - can be read from calculated data"""
+#         # must block until the temperature has arrived at the specified point!
+#         pass
 
-    def wait_for_Temp(self, Temp_target, threshold=0.1, bools=True):
-        """repeatedly check whether the temperature was reached,
-            given the respective threshold, return once it has
-            produce a possibility to abort the sequence, through
-            repeated check for value, for breaking condition, and sleeping
-        """
-        # check for break condition
-        if not self.__isRunning:
-            raise BreakCondition
-        if bools:
+#     def wait_for_Temp(self, Temp_target, threshold=0.1, bools=True):
+#         """repeatedly check whether the temperature was reached,
+#             given the respective threshold, return once it has
+#             produce a possibility to abort the sequence, through
+#             repeated check for value, for breaking condition, and sleeping
+#         """
+#         # check for break condition
+#         if not self.__isRunning:
+#             raise BreakCondition
+#         if bools:
 
-            with self.dataLock:
-                Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
-            while abs(Temp_now - Temp_target) > threshold:
-                with self.dataLock:
-                    # check for value
-                    Temp_now = self.mainthread.data[
-                        'LakeShore350']['Sensor_1_K']
-                # sleep for short time OUTSIDE of Lock
-                time.sleep(0.1)
+#             with self.dataLock:
+#                 Temp_now = self.mainthread.data['LakeShore350']['Sensor_1_K']
+#             while abs(Temp_now - Temp_target) > threshold:
+#                 with self.dataLock:
+#                     # check for value
+#                     Temp_now = self.mainthread.data[
+#                         'LakeShore350']['Sensor_1_K']
+#                 # sleep for short time OUTSIDE of Lock
+#                 time.sleep(0.1)
 
-    def wait_for_Field(self, Field_target, bools=True):
-        """repeatedly check whether the field was reached,
-            given the respective threshold, return once it has
-            produce a possibility to abort the sequence, through
-            repeated check for value, for breaking condition, and sleeping
-        """
-        # check for break condition
-        if not self.__isRunning:
-            raise BreakCondition
-        if bools:
-            with self.dataLock:
-                # check for value
-                pass
+#     def wait_for_Field(self, Field_target, bools=True):
+#         """repeatedly check whether the field was reached,
+#             given the respective threshold, return once it has
+#             produce a possibility to abort the sequence, through
+#             repeated check for value, for breaking condition, and sleeping
+#         """
+#         # check for break condition
+#         if not self.__isRunning:
+#             raise BreakCondition
+#         if bools:
+#             with self.dataLock:
+#                 # check for value
+#                 pass
 
-            # sleep for short time OUTSIDE of Lock
-            time.sleep(0.1)
+#             # sleep for short time OUTSIDE of Lock
+#             time.sleep(0.1)
 
-    def stop(self):
-        """stop the sequence execution by setting self.__isRunning to False"""
-        self.__isRunning = False
+#     def stop(self):
+#         """stop the sequence execution by setting self.__isRunning to False"""
+#         self.__isRunning = False
 
-    @pyqtSlot()
-    def setTempVTIOffset(self, offset):
-        self.temp_VTI_offset = offset
+#     @pyqtSlot()
+#     def setTempVTIOffset(self, offset):
+#         self.temp_VTI_offset = offset
 
 
 class OneShot_Thread(AbstractEventhandlingThread):
