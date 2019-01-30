@@ -47,11 +47,9 @@ import sqlite3
 
 from pyvisa.errors import VisaIOError
 
-
 import Oxford
 import LakeShore
 import Keithley
-
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
@@ -64,7 +62,6 @@ from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
-# from util import locking
 from util import noKeyError
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
