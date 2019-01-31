@@ -24,9 +24,35 @@ Low-level functions are fully implemented for
 Low-level functions for the Keithley instruments are not being implemented systematically, however most commands for usual control operations are/will be integrated. 
 Currently all the GPIB and RS232 addresses are hardcoded in the `mainWindow.py`. A dedicated 'Settings' window, which uses the PyQt5 (Qt) functionality to store values across application closing events is planned, where device hardware addresses can be set. 
 
-As this Cryostat will be used for plain electrical resistivity measurements, this measuring technique is implemented first. In the future, other techniques will possibly included (e.g. magneto-resistivity, thermal conductivity, specific heat, ...)
-The way of handling of measuring sequences is based on the implementation of a Quantum Design PPMS, with the possibility to scan across a certain parameter, and perform arbitrary measurements at each point of the scan, contrary to a very basic sequence file format, where every line contains a single instruction (of setting a paramter, or conducting a certain measurement). 
-The whole Sequence editor and the sequence files being used are designed to work with a Quantum Design PPMS, using the same commands, for sequence-file compatibility across the two systems. 
+As this Cryostat will now be used for plain electrical resistivity measurements, this measuring technique is implemented first. In the future, other techniques will possibly be included (e.g. magneto-resistivity, thermal conductivity, specific heat, ...)
+
+Currently it is almost as 'quick and dirty' as possible, while upholding at least some decency.  
+
+
+#### Sequence Editor 
+There is a Sequence editor included, which is capable to read PPMS (resistivity option) sequence files. Most of the generic commands are implemented. It is possible to read arbitrarily nested scanning commands. Empty lines are ignored.  
+
+Commands implemented include:
+- setting a temperature
+- setting a field
+- scanning temperature
+- scanning field
+- scanning position
+- scanning time
+- Shutdown
+- producing sound (Beep)
+- waiting
+- chain another sequence
+- chamber operations
+
+- change the resistivity datafile
+- print a res datafile comment
+- measure resistivity
+- scanning res excitations
+
+Saving a serialised version will write a pickled object and a json file, containing a list with all commands (dictionaries). No reasonable sequences can be written so far, using the PPMS Sequence editor is recommended.
+Currently the sequence editor lives outside of the general application (Sequence_editor.py). 
+
 
 ## Contributing
 Additional Drivers for instruments, as well as control features and GUI enhancements are welcome.

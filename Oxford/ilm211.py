@@ -1,6 +1,16 @@
+"""Module containing a class to interface with an Oxford Instruments ILM211.
+
+Classes:
+    itc503: a class for interfacing with a ILM 211 level meter
+            inherits from AbstractSerialDeviceDriver where the low-level visa
+            communications are defined.
+Author(s):
+    bklebel (Benjamin Klebel)
+"""
+
 from pyvisa.errors import VisaIOError
 
-from Oxford.driver import AbstractSerialDeviceDriver
+from drivers import AbstractSerialDeviceDriver
 
 
 class ilm211(AbstractSerialDeviceDriver):
@@ -61,7 +71,7 @@ class ilm211(AbstractSerialDeviceDriver):
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
             # return None
@@ -71,7 +81,7 @@ class ilm211(AbstractSerialDeviceDriver):
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
 
@@ -102,7 +112,8 @@ class ilm211(AbstractSerialDeviceDriver):
         stat_channel.append(status[9:10])
         # TODO: extract information from the hexadecimal numbers
 
-        return [self._converting_status_channel(status[1]), self._converting_status_channel(status[2]),
+        return [self._converting_status_channel(status[1]),
+                self._converting_status_channel(status[2]),
                 stat_channel[0], stat_channel[1], stat_channel[2]]
 
     def setSlow(self, channel):

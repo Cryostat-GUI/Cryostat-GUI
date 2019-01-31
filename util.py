@@ -1,5 +1,5 @@
 """
-Utility module for the Cryostat GUI
+Utility module for the Cryostat-GUI
 
 
 Classes:
@@ -11,8 +11,14 @@ Classes:
     AbstractEventhandlingThread: a thread class, inheriting from AbstractThread,
         which is designed to be used for handling signal-events, not continuous loops
 
-    Window_ui: a window class, which loads the UI definitions from a spcified .ui file,
+    Window_ui: a window class, which loads the UI definitions from a specified .ui file,
         emits a signal upon closing
+
+    Window_plotting: a window class, which enables an unsuspecting user to
+        plot data, with continuous updates to the plot
+
+Author(s):
+    bklebel (Benjamin Klebel)
 """
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -36,6 +42,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 from PyQt5.uic import loadUi
 
 
@@ -174,7 +181,7 @@ def noKeyError(func):
 
 
 class dummy:
-    """docstring for dummy"""
+    """dummy context manager doing nothing at all"""
 
     def __init__(self):
         pass
@@ -191,7 +198,7 @@ class loops_off:
 
     def __init__(self, threads):
         self._threads = [threads[thread][0] for thread in threads.keys()
-        if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
+                         if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
         self.lock = threads['Lock']
 
     def __enter__(self, *args, **kwargs):
@@ -347,7 +354,7 @@ class Workerclass(QObject):
     """tiny class for performing one single task ()"""
 
     def __init__(self, workfunction, *args, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
@@ -359,28 +366,34 @@ class Workerclass(QObject):
 
 class Window_ui(QtWidgets.QWidget):
     """Class for a small window, the UI of which is loaded from the .ui file
-        emits a signal when being closed
+
+    emits a signal when being closed
     """
 
     sig_closing = pyqtSignal()
 
     def __init__(self, ui_file=None, **kwargs):
+        if 'lock' in kwargs:
+            del kwargs['lock']
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)
+        self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
-        # do stuff
+        """emit signal that the window is going to be closed and hand event to parent class method"""
         self.sig_closing.emit()
-        event.accept()  # let the window close
+        # event.accept()  # let the window close
+        super().closeEvent(event)
 
 
 class Window_plotting(QtWidgets.QDialog, Window_ui):
-    """Small window containing a plot, which can be udpated every so often"""
+    """Small window containing a plot, which updates itself regularly"""
     sig_closing = pyqtSignal()
 
     def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
-        super().__init__()
+        """storing data, building the window layout, starting timer to update"""
+        super().__init__(**kwargs)
         self.data = data
         self.label_x = label_x
         self.label_y = label_y
@@ -418,12 +431,14 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.lines = []
         self.plot_base()
 
-        self.plot()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.plot)
+        self.timer.start(self.interval * 1e3)
 
     def plot_base(self):
-        # create an axis
-        self.ax = self.figure.add_subplot(111)
+        """create the first plot"""
 
+        self.ax = self.figure.add_subplot(111)
         self.ax.set_title(self.title)
         self.ax.set_xlabel(self.label_x)
         self.ax.set_ylabel(self.label_y)
@@ -441,26 +456,21 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
         self.ax.legend()
 
     def plot(self):
-        ''' plot some not so random stuff '''
+        ''' update the plotted data in-place '''
         try:
             with self.lock:
                 for ct, entry in enumerate(self.data):
                     ent0, ent1 = shaping(entry)
                     self.lines[ct].set_xdata(ent0)
                     self.lines[ct].set_ydata(ent1)
-
             self.ax.relim()
             self.ax.autoscale_view()
-
-            # refresh canvas
             self.canvas.draw()
         except ValueError as e_val:
             print('ValueError: ', e_val.args[0])
-            # for x in self.data:
-            # print(x)
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.plot)
 
-    # def closeEvent(self, event):
-    #     super().closeEvent(event)
+    def closeEvent(self, event):
+        """stop the timer for updating the plot, super to parent class method"""
+        self.timer.stop()
+        super().closeEvent(event)
     #     del self

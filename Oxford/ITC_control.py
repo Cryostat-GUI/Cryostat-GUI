@@ -1,4 +1,12 @@
+"""Module containing a class to run a (Oxford Instruments) ITC 503 Intelligent Temperature Controller in a pyqt5 application
 
+Classes:
+    ITC_Updater: a class for interfacing with a ITC 503 Temperature Controller
+            inherits from AbstractLoopThread
+                there, the looping behaviour of this thread is defined
+Author(s):
+    bklebel (Benjamin Klebel)
+"""
 from PyQt5.QtCore import pyqtSlot
 
 import Oxford
@@ -6,27 +14,25 @@ from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
 from importlib import reload
-import time
+# import time
 
-# from util import AbstractThread
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
 
 class ITC_Updater(AbstractLoopThread):
+    """Updater class to update all instrument data of the Intelligent Temperature Controller (ITC) 503.
 
-    """This is the worker thread, which updates all instrument data of the self.ITC 503.
+    For each ITC503 function (except collecting data), there is a wrapping method,
+    which we can call by a signal, from the main thread. This wrapper sends
+    the corresponding value to the device.
 
-        For each self.ITC503 function (except collecting data), there is a wrapping method,
-        which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device.
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
-
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently sent to the main thread. It is packed in a dict,
+    the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sensors = dict(
@@ -98,7 +104,7 @@ class ITC_Updater(AbstractLoopThread):
             except VisaIOError as e_visa:
                 if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     self.sig_visatimeout.emit()
-                    self.read_buffer()
+                    self.ITC.clear_buffers()
                     data[key] = None
                 else:
 
@@ -111,21 +117,23 @@ class ITC_Updater(AbstractLoopThread):
     #     def wrapper_control_checks(*args, **kwargs):
     #         pass
 
-    def read_buffer(self):
-        try:
-            return self.ITC.read()
-        except VisaIOError as e_visa:
-            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
-                pass
+    # def read_buffer(self):
+    #     """read all the possibly full buffer of the instrument"""
+    #     try:
+    #         return self.ITC.read()
+    #     except VisaIOError as e_visa:
+    #         if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+    #             pass
 
     @ExceptionHandling
     def read_status(self, run=True):
+        """read the device status"""
         self.device_status = self.ITC.getStatus(run)
         return self.device_status
 
-    @pyqtSlot(int)
-    def set_delay_sending(self, delay):
-        self.ITC.set_delay_measuring(delay)
+    # @pyqtSlot(int)
+    # def set_delay_sending(self, delay):
+    #     self.ITC.set_delay_measuring(delay)
 
     @pyqtSlot(bool)
     @ExceptionHandling
@@ -160,9 +168,9 @@ class ITC_Updater(AbstractLoopThread):
         # print('setting sweep to', self.sweep_parameters)
         self.ITC.setSweeps(self.sweep_parameters)
         # self.ITC.getValue(0)
-        for x in self.ITC.readSweepTable():
-            print(x)
-        pass
+        # print('sweep table read from device:')
+        # for x in self.ITC.readSweepTable():
+            # print(x)
 
     @pyqtSlot(float)
     @ExceptionHandling
@@ -210,8 +218,8 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setTemperature(self):
-        """class method to be called to set Temperature
-            this is to be invoked by a signal
+        """set Temperature of the instrument
+
         """
         with self.lock:
             self.checksweep()
@@ -238,16 +246,13 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setControl(self):
-        """class method to be called to set Control
-            this is to be invoked by a signal
-        """
+        """set Control of the instrument"""
         self.ITC.setControl(self.control_state)
 
     @pyqtSlot()
     @ExceptionHandling
     def setProportional(self):
-        """class method to be called to set Proportional
-            this is to be invoked by a signal
+        """set Proportional of the instrument
 
             prop: Proportional band, in steps of 0.0001K.
         """
@@ -256,8 +261,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setIntegral(self):
-        """class method to be called to set Integral
-            this is to be invoked by a signal
+        """set Integral of the instrument
 
             integral: Integral action time, in steps of 0.1 minute.
                         Ranges from 0 to 140 minutes.
@@ -267,8 +271,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setDerivative(self):
-        """class method to be called to set Derivative
-            this is to be invoked by a signal
+        """set Derivative of the instrument
 
             derivative: Derivative action time.
             Ranges from 0 to 273 minutes.
@@ -278,8 +281,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setHeaterSensor(self, value):
-        """class method to be called to set HeaterSensor
-            this is to be invoked by a signal
+        """set HeaterSensor of the instrument
 
             sensor: Should be 1, 2, or 3, corresponding to
             the heater on the front panel.
@@ -290,8 +292,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setHeaterOutput(self):
-        """class method to be called to set HeaterOutput
-            this is to be invoked by a signal
+        """set HeaterOutput of the instrument
 
             heater_output: Sets the percent of the maximum
                         heater output in units of 0.1%.
@@ -302,8 +303,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setGasOutput(self):
-        """class method to be called to set GasOutput
-            this is to be invoked by a signal
+        """set GasOutput of the instrument
 
             gas_output: Sets the percent of the maximum gas
                     output in units of 1%.
@@ -314,8 +314,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setAutoControl(self, value):
-        """class method to be called to set AutoControl
-            this is to be invoked by a signal
+        """set AutoControl of the instrument
 
         Value:Status map
             0: heater manual, gas manual
@@ -327,81 +326,40 @@ class ITC_Updater(AbstractLoopThread):
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setSweeps(self):
-    #     """class method to be called to set Sweeps
-    #         this is to be invoked by a signal
-    #     """
-    #     self.ITC.setSweeps(self.sweep_parameters)
+
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
-        """class method to receive and store the value to set the Control status
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the Control status"""
         self.control_state = value
 
     @pyqtSlot(float)
     def gettoset_Temperature(self, value):
-        """class method to receive and store the value to set the temperature
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the temperature"""
         self.set_temperature = value
         # print('got a new temp:', value)
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):
-        """class method to receive and store the value to set the proportional (PID)
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the proportional (PID)"""
         self.set_prop = value
 
     @pyqtSlot()
     def gettoset_Integral(self, value):
-        """class method to receive and store the value to set the integral (PID)
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the integral (PID)"""
         self.set_integral = value
 
     @pyqtSlot()
     def gettoset_Derivative(self, value):
-        """class method to receive and store the value to set the derivative (PID)
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the derivative (PID)"""
         self.set_derivative = value
 
     @pyqtSlot()
     def gettoset_HeaterOutput(self, value):
-        """class method to receive and store the value to set the heater_output
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the heater_output"""
         self.set_heater_output = value
 
     @pyqtSlot()
     def gettoset_GasOutput(self, value):
-        """class method to receive and store the value to set the gas_output
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the gas_output"""
         self.set_gas_output = value
-
-    # @pyqtSlot()
-    # def gettoset_Sweeps(self, value):
-    #     """class method to receive and store the value to for the sweep_parameters
-    #         to set them later on, when the command to enforce the value is sent
-    #     """
-    #     self.sweep_parameters = value
-
-    # @pyqtSlot()
-    # def gettoset_HeaterSensor(self, value):
-    #     """class method to receive and store the value to set the sensor
-    #         later on, when the command to enforce the value is sent
-    #     """
-    #     self.set_sensor = value
-
-    # @pyqtSlot()
-    # def gettoset_AutoControl(self, value):
-    #     """class method to receive and store the value to set the auto_manual
-    #         later on, when the command to enforce the value is sent
-    #     """
-    #     self.set_auto_manual = value

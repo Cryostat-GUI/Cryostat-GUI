@@ -500,15 +500,16 @@ class live_Logger(AbstractLoopThread):
         # self.time_names = ['logging_timeseconds', 'timeseconds',
         # 'logging_ReadableTime', 'ReadableTime',
         # 'logging_SearchableTime', 'SearchableTime']
-        self.calculations = {'ar_mean': lambda time, value: np.nanmean(value),
-                             'stddev': lambda time, value: np.nanstd(value),
-                             'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
-                             'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
-                             'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+        self.calculations = {
+                             'ar_mean': lambda time, value: np.nanmean(value),
+                             # 'stddev': lambda time, value: np.nanstd(value),
+                             # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+                             # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+                             # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
                              # 'test': lambda time, value: print(time),
                              # still need to convert to minutes
                              'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
-                             'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
+                             # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
                              }
         self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
                        # minutes,
@@ -814,7 +815,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             for instrument in data['currents']:
                 currents = ["{{{num}:.5E}} ".format(
                     num=ct) for ct, value in enumerate(data['currents'][instrument])]
-                datastring += '{} '.format(len(currents))                
+                datastring += '{} '.format(len(currents))
                 for v in currents:
                     datastring += v
                 datastring = datastring.format(*data['currents'][instrument])
@@ -916,11 +917,6 @@ class measurement_Logger(AbstractEventhandlingThread):
 # 67 / 68 / 69 unused
 #68 /
 """.format(date=convert_time(self.starttime))
-
-
-
-
-
 
         else:
             datastring = '\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}'.format(

@@ -13,17 +13,21 @@
         - 6221 Current Source (AC and DC)
         - DMM7510 7 1/2 Digital Multimeter
         - 2700 Multimeter / Data Acquisition System
- Classes:
+    Classes:
     mainWindow:
         The main GUI class for the PyQt application
-     Author(s):
+    Author(s):
         bklebel (Benjamin Klebel)
         adtera
         Acronis
 ----------------------------------------------------------------------------------------
 """
 
-from PyQt5 import QtWidgets  # , QtGui
+import time
+
+a = time.time()
+
+from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
@@ -34,7 +38,6 @@ from PyQt5.uic import loadUi
 
 
 import sys
-import time
 # import datetime
 from threading import Lock
 import numpy as np
@@ -44,19 +47,11 @@ import sqlite3
 
 from pyvisa.errors import VisaIOError
 
-
 import Oxford
 import LakeShore
 import Keithley
 
-# from Oxford.ITC_control import ITC_Updater
-# from Oxford.ILM_control import ILM_Updater
-# from Oxford.IPS_control import IPS_Updater
-# from LakeShore.LakeShore350_Control import LakeShore350_Updater
-# from Keithley.Keithley2182_Control import Keithley2182_Updater
-# from Keithley.Keithley6221_Control import Keithley6221_Updater
-
-from Sequence import OneShot_Thread
+# from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
 
 from logger import main_Logger, live_Logger, measurement_Logger
@@ -67,7 +62,6 @@ from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
-from util import locking
 from util import noKeyError
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
@@ -112,6 +106,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.app = app
 
         QTimer.singleShot(0, self.initialize_all_windows)
+        self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
         super().closeEvent(event)
@@ -149,18 +144,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
-    # def softwarecontrol_toggle(self, controls, lock, bools):
-    #     print('received signal: control:', controls, 'lock: ', lock, 'bool: ', bools)
-    #     print('locked: ', lock.locked())
-    #     if not bools:
-    #         lock.acquire()
-    #     for control in controls:
-    #             control.setEnabled(bools)
-    #             print('working on it')
-    #     if bools:
-    #         lock.release()
-    #     print('locked: ', lock.locked())
-
     def softwarecontrol_toggle_locking(self, value):
         if value:
             self.controls_Lock.acquire()
@@ -175,8 +158,6 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             for c in self.controls:
                 c.setEnabled(True)
-        # finally:
-            # QTimer.singleShot(100, self.softwarecontrol_check())
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
@@ -195,6 +176,9 @@ class mainWindow(QtWidgets.QMainWindow):
             with self.dataLock:
                 self.data[dataname] = dict()
         with self.threads['Lock']:
+            # this needs to be locked when a new thread is added, as otherwise
+            # the thread locking context manager would try to unlock the new thread
+            # before it was ever locked, resulting in a crash
             self.threads[threadname] = (worker, thread)
         self.sig_running_new_thread.emit()
 
@@ -230,6 +214,12 @@ class mainWindow(QtWidgets.QMainWindow):
         """ append error to Error window"""
         self.Errors_window.textErrors.append(
             '{} - {}'.format(convert_time(time.time()), text))
+
+    def show_window(self, window, boolean):
+        if boolean:
+            window.show()
+        else:
+            window.close()
 
     # ------- plotting
     def connectdb(self, dbname):
@@ -579,7 +569,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_ITC.clicked[
             'bool'].connect(self.run_ITC)
-        self.action_show_ITC.triggered['bool'].connect(self.show_ITC)
+        self.action_show_ITC.triggered['bool'].connect(
+            lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
     @pyqtSlot(float)
@@ -741,13 +732,13 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
             self.logging_running_ITC = False
 
-    @pyqtSlot(bool)
-    def show_ITC(self, boolean):
-        """display/close the ITC data & control window"""
-        if boolean:
-            self.ITC_window.show()
-        else:
-            self.ITC_window.close()
+    # @pyqtSlot(bool)
+    # def show_ITC(self, boolean):
+    #     """display/close the ITC data & control window"""
+    #     if boolean:
+    #         self.ITC_window.show()
+    #     else:
+    #         self.ITC_window.close()
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
@@ -788,14 +779,17 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.lcdTemp_err.display(
                 self.data['ITC']['temperature_error'])
             # if not self.data['ITC']['heater_output_as_percent'] is None:
-            self.ITC_window.progressHeaterPercent.setValue(
-                int(self.data['ITC']['heater_output_as_percent']))
+            try:
+                self.ITC_window.progressHeaterPercent.setValue(
+                    int(self.data['ITC']['heater_output_as_percent']))
+                # if not self.data['ITC']['gas_flow_output'] is None:
+                self.ITC_window.progressNeedleValve.setValue(
+                    int(self.data['ITC']['gas_flow_output']))
+            except ValueError:
+                pass
             # if not self.data['ITC']['heater_output_as_voltage'] is None:
             self.ITC_window.lcdHeaterVoltage.display(
                 self.data['ITC']['heater_output_as_voltage'])
-            # if not self.data['ITC']['gas_flow_output'] is None:
-            self.ITC_window.progressNeedleValve.setValue(
-                self.data['ITC']['gas_flow_output'])
             # if not self.data['ITC']['gas_flow_output'] is None:
             self.ITC_window.lcdNeedleValve_percent.display(
                 self.data['ITC']['gas_flow_output'])
@@ -1034,31 +1028,6 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_LakeShore350)
         self.LakeShore350_Kpmin = None
 
-    def func_LakeShore350_setKpminLength(self, length):
-        """set the number of measurements the calculation should be conducted over"""
-        if not self.LakeShore350_Kpmin:
-            self.LakeShore350_Kpmin = dict(newtime=[time.time()] * length,
-                                           Sensors=dict(
-                Sensor_1_K=[np.nan] * length,
-                Sensor_2_K=[np.nan] * length,
-                Sensor_3_K=[np.nan] * length,
-                Sensor_4_K=[np.nan] * length),
-                length=length)
-        elif self.LakeShore350_Kpmin['length'] > length:
-            self.LakeShore350_Kpmin['newtime'] = self.LakeShore350_Kpmin[
-                'newtime'][(self.LakeShore350_Kpmin['length'] - length):]
-            for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][sensor] = self.LakeShore350_Kpmin[
-                    'Sensors'][sensor][(self.LakeShore350_Kpmin['length'] - length):]
-            self.LakeShore350_Kpmin['length'] = length
-        elif self.LakeShore350_Kpmin['length'] < length:
-            self.LakeShore350_Kpmin['newtime'] = [time.time(
-            )] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['newtime']
-            for sensor in self.LakeShore350_Kpmin['Sensors']:
-                self.LakeShore350_Kpmin['Sensors'][sensor] = [
-                    np.nan] * (length - self.LakeShore350_Kpmin['length']) + self.LakeShore350_Kpmin['Sensors'][sensor]
-            self.LakeShore350_Kpmin['length'] = length
-
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
         """start/stop the LakeShore350 thread"""
@@ -1080,7 +1049,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata.sig_visatimeout.connect(
                     lambda: self.show_error_general('LakeShore350: timeout'))
 
-                self.func_LakeShore350_setKpminLength(5)
+                # self.func_LakeShore350_setKpminLength(5)
 
                 # setting LakeShore values by GUI LakeShore window
                 self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(
@@ -1161,29 +1130,29 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.LakeShore350_window.close()
 
-    def calculate_Kpmin(self, data):
-        """calculate the rate of change of Temperature"""
-        coeffs = []
-        for sensordata in self.LakeShore350_Kpmin['Sensors'].values():
-            coeffs.append(np.polynomial.polynomial.polyfit(
-                self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
+    # def calculate_Kpmin(self, data):
+        # """calculate the rate of change of Temperature"""
+        # coeffs = []
+        # for sensordata in self.LakeShore350_Kpmin['Sensors'].values():
+        #     coeffs.append(np.polynomial.polynomial.polyfit(
+        #         self.LakeShore350_Kpmin['newtime'], sensordata, deg=1))
 
-        integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1] * 60,
-                               Sensor_2_Kpmin=coeffs[1][1] * 60,
-                               Sensor_3_Kpmin=coeffs[2][1] * 60,
-                               Sensor_4_Kpmin=coeffs[3][1] * 60)
+        # integrated_diff = dict(Sensor_1_Kpmin=coeffs[0][1] * 60,
+        #                        Sensor_2_Kpmin=coeffs[1][1] * 60,
+        #                        Sensor_3_Kpmin=coeffs[2][1] * 60,
+        #                        Sensor_4_Kpmin=coeffs[3][1] * 60)
 
-        data.update(integrated_diff)
+        # data.update(integrated_diff)
 
-        # advancing entries to the next slot
-        for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
-            self.LakeShore350_Kpmin['newtime'][i + 1] = entry
-            self.LakeShore350_Kpmin['newtime'][0] = time.time()
-            for key in self.LakeShore350_Kpmin['Sensors'].keys():
-                self.LakeShore350_Kpmin['Sensors'][key][
-                    i + 1] = self.LakeShore350_Kpmin['Sensors'][key][i]
-                self.LakeShore350_Kpmin['Sensors'][
-                    key][0] = deepcopy(data[key])
+        # # advancing entries to the next slot
+        # for i, entry in enumerate(self.LakeShore350_Kpmin['newtime'][:-1]):
+        #     self.LakeShore350_Kpmin['newtime'][i + 1] = entry
+        #     self.LakeShore350_Kpmin['newtime'][0] = time.time()
+        #     for key in self.LakeShore350_Kpmin['Sensors'].keys():
+        #         self.LakeShore350_Kpmin['Sensors'][key][
+        #             i + 1] = self.LakeShore350_Kpmin['Sensors'][key][i]
+        #         self.LakeShore350_Kpmin['Sensors'][
+        #             key][0] = deepcopy(data[key])
 
             # self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_2_K'][i]
             # self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i+1] = self.LakeShore350_Kpmin['Sensors']['Sensor_3_K'][i]
@@ -1199,7 +1168,7 @@ class mainWindow(QtWidgets.QMainWindow):
         #                     Sensor_3_Kpmin=integrated_diff['Sensor_3_Kpmin'],
         #                     Sensor_4_Kpmin=integrated_diff['Sensor_4_Kpmin']))
 
-        return integrated_diff, data
+        # return integrated_diff, data
 
     @pyqtSlot(dict)
     def store_data_LakeShore350(self, data):
@@ -1208,13 +1177,32 @@ class mainWindow(QtWidgets.QMainWindow):
             Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
 
-        coeffs, data = self.calculate_Kpmin(data)
+        slopes = ['Sensor_1_K_calc_slope', 'Sensor_2_K_calc_slope',
+                  'Sensor_3_K_calc_slope', 'Sensor_4_K_calc_slope']
+
+        # coeffs, data = self.calculate_Kpmin(data)
+        try:
+            with self.dataLock_live:
+                if any([self.data_live['LakeShore350'][value]
+                        for value in slopes]):
+                    livedata = [self.data_live['LakeShore350'][value][-1]
+                                for value in slopes]
+                else:
+                    livedata = [0] * 4
+        except AttributeError:
+            self.show_error_general(
+                'please start live logging for LakeShore350 slope values!')
+            livedata = [0] * 4
+        except KeyError:
+            self.show_error_general(
+                'please start live logging for LakeShore350 slope values!')
+            livedata = [0] * 4
 
         for GUI_element, co in zip([self.LakeShore350_window.textSensor1_Kpmin,
                                     self.LakeShore350_window.textSensor2_Kpmin,
                                     self.LakeShore350_window.textSensor3_Kpmin,
                                     self.LakeShore350_window.textSensor4_Kpmin],
-                                   coeffs.values()):
+                                   livedata):
             if not co == 0:
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
@@ -1606,38 +1594,6 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.show_OneShot)
 
     @pyqtSlot(bool)
-    def run_OneShot_old(self, boolean):
-        if boolean:
-
-            OneShot = self.running_thread_control(
-                OneShot_Thread_multichannel(self), None, 'control_OneShot')
-            OneShot.sig_assertion.connect(self.OneShot_errorHandling)
-
-            self.window_OneShot.dspinExcitationCurrent_A.valueChanged.connect(
-                lambda value: OneShot.update_conf('excitation_current_A', value))
-            self.window_OneShot.spinN_measurements.valueChanged.connect(
-                lambda value: OneShot.update_conf('n_measurements', value))
-            self.window_OneShot.comboCurrentSource.activated['int'].connect(
-                lambda value: self.OneShot_chooseInstrument(value, "CURR", OneShot))
-            self.window_OneShot.comboNanovoltmeter.activated['int'].connect(
-                lambda value: self.OneShot_chooseInstrument(value, "RES", OneShot))
-            self.window_OneShot.commandMeasure.clicked.connect(
-                lambda: self.sig_measure_oneshot.emit())
-            self.window_OneShot.commandMeasure.setEnabled(True)
-            self.window_OneShot.pushChoose_Datafile.clicked.connect(
-                lambda: self.OneShot_chooseDatafile(OneShot))
-
-            self.running_thread_control(
-                measurement_Logger(self), None, 'save_OneShot')
-            OneShot.sig_storing.connect(
-                lambda value: self.sig_log_measurement.emit(value))
-            # this is for saving the respective data
-        else:
-            self.stopping_thread('control_OneShot')
-            self.stopping_thread('save_OneShot')
-            self.window_OneShot.commandMeasure.setEnabled(False)
-
-    @pyqtSlot(bool)
     def run_OneShot(self, boolean):
         if boolean:
 
@@ -1667,10 +1623,16 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.window_OneShot.commandMeasure.clicked.connect(
                 lambda: self.sig_measure_oneshot.emit())
+            # for whatever reason, these need to be connected twice:
+            #   only then both text AND color of the state indicator change!
             self.window_OneShot.commandStartSeries.clicked.connect(
-                lambda: self.logging_timer.start(OneShot.conf['interval'] * 1e3))
+                self.OneShot_start)
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                self.OneShot_start)
             self.window_OneShot.commandStopSeries.clicked.connect(
-                lambda: self.logging_timer.stop())
+                self.OneShot_stop)
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                self.OneShot_stop)
 
             self.window_OneShot.dspinInterval_s.valueChanged.connect(
                 lambda value: OneShot.update_conf('interval', value))
@@ -1703,9 +1665,37 @@ class mainWindow(QtWidgets.QMainWindow):
     #     elif mode == "CURR":
     #         OneShot.update_conf('threadname_CURR', current_sources[comboInt])
 
+    def OneShot_start(self):
+        '''
+            get the timer seconds, change the state to "running", start the timer
+            this can only be invoked in case the control thread is working:
+                the button is otherwise disabled
+        '''
+        sec = self.threads['control_OneShot'][0].conf['interval']
+        msec = sec * 1e3
+        green = QtGui.QColor(0, 255, 0)
+        self.logging_timer.start(msec)
+        self.window_OneShot.textrunning.setText('Running')
+        self.window_OneShot.textrunning.setTextColor(green)
+        self.window_OneShot.textinterval.setText(
+            '{0:.2f} s ({1:.2f} min)'.format(sec, sec / 60))
+
+    def OneShot_stop(self):
+        '''stop the timer, change the state to "stopped" '''
+        blue = QtGui.QColor(0, 0, 255)
+        self.logging_timer.stop()
+        self.window_OneShot.textrunning.setText('Stopped')
+        self.window_OneShot.textrunning.setTextColor(blue)
+
     def OneShot_chooseDatafile(self, OneShot):
-        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose Datafile',
-                                                                  'c:\\', "Datafiles (*.dat)")
+        try:
+            current_file_data = OneShot.conf['datafile']
+        except KeyError:
+            current_file_data = 'c:/'
+        new_file_data, __ = QtWidgets.QFileDialog.getSaveFileName(self,
+                                                                  'Choose Datafile',
+                                                                  current_file_data,
+                                                                  "Datafiles (*.dat)")
 
         OneShot.update_conf('datafile', new_file_data)
         self.window_OneShot.lineDatafileLocation.setText(new_file_data)
@@ -1748,7 +1738,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    a = time.time()
     form = mainWindow(app=app)
     form.show()
     print(time.time() - a)

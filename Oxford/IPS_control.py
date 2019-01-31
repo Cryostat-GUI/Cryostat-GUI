@@ -1,4 +1,12 @@
-# import sys
+"""Module containing a class to run a (Oxford Instruments) IPS 120-10 Intelligent Power Source in a pyqt5 application
+
+Classes:
+    IPS_Updater: a class for interfacing with a IPS 120-10 Power Supply
+            inherits from AbstractLoopThread
+                there, the looping behaviour of this thread is defined
+Author(s):
+    bklebel (Benjamin Klebel)
+"""
 import time
 from copy import deepcopy
 from importlib import reload
@@ -14,7 +22,19 @@ from util import ExceptionHandling
 
 
 class IPS_Updater(AbstractLoopThread):
-    """docstring for PS_Updater"""
+    """Updater class for the Intelligent Power Supply (IPS) 120-10
+
+    For each IPS function (except collecting data), there is a wrapping method,
+    which we can call by a signal, from the main thread. This wrapper sends
+    the corresponding value to the device.
+
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
+
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently sent to the main thread. It is packed in a dict,
+    the keys of which are displayed in the "sensors" dict in this class.
+    """
 
     sensors = dict(
         # demand_current_to_psu_= 0,#     output_current
@@ -119,26 +139,24 @@ class IPS_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
+            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 self.sig_visatimeout.emit()
                 # self.readField(nosend=True)
-                self.read_buffer()
+                self.PS.clear_buffers()
                 # data[key_f_timeout] = self.read_buffer()
             else:
                 self.sig_visaerror.emit(e_visa.args[0])
 
-    def read_buffer(self):
-        try:
-            return self.PS.read_buffer()
-        except VisaIOError as e_visa:
-            if type(e_visa) is type(self.timeouterror) and e_visa.args == self.timeouterror.args:
-                pass
-
-    @pyqtSlot(int)
-    def set_delay_sending(self, delay):
-        self.PS.set_delay_measuring(delay)
+    # def read_buffer(self):
+    #     """read the instrument buffers"""
+    #     try:
+    #         return self.PS.read_buffer()
+    #     except VisaIOError as e_visa:
+    #         if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+    #             pass
 
     def getStatus(self):
+        """read the status of the instrument, return it partially parsed"""
         status = self.PS.getStatus()
         return dict(status_magnet=self.statusdict['magnetstatus'][status[1]],
                     status_current=self.statusdict['currentstatus'][status[2]],
@@ -155,13 +173,13 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot(int)
     @ExceptionHandling
     def setControl(self, control_state=3):
-        """method to set the control for local/remote"""
+        """set the control for local/remote"""
         self.PS.setControl(control_state)
 
     @pyqtSlot()
     @ExceptionHandling
     def readField(self, nosend=False):
-        '''method to readField - this can be invoked by a signal'''
+        '''read the Field'''
         try:
             return self.PS.readField()
         except AssertionError as e_ass:
@@ -171,37 +189,36 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def readFieldSetpoint(self):
-        '''method to readFieldSetpoint - this can be invoked by a signal'''
+        '''read the Field Setpoint'''
         return self.PS.readFieldSetpoint()
 
     @pyqtSlot()
     @ExceptionHandling
     def readFieldSweepRate(self):
-        '''method to readFieldSweepRate - this can be invoked by a signal'''
+        '''read the Field SweepRate'''
         return self.PS.readFieldSweepRate()
 
     @pyqtSlot()
     @ExceptionHandling
     def setActivity(self, state):
-        '''method to setActivity - this can be invoked by a signal'''
+        '''set the Activity'''
         self.PS.setActivity(state)
 
     @pyqtSlot()
     @ExceptionHandling
     def setSwitchHeater(self, state):
-        '''method to setHeater - this can be invoked by a signal'''
+        '''set the Switchheater state'''
         self.PS.setSwitchHeater(state)
 
     @pyqtSlot()
     @ExceptionHandling
     def setFieldSetpoint(self):
-        '''method to setFieldSetpoint - this can be invoked by a signal'''
+        '''setthe Field Setpoint'''
         self.PS.setFieldSetpoint(self.field_setpoint)
 
     @pyqtSlot(float)
     def gettoset_FieldSetpoint(self, value):
-        """class method to receive and store the value, to set the Field Setpoint
-            later on, when the command to enforce the value is sent
+        """receive and store the value, to set the Field Setpoint
             TODO: adjust for units!
         """
         self.field_setpoint = value
@@ -209,25 +226,23 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setFieldSweepRate(self):
-        '''method to setFieldSweepRate - this can be invoked by a signal'''
+        '''set the Field SweepRate'''
         self.PS.setFieldSweepRate(self.field_rate)
 
     @pyqtSlot(int)
     @ExceptionHandling
     def gettoset_FieldSweepRate(self, value):
-        """class method to receive and store the value to set the Field sweep rate
-            later on, when the command to enforce the value is sent
-        """
+        """receive and store the value to set the Field sweep rate"""
         self.field_setpoint = value
 
     @pyqtSlot()
     @ExceptionHandling
     def setDisplay(self, display):
-        '''method to setDisplay - this can be invoked by a signal'''
+        '''set the Display'''
         self.PS.setDisplay(display)
 
     @pyqtSlot()
     @ExceptionHandling
     def waitForField(self, timeout, error_margin):
-        '''method to waitForField - this can be invoked by a signal'''
+        '''wait For the Field'''
         return self.PS.waitForField()
