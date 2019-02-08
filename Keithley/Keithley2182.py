@@ -32,6 +32,8 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.setRate(num=3)
+        self.go(':INIT:CONT OFF')
 
     def go(self, command):
         return super().go(command)
@@ -44,10 +46,11 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         :return: voltage in V
         :return type: float
         """
-       # self.sendcmd("SENS:CHAN 1")
-       # self.sendcmd("SENS:FUNC 'VOLT:DC'")
+       # self.go("SENS:CHAN 1")
+       # self.go("SENS:FUNC 'VOLT:DC'")
        # return self.query("SENS:DATA:FRES?")[0]
-        self.go(':TRIGger:COUNt 1')
+        # self.go(':TRIGger:COUNt 1')
+        # print('test')
         answer = self.query(':READ?')[0]
         if answer[0:2] == '--':
             answer = answer[1:]
