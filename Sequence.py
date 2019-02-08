@@ -113,6 +113,7 @@ def measure_resistance_multichannel(threads,
                                     threadname_Temp='control_LakeShore350',
                                     # temperature_sensor='Sensor_1_K',
                                     # n_measurements=1,
+                                    current_reversal_time=0.08,
 
                                     **kwargs):
     """conduct one 'full' measurement of resistance:
@@ -144,8 +145,6 @@ def measure_resistance_multichannel(threads,
         if c[0] != c[1]:
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
-
-    current_reversal_time = 0.08
 
     # print('test')
     # for current_base in iv_characteristic:
@@ -425,6 +424,8 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
             self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])))
         # print('iv default:', self.iv_curve)
 
+        self.current_revtime = 0.08  # default waiting value
+
         self.conf = dict(threads=self.mainthread.threads,
                          threadname_Temp='control_LakeShore350',
                          threadnames_RES=[
@@ -434,6 +435,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
                          # [A] needs to be set - thus communicated!
                          excitation_currents_A=[0.0005, 0.0005],
                          iv_characteristic=self.iv_curve,
+                         current_reversal_time=self.current_revtime,
                          interval=10)
         # self.timer = QTimer()
         # self.timer.timeout.connect(self.measure_oneshot_once)

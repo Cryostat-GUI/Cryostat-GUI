@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>431</width>
-    <height>272</height>
+    <width>457</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -266,6 +266,16 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; color:#000000;&quot;&gt;60.00s (1.00 min)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Current changing waiting time [s]</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="dSpinCurrent_revtime"/>
    </item>
   </layout>
  </widget>

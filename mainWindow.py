@@ -1613,6 +1613,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.spinIVsteps.valueChanged.connect(
                 lambda value: OneShot.update_iv(2, value))
 
+            self.window_OneShot.dspinInterval_s.valueChanged.connect(
+                lambda value: OneShot.update_conf('interval', value))
+
+            self.window_OneShot.dSpinCurrent_revtime.valueChanged.connect(
+                lambda value: OneShot.update_conf('current_reversal_time', value))
+
             self.window_OneShot.commandMeasure.setEnabled(True)
             self.window_OneShot.commandStartSeries.setEnabled(True)
             self.window_OneShot.commandStopSeries.setEnabled(True)
@@ -1634,8 +1640,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandStopSeries.clicked.connect(
                 self.OneShot_stop)
 
-            self.window_OneShot.dspinInterval_s.valueChanged.connect(
-                lambda value: OneShot.update_conf('interval', value))
 
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))
