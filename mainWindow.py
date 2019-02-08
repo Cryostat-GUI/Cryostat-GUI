@@ -1299,7 +1299,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               instradress=Keithley6221_1_InstrumentAddress,
                               dataname='Keithley6221_1',
                               threadname='control_Keithley6221_1',
-                              GUI_number2=self.Keithley_window.spinSetCurrent1_A,
+                              GUI_number2=self.Keithley_window.spinSetCurrent1_mA,
                               GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_1)
 
@@ -1307,7 +1307,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               instradress=Keithley6221_2_InstrumentAddress,
                               dataname='Keithley6221_2',
                               threadname='control_Keithley6221_2',
-                              GUI_number2=self.Keithley_window.spinSetCurrent2_A,
+                              GUI_number2=self.Keithley_window.spinSetCurrent2_mA,
                               GUI_push=self.Keithley_window.pushToggleOut_2,
                               GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_2)
 
@@ -1371,7 +1371,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 if 'GUI_number2' in kwargs:
                     kwargs['GUI_number2'].valueChanged.connect(
-                        lambda value: self.threads[threadname][0].gettoset_Current_A(value))
+                        lambda value: self.threads[threadname][0].gettoset_Current_A(value * 1e-3))
                     kwargs['GUI_number2'].editingFinished.connect(
                         lambda: self.threads[threadname][0].setCurrent_A())
                     kwargs['GUI_number2'].editingFinished.connect(lambda: self.store_data_Keithley(
@@ -1601,10 +1601,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 OneShot_Thread_multichannel(self), 'measured', 'control_OneShot')
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
-            self.window_OneShot.dspinExcitationCurrent_1_A.valueChanged.connect(
-                lambda value: OneShot.update_exc(1, value))
-            self.window_OneShot.dspinExcitationCurrent_2_A.valueChanged.connect(
-                lambda value: OneShot.update_exc(2, value))
+            self.window_OneShot.dspinExcitationCurrent_1_mA.valueChanged.connect(
+                lambda value: OneShot.update_exc(1, value * 1e-3))
+            self.window_OneShot.dspinExcitationCurrent_2_mA.valueChanged.connect(
+                lambda value: OneShot.update_exc(2, value * 1e-3))
 
             self.window_OneShot.dspinIVstart.valueChanged.connect(
                 lambda value: OneShot.update_iv(0, value))
@@ -1639,7 +1639,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.OneShot_stop)
             self.window_OneShot.commandStopSeries.clicked.connect(
                 self.OneShot_stop)
-
 
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot))

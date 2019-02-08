@@ -27,7 +27,7 @@
    <item row="2" column="0">
     <widget class="QLabel" name="label_5">
      <property name="text">
-      <string>Excitation Current channel 1/2 [A]</string>
+      <string>Excitation Current channel 1/2 [mA]</string>
      </property>
     </widget>
    </item>
@@ -140,46 +140,46 @@ measurements in Series [s]</string>
    <item row="2" column="1" colspan="2">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="dspinExcitationCurrent_2_A">
+      <widget class="QDoubleSpinBox" name="dspinExcitationCurrent_2_mA">
        <property name="mouseTracking">
         <bool>false</bool>
        </property>
        <property name="decimals">
-        <number>4</number>
+        <number>3</number>
        </property>
        <property name="minimum">
-        <double>-0.100000000000000</double>
+        <double>0.000000000000000</double>
        </property>
        <property name="maximum">
-        <double>0.100000000000000</double>
+        <double>50.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.001000000000000</double>
+        <double>0.100000000000000</double>
        </property>
        <property name="value">
-        <double>0.000500000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QDoubleSpinBox" name="dspinExcitationCurrent_1_A">
+      <widget class="QDoubleSpinBox" name="dspinExcitationCurrent_1_mA">
        <property name="mouseTracking">
         <bool>false</bool>
        </property>
        <property name="decimals">
-        <number>4</number>
+        <number>3</number>
        </property>
        <property name="minimum">
-        <double>-0.100000000000000</double>
+        <double>0.000000000000000</double>
        </property>
        <property name="maximum">
-        <double>0.100000000000000</double>
+        <double>50.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.001000000000000</double>
+        <double>0.100000000000000</double>
        </property>
        <property name="value">
-        <double>0.000500000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
@@ -288,8 +288,8 @@ p, li { white-space: pre-wrap; }
  </widget>
  <tabstops>
   <tabstop>lineDatafileLocation</tabstop>
-  <tabstop>dspinExcitationCurrent_1_A</tabstop>
-  <tabstop>dspinExcitationCurrent_2_A</tabstop>
+  <tabstop>dspinExcitationCurrent_1_mA</tabstop>
+  <tabstop>dspinExcitationCurrent_2_mA</tabstop>
   <tabstop>dspinIVstart</tabstop>
   <tabstop>dspinIVstop</tabstop>
   <tabstop>spinIVsteps</tabstop>
