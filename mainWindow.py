@@ -218,8 +218,16 @@ class mainWindow(QtWidgets.QMainWindow):
     def show_window(self, window, boolean):
         if boolean:
             window.show()
+            window.raise_()
         else:
             window.close()
+
+    def initialize_settings(self):
+        self.window_settings = Window_ui(
+            ui_file='.\\configurations\\settings_global.ui')
+        self.actionSettings.triggered.connect(
+            lambda: self.show_window(self.window_settings, True))
+
 
     # ------- plotting
     def connectdb(self, dbname):
