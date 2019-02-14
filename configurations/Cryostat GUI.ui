@@ -624,6 +624,9 @@
    </property>
   </action>
   <action name="actionSettings">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Global Settings</string>
    </property>

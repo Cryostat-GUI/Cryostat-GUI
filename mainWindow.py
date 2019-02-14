@@ -119,6 +119,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.actionSystems_Online.triggered.connect(
             lambda: self.window_SystemsOnline.show())
 
+        self.initialize_settings()
+
         self.initialize_window_ITC()
         self.initialize_window_ILM()
         self.initialize_window_IPS()
@@ -219,6 +221,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             window.show()
             window.raise_()
+            # print('showing:', window)
         else:
             window.close()
 
@@ -905,7 +908,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_IPS.clicked[
             'bool'].connect(self.run_IPS)
-        self.action_show_IPS.triggered['bool'].connect(self.show_IPS)
+        self.action_show_IPS.triggered['bool'].connect(lambda value: self.show_window(self.IPS_window, value))
 
         self.IPS_window.labelStatusMagnet.setText('')
         self.IPS_window.labelStatusCurrent.setText('')
@@ -962,13 +965,13 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
             self.stopping_thread('control_IPS')
 
-    @pyqtSlot(bool)
-    def show_IPS(self, boolean):
-        """display/close the ILM data & control window"""
-        if boolean:
-            self.IPS_window.show()
-        else:
-            self.IPS_window.close()
+    # @pyqtSlot(bool)
+    # def show_IPS(self, boolean):
+    #     """display/close the ILM data & control window"""
+    #     if boolean:
+    #         self.IPS_window.show()
+    #     else:
+    #         self.IPS_window.close()
 
     @pyqtSlot(dict)
     def store_data_ips(self, data):
