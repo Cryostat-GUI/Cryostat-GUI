@@ -547,8 +547,10 @@ p, li { white-space: pre-wrap; }
   <tabstop>textBrowser</tabstop>
   <tabstop>spinsetTemp</tabstop>
   <tabstop>dspinSetRamp</tabstop>
+  <tabstop>checkSweep</tabstop>
   <tabstop>combosetAutocontrol</tabstop>
   <tabstop>spinsetGasOutput</tabstop>
+  <tabstop>checkGas_gothroughzero</tabstop>
   <tabstop>combosetHeatersens</tabstop>
  </tabstops>
  <resources/>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>187</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,2">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Axis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>Instrument</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLabel" name="label_16">
+     <property name="text">
+      <string>Data</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="comboInstr_X"/>
+   </item>
+   <item row="1" column="2">
+    <widget class="QComboBox" name="comboValue_X">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Y 1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="comboInstr_Y1"/>
+   </item>
+   <item row="2" column="2">
+    <widget class="QComboBox" name="comboValue_Y1">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Y 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="comboInstr_Y2"/>
+   </item>
+   <item row="3" column="2">
+    <widget class="QComboBox" name="comboValue_Y2">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Y 3</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QComboBox" name="comboInstr_Y3"/>
+   </item>
+   <item row="4" column="2">
+    <widget class="QComboBox" name="comboValue_Y3">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Y 4</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QComboBox" name="comboInstr_Y4"/>
+   </item>
+   <item row="5" column="2">
+    <widget class="QComboBox" name="comboValue_Y4">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Y 5</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QComboBox" name="comboInstr_Y5"/>
+   </item>
+   <item row="6" column="2">
+    <widget class="QComboBox" name="comboValue_Y5">
+     <property name="maxVisibleItems">
+      <number>100</number>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>comboInstr_X</tabstop>
+  <tabstop>comboValue_X</tabstop>
+  <tabstop>comboInstr_Y1</tabstop>
+  <tabstop>comboValue_Y1</tabstop>
+  <tabstop>comboInstr_Y2</tabstop>
+  <tabstop>comboValue_Y2</tabstop>
+  <tabstop>comboInstr_Y3</tabstop>
+  <tabstop>comboValue_Y3</tabstop>
+  <tabstop>comboInstr_Y4</tabstop>
+  <tabstop>comboValue_Y4</tabstop>
+  <tabstop>comboInstr_Y5</tabstop>
+  <tabstop>comboValue_Y5</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

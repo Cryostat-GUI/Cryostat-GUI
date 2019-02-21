@@ -63,6 +63,7 @@ from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
 from util import noKeyError
+from util import Window_plotting_specification
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -244,23 +245,23 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def show_data(self):  # a lot of work to do
         """connect GUI signals for plotting, setting up some of the needs of plotting"""
-        self.action_plotDatabase.triggered.connect(
-            self.show_dataplotdb_configuration)
+        # self.action_plotDatabase.triggered.connect(
+        #     self.show_dataplotdb_configuration)
         self.action_plotLive.triggered.connect(
-            self.show_dataplotlive_configuration)
+            self.show_dataplotlive_configuration_new)
         self.windows_plotting = []
         self.plotting_window_count = 0
 
         #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
         # x,y1.. is for tablenames, x,y1.._plot is for column names in the
-        # tables respectively
-        self.plotting_instrument_for_x = 0
-        self.plotting_instrument_for_y1 = 0
-        self.plotting_instrument_for_y2 = 0
+        # # tables respectively
+        # self.plotting_instrument_for_x = 0
+        # self.plotting_instrument_for_y1 = 0
+        # self.plotting_instrument_for_y2 = 0
 
-        self.plotting_comboValue_Axis_X_plot = 0
-        self.plotting_comboValue_Axis_Y1_plot = 0
-        self.plotting_data_y2_plot = 0
+        # self.plotting_comboValue_Axis_X_plot = 0
+        # self.plotting_comboValue_Axis_Y1_plot = 0
+        # self.plotting_data_y2_plot = 0
 
     def show_dataplotdb_configuration(self):
         self.dataplot_db = Window_ui(
@@ -369,6 +370,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataplot_live_conf.buttonCancel.clicked.connect(
             lambda: self.dataplot_live_conf.close())
 
+    def show_dataplotlive_configuration_new(self):
+
+        self.window_configuration = Window_plotting_specification(self)
+        self.window_configuration.sig_error.connect(self.show_error_general)
+
+
     def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
         """
            filling the Value column combobox in case the corresponding
@@ -410,7 +417,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def plotting_selection_value(self, GUI_instr, GUI_value, livevsdb, axis, dataplot):
         value_name = GUI_value.currentText()
         instrument_name = GUI_instr.currentText()
-        dataplot.axes[axis] = value_name
+        dataplot.axes[axis] = '{}: {}'.format(instrument_name, value_name)
 
         if livevsdb == 'LIVE':
             with self.dataLock_live:
