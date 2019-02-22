@@ -619,10 +619,10 @@ class Window_plotting_m(QtWidgets.QDialog, Window_ui):
         try:
             with self.lock:
                 for axindex, entry_data in enumerate(self.data):
-                    for cindex, curve in entry_data:
-                        c = shaping_m(entry_data)
-                        self.lines[axindes][cindex].set_xdata(c[0])
-                        self.lines[axindes][cindex].set_ydata(c[1])
+                    for cindex, curve in enumerate(entry_data):
+                        c = shaping_m(curve)
+                        self.lines[axindex][cindex].set_xdata(c[0])
+                        self.lines[axindex][cindex].set_ydata(c[1])
                     self.axes[axindex].relim()
                     self.axes[axindex].autoscale_view()
             self.canvas.draw()
@@ -680,17 +680,17 @@ class Window_plotting_specification(Window_ui):
             lambda: self.close())
 
     def store_filenamevalue(self, value):
-        self.store_filenamevalue = value
+        self.filenamevalue = value
 
     def saving(self):
-        with open('.\\configurations\\plotting_presets\\{}.json'.format(self.store_filenamevalue), 'w') as output:
+        with open('.\\configurations\\plotting_presets\\{}.json'.format(self.filenamevalue), 'w') as output:
             output.write(json.dumps(self.selection))
 
     def restoring_preset(self, filename):
         with open(filename) as f:
             self.selection = json.load(f)
 
-        for ct, entry in enumerate(self.selection):
+        for plot_entry in self.selection:
             self.adding_selectiontab()
             tabw = self.tablist[-1]
 
@@ -699,15 +699,19 @@ class Window_plotting_specification(Window_ui):
             valueGUI = [tabw.comboValue_X, tabw.comboValue_Y1, tabw.comboValue_Y2,
                         tabw.comboValue_Y3, tabw.comboValue_Y4, tabw.comboInstr_Y5]
 
-            for inst, value, name in zip(instrumentGUI, valueGUI, self.axesnames):
-                index1 = inst.findText(self.selection[ct][name][
-                                       'instrument'], QtCore.Qt.MatchFixedString)
-                index2 = value.findText(self.selection[ct][name][
-                                        'value'], QtCore.Qt.MatchFixedString)
-                if index1 >= 0:
-                    inst.setCurrentIndex(index1)
-                if index2 >= 0:
-                    value.setCurrentIndex(index2)
+            for inst, value, axname in zip(instrumentGUI, valueGUI, self.axesnames):
+                try:
+                    index1 = inst.findText(
+                        plot_entry[axname]['instrument'], QtCore.Qt.MatchFixedString)
+                    index2 = value.findText(
+                        plot_entry[axname]['value'], QtCore.Qt.MatchFixedString)
+                    if index1 >= 0:
+                        inst.setCurrentIndex(index1)
+                    if index2 >= 0:
+                        value.setCurrentIndex(index2)
+                except KeyError:
+                    # this axis was not chosen, it may seem
+                    pass
 
     def adding_selectiontab(self):
         tabw = QtWidgets.QWidget()
@@ -839,19 +843,19 @@ class Window_plotting_specification(Window_ui):
         labels_x = []
         labels_y = []
         labels_legend = []
-        for tabindex, entry in enumerate(self.selection):
+        for plot_entry in self.selection:
             try:
                 with self.dataLock_live:
-                    x = self.mainthread.data_live[self.selection[tabindex]['X'][
-                        'instrument']][self.selection[tabindex]['X']['value']]
+                    x = self.mainthread.data_live[plot_entry['X'][
+                        'instrument']][plot_entry['X']['value']]
                     y = []
                     labels_l = []
                     for ax in [name for name in self.axesnames if name != 'X']:
-                        if bool(self.selection[tabindex][ax]['instrument']) and bool(self.selection[tabindex][ax]['value']):
-                            y.append(self.mainthread.data_live[self.selection[tabindex][ax][
-                                     'instrument']][self.selection[tabindex][ax]['value']])
-                            labels_l.append('{}: {}'.format(self.selection[tabindex][ax][
-                                            'instrument'], self.selection[tabindex][ax]['value']))
+                        if bool(plot_entry[ax]['instrument']) and bool(plot_entry[ax]['value']):
+                            y.append(self.mainthread.data_live[plot_entry[ax][
+                                     'instrument']][plot_entry[ax]['value']])
+                            labels_l.append('{}: {}'.format(
+                                plot_entry[ax]['instrument'], plot_entry[ax]['value']))
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
             except KeyError:
@@ -863,8 +867,8 @@ class Window_plotting_specification(Window_ui):
             # except KeyError:
             labels_y.append('')
 
-            labels_x.append('{}: {}'.format(self.selection[tabindex]['X'][
-                            'instrument'], self.selection[tabindex]['X']['value']))
+            labels_x.append('{}: {}'.format(
+                plot_entry['X']['instrument'], plot_entry['X']['value']))
             labels_legend.append(labels_l)
 
             data.append([[x, yn] for yn in y])
