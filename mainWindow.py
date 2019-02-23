@@ -222,6 +222,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             window.show()
             window.raise_()
+            # window.activateWindow()
             # print('showing:', window)
         else:
             window.close()
@@ -231,7 +232,6 @@ class mainWindow(QtWidgets.QMainWindow):
             ui_file='.\\configurations\\settings_global.ui')
         self.actionSettings.triggered.connect(
             lambda: self.show_window(self.window_settings, True))
-
 
     # ------- plotting
     def connectdb(self, dbname):
@@ -247,8 +247,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """connect GUI signals for plotting, setting up some of the needs of plotting"""
         # self.action_plotDatabase.triggered.connect(
         #     self.show_dataplotdb_configuration)
-        self.action_plotLive.triggered.connect(
+        self.action_plotLiveMultiple.triggered.connect(
             self.show_dataplotlive_configuration_new)
+        self.action_plotLive.triggered.connect(
+            self.show_dataplotlive_configuration)
         self.windows_plotting = []
         self.plotting_window_count = 0
 
@@ -374,7 +376,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_configuration = Window_plotting_specification(self)
         self.window_configuration.sig_error.connect(self.show_error_general)
-
 
     def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
         """
@@ -915,7 +916,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_IPS.clicked[
             'bool'].connect(self.run_IPS)
-        self.action_show_IPS.triggered['bool'].connect(lambda value: self.show_window(self.IPS_window, value))
+        self.action_show_IPS.triggered['bool'].connect(
+            lambda value: self.show_window(self.IPS_window, value))
 
         self.IPS_window.labelStatusMagnet.setText('')
         self.IPS_window.labelStatusCurrent.setText('')
