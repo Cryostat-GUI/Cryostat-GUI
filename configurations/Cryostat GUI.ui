@@ -63,6 +63,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionSystems_Online"/>
+    <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="action_show_Info_Dock"/>
     <addaction name="action_show_Errors"/>
@@ -620,6 +621,14 @@
    </property>
    <property name="text">
     <string>Systems Online</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Global Settings</string>
    </property>
   </action>
  </widget>
