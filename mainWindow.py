@@ -211,6 +211,12 @@ class mainWindow(QtWidgets.QMainWindow):
             del self.threads[threadname]
 
     def show_error_general(self, text):
+        """generic method to show errors
+
+        error handling and showing different types of errors differently could
+        be handled here. For now, it just shows all errors in the repsective
+        window
+        """
         self.show_error_textBrowser(text)
 
     def show_error_textBrowser(self, text):
@@ -222,6 +228,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Errors_window.activateWindow()
 
     def show_window(self, window, boolean):
+        """show or close a window"""
         if boolean:
             window.show()
             window.raise_()
@@ -231,6 +238,7 @@ class mainWindow(QtWidgets.QMainWindow):
             window.close()
 
     def initialize_settings(self):
+        """initialise the settings window"""
         self.window_settings = Window_ui(
             ui_file='.\\configurations\\settings_global.ui')
         self.actionSettings.triggered.connect(

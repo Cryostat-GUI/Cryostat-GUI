@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Provides support for the Keithley 6221 constant current supply
 """
@@ -7,7 +5,7 @@ Provides support for the Keithley 6221 constant current supply
 # IMPORTS #####################################################################
 
 # import threading
-import visa
+# import visa
 
 import logging
 

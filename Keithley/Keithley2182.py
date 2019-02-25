@@ -4,7 +4,7 @@ Driver for the Keithley 2182 Nano-Voltmeter
 """
 
 # import threading
-import visa
+# import visa
 
 import logging
 

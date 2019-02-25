@@ -2,7 +2,7 @@
 
 This module requires a National Instruments VISA driver, which can be found at
 https://www.ni.com/visa/
-It also requires an Agilent VISA driver - if there is need for either one 
+It also requires an Agilent VISA driver - if there is need for either one
 (at least one VISA driver is required, may depend on your instrumentation)
 
 Attributes:
@@ -15,14 +15,11 @@ Classes:
             over a serial connection
 
         AbstractGPIBDeviceDriver: used for interactions with a GPIB connection
-            methods:
-                query() - send a command and wait for an answer
 
-                go() - send a command, not waiting for answers
 Author(s):
     bklebel (Benjamin Klebel)
 """
-import sys
+# import sys
 import threading
 import logging
 import time
@@ -41,44 +38,42 @@ try:
     ni = True
 except OSError:
     logger.exception(
-        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+        "\n\tCould not find the NI VISA library. Is the National Instruments VISA driver installed?\n\n")
 try:
     KEYSIGHT_RESOURCE_MANAGER = visa.ResourceManager(
         'C:\\Windows\\System32\\agvisa32.dll')
     keysight = True
 except OSError:
     logger.exception(
-        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+        "\n\tCould not find the keysight VISA library. Is it installed?\n\n")
 
-print(NI_RESOURCE_MANAGER)
+# print(NI_RESOURCE_MANAGER)
 
-class AbstractSerialDeviceDriver(object):
-    """Abstract Device driver class"""
-    timeouterror = VisaIOError(-1073807339)
+if not (ni or keysight):
+    logger.exception('I could not find any VISA library! \n\n')
 
-    def __init__(self, InstrumentAddress, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, nivsag='ni', **kwargs):
-        super().__init__(**kwargs)
-        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip(
-        ) == 'ag' else NI_RESOURCE_MANAGER
-        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
-        # self._visa_resource.query_delay = 0.
-        self._visa_resource.timeout = timeout
-        self._visa_resource.read_termination = read_termination
-        self._visa_resource.write_termination = write_termination
-        self._visa_resource.baud_rate = baud_rate
-        self._visa_resource.data_bits = data_bits
-        self._visa_resource.stop_bits = vconst.StopBits.two
-        self._visa_resource.parity = vconst.Parity.none
+
+class AbstractVISADriver(object):
+    """Abstract VISA Device Driver
+
+    visalib: 'ni' or 'ks' (national instruments/keysight)
+    """
+
+    def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
+        super(AbstractVISADriver, self).__init__(**kwargs)
+
         self._comLock = threading.Lock()
-        self.delay = 0.1
-        self.delay_force = 0.1
+        self.delay = 0
+        self.delay_force = 0
 
-    # def res_open(self):
-    #     self._visa_resource = resource_manager.open_resource(InstrumentAddress)
-    #     # self._visa_resource.query_delay = 0.
-    #     self._visa_resource.timeout = 500
-    #     self._visa_resource.read_termination = '\r'
-    #     self._visa_resource.write_termination = '\r'
+        if visalib.strip() == 'ni' and not ni:
+            raise NameError('The VISA library was not found!')
+        if visalib.strip() == 'ks' and not keysight:
+            raise NameError('The Keysight VISA library was not found!')
+
+        resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
+        ) == 'ks' else NI_RESOURCE_MANAGER
+        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
 
     def res_close(self):
         self._visa_resource.close()
@@ -97,9 +92,10 @@ class AbstractSerialDeviceDriver(object):
             time.sleep(self.delay_force)
 
     def query(self, command):
-        """
-            low-level communication wrapper for visa.query with Communication Lock,
-            to prevent multiple writes to serial adapter
+        """Sends commands as strings to the device and receives strings from the device
+
+        low-level communication wrapper for visa.query with Communication Lock,
+        to prevent multiple writes to serial adapter
         """
         with self._comLock:
             answer = self._visa_resource.query(command)
@@ -111,6 +107,27 @@ class AbstractSerialDeviceDriver(object):
             answer = self._visa_resource.read()
             # time.sleep(self.delay)
         return answer
+
+
+class AbstractSerialDeviceDriver(AbstractVISADriver):
+    """Abstract Device driver class
+    """
+    timeouterror = VisaIOError(-1073807339)
+
+    def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, **kwargs):
+        super().__init__(**kwargs)
+
+        # self._visa_resource.query_delay = 0.
+        self._visa_resource.timeout = timeout
+        self._visa_resource.read_termination = read_termination
+        self._visa_resource.write_termination = write_termination
+        self._visa_resource.baud_rate = baud_rate
+        self._visa_resource.data_bits = data_bits
+        self._visa_resource.stop_bits = vconst.StopBits.two
+        self._visa_resource.parity = vconst.Parity.none
+
+        self.delay = 0.1
+        self.delay_force = 0.1
 
     def clear_buffers(self):
         # self._visa_resource.timeout = 5
@@ -125,27 +142,11 @@ class AbstractSerialDeviceDriver(object):
         # self._visa_resource.timeout = 500
 
 
-# class AbstractSerialDeviceDriver(AbstractSerialDriver):
-
-#     def __init__(self, **kwargs):
-#         try:
-#             super().__init__(**kwargs)
-#         except NameError:
-#             print('NameError')
-
-
-class AbstractGPIBDeviceDriver(object):
+class AbstractGPIBDeviceDriver(AbstractVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, InstrumentAddress, nivsag='ag', **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.arg = arg
-        resource_manager = KEYSIGHT_RESOURCE_MANAGER if nivsag.strip(
-        ) == 'ag' else NI_RESOURCE_MANAGER
-        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
-        # self._visa_resource.read_termination = '\r'
-        self._comLock = threading.Lock()
-        self._device = self._visa_resource
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
@@ -155,9 +156,7 @@ class AbstractGPIBDeviceDriver(object):
 
         :return: answer from the device
         """
-        with self._comLock:
-            received = self._device.query(command)
-        return received.strip().split(',')
+        return super().query(command).strip().split(',')
 
     def go(self, command):
         """Sends commands as strings to the device
@@ -166,5 +165,4 @@ class AbstractGPIBDeviceDriver(object):
         :type command: str
 
         """
-        with self._comLock:
-            self._device.write(command)
+        super().write(command)
