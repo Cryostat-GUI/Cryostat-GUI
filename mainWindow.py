@@ -225,6 +225,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             window.show()
             window.raise_()
+            # window.activateWindow()
             # print('showing:', window)
         else:
             window.close()
@@ -249,8 +250,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """connect GUI signals for plotting, setting up some of the needs of plotting"""
         # self.action_plotDatabase.triggered.connect(
         #     self.show_dataplotdb_configuration)
-        self.action_plotLive.triggered.connect(
+        self.action_plotLiveMultiple.triggered.connect(
             self.show_dataplotlive_configuration_new)
+        self.action_plotLive.triggered.connect(
+            self.show_dataplotlive_configuration)
         self.windows_plotting = []
         self.plotting_window_count = 0
 
