@@ -217,6 +217,9 @@ class mainWindow(QtWidgets.QMainWindow):
         """ append error to Error window"""
         self.Errors_window.textErrors.append(
             '{} - {}'.format(convert_time(time.time()), text))
+        self.Errors_window.show()
+        self.Errors_window.raise_()
+        self.Errors_window.activateWindow()
 
     def show_window(self, window, boolean):
         if boolean:
@@ -231,7 +234,6 @@ class mainWindow(QtWidgets.QMainWindow):
             ui_file='.\\configurations\\settings_global.ui')
         self.actionSettings.triggered.connect(
             lambda: self.show_window(self.window_settings, True))
-
 
     # ------- plotting
     def connectdb(self, dbname):
@@ -374,7 +376,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_configuration = Window_plotting_specification(self)
         self.window_configuration.sig_error.connect(self.show_error_general)
-
 
     def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
         """
@@ -723,10 +724,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 # thread.start()
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
-            except VisaIOError as e:
+            except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
-                # print(e) # TODO: open window displaying the error message
 
         else:
             # possibly implement putting the instrument back to local operation
@@ -861,7 +861,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 self.window_SystemsOnline.checkaction_run_ILM.setChecked(True)
 
-            except VisaIOError as e:
+            except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_ILM.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
@@ -915,7 +915,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_SystemsOnline.checkaction_run_IPS.clicked[
             'bool'].connect(self.run_IPS)
-        self.action_show_IPS.triggered['bool'].connect(lambda value: self.show_window(self.IPS_window, value))
+        self.action_show_IPS.triggered['bool'].connect(
+            lambda value: self.show_window(self.IPS_window, value))
 
         self.IPS_window.labelStatusMagnet.setText('')
         self.IPS_window.labelStatusCurrent.setText('')
@@ -964,7 +965,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 self.window_SystemsOnline.checkaction_run_IPS.setChecked(True)
 
-            except VisaIOError as e:
+            except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
@@ -1124,10 +1125,11 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                     True)
 
-            except VisaIOError as e:
+            except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                     False)
                 self.show_error_general('running: {}'.format(e))
+
         else:
             self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                 False)
@@ -1409,7 +1411,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 GUI_menu_action.setChecked(True)
 
-            except VisaIOError as e:
+            except (VisaIOError, NameError) as e:
                 GUI_menu_action.setChecked(False)
                 self.show_error_general('running: {}'.format(e))
         else:
@@ -1747,6 +1749,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # self.action_run_Errors.triggered['bool'].connect(self.run_ITC)
         self.action_show_Errors.triggered['bool'].connect(self.show_Errors)
+        # self.show_Errors(True)
+        # self.Errors_window.showMinimized()
 
     @pyqtSlot(bool)
     def show_Errors(self, boolean):

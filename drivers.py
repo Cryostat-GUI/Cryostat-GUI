@@ -22,6 +22,7 @@ Classes:
 Author(s):
     bklebel (Benjamin Klebel)
 """
+import sys
 import threading
 import logging
 import time
@@ -32,15 +33,24 @@ from visa import constants as vconst
 # create a logger object for this module
 logger = logging.getLogger(__name__)
 
+keysight = False
+ni = False
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
     NI_RESOURCE_MANAGER = visa.ResourceManager()
-    AGILENT_RESOURCE_MANAGER = visa.ResourceManager(
+    ni = True
+except OSError:
+    logger.exception(
+        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+try:
+    KEYSIGHT_RESOURCE_MANAGER = visa.ResourceManager(
         'C:\\Windows\\System32\\agvisa32.dll')
+    keysight = True
 except OSError:
     logger.exception(
         "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
+print(NI_RESOURCE_MANAGER)
 
 class AbstractSerialDeviceDriver(object):
     """Abstract Device driver class"""
@@ -115,13 +125,22 @@ class AbstractSerialDeviceDriver(object):
         # self._visa_resource.timeout = 500
 
 
+# class AbstractSerialDeviceDriver(AbstractSerialDriver):
+
+#     def __init__(self, **kwargs):
+#         try:
+#             super().__init__(**kwargs)
+#         except NameError:
+#             print('NameError')
+
+
 class AbstractGPIBDeviceDriver(object):
     """docstring for Instrument_GPIB"""
 
     def __init__(self, InstrumentAddress, nivsag='ag', **kwargs):
         super().__init__(**kwargs)
         # self.arg = arg
-        resource_manager = AGILENT_RESOURCE_MANAGER if nivsag.strip(
+        resource_manager = KEYSIGHT_RESOURCE_MANAGER if nivsag.strip(
         ) == 'ag' else NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
         # self._visa_resource.read_termination = '\r'

@@ -805,7 +805,8 @@ class Window_plotting_specification(Window_ui):
            thus:
                 - check for the chosen instrument,
                 - get the data for the new combobox
-                - chose the action
+                - connect the corresponding second combobox action with
+                    its choosing function
         """
 
         instrument_name = GUI_instr.currentText()
@@ -829,16 +830,17 @@ class Window_plotting_specification(Window_ui):
                                                               tab=tab))
 
     def plot_sel_val(self, GUI_instr, GUI_value, livevsdb, axis, tab):
+        """get instrument and value of the chosen axis, and store it"""
         value_name = GUI_value.currentText()
         instrument_name = GUI_instr.currentText()
         self.selection[tab.index][axis]['instrument'] = instrument_name
         self.selection[tab.index][axis]['value'] = value_name
 
-        self.data['axes'][tab.index][axis] = '{}: {}'.format(
-            instrument_name, value_name)
+        # self.data['axes'][tab.index][axis] = '{}: {}'.format(
+        #     instrument_name, value_name)
 
     def displaying(self):
-
+        """retrieve all the data and plot it"""
         data = []
         labels_x = []
         labels_y = []
@@ -860,7 +862,12 @@ class Window_plotting_specification(Window_ui):
                 # y = [entry_data[key] for key in entry_data if key != 'X']
             except KeyError:
                 self.sig_error.emit(
-                    'Plotting: You certainly did not choose all adjoining axes together, try again!')
+                    'Plotting: Either you did not choose all adjoining axes '
+                    'together (to every instrument you chose also a value to '
+                    'plot), or you used a preset with which you tried to plot '
+                    'values which currently do not exist (possibly instruments'
+                    ' are not connected, or do not send the data you want to '
+                    'see), try again!')
                 return
             # try:
             #     label_y = '{}: {}'.format(self.selection[tabindex]['Y1']['instrument'], self.selection[tabindex]['Y1']['value'])
