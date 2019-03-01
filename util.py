@@ -30,6 +30,9 @@ import inspect
 import time
 import numpy as np
 import json
+import os
+from os import listdir
+from os.path import isfile, join
 
 # from contextlib import suppress
 from copy import deepcopy
@@ -644,19 +647,12 @@ class Window_plotting_specification(Window_ui):
     def __init__(self, mainthread, ui_file='.\\configurations\\Data_display_selection_live_multiple.ui', **kwargs):
         super().__init__(ui_file, **kwargs)
 
-        # initialize some "storage space" for data
-        # self.axes = dict()
-        # self.data = dict()
         self.ui_file_plotselection = '.\\configurations\\Data_display_selection_presetempty.ui'
 
-        # self.data = dict(axes=[], data=[], labels_x=[],
-        # labels_y=[], legend_labels=[])
         self.selection = []
         self.mainthread = mainthread
 
         self.axesnames = ['X', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5']
-        # self.data_live = mainthread.data_live
-        # self.dataLock_live = mainthread.dataLock_live
 
         if not hasattr(mainthread, "data_live"):
             self.sig_error.emit('no live data to plot!')
@@ -672,6 +668,11 @@ class Window_plotting_specification(Window_ui):
 
         self.lineEdit_savingpreset.textEdited.connect(self.store_filenamevalue)
         self.lineEdit_savingpreset.returnPressed.connect(self.saving)
+        self.combo_loadingpreset.activated['QString'].connect(self.restoring_preset)
+
+        path = '.\\configurations\\plotting_presets\\'
+        os.makedirs(path, exist_ok=True)
+        self.presets = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and os.path.splitext(f)[1] == '.json']
 
         self.buttonBox.clicked.connect(self.displaying)
 
@@ -687,7 +688,7 @@ class Window_plotting_specification(Window_ui):
             output.write(json.dumps(self.selection))
 
     def restoring_preset(self, filename):
-        with open(filename) as f:
+        with open(f'.\\configurations\\plotting_presets\\{filename}.json') as f:
             self.selection = json.load(f)
 
         for plot_entry in self.selection:
