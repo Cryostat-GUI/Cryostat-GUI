@@ -535,6 +535,9 @@
    </property>
   </action>
   <action name="action_plotLive">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Live</string>
    </property>
