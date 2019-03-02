@@ -24,7 +24,8 @@ Author(s):
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
 
 import functools
 import inspect
@@ -50,6 +51,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5.uic import loadUi
+from PyQt5.QtWidgets import QSizePolicy
 
 
 def convert_time_date(ts):
@@ -510,7 +512,7 @@ class Window_plotting(QtWidgets.QDialog, Window_ui):
     #     del self
 
 
-class Window_plotting_m(QtWidgets.QDialog, Window_ui):
+class Window_plotting_m(Window_ui):
     """Small window containing a plot, which updates itself regularly"""
     sig_closing = pyqtSignal()
 
@@ -539,16 +541,19 @@ class Window_plotting_m(QtWidgets.QDialog, Window_ui):
         # it takes the `figure` instance as a parameter to __init__
         self.canvas = FigureCanvas(self.fig)
 
+        FigureCanvas.setSizePolicy(self.canvas,
+                                   QSizePolicy.Expanding,
+                                   QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self.canvas)
+
         # this is the Navigation widget
         # it takes the Canvas widget and a parent
-        self.toolbar = NavigationToolbar(self.canvas, self)
+        # self.toolbar = NavigationToolbar(self.canvas, self)
 
-        # Just some button connected to `plot` method
-        # self.button = QtWidgets.QPushButton('Plot')
-        # self.button.clicked.connect(self.plot)
+        # self.setGeometry(100, 100, 800, 600)
 
         # set the layout
-        layout = QtWidgets.QVBoxLayout()
+        layout = QtWidgets.QGridLayout()
         # layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
         # layout.addWidget(self.button)
@@ -589,10 +594,15 @@ class Window_plotting_m(QtWidgets.QDialog, Window_ui):
         if n != len(self.legend):
             raise AssertionError('number of plots and legends mismatches!')
 
-        self.axes = self.fig.subplots(nrows=n, ncols=1)
-        if not isinstance(self.axes, type(np.zeros(1))):
-            self.axes = [self.axes]
+        # self.axes = self.fig.subplots(nrows=n, ncols=1)
+        # if not isinstance(self.axes, type(np.zeros(1))):
+        #     self.axes = [self.axes]
         # self.fig.canvas.set_window_title(self.title)
+
+        self.axes = []
+        self.subplotgrid = gridspec.GridSpec(n, 1)
+        for i in range(n):
+            self.axes.append(self.fig.add_subplot(self.subplotgrid[i]))
 
         with self.lock:
             for ct, entry in enumerate(zip(self.data, self.legend, self.labels_x, self.labels_y)):
@@ -612,7 +622,8 @@ class Window_plotting_m(QtWidgets.QDialog, Window_ui):
                     self.lines[-1].append(self.axes[ct].plot(
                         c1, c2, self.linestyle, label=label)[0])
                 self.axes[ct].legend()
-        plt.tight_layout(w_pad=10, pad=5)
+        # plt.tight_layout(w_pad=10, pad=5)
+        self.subplotgrid.tight_layout(self.fig)
 
         # discards the old graph
 
@@ -636,9 +647,10 @@ class Window_plotting_m(QtWidgets.QDialog, Window_ui):
                         self.lines[axindex][cindex].set_ydata(c2)
                     self.axes[axindex].relim()
                     self.axes[axindex].autoscale_view()
-            self.canvas.draw()
+            self.canvas.draw_idle()
         except ValueError as e_val:
             print('ValueError: ', e_val.args[0])
+        # FigureCanvas.updateGeometry(self.canvas)
 
     def closeEvent(self, event):
         """stop the timer for updating the plot, super to parent class method"""
@@ -678,7 +690,8 @@ class Window_plotting_specification(Window_ui):
 
         self.lineEdit_savingpreset.textEdited.connect(self.store_filenamevalue)
         self.lineEdit_savingpreset.returnPressed.connect(self.saving)
-        self.combo_loadingpreset.activated['QString'].connect(self.restoring_preset)
+        self.combo_loadingpreset.activated[
+            'QString'].connect(self.restoring_preset)
 
         self.parse_presets()
 
@@ -899,7 +912,8 @@ class Window_plotting_specification(Window_ui):
                     x = self.mainthread.data_live[plot_entry['X'][
                         'instrument']][plot_entry['X']['value']]
                 except KeyError:
-                    self.sig_error.emit('Plotting: There was to be an empty plot - I ignored it....')
+                    self.sig_error.emit(
+                        'Plotting: There was to be an empty plot - I ignored it....')
                     continue
                 y = []
                 # print(x)
