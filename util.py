@@ -748,7 +748,8 @@ class Window_plotting_specification(Window_ui):
         '''read in all previously saved presets, add it to the combobox'''
         os.makedirs(self.presets_path, exist_ok=True)
         files = [os.path.splitext(f)[0] for f in os.listdir(
-            self.presets_path) if f.endswith('.json') and os.path.isfile(os.path.join(path, f))]
+            self.presets_path) if f.endswith('.json') and
+            os.path.isfile(os.path.join(self.presets_path, f))]
         self.combo_loadingpreset.addItem('-')
         self.combo_loadingpreset.addItems(files)
 
