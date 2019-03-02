@@ -42,7 +42,7 @@ p, li { white-space: pre-wrap; }
      <property name="title">
       <string>Data Selection</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4">
+     <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,1,0,1">
       <item row="0" column="0">
        <widget class="QPushButton" name="pushAddPlot">
         <property name="text">
@@ -313,11 +313,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
-     <y>403</y>
+     <y>456</y>
     </hint>
     <hint type="destinationlabel">
      <x>422</x>
-     <y>407</y>
+     <y>460</y>
     </hint>
    </hints>
   </connection>
@@ -329,11 +329,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
-     <y>403</y>
+     <y>456</y>
     </hint>
     <hint type="destinationlabel">
      <x>351</x>
-     <y>407</y>
+     <y>460</y>
     </hint>
    </hints>
   </connection>
@@ -345,11 +345,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
-     <y>429</y>
+     <y>482</y>
     </hint>
     <hint type="destinationlabel">
      <x>351</x>
-     <y>433</y>
+     <y>486</y>
     </hint>
    </hints>
   </connection>
@@ -361,11 +361,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
-     <y>429</y>
+     <y>482</y>
     </hint>
     <hint type="destinationlabel">
      <x>422</x>
-     <y>433</y>
+     <y>486</y>
     </hint>
    </hints>
   </connection>
