@@ -33,6 +33,7 @@ import numpy as np
 import json
 import os
 
+
 # from contextlib import suppress
 from copy import deepcopy
 from datetime import datetime
@@ -229,7 +230,8 @@ class loops_off:
 
     def __init__(self, threads):
         self._threads = [threads[thread][0] for thread in threads.keys()
-                         if not isinstance(threads[thread], type(Lock())) and 'control' not in thread]
+                         if not isinstance(threads[thread], type(Lock())) and
+                         'control' not in thread]
         self.lock = threads['Lock']
 
     def __enter__(self, *args, **kwargs):
@@ -653,26 +655,20 @@ class Window_plotting_specification(Window_ui):
     def __init__(self, mainthread, ui_file='.\\configurations\\Data_display_selection_live_multiple.ui', **kwargs):
         super().__init__(ui_file, **kwargs)
 
-        # initialize some "storage space" for data
-        # self.axes = dict()
-        # self.data = dict()
         self.ui_file_plotselection = '.\\configurations\\Data_display_selection_presetempty.ui'
         self.presets_path = './configurations/plotting_presets/'
 
-        # self.data = dict(axes=[], data=[], labels_x=[],
-        # labels_y=[], legend_labels=[])
         self.selection = []
         self.mainthread = mainthread
 
         self.axesnames = ['X', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5']
-        # self.data_live = mainthread.data_live
-        # self.dataLock_live = mainthread.dataLock_live
 
         if not hasattr(mainthread, "data_live"):
             self.sig_error.emit('no live data to plot!')
 
             self.sig_error.emit(
                 'If you want to see live data, start the live logger!')
+            self.close()
             return
         self.show()
 
@@ -682,6 +678,7 @@ class Window_plotting_specification(Window_ui):
 
         self.lineEdit_savingpreset.textEdited.connect(self.store_filenamevalue)
         self.lineEdit_savingpreset.returnPressed.connect(self.saving)
+        self.combo_loadingpreset.activated['QString'].connect(self.restoring_preset)
 
         self.parse_presets()
 
@@ -691,8 +688,7 @@ class Window_plotting_specification(Window_ui):
         self.buttonBox.clicked.connect(self.displaying)
 
         self.sig_success.connect(self.close)
-        self.buttonCancel.clicked.connect(
-            lambda: self.close())
+        self.buttonCancel.clicked.connect(self.close)
 
     def store_filenamevalue(self, value):
         self.filenamevalue = value
@@ -702,7 +698,7 @@ class Window_plotting_specification(Window_ui):
             output.write(json.dumps(self.selection))
 
     def restoring_preset(self, filename):
-
+        '''restore a preset from a json file'''
         if filename == '-':
             return
         filename = os.path.join(self.presets_path, str(filename) + '.json')
@@ -713,14 +709,14 @@ class Window_plotting_specification(Window_ui):
         except FileNotFoundError:
             self.sig_error.emit(f'Plotting: The preset file you wanted ({filename}) was not found!')
             return
-        print(len(self.selection_int))
+        # print(len(self.selection_int))
         self.tablist = []
         self.tabW_selection.clear()
 
         for plot_entry in self.selection_int:
-            print('adding a tab')
+            # print('adding a tab')
             self.adding_selectiontab()
-            print('added a tab')
+            # print('added a tab')
             tabw = self.tablist[-1]
 
             instrumentGUI = [tabw.comboInstr_X, tabw.comboInstr_Y1, tabw.comboInstr_Y2,
@@ -744,18 +740,24 @@ class Window_plotting_specification(Window_ui):
                     pass
         self.selection = deepcopy(self.selection_int)
 
-    def function(self, val):
-        pass
-        print('called with ', val)
+    # def function(self, val):
+    #     pass
+    #     print('called with ', val)
 
     def parse_presets(self):
         '''read in all previously saved presets, add it to the combobox'''
+        os.makedirs(self.presets_path, exist_ok=True)
         files = [os.path.splitext(f)[0] for f in os.listdir(
-            self.presets_path) if f.endswith('.json')]
+            self.presets_path) if f.endswith('.json') and os.path.isfile(os.path.join(path, f))]
         self.combo_loadingpreset.addItem('-')
         self.combo_loadingpreset.addItems(files)
 
     def adding_selectiontab(self):
+        '''add a Tab for additional plot selections
+
+        Create a widget, load the selection Ui, add it to the WTabWidget,
+        prepare everything for the GUI elements to work
+        '''
         tabw = QtWidgets.QWidget()
         loadUi(self.ui_file_plotselection, tabw)
         tabw.index = len(self.tablist)
