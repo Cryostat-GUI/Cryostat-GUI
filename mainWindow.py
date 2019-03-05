@@ -225,7 +225,7 @@ class mainWindow(QtWidgets.QMainWindow):
             '{} - {}'.format(convert_time(time.time()), text))
         self.Errors_window.show()
         self.Errors_window.raise_()
-        self.Errors_window.activateWindow()
+        # self.Errors_window.activateWindow()
 
     def show_window(self, window, boolean):
         """show or close a window"""
