@@ -704,9 +704,11 @@ class Window_plotting_specification(Window_ui):
         self.buttonCancel.clicked.connect(self.close)
 
     def store_filenamevalue(self, value):
+        '''store a filename for future use when saving a preset'''
         self.filenamevalue = value
 
     def saving(self):
+        '''save the current configuration (self.selection) as a preset'''
         with open('.\\configurations\\plotting_presets\\{}.json'.format(self.filenamevalue), 'w') as output:
             output.write(json.dumps(self.selection))
 
