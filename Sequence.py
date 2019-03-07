@@ -17,6 +17,7 @@ from PyQt5.QtCore import QTimer
 # import re
 import time
 from copy import deepcopy
+import pandas as pd
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 from itertools import combinations_with_replacement as comb
@@ -206,13 +207,17 @@ def measure_resistance_multichannel(threads,
                         for key, value in zip(
                                 currents.keys(), currents.values())}
 
+    df = pd.DataFrame.from_dict(data)
     data['datafile'] = kwargs['datafile']
     timedict = {'timeseconds': time.time(),
                 'ReadableTime': convert_time(time.time()),
                 'SearchableTime': convert_time_searchable(time.time())}
     data.update(timedict)
+
+    data['df'] = df
     # print(data)
     # for x in data: print(x)
+    # df = pd.DataFrame.from_dict(data)
     return data
 
 
