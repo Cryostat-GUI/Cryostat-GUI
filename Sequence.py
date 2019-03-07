@@ -130,8 +130,8 @@ def measure_resistance_multichannel(threads,
                     before and after measurement [K]
             T_std_K : dict of stds of temperature readings
                     before and after measurement [K]
-            R_mean_Ohm : dict of means of all n_measurements resistance measurements [Ohm]
-            R_std_Ohm : dict of stds of all n_measurements resistance measurements [Ohm]
+            resistances, voltages, currents: 
+                dicts with corresponding values for all measurement channels
             timeseconds: pythons time.time()
             ReadableTime: Time in %Y-%m-%d %H:%M:%S
             SearchableTime: Time in %Y%m%d%H%M%S
@@ -145,13 +145,6 @@ def measure_resistance_multichannel(threads,
         if c[0] != c[1]:
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
-
-    # print('test')
-    # for current_base in iv_characteristic:
-    #     for currentfactor in [-1,  1]:
-    #         currentfactor *= current_base
-    #         print(currentfactor)
-
     data = dict()
     resistances = {key: dict(coeff=0, residuals=0, nonohmic=0)
                    for key in threadnames_RES}
@@ -168,8 +161,7 @@ def measure_resistance_multichannel(threads,
             # threshold_coefficients = 1e4
 
             threads[name_curr][0].enable()
-            # for idx in range(n_measurements):
-            # as first time, apply positive current --> pos voltage
+
             for current_base in iv_characteristic:
                 for currentfactor in [-1,  1]:
                     current = exc_curr * currentfactor * current_base
@@ -185,8 +177,8 @@ def measure_resistance_multichannel(threads,
                                name_volt], deg=1, full=True)
             resistances[name_volt]['coeff'] = c[1]
             resistances[name_volt]['residuals'] = stats[0][0]
-            c_wrong = polyfit(currents[name_curr], voltages[
-                              name_volt], deg=4)
+            # c_wrong = polyfit(currents[name_curr], voltages[
+            #                   name_volt], deg=4)
             # print(stats[0], c_wrong)
 
             if stats[0] > threshold_residuals:
@@ -204,19 +196,15 @@ def measure_resistance_multichannel(threads,
     data['T_std_K'] = {
         key + '_std': np.std(temps[key], ddof=1) for key in temps}
 
-    data['resistances'] = {key.strip('control_'): value for key, value in zip(
-        resistances.keys(), resistances.values())}
-    data['voltages'] = {key.strip('control_'): value for key, value in zip(
-        voltages.keys(), voltages.values())}
-    data['currents'] = {key.strip('control_'): value for key, value in zip(
-        currents.keys(), currents.values())}
-    # data['R_mean_Ohm'] = {key.strip('control_') + '_mean': np.mean(resistances[key])
-    #                       for key in resistances}
-    # data['R_std_Ohm'] = {key.strip('control_') + '_std': np.std(resistances[key], ddof=1)
-    #                      for key in resistances}
-
-    # for key in resistances:
-    #     print(resistances[key])
+    data['resistances'] = {key.strip('control_'): value
+                           for key, value in zip(
+                                resistances.keys(), resistances.values())}
+    data['voltages'] = {key.strip('control_'): value
+                        for key, value in zip(
+                                voltages.keys(), voltages.values())}
+    data['currents'] = {key.strip('control_'): value
+                        for key, value in zip(
+                                currents.keys(), currents.values())}
 
     data['datafile'] = kwargs['datafile']
     timedict = {'timeseconds': time.time(),
@@ -269,7 +257,8 @@ def measure_resistance_multichannel(threads,
 #                 Field_target=self.temp_setpoint, bools=entry['Field'])
 #             time.sleep(entry['Delay'])
 
-#     def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode, ApproachMode, commands, **kwargs):
+# def scan_T_execute(self, start, end, Nsteps, SweepRate, SpacingCode,
+# ApproachMode, commands, **kwargs):
 
 #         temperatures, stepsize = ScanningN(start=start,
 #                                            end=end,
