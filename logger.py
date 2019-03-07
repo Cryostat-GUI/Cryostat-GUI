@@ -222,9 +222,8 @@ class main_Logger(AbstractLoopThread):
         self.local_list = []
 
     def running(self):
-
+        '''perpetual logging function, which is asking for logging data'''
         try:
-            # print('logging running')
             if self.configuration_done:
                 self.sig_log.emit()
                 if not self.conf_done_layer2:
@@ -243,7 +242,6 @@ class main_Logger(AbstractLoopThread):
                 so that the configuring thread will be quit.
 
         """
-        # print('updating conf:', conf)
         self.conf = conf
         self.interval = self.conf['general']['interval']
         self.configuration_done = True
@@ -255,7 +253,6 @@ class main_Logger(AbstractLoopThread):
             self.conn = sqlite3.connect(dbname)
             return True
         except sqlite3.connect.Error as err:
-            # raise AssertionError("Logger: Couldn't establish connection {}".format(err))
             self.sig_assertion.emit(
                 'Logger: Couldn\'t establish connection: {}'.format(err))
             return False
@@ -274,8 +271,6 @@ class main_Logger(AbstractLoopThread):
             # print(err)
             pass
 
-        # We should try to find a nicer a solution without try and except
-        # #try:
         for key in dictname.keys():
             try:
                 sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(
@@ -285,7 +280,6 @@ class main_Logger(AbstractLoopThread):
             except OperationalError as err:
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
-        #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
     def updatetable(self, tablename, dictname):
         """insert a new row into the database table with all data
@@ -304,23 +298,10 @@ class main_Logger(AbstractLoopThread):
             tablename, 'timeseconds', dictname['timeseconds'])
         self.mycursor.execute(sql)
 
-        # for key in dictname.keys():
-        #     sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
-        #                                                 column=key,
-        #                                                 value=SQLFormatting(dictname[key]),
-        #                                                 sec='''timeseconds''',
-        #                                                 sec_now=dictname['timeseconds'])
-        #     self.mycursor.execute(sql)
-        # print('vor testing')
-
-        # print('nach testing')
         try:
             for key in dictname:
-                # print(key, 'key')
                 var, bools = testing_NaN(dictname[key])
-                # print(var, bools, type(var))
                 if not bools:
-                    # print('ich arbeite')
                     sql = """UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                                                                  column=key,
                                                                                                  value=SQLFormatting(
@@ -422,13 +403,6 @@ class main_Logger(AbstractLoopThread):
                  'Keithley6220_1',
                  'Keithley6220_2']
 
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time())}
-
-        # for name in names:
-        #     if name in data:
-        #         data[name].update(timedict)
-
         self.connected = self.connectdb(
             self.conf['general']['logfile_location'])
         if not self.connected:
@@ -469,20 +443,16 @@ class live_Logger(AbstractLoopThread):
         self.dataLock = mainthread.dataLock
         self.dataLock_live = mainthread.dataLock_live
 
-        # self.time_names = ['logging_timeseconds', 'timeseconds',
-        # 'logging_ReadableTime', 'ReadableTime',
-        # 'logging_SearchableTime', 'SearchableTime']
         self.calculations = {
-                             'ar_mean': lambda time, value: np.nanmean(value),
-                             # 'stddev': lambda time, value: np.nanstd(value),
-                             # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
-                             # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
-                             # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
-                             # 'test': lambda time, value: print(time),
-                             # still need to convert to minutes
-                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
-                             # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
-                             }
+            'ar_mean': lambda time, value: np.nanmean(value),
+            # 'stddev': lambda time, value: np.nanstd(value),
+            # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+            # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+            # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+            # 'test': lambda time, value: print(time),
+            'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
+            # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
+        }
         self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
                        # minutes,
                        'slope_rel': lambda value, mean: value[0][1] / mean * 60,
@@ -494,10 +464,6 @@ class live_Logger(AbstractLoopThread):
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
-
-        # buggy because it will erase all previous data!
-
-        # QTimer.singleShot(*1e3, self.worker)
 
     @pyqtSlot()  # int
     def work(self):
@@ -558,22 +524,15 @@ class live_Logger(AbstractLoopThread):
                                 instr]['logging_timeseconds']]
                         else:
                             times = [0]
-                    # print('first time')
                 for instr in self.data_live:
-                    # print('before ', len(times), len(self.data_live[instr]['logging_timeseconds']))
                     for varkey in self.data_live[instr]:
-                        # if 'calc' not in varkey:
-                        # print(instr, varkey)
                         for calc in self.calculations:
-                            # print(varkey)
                             if all([x not in varkey for x in self.noCalc]):
-                                # print(varkey, calc)
                                 if self.time_init:
                                     self.calculations_perform(
                                         instr, varkey, calc, times)
                         if self.count > self.length_list:
                             self.counting = False
-                            # print('pop at general ', instr, varkey)
                             self.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
@@ -581,7 +540,7 @@ class live_Logger(AbstractLoopThread):
         except KeyError as key:
             self.sig_assertion.emit("live logger" + key.args[0])
         self.time_init = True
-        if self.counting == True:
+        if self.counting:
             self.count += 1
 
     def calculations_perform(self, instr, varkey, calc, times):
@@ -591,22 +550,16 @@ class live_Logger(AbstractLoopThread):
             return: None
         """
         if calc == 'slope':
-            # print('fitting', instr, varkey)
-            # print(self.data_live[instr][varkey])
             fit = self.calculations[calc](times, self.data_live[instr][varkey])
             for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
                     fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
         elif calc == 'slope_of_mean':
             times_spec = deepcopy(times)
-            # if self.counting:
-            # print('cutting the time')
             while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
                 times_spec.pop(0)
-            # print(len(times_spec), len(self.data_live[instr][
-                # '{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
-            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
-                self.calculations[calc](times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
+                times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
         else:
             try:
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
@@ -618,10 +571,6 @@ class live_Logger(AbstractLoopThread):
                 pass
             except ValueError as e_val:
                 raise AssertionError(e_val.args[0])
-        # if not self.counting:
-        #     print('pop at calc: ', instr, varkey, calc)
-        #     self.data_live[instr][
-        #         '{key}_calc_{c}'.format(key=varkey, c=calc)].pop(0)
 
     def pre_init(self):
         self.initialised = False
@@ -633,10 +582,7 @@ class live_Logger(AbstractLoopThread):
            insert empty lists in all values
         """
         self.startingtime = time.time()
-        timedict = dict(logging_timeseconds=0,
-                        # logging_ReadableTime=0,
-                        # logging_SearchableTime=0
-                        )
+        timedict = dict(logging_timeseconds=0,)
         self.time_init = False
         self.count = 0
         self.counting = True
@@ -915,8 +861,6 @@ class measurement_Logger(AbstractEventhandlingThread):
                 data['df'].to_csv(f)  # , header=False)
         except KeyError:
             pass
-
-
 
 
 if __name__ == '__main__':
