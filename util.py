@@ -147,6 +147,14 @@ def running_thread(worker, info=None, **kwargs):
     return worker, thread
 
 
+def ExceptionSignal(thread, func, e_type, err):
+    thread.sig_assertion.emit('{}: {}: {}: {}'.format(
+        thread.__name__,
+        func.__name__,
+        e_type,
+        err.args[0]))
+
+
 def ExceptionHandling(func):
     @functools.wraps(func)
     def wrapper_ExceptionHandling(*args, **kwargs):
@@ -154,49 +162,29 @@ def ExceptionHandling(func):
             try:
                 return func(*args, **kwargs)
             except AssertionError as e_ass:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Assertion',
-                    e_ass.args[0]))
+                ExceptionSignal(args[0], func, 'Assertion', e_ass)
+
             except TypeError as e_type:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Type',
-                    e_type.args[0]))
+                ExceptionSignal(args[0], func, 'Type', e_type)
+
             except KeyError as e_key:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Key',
-                    e_key.args[0]))
+                ExceptionSignal(args[0], func, 'Key', e_key)
+
             except ValueError as e_val:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Value',
-                    e_val.args[0]))
+                ExceptionSignal(args[0], func, 'Value', e_val)
+
             except AttributeError as e_attr:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__,
-                    func.__name__,
-                    'Attribute',
-                    e_attr.args[0]))
+                ExceptionSignal(args[0], func, 'Attribute', e_attr)
+
             except NotImplementedError as e_implement:
-                args[0].sig_assertion.emit('{}: {}: {}: {}'.format(
-                    args[0].__name__, func.__name__,
-                    'NotImplemented',
-                    e_implement.args[0]))
+                ExceptionSignal(args[0], func, 'NotImplemented', e_implement)
+
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(args[0].timeouterror)) and e_visa.args == args[0].timeouterror.args:
+                if isinstance(e_visa, type(args[0].timeouterror)) and \
+                        e_visa.args == args[0].timeouterror.args:
                     args[0].sig_visatimeout.emit()
                 else:
-                    args[0].sig_visaerror.emit('{}: {}: {}: {}'.format(
-                        args[0].__name__,
-                        func.__name__,
-                        'VisaIO',
-                        e_visa.args[0]))
+                    ExceptionSignal(args[0], func, 'VisaIO', e_visa)
         else:
             print('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
