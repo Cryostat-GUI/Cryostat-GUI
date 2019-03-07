@@ -9,6 +9,7 @@ import time
 import pickle
 import os
 import sqlite3
+import pandas as pd
 import numpy as np
 from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
@@ -115,35 +116,6 @@ class Logger_configuration(Window_ui):
             ui_file='.\\configurations\\Logger_conf.ui', **kwargs)
 
         self.read_configuration()
-
-        self.general_threads_ITC.toggled.connect(
-            lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(
-            lambda b: self.ITC_thread_running.setChecked(b))
-        self.general_threads_ILM.toggled.connect(
-            lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(
-            lambda b: self.ILM_thread_running.setChecked(b))
-        self.general_threads_PS.toggled.connect(
-            lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(
-            lambda b: self.PS_thread_running.setChecked(b))
-        self.general_threads_Lakeshore350.toggled.connect(
-            lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(
-            lambda b: self.Lakeshore350_thread_running.setChecked(b))
-
-        # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
-        # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
-        # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
-        # self.general_threads_Current2.toggled.connect(lambda b: self.Current2_thread_running.setChecked(b))
-        # self.general_threads_Nano1.toggled.connect(lambda value: self.setValue('Nano1', 'thread', value))
-        # self.general_threads_Nano1.toggled.connect(lambda b: self.Nano1_thread_running.setChecked(b))
-        # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
-        # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
-        # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
-
-        # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
 
         self.general_spinSetInterval.valueChanged.connect(
             lambda value: self.setValue('general', 'interval', value))
@@ -785,7 +757,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
-
+        # if isinstance(data, dict):
         if data['type'] == 'multichannel':
 
             datastring = ''
@@ -937,6 +909,14 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+
+        try:
+            with open(data['datafile'], 'a') as f:
+                data['df'].to_csv(f)  # , header=False)
+        except KeyError:
+            pass
+
+
 
 
 if __name__ == '__main__':
