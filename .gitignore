@@ -9,4 +9,5 @@ __pycache__
 *.idea
 *.bat
 *.json
+*.h5
 
