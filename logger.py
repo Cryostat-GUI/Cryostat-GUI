@@ -856,11 +856,11 @@ class measurement_Logger(AbstractEventhandlingThread):
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
 
-        try:
-            with open(data['datafile'], 'a') as f:
-                data['df'].to_csv(f)  # , header=False)
-        except KeyError:
-            pass
+        # try:
+        #     with open(data['datafile'][:-3]+'csv', 'a') as f:
+        #         data['df'].to_csv(f)  # , header=False)
+        # except KeyError:
+        #     pass
 
 
 if __name__ == '__main__':
