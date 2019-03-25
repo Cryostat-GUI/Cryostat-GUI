@@ -65,12 +65,20 @@ class Keithley2182(object):
             self.device.write(command)
 
     def measureInternalTemperature(self):
+        """measure internal temperature
+        :return: temperature in K
+        :return type: float 
+        """
         answer = self.query('CAL:UNPR:ACAL:TEMP?')[0]
         if answer[0:2] == '--': # not sure if necessary
             answer = answer[1:]
         return float(answer)
 
     def measurePresentTemperature(self):
+        """measure present temperature
+        :return: temperature in K
+        :return type: float 
+        """
 #        self.go("SENS:CHAN 1")
         answer = self.query('SENS:TEMP:RTEM?')[0]
         if answer[0:2] == '--': # not sure if necessary
