@@ -87,6 +87,7 @@
     <addaction name="action_show_ITC"/>
     <addaction name="action_show_LakeShore350"/>
     <addaction name="separator"/>
+    <addaction name="action_show_SR830"/>
     <addaction name="action_show_Keithley"/>
     <addaction name="separator"/>
     <addaction name="action_show_OneShot_Measuring"/>
@@ -641,6 +642,14 @@
    </property>
    <property name="text">
     <string>Live Multiple</string>
+   </property>
+  </action>
+  <action name="action_show_SR830">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LockIn SR830</string>
    </property>
   </action>
  </widget>

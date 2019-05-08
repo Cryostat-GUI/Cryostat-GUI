@@ -50,6 +50,7 @@ from pyvisa.errors import VisaIOError
 import Oxford
 import LakeShore
 import Keithley
+import LockIn
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
@@ -74,6 +75,7 @@ Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
+SR830_InstrumentAddress = 'GPIB::9'
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -128,6 +130,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_Log_conf()
         self.initialize_window_LakeShore350()
         self.initialize_window_Keithley()
+        self.initialize_window_LockIn()
         self.initialize_window_Errors()
         self.show_data()
         self.window_SystemsOnline.checkactionLogging_LIVE.toggled[
@@ -1532,6 +1535,139 @@ class mainWindow(QtWidgets.QMainWindow):
                         name=dataname, err=key_err.args[0]))
                 except ZeroDivisionError as z_err:
                     self.data[dataname]['Resistance_Ohm'] = np.nan
+
+
+    # -------------- Lock-In SR 830  ------------------------
+    def initialize_window_LockIn(self):
+        """initialize PS Window"""
+        self.LockIn_window = Window_ui(ui_file='.\\LockIn\\LockIn_control.ui')
+        self.LockIn_window.sig_closing.connect(
+            lambda: self.action_show_SR830.setChecked(False))
+
+        self.window_SystemsOnline.checkaction_run_SR830.clicked[
+            'bool'].connect(self.run_SR830)
+        self.action_show_SR830.triggered['bool'].connect(
+            lambda value: self.show_window(self.LockIn_window, value))
+
+        # self.IPS_window.labelStatusMagnet.setText('')
+        # self.IPS_window.labelStatusCurrent.setText('')
+        # self.IPS_window.labelStatusActivity.setText('')
+        # self.IPS_window.labelStatusLocRem.setText('')
+        # self.IPS_window.labelStatusSwitchHeater.setText('')
+
+    @pyqtSlot(bool)
+    def run_SR830(self, boolean):
+        """start/stop the LockIn SR830 control thread"""
+        global LockIn
+
+        print(LockIn.__doc__)
+        O_LockIn = reload(LockIn.LockIn_SR830_control)
+        SR830_Updater = O_LockIn.SR830_Updater
+
+        if boolean:
+            try:
+                getInfodata = self.running_thread_control(SR830_Updater(
+                    InstrumentAddress=SR830_InstrumentAddress), 'SR830', 'control_SR830')
+
+                getInfodata.sig_Infodata.connect(self.store_data_SR830)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_general)
+                getInfodata.sig_assertion.connect(self.show_error_general)
+
+                getInfodata.sig_visatimeout.connect(
+                    lambda: self.show_error_general('SR830: timeout'))
+
+                # self.IPS_window.comboSetActivity.activated['int'].connect(
+                #     lambda value: self.threads['control_IPS'][0].setActivity(value))
+                # self.IPS_window.comboSetSwitchHeater.activated['int'].connect(
+                #     lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
+
+                self.LockIn_window.spinSetFrequency_Hz.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].gettoset_Frequency(value))
+
+                self.LockIn_window.spinSetFrequency_Hz.editingFinished.connect(
+                    lambda: self.threads['control_SR830'][0].setFrequency())
+
+                # self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(
+                #     lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
+                # self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(
+                #     lambda: self.threads['control_IPS'][0].setFieldSweepRate())
+
+                # self.IPS_window.spin_threadinterval.valueChanged.connect(
+                #     lambda value: self.threads['control_IPS'][0].setInterval(value))
+
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(True)
+
+            except (VisaIOError, NameError) as e:
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
+                self.show_error_general(e)
+                # print(e) # TODO: open window displaying the error message
+        else:
+            self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
+            self.stopping_thread('control_SR830')
+
+    # @pyqtSlot(bool)
+    # def show_IPS(self, boolean):
+    #     """display/close the ILM data & control window"""
+    #     if boolean:
+    #         self.IPS_window.show()
+    #     else:
+    #         self.IPS_window.close()
+
+    @pyqtSlot(dict)
+    def store_data_SR830(self, data):
+        """Store PS data in self.data['ILM'], update PS_window"""
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
+        with self.dataLock:
+            # data['date'] = convert_time(time.time())
+            self.data['SR830'].update(data)
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+            # since the command failed in the communication with the device,
+            # the last value is retained
+            self.LockIn_window.lcdSetFrequency_Hz.display(
+                self.data['SR830']['Frequency_Hz'])
+            # self.IPS_window.lcdFieldSweepRate.display(
+            #     self.data['IPS']['FIELD_sweep_rate'])
+
+            # self.IPS_window.lcdOutputField.display(
+            #     self.data['IPS']['FIELD_output'])
+            # self.IPS_window.lcdMeasuredMagnetCurrent.display(
+            #     self.data['IPS']['measured_magnet_current'])
+            # self.IPS_window.lcdOutputCurrent.display(
+            #     self.data['IPS']['CURRENT_output'])
+            # # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
+            # # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
+
+            # self.IPS_window.lcdLeadResistance.display(
+            #     self.data['IPS']['lead_resistance'])
+
+            # self.IPS_window.lcdPersistentMagnetField.display(
+            #     self.data['IPS']['persistent_magnet_field'])
+            # self.IPS_window.lcdTripField.display(
+            #     self.data['IPS']['trip_field'])
+            # self.IPS_window.lcdPersistentMagnetCurrent.display(
+            #     self.data['IPS']['persistent_magnet_current'])
+            # self.IPS_window.lcdTripCurrent.display(
+            #     self.data['IPS']['trip_current'])
+
+            # self.IPS_window.labelStatusMagnet.setText(
+            #     self.data['IPS']['status_magnet'])
+            # self.IPS_window.labelStatusCurrent.setText(
+            #     self.data['IPS']['status_current'])
+            # self.IPS_window.labelStatusActivity.setText(
+            #     self.data['IPS']['status_activity'])
+            # self.IPS_window.labelStatusLocRem.setText(
+            #     self.data['IPS']['status_locrem'])
+            # self.IPS_window.labelStatusSwitchHeater.setText(
+            #     self.data['IPS']['status_switchheater'])
+
+
+
+
 
     # ------- MISC -------
 
