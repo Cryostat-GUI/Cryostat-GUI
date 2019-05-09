@@ -1595,6 +1595,11 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LockIn_window.spinSetVoltage_V.editingFinished.connect(
                     lambda: self.threads['control_SR830'][0].setVoltage())
 
+                self.LockIn_window.spinShuntResistance_kOhm.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].getShuntResistance(value * 1e3))
+                self.LockIn_window.spinContactResistance_Ohm.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].getContactResistance(value))
+
                 # self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(
                 #     lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
                 # self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(
@@ -1638,6 +1643,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.data['SR830']['Frequency_Hz'])
             self.LockIn_window.lcdSetVoltage_V.display(
                 self.data['SR830']['Voltage_V'])
+            self.LockIn_window.textX_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['X_V']))
+
+            self.LockIn_window.textSampleCurrent_mA.setText('{num:=+8.6f}'.format(num=self.data['SR830']['SampleCurrent_mA']))       
+            self.LockIn_window.textSampleResistance_Ohm.setText('{num:=+8.6f}'.format(num=self.data['SR830']['SampleResistance_Ohm']))
+            
+            self.LockIn_window.textY_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['Y_V']))
+            self.LockIn_window.textR_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
+            self.LockIn_window.textTheta_Deg.setText('{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
             # self.IPS_window.lcdFieldSweepRate.display(
             #     self.data['IPS']['FIELD_sweep_rate'])
 

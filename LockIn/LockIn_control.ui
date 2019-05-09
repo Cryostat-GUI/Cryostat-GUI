@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>522</width>
-    <height>263</height>
+    <width>502</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,20 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetVoltage_V"/>
+       <widget class="QDoubleSpinBox" name="spinSetVoltage_V">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.000400000000000</double>
+        </property>
+        <property name="maximum">
+         <double>5.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label">
@@ -38,7 +51,17 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="spinSetFrequency_Hz"/>
+       <widget class="QDoubleSpinBox" name="spinSetFrequency_Hz">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>102000.000000000000000</double>
+        </property>
+       </widget>
       </item>
       <item row="0" column="2">
        <widget class="QLCDNumber" name="lcdSetVoltage_V"/>
@@ -68,7 +91,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QTextEdit" name="textEdit_4">
+       <widget class="QTextEdit" name="textY_V">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -96,7 +119,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QTextEdit" name="textEdit">
+       <widget class="QTextEdit" name="textR_V">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -116,7 +139,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Phi [deg.]</string>
+         <string>Theta [deg.]</string>
         </property>
        </widget>
       </item>
@@ -133,7 +156,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QTextEdit" name="textEdit_3">
+       <widget class="QTextEdit" name="textX_V">
         <property name="maximumSize">
          <size>
           <width>100</width>
@@ -149,15 +172,12 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QPlainTextEdit" name="plainTextEdit">
+       <widget class="QTextEdit" name="textTheta_Deg">
         <property name="maximumSize">
          <size>
           <width>100</width>
           <height>31</height>
          </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -170,13 +190,27 @@
       <string>Stuff</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="1">
-       <widget class="QTextEdit" name="textEdit_2">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Model</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QTextEdit" name="textSampleResistance_Ohm">
         <property name="maximumSize">
          <size>
           <width>100</width>
           <height>31</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
         </property>
        </widget>
       </item>
@@ -187,30 +221,64 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Resistance - calculated</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Model</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
+      <item row="4" column="1">
        <widget class="QLabel" name="label_10">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
          <string>SR830</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="spinShuntResistance_kOhm">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Resistance - calc. [Ohm]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="spinContactResistance_Ohm">
+        <property name="decimals">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Sample R_I [Ohm]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Current - calc. [mA]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QTextEdit" name="textSampleCurrent_mA">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>31</height>
+         </size>
         </property>
        </widget>
       </item>
