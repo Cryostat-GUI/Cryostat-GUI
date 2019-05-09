@@ -23,6 +23,7 @@ class SR830_Updater(AbstractLoopThread):
 
         self.lockin = SR830(InstrumentAddress)
 
+
         # self.interval = 0.05
 
     @ExceptionHandling
@@ -35,6 +36,8 @@ class SR830_Updater(AbstractLoopThread):
         data = dict()
         data['Frequency_Hz'] = self.lockin.frequency
 
+        data['Voltage_V'] = self.lockin.sine_voltage
+
         self.sig_Infodata.emit(deepcopy(data))
 
     @pyqtSlot()
@@ -43,5 +46,14 @@ class SR830_Updater(AbstractLoopThread):
         self.lockin.frequency = self.set_Frequency
 
     @pyqtSlot()
+    @ExceptionHandling
+    def setVoltage(self):
+        self.lockin.sine_voltage = self.set_Voltage
+
+    @pyqtSlot()
     def gettoset_Frequency(self, value):
         self.set_Frequency = value
+
+    @pyqtSlot()
+    def gettoset_Voltage(self, value):
+        self.set_Voltage = value

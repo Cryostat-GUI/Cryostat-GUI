@@ -1589,6 +1589,12 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.LockIn_window.spinSetFrequency_Hz.editingFinished.connect(
                     lambda: self.threads['control_SR830'][0].setFrequency())
 
+                self.LockIn_window.spinSetVoltage_V.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].gettoset_Voltage(value))
+
+                self.LockIn_window.spinSetVoltage_V.editingFinished.connect(
+                    lambda: self.threads['control_SR830'][0].setVoltage())
+
                 # self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(
                 #     lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
                 # self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(
@@ -1630,6 +1636,8 @@ class mainWindow(QtWidgets.QMainWindow):
             # the last value is retained
             self.LockIn_window.lcdSetFrequency_Hz.display(
                 self.data['SR830']['Frequency_Hz'])
+            self.LockIn_window.lcdSetVoltage_V.display(
+                self.data['SR830']['Voltage_V'])
             # self.IPS_window.lcdFieldSweepRate.display(
             #     self.data['IPS']['FIELD_sweep_rate'])
 
