@@ -30,10 +30,10 @@
       <item row="0" column="1">
        <widget class="QDoubleSpinBox" name="spinSetVoltage_V">
         <property name="decimals">
-         <number>4</number>
+         <number>3</number>
         </property>
         <property name="minimum">
-         <double>0.000400000000000</double>
+         <double>0.004000000000000</double>
         </property>
         <property name="maximum">
          <double>5.000000000000000</double>
@@ -60,6 +60,9 @@
         </property>
         <property name="maximum">
          <double>102000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>188.879999999999995</double>
         </property>
        </widget>
       </item>
@@ -238,6 +241,9 @@
         </property>
         <property name="minimum">
          <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
         </property>
        </widget>
       </item>
