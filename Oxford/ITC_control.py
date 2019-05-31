@@ -101,8 +101,8 @@ class ITC_Updater(AbstractLoopThread):
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
                 if key == 'Sensor_1_K':
-                    # if float(value) > 100:
-                    data[key] = data['set_temperature'] - data['temperature_error']
+                    if float(value) > 100:
+                        data[key] = data['set_temperature'] - data['temperature_error']
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None

@@ -38,7 +38,7 @@ from PyQt5.uic import loadUi
 
 
 import sys
-# import datetime
+import datetime
 from threading import Lock
 import numpy as np
 from copy import deepcopy
@@ -1776,5 +1776,5 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()
-    print(time.time() - a)
+    print('date: ', datetime.datetime.now(), '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
