@@ -131,7 +131,7 @@ def measure_resistance_multichannel(threads,
                     before and after measurement [K]
             T_std_K : dict of stds of temperature readings
                     before and after measurement [K]
-            resistances, voltages, currents: 
+            resistances, voltages, currents:
                 dicts with corresponding values for all measurement channels
             timeseconds: pythons time.time()
             ReadableTime: Time in %Y-%m-%d %H:%M:%S
@@ -199,13 +199,13 @@ def measure_resistance_multichannel(threads,
 
     data['resistances'] = {key.strip('control_'): value
                            for key, value in zip(
-                                resistances.keys(), resistances.values())}
+        resistances.keys(), resistances.values())}
     data['voltages'] = {key.strip('control_'): value
                         for key, value in zip(
-                                voltages.keys(), voltages.values())}
+        voltages.keys(), voltages.values())}
     data['currents'] = {key.strip('control_'): value
                         for key, value in zip(
-                                currents.keys(), currents.values())}
+        currents.keys(), currents.values())}
 
     df = pd.DataFrame.from_dict(data)
     data['datafile'] = kwargs['datafile']
@@ -444,8 +444,8 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
 
     def update_iv(self, spec, value):
         self.iv_specs[spec] = value
-        self.iv_curve = list(reversed(np.linspace(
-            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])))
+        self.iv_curve = np.linspace(
+            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])
         self.update_conf('iv_characteristic', self.iv_curve)
 
     # @pyqtSlot()
