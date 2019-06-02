@@ -57,7 +57,7 @@ from Sequence import OneShot_Thread_multichannel
 from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration
 
-from util import Window_ui, Window_plotting
+from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
