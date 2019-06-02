@@ -126,3 +126,10 @@ class ILM_Updater(AbstractLoopThread):
     def gettoset_Control(self, value):
         """receive and store the value to set the Control status"""
         self.control_state = value
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def measure_once(self):
+        self.ILM.setFast(1)
+        self.ILM.setSlow(1)
+        return self.ILM.getValue(1) * 0.1
