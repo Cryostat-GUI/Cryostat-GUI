@@ -9,6 +9,7 @@ import time
 import pickle
 import os
 import sqlite3
+# import pandas as pd
 import numpy as np
 from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
@@ -116,35 +117,6 @@ class Logger_configuration(Window_ui):
 
         self.read_configuration()
 
-        self.general_threads_ITC.toggled.connect(
-            lambda value: self.setValue('ITC', 'thread', value))
-        self.general_threads_ITC.toggled.connect(
-            lambda b: self.ITC_thread_running.setChecked(b))
-        self.general_threads_ILM.toggled.connect(
-            lambda value: self.setValue('ILM', 'thread', value))
-        self.general_threads_ILM.toggled.connect(
-            lambda b: self.ILM_thread_running.setChecked(b))
-        self.general_threads_PS.toggled.connect(
-            lambda value: self.setValue('PS', 'thread', value))
-        self.general_threads_PS.toggled.connect(
-            lambda b: self.PS_thread_running.setChecked(b))
-        self.general_threads_Lakeshore350.toggled.connect(
-            lambda value: self.setValue('Lakeshore350', 'thread', value))
-        self.general_threads_Lakeshore350.toggled.connect(
-            lambda b: self.Lakeshore350_thread_running.setChecked(b))
-
-        # self.general_threads_Current1.toggled.connect(lambda value: self.setValue('Current1', 'thread', value))
-        # self.general_threads_Current1.toggled.connect(lambda b: self.Current1_thread_running.setChecked(b))
-        # self.general_threads_Current2.toggled.connect(lambda value: self.setValue('Current2', 'thread', value))
-        # self.general_threads_Current2.toggled.connect(lambda b: self.Current2_thread_running.setChecked(b))
-        # self.general_threads_Nano1.toggled.connect(lambda value: self.setValue('Nano1', 'thread', value))
-        # self.general_threads_Nano1.toggled.connect(lambda b: self.Nano1_thread_running.setChecked(b))
-        # self.general_threads_Nano2.toggled.connect(lambda value: self.setValue('Nano2', 'thread', value))
-        # self.general_threads_Nano2.toggled.connect(lambda b: self.Nano2_thread_running.setChecked(b))
-        # self.general_threads_Nano3.toggled.connect(lambda value: self.setValue('Nano3', 'thread', value))
-
-        # self.general_threads_Nano3.toggled.connect(lambda b: self.Nano3_thread_running.setChecked(b))
-
         self.general_spinSetInterval.valueChanged.connect(
             lambda value: self.setValue('general', 'interval', value))
         self.general_spinSetInterval_Live.valueChanged.connect(
@@ -250,9 +222,8 @@ class main_Logger(AbstractLoopThread):
         self.local_list = []
 
     def running(self):
-
+        '''perpetual logging function, which is asking for logging data'''
         try:
-            # print('logging running')
             if self.configuration_done:
                 self.sig_log.emit()
                 if not self.conf_done_layer2:
@@ -271,7 +242,6 @@ class main_Logger(AbstractLoopThread):
                 so that the configuring thread will be quit.
 
         """
-        # print('updating conf:', conf)
         self.conf = conf
         self.interval = self.conf['general']['interval']
         self.configuration_done = True
@@ -283,7 +253,6 @@ class main_Logger(AbstractLoopThread):
             self.conn = sqlite3.connect(dbname)
             return True
         except sqlite3.connect.Error as err:
-            # raise AssertionError("Logger: Couldn't establish connection {}".format(err))
             self.sig_assertion.emit(
                 'Logger: Couldn\'t establish connection: {}'.format(err))
             return False
@@ -302,8 +271,6 @@ class main_Logger(AbstractLoopThread):
             # print(err)
             pass
 
-        # We should try to find a nicer a solution without try and except
-        # #try:
         for key in dictname.keys():
             try:
                 sql = """ALTER TABLE  {} ADD COLUMN {} {}""".format(
@@ -313,7 +280,6 @@ class main_Logger(AbstractLoopThread):
             except OperationalError as err:
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
-        #         # self.sig_assertion.emit("Logger: probably the column already exists, no problem. ({})".format(err))
 
     def updatetable(self, tablename, dictname):
         """insert a new row into the database table with all data
@@ -332,23 +298,10 @@ class main_Logger(AbstractLoopThread):
             tablename, 'timeseconds', dictname['timeseconds'])
         self.mycursor.execute(sql)
 
-        # for key in dictname.keys():
-        #     sql="""UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
-        #                                                 column=key,
-        #                                                 value=SQLFormatting(dictname[key]),
-        #                                                 sec='''timeseconds''',
-        #                                                 sec_now=dictname['timeseconds'])
-        #     self.mycursor.execute(sql)
-        # print('vor testing')
-
-        # print('nach testing')
         try:
             for key in dictname:
-                # print(key, 'key')
                 var, bools = testing_NaN(dictname[key])
-                # print(var, bools, type(var))
                 if not bools:
-                    # print('ich arbeite')
                     sql = """UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                                                                  column=key,
                                                                                                  value=SQLFormatting(
@@ -450,13 +403,6 @@ class main_Logger(AbstractLoopThread):
                  'Keithley6220_1',
                  'Keithley6220_2']
 
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time())}
-
-        # for name in names:
-        #     if name in data:
-        #         data[name].update(timedict)
-
         self.connected = self.connectdb(
             self.conf['general']['logfile_location'])
         if not self.connected:
@@ -497,20 +443,16 @@ class live_Logger(AbstractLoopThread):
         self.dataLock = mainthread.dataLock
         self.dataLock_live = mainthread.dataLock_live
 
-        # self.time_names = ['logging_timeseconds', 'timeseconds',
-        # 'logging_ReadableTime', 'ReadableTime',
-        # 'logging_SearchableTime', 'SearchableTime']
         self.calculations = {
-                             'ar_mean': lambda time, value: np.nanmean(value),
-                             # 'stddev': lambda time, value: np.nanstd(value),
-                             # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
-                             # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
-                             # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
-                             # 'test': lambda time, value: print(time),
-                             # still need to convert to minutes
-                             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
-                             # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
-                             }
+            'ar_mean': lambda time, value: np.nanmean(value),
+            # 'stddev': lambda time, value: np.nanstd(value),
+            # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+            # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+            # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+            # 'test': lambda time, value: print(time),
+            'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
+            # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
+        }
         self.slopes = {'slope': lambda value, mean: value[0][1] * 60,  # minutes,
                        # minutes,
                        'slope_rel': lambda value, mean: value[0][1] / mean * 60,
@@ -522,10 +464,6 @@ class live_Logger(AbstractLoopThread):
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
-
-        # buggy because it will erase all previous data!
-
-        # QTimer.singleShot(*1e3, self.worker)
 
     @pyqtSlot()  # int
     def work(self):
@@ -586,22 +524,15 @@ class live_Logger(AbstractLoopThread):
                                 instr]['logging_timeseconds']]
                         else:
                             times = [0]
-                    # print('first time')
                 for instr in self.data_live:
-                    # print('before ', len(times), len(self.data_live[instr]['logging_timeseconds']))
                     for varkey in self.data_live[instr]:
-                        # if 'calc' not in varkey:
-                        # print(instr, varkey)
                         for calc in self.calculations:
-                            # print(varkey)
                             if all([x not in varkey for x in self.noCalc]):
-                                # print(varkey, calc)
                                 if self.time_init:
                                     self.calculations_perform(
                                         instr, varkey, calc, times)
                         if self.count > self.length_list:
                             self.counting = False
-                            # print('pop at general ', instr, varkey)
                             self.data_live[instr][varkey].pop(0)
 
         except AssertionError as assertion:
@@ -609,7 +540,7 @@ class live_Logger(AbstractLoopThread):
         except KeyError as key:
             self.sig_assertion.emit("live logger" + key.args[0])
         self.time_init = True
-        if self.counting == True:
+        if self.counting:
             self.count += 1
 
     def calculations_perform(self, instr, varkey, calc, times):
@@ -619,22 +550,16 @@ class live_Logger(AbstractLoopThread):
             return: None
         """
         if calc == 'slope':
-            # print('fitting', instr, varkey)
-            # print(self.data_live[instr][varkey])
             fit = self.calculations[calc](times, self.data_live[instr][varkey])
             for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
                     fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
         elif calc == 'slope_of_mean':
             times_spec = deepcopy(times)
-            # if self.counting:
-            # print('cutting the time')
             while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
                 times_spec.pop(0)
-            # print(len(times_spec), len(self.data_live[instr][
-                # '{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
-            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
-                self.calculations[calc](times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
+                times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
         else:
             try:
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
@@ -646,10 +571,6 @@ class live_Logger(AbstractLoopThread):
                 pass
             except ValueError as e_val:
                 raise AssertionError(e_val.args[0])
-        # if not self.counting:
-        #     print('pop at calc: ', instr, varkey, calc)
-        #     self.data_live[instr][
-        #         '{key}_calc_{c}'.format(key=varkey, c=calc)].pop(0)
 
     def pre_init(self):
         self.initialised = False
@@ -661,10 +582,7 @@ class live_Logger(AbstractLoopThread):
            insert empty lists in all values
         """
         self.startingtime = time.time()
-        timedict = dict(logging_timeseconds=0,
-                        # logging_ReadableTime=0,
-                        # logging_SearchableTime=0
-                        )
+        timedict = dict(logging_timeseconds=0,)
         self.time_init = False
         self.count = 0
         self.counting = True
@@ -785,7 +703,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
-
+        # if isinstance(data, dict):
         if data['type'] == 'multichannel':
 
             datastring = ''
@@ -827,7 +745,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             headerstring = """\
 # Measurement started on {date}
 #
-# date, Sensor 1 (A) [K] arithmetic mean, Sensor 1 (A) [K] uncertainty, Sensor 2 (B) [K] arithmetic mean, Sensor 2 (B) [K] uncertainty, Sensor 3 (C) [K] arithmetic mean, Sensor 3 (C) [K] uncertainty, Sensor 4 (D) [K] arithmetic mean, Sensor 4 (D) [K] uncertainty, Keith1: resistance [Ohm] (slope of 4 points), Keith1: residuals (of fit for slope), Keith1: non-ohmicity: 0 if ohmic 1 if nonohmic, Keith2: resistance [Ohm] (slope of 4 points), Keith2: residuals (of fit for slope), Keith2: non-ohmicity: 0 if ohmic 1 if nonohmic, descr, Keith1 voltage 1, Keith1 voltage 2, Keith1 voltage 3, Keith1 voltage 4, descr, Keith2 voltage 1, Keith2 voltage 2, Keith2 voltage 3, Keith2 voltage 4, descr, Keith1 current 1, Keith1 current 2, Keith1 current 3, Keith1 current 4, descr, Keith2 current 1, Keith2 current 2, Keith2 current 3, Keith2 current 4,
+#date,Sensor_1_(A)_[K]_arithmetic_mean,Sensor_1_(A)_[K]_uncertainty,Sensor_2_(B)_[K]_arithmetic_mean,Sensor_2_(B)_[K]_uncertainty,Sensor_3_(C)_[K]_arithmetic_mean,Sensor_3_(C)_[K]_uncertainty,Sensor_4_(D)_[K]_arithmetic_mean,Sensor_4_(D)_[K]_uncertainty,Keith1:_resistance_[Ohm]_(slope_of_4_points),Keith1:_residuals_(of_fit_for_slope),Keith1:_non-ohmicity:_0_if_ohmic_1_if_nonohmic,Keith2:_resistance_[Ohm]_(slope_of_4_points),Keith2:_residuals_(of_fit_for_slope),Keith2:_non-ohmicity:_0_if_ohmic_1_if_nonohmic,descr1,Keith1_voltage_1,Keith1_voltage_2,Keith1_voltage_3,Keith1_voltage_4,descr2,Keith2_voltage_1,Keith2_voltage_2,Keith2_voltage_3,Keith2_voltage_4,descr3,Keith1_current_1,Keith1_current_2,Keith1_current_3,Keith1_current_4,descr4,Keith2_current_1,Keith2_current_2,Keith2_current_3,Keith2_current_4,
 # columns -1 based / zero based / one based
 #
 # -1 / 0 /  1 date
@@ -937,6 +855,12 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+
+        # try:
+        #     with open(data['datafile'][:-3]+'csv', 'a') as f:
+        #         data['df'].to_csv(f)  # , header=False)
+        # except KeyError:
+        #     pass
 
 
 if __name__ == '__main__':

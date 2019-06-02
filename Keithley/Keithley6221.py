@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Provides support for the Keithley 6221 constant current supply
 """
@@ -7,7 +5,7 @@ Provides support for the Keithley 6221 constant current supply
 # IMPORTS #####################################################################
 
 # import threading
-import visa
+# import visa
 
 import logging
 
@@ -18,13 +16,13 @@ logger = logging.getLogger(__name__)
 # added so that log messages show up in Jupyter notebooks
 logger.addHandler(logging.StreamHandler())
 
-try:
-    # the pyvisa manager we'll use to connect to the GPIB resources
-    resource_manager = visa.ResourceManager(
-        'C:\\Windows\\System32\\agvisa32.dll')
-except OSError:
-    logger.exception(
-        "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
+# try:
+#     # the pyvisa manager we'll use to connect to the GPIB resources
+#     resource_manager = visa.ResourceManager(
+#         'C:\\Windows\\System32\\agvisa32.dll')
+# except OSError:
+#     logger.exception(
+#         "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
 #from __future__ import absolute_import
 #from __future__ import division

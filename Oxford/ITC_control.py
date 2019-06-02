@@ -93,11 +93,16 @@ class ITC_Updater(AbstractLoopThread):
         # so I can then transmit one single dict
         # starttime = time.time()
         # data['status'] = self.read_status()
+        data['temperature_error'] = self.ITC.getValue(self.sensors['temperature_error'])
+        data['set_temperature'] = self.ITC.getValue(self.sensors['set_temperature'])
         for key in self.sensors.keys():
             try:
 
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
+                if key == 'Sensor_1_K':
+                    if float(value) > 100:
+                        data[key] = data['set_temperature'] - data['temperature_error']
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None

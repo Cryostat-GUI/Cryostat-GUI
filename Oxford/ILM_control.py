@@ -26,7 +26,7 @@ class ILM_Updater(AbstractLoopThread):
     the corresponding value to the device.
 
     There is a second method for all wrappers, which accepts
-    the corresponding value, and stores it, so it can be sent upon acknowledgment
+    the corresponding value, and stores it, so it can be sent upon acknowledgement
 
     The information from the device is collected in regular intervals (method "running"),
     and subsequently sent to the main thread. It is packed in a dict,

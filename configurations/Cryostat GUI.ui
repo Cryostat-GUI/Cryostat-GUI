@@ -74,6 +74,7 @@
      <string>Show Data</string>
     </property>
     <addaction name="action_plotLive"/>
+    <addaction name="action_plotLiveMultiple"/>
     <addaction name="action_plotDatabase"/>
    </widget>
    <widget class="QMenu" name="menuShow_Instruments">
@@ -439,7 +440,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Temperature Controller: Oxford ITC503 (VTI)</string>
+    <string>Temperature Controller: Oxford ITC 503 (VTI)</string>
    </property>
   </action>
   <action name="action_run_ITC">
@@ -534,6 +535,9 @@
    </property>
   </action>
   <action name="action_plotLive">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Live</string>
    </property>
@@ -629,6 +633,14 @@
    </property>
    <property name="text">
     <string>Global Settings</string>
+   </property>
+  </action>
+  <action name="action_plotLiveMultiple">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Live Multiple</string>
    </property>
   </action>
  </widget>
