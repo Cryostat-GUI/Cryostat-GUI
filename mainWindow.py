@@ -77,6 +77,8 @@ Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 SR830_InstrumentAddress = 'GPIB::9'
 
+errorfile = 'Errors.error'
+
 
 class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
@@ -107,6 +109,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataLock = Lock()
         self.dataLock_live = Lock()
         self.app = app
+        with open(errorfile, 'a') as f:
+            f.write('{} - {}\n'.format(convert_time(time.time()), 'STARTUP PROGRAM'))
 
         QTimer.singleShot(0, self.initialize_all_windows)
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
@@ -220,6 +224,8 @@ class mainWindow(QtWidgets.QMainWindow):
         be handled here. For now, it just shows all errors in the repsective
         window
         """
+        with open(errorfile, 'a') as f:
+            f.write('{} - {}\n'.format(convert_time(time.time()), text))
         self.show_error_textBrowser(text)
 
     def show_error_textBrowser(self, text):
@@ -377,7 +383,7 @@ class mainWindow(QtWidgets.QMainWindow):
     #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
     #                                                                                                             livevsdb="LIVE",
     #                                                                                                             axis='Y5',
-    #                                                                                                             dataplot=self.dataplot_live_conf))
+    # dataplot=self.dataplot_live_conf))
 
     #     self.dataplot_live_conf.buttonBox.clicked.connect(
     #         lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
@@ -424,7 +430,7 @@ class mainWindow(QtWidgets.QMainWindow):
     #                                                                       GUI_value=GUI_value,
     #                                                                       livevsdb="LIVE",
     #                                                                       axis=axis,
-    #                                                                       dataplot=dataplot))
+    # dataplot=dataplot))
 
     # def x_changed(self):
     #     self.plotting_comboValue_Axis_X_plot = self.dataplot.comboValue_Axis_X.currentText()
@@ -1536,7 +1542,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 except ZeroDivisionError as z_err:
                     self.data[dataname]['Resistance_Ohm'] = np.nan
 
-
     # -------------- Lock-In SR 830  ------------------------
     def initialize_window_LockIn(self):
         """initialize PS Window"""
@@ -1581,7 +1586,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.IPS_window.comboSetActivity.activated['int'].connect(
                 #     lambda value: self.threads['control_IPS'][0].setActivity(value))
                 # self.IPS_window.comboSetSwitchHeater.activated['int'].connect(
-                #     lambda value: self.threads['control_IPS'][0].setSwitchHeater(value))
+                # lambda value:
+                # self.threads['control_IPS'][0].setSwitchHeater(value))
 
                 self.LockIn_window.spinSetFrequency_Hz.valueChanged.connect(
                     lambda value: self.threads['control_SR830'][0].gettoset_Frequency(value))
@@ -1603,15 +1609,18 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(
                 #     lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
                 # self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(
-                #     lambda: self.threads['control_IPS'][0].setFieldSweepRate())
+                # lambda: self.threads['control_IPS'][0].setFieldSweepRate())
 
                 # self.IPS_window.spin_threadinterval.valueChanged.connect(
-                #     lambda value: self.threads['control_IPS'][0].setInterval(value))
+                # lambda value:
+                # self.threads['control_IPS'][0].setInterval(value))
 
-                self.window_SystemsOnline.checkaction_run_SR830.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    True)
 
             except (VisaIOError, NameError) as e:
-                self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
@@ -1643,14 +1652,20 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.data['SR830']['Frequency_Hz'])
             self.LockIn_window.lcdSetVoltage_V.display(
                 self.data['SR830']['Voltage_V'])
-            self.LockIn_window.textX_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['X_V']))
+            self.LockIn_window.textX_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['X_V']))
 
-            self.LockIn_window.textSampleCurrent_mA.setText('{num:=+8.6f}'.format(num=self.data['SR830']['SampleCurrent_mA']))       
-            self.LockIn_window.textSampleResistance_Ohm.setText('{num:=+8.6f}'.format(num=self.data['SR830']['SampleResistance_Ohm']))
-            
-            self.LockIn_window.textY_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['Y_V']))
-            self.LockIn_window.textR_V.setText('{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
-            self.LockIn_window.textTheta_Deg.setText('{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
+            self.LockIn_window.textSampleCurrent_mA.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['SampleCurrent_mA']))
+            self.LockIn_window.textSampleResistance_Ohm.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['SampleResistance_Ohm']))
+
+            self.LockIn_window.textY_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['Y_V']))
+            self.LockIn_window.textR_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
+            self.LockIn_window.textTheta_Deg.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
             # self.IPS_window.lcdFieldSweepRate.display(
             #     self.data['IPS']['FIELD_sweep_rate'])
 
@@ -1685,10 +1700,6 @@ class mainWindow(QtWidgets.QMainWindow):
             #     self.data['IPS']['status_locrem'])
             # self.IPS_window.labelStatusSwitchHeater.setText(
             #     self.data['IPS']['status_switchheater'])
-
-
-
-
 
     # ------- MISC -------
 
@@ -1933,5 +1944,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()
-    print('date: ', datetime.datetime.now(), '\nstartup time: ', time.time() - a)
+    print('date: ', datetime.datetime.now(),
+          '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())

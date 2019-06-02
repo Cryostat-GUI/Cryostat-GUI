@@ -10,4 +10,4 @@ __pycache__
 *.bat
 *.json
 *.h5
-
+*.error
