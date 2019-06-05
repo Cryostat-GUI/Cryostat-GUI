@@ -116,14 +116,17 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
-        if self.OneShot.running:
-            reply = QtWidgets.QMessageBox.question(self, 'There is still a measurement running!',
-                                                   "Are you sure to quit?", QtGui.QMessageBox.Yes |
-                                                   QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        if self.OneShot_running:
+            reply = None
+            reply = QtWidgets.QMessageBox.question(self, 'A measurement is running!',
+                                                   "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
+                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             super().closeEvent(event)
             self.app.quit()
+        else:
+            event.ignore()
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
@@ -1797,7 +1800,7 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.run_OneShot)
         self.action_show_OneShot_Measuring.triggered[
             'bool'].connect(self.show_OneShot)
-        self.OneShot.running = False
+        self.OneShot_running = False
 
     @pyqtSlot(bool)
     def run_OneShot(self, boolean):
@@ -1889,7 +1892,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot.textinterval.setText(
             '{0:.2f} s ({1:.2f} min)'.format(sec, sec / 60))
 
-        self.OneShot.running = True
+        self.OneShot_running = True
 
     def OneShot_stop(self):
         '''stop the timer, change the state to "stopped" '''
@@ -1897,7 +1900,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.logging_timer.stop()
         self.window_OneShot.textrunning.setText('Stopped')
         self.window_OneShot.textrunning.setTextColor(blue)
-        self.OneShot.running = False
+        self.OneShot_running = False
 
     def OneShot_chooseDatafile(self, OneShot):
         try:
