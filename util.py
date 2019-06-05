@@ -505,7 +505,7 @@ class Window_plotting_m(Window_ui):
     """Small window containing a plot, which updates itself regularly"""
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, labels_x, labels_y, legend_labels, number, title='your advertisment could be here!', multiple=False, updateinterval=2, linestyle='*-', **kwargs):
+    def __init__(self, data, labels_x, labels_y, legend_labels, number, title='your advertisment could be here!', multiple=False, updateinterval=2, linestyle='*-', navtoolbar=False, **kwargs):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
         self.data = data
@@ -537,7 +537,8 @@ class Window_plotting_m(Window_ui):
 
         # this is the Navigation widget
         # it takes the Canvas widget and a parent
-        # self.toolbar = NavigationToolbar(self.canvas, self)
+        if navtoolbar:
+            self.toolbar = NavigationToolbar(self.canvas, self)
 
         # self.setGeometry(100, 100, 800, 600)
 
