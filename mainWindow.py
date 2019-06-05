@@ -118,9 +118,8 @@ class mainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if self.OneShot_running:
             reply = None
-            reply = QtWidgets.QMessageBox.question(self, 'A measurement is running!',
-                                                   "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
-                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            reply = QtWidgets.QMessageBox.question(self, 'Cryostat-GUI', "A measurement is running! \nAre you sure to quit?",
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
         if reply == QtWidgets.QMessageBox.Yes:
             super().closeEvent(event)
