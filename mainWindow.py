@@ -116,8 +116,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
-        super().closeEvent(event)
-        self.app.quit()
+        if self.OneShot.running:
+            reply = QtWidgets.QMessageBox.question(self, 'There is still a measurement running!',
+                                                   "Are you sure to quit?", QtGui.QMessageBox.Yes |
+                                                   QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+        if reply == QtGui.QMessageBox.Yes:
+            super().closeEvent(event)
+            self.app.quit()
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
@@ -1791,6 +1797,7 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.run_OneShot)
         self.action_show_OneShot_Measuring.triggered[
             'bool'].connect(self.show_OneShot)
+        self.OneShot.running = False
 
     @pyqtSlot(bool)
     def run_OneShot(self, boolean):
@@ -1882,12 +1889,15 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot.textinterval.setText(
             '{0:.2f} s ({1:.2f} min)'.format(sec, sec / 60))
 
+        self.OneShot.running = True
+
     def OneShot_stop(self):
         '''stop the timer, change the state to "stopped" '''
         blue = QtGui.QColor(0, 0, 255)
         self.logging_timer.stop()
         self.window_OneShot.textrunning.setText('Stopped')
         self.window_OneShot.textrunning.setTextColor(blue)
+        self.OneShot.running = False
 
     def OneShot_chooseDatafile(self, OneShot):
         try:
