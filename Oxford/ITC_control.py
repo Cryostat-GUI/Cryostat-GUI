@@ -14,6 +14,7 @@ from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
 from importlib import reload
+import numpy as np
 # import time
 
 from util import AbstractLoopThread
@@ -93,8 +94,10 @@ class ITC_Updater(AbstractLoopThread):
         # so I can then transmit one single dict
         # starttime = time.time()
         # data['status'] = self.read_status()
-        data['temperature_error'] = self.ITC.getValue(self.sensors['temperature_error'])
-        data['set_temperature'] = self.ITC.getValue(self.sensors['set_temperature'])
+        data['temperature_error'] = self.ITC.getValue(
+            self.sensors['temperature_error'])
+        data['set_temperature'] = self.ITC.getValue(
+            self.sensors['set_temperature'])
         for key in self.sensors.keys():
             try:
 
@@ -102,7 +105,8 @@ class ITC_Updater(AbstractLoopThread):
                 data[key] = value
                 if key == 'Sensor_1_K':
                     if float(value) > 100:
-                        data[key] = data['set_temperature'] - data['temperature_error']
+                        data[key] = data['set_temperature'] - \
+                            data['temperature_error']
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None
@@ -150,32 +154,69 @@ class ITC_Updater(AbstractLoopThread):
             sweep_time = 0.1
             # print('rate was zero!')
         else:
-            sweep_time = abs(setpoint_now - setpoint_temp) / rate
+            delta_Temperature = setpoint_temp - setpoint_now
+            sweep_time = abs(delta_Temperature) / rate
             if sweep_time < 0.1:
                 # print('sweeptime below 0.1: ', sweep_time)
                 sweep_time = 0.1
+            if sweep_time > 20e3:
+                raise AssertionError(
+                    'A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!')
+            if sweep_time > 23.5 * 60:
+                """not only one step suffices, as the maximum time for one step
+                is 24 hours (using 23.5 for safety)
+
+
+                """
+
+                # calculate number of full steps
+                n_sweeps = int(sweep_time / (23 * 60))
+                # calculate remaining time in minutes
+                remaining_min = sweep_time - n_sweeps * 23 * 60
+                # make list with full sweep times
+                sweep_times = [
+                    23 * 60 for n in range(n_sweeps)]
+
+                # make list with full sweep temps
+                sweep_temps = [setpoint_now + delta_Temperature * 23 * 60 /
+                               sweep_time * (n+1) for n in range(n_sweeps)]
+                if not np.isclose(0, remaining_min):
+                    # append remaining times and temps in case the user
+                    # did not hit a mark
+                    sweep_times += [remaining_min]
+                    sweep_temps += [setpoint_temp]
+            else:
+                n_sweeps = 0
+                sweep_times = [sweep_time]
+                sweep_temps = [setpoint_temp]
+
         sp = {str(z): dict(set_point=setpoint_temp,
                            hold_time=0,
                            sweep_time=0) for z in range(1, 17)}
         sp.update({str(1): dict(set_point=setpoint_now,
                                 hold_time=0,
                                 sweep_time=0),
-                   str(2): dict(set_point=setpoint_temp,
-                                hold_time=0,
-                                sweep_time=sweep_time),
-                   str(15): dict(set_point=setpoint_temp,
-                                 hold_time=0,
-                                 sweep_time=0),
+                   # str(2): dict(set_point=setpoint_temp,
+                   #              hold_time=0,
+                   #              sweep_time=sweep_time),
+                   # str(15): dict(set_point=setpoint_temp,
+                   #               hold_time=0,
+                   #               sweep_time=0),
                    str(16): dict(set_point=setpoint_temp,
                                  hold_time=0,
                                  sweep_time=0.1)})
+        # fill up the steps
+        sp.update({str(z+2): dict(set_point=sweep_temps[z],
+                                hold_time=0,
+                                sweep_time=sweep_times[z]) for z in range(n_sweeps+1)})
+
         self.sweep_parameters = sp
         # print('setting sweep to', self.sweep_parameters)
         self.ITC.setSweeps(self.sweep_parameters)
         # self.ITC.getValue(0)
         # print('sweep table read from device:')
         # for x in self.ITC.readSweepTable():
-            # print(x)
+        # print(x)
 
     @pyqtSlot(float)
     @ExceptionHandling
@@ -217,7 +258,7 @@ class ITC_Updater(AbstractLoopThread):
             self.sweep_first = False
         # else:
             # print('I did not see a running sweep!',
-                  # self.device_status['sweep'])
+            # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
 
     @pyqtSlot()
@@ -330,8 +371,6 @@ class ITC_Updater(AbstractLoopThread):
         """
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
-
-
 
     @pyqtSlot(int)
     def gettoset_Control(self, value):
