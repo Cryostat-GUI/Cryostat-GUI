@@ -116,8 +116,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
+        reply = QtWidgets.QMessageBox.Yes
         if self.OneShot_running:
-            reply = None
             reply = QtWidgets.QMessageBox.question(self, 'Cryostat-GUI', "A measurement is running! \nAre you sure to quit?",
                                                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
