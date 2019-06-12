@@ -151,7 +151,9 @@ class ITC_Updater(AbstractLoopThread):
         setpoint_now = self.ITC.getValue(0)
         # print('setpoint now = ', setpoint_now)
         if rate == 0:
-            sweep_time = 0.1
+            n_sweeps = 0
+            sweep_times = [0.1]
+            sweep_temps = [setpoint_temp]
             # print('rate was zero!')
         else:
             delta_Temperature = setpoint_temp - setpoint_now
