@@ -103,10 +103,7 @@ class ITC_Updater(AbstractLoopThread):
 
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
-                if key == 'Sensor_1_K':
-                    if float(value) > 100:
-                        data[key] = data['set_temperature'] - \
-                            data['temperature_error']
+
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None
@@ -119,6 +116,10 @@ class ITC_Updater(AbstractLoopThread):
 
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
+        # with "calc" in name it would not enter calculations!
+        data['Sensor_1_calerr_K'] = data[
+            'set_temperature'] - data['temperature_error']
+
         self.sig_Infodata.emit(deepcopy(data))
 
     # def control_checks(func):
@@ -181,7 +182,7 @@ class ITC_Updater(AbstractLoopThread):
 
                 # make list with full sweep temps
                 sweep_temps = [setpoint_now + delta_Temperature * 23 * 60 /
-                               sweep_time * (n+1) for n in range(n_sweeps)]
+                               sweep_time * (n + 1) for n in range(n_sweeps)]
                 if not np.isclose(0, remaining_min):
                     # append remaining times and temps in case the user
                     # did not hit a mark
@@ -208,9 +209,9 @@ class ITC_Updater(AbstractLoopThread):
                                  hold_time=0,
                                  sweep_time=0.1)})
         # fill up the steps
-        sp.update({str(z+2): dict(set_point=sweep_temps[z],
-                                hold_time=0,
-                                sweep_time=sweep_times[z]) for z in range(n_sweeps+1)})
+        sp.update({str(z + 2): dict(set_point=sweep_temps[z],
+                                    hold_time=0,
+                                    sweep_time=sweep_times[z]) for z in range(n_sweeps + 1)})
 
         self.sweep_parameters = sp
         # print('setting sweep to', self.sweep_parameters)

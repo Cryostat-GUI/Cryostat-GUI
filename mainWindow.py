@@ -849,6 +849,9 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ITC_window.lcdPIDerivative.display(
                 self.data['ITC']['derivative_action_time'])
 
+            self.ITC_window.lcdTemp_sens1_calcerr_K.display(
+                self.data['ITC']['Sensor_1_calerr_K'])
+
     # ------- ------- ILM
     def initialize_window_ILM(self):
         """initialize ILM Window"""
