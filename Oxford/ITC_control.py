@@ -166,11 +166,8 @@ class ITC_Updater(AbstractLoopThread):
                 raise AssertionError(
                     'A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!')
             if sweep_time > 23.5 * 60:
-                """not only one step suffices, as the maximum time for one step
-                is 24 hours (using 23.5 for safety)
-
-
-                """
+                # not only one step suffices, as the maximum time for one step
+                # is 24 hours (using 23.5 for safety)
 
                 # calculate number of full steps
                 n_sweeps = int(sweep_time / (23 * 60))
