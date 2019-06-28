@@ -32,7 +32,7 @@ a = time.time()
 
 from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
-from PyQt5.QtCore import QThread
+# from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -119,6 +119,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
+        """check for a running measurement
+        give the user a chance to contemplate his wish to quit the application, 
+        in case a measurement is currently running"""
         reply = QtWidgets.QMessageBox.Yes
         if self.OneShot_running:
             reply = QtWidgets.QMessageBox.question(self, 'Cryostat-GUI', "A measurement is running! \nAre you sure to quit?",
@@ -166,12 +169,20 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
     def softwarecontrol_toggle_locking(self, value):
+        """acquire/release the controls Lock
+        this is used to control the disabling/enabling of GUI elements,
+        in case of a running sequence/measurement"""
         if value:
             self.controls_Lock.acquire()
         else:
             self.controls_Lock.release()
 
     def softwarecontrol_check(self):
+        """disable all respective GUI elements in case
+            the controls_lock is locked
+            thus prevent interference of the user 
+                with a running sequence/measurement
+        """
         # try:
         if self.controls_Lock.locked():
             for c in self.controls:
