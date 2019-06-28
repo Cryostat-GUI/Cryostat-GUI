@@ -609,6 +609,16 @@ class mainWindow(QtWidgets.QMainWindow):
 
             plt.show()
 
+    def store_data(self, data: dict, device: str) -> None:
+        """store the timed data in the system list"""
+
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
+        with self.dataLock:
+            self.data[device].update(data)
+
     # ------- Oxford Instruments
     # ------- ------- ITC
     def initialize_window_ITC(self):
@@ -795,15 +805,16 @@ class mainWindow(QtWidgets.QMainWindow):
             Calculate the rate of change of Temperature on the sensors [K/min]
             Store ITC data in self.data['ITC'], update ITC_window
         """
-
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device='ITC')
+        # timedict = {'timeseconds': time.time(),
+        #             'ReadableTime': convert_time(time.time()),
+        #             'SearchableTime': convert_time_searchable(time.time())}
+        # data.update(timedict)
         with self.dataLock:
             # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
             # self.time_itc.append(time.time())
-            self.data['ITC'].update(data)
+            # self.data['ITC'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -914,13 +925,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ilm(self, data):
         """Store ILM data in self.data['ILM'], update ILM_window"""
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+
+        self.store_data(data=data, device='ILM')
         with self.dataLock:
             # data['date'] = convert_time(time.time())
-            self.data['ILM'].update(data)
+            # self.data['ILM'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -1018,13 +1028,13 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ips(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+
+        self.store_data(data=data, device='IPS')
+
         with self.dataLock:
             # data['date'] = convert_time(time.time())
-            self.data['IPS'].update(data)
+            # self.data['IPS'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -1261,12 +1271,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
         # data['date'] = convert_time(time.time())
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device='LakeShore350')
+
         with self.dataLock:
-            self.data['LakeShore350'].update(data)
+            # self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -1526,12 +1534,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device=dataname)
+
         with self.dataLock:
-            self.data[dataname].update(data)
+            # self.data[dataname].update(data)
 
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
@@ -1652,16 +1658,17 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_SR830(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+
+        self.store_data(data=data, device='SR830')
+
         with self.dataLock:
             # data['date'] = convert_time(time.time())
-            self.data['SR830'].update(data)
+            # self.data['SR830'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
+
             self.LockIn_window.lcdSetFrequency_Hz.display(
                 self.data['SR830']['Frequency_Hz'])
             self.LockIn_window.lcdSetVoltage_V.display(
@@ -1680,40 +1687,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 '{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
             self.LockIn_window.textTheta_Deg.setText(
                 '{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
-            # self.IPS_window.lcdFieldSweepRate.display(
-            #     self.data['IPS']['FIELD_sweep_rate'])
 
-            # self.IPS_window.lcdOutputField.display(
-            #     self.data['IPS']['FIELD_output'])
-            # self.IPS_window.lcdMeasuredMagnetCurrent.display(
-            #     self.data['IPS']['measured_magnet_current'])
-            # self.IPS_window.lcdOutputCurrent.display(
-            #     self.data['IPS']['CURRENT_output'])
-            # # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
-            # # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
-
-            # self.IPS_window.lcdLeadResistance.display(
-            #     self.data['IPS']['lead_resistance'])
-
-            # self.IPS_window.lcdPersistentMagnetField.display(
-            #     self.data['IPS']['persistent_magnet_field'])
-            # self.IPS_window.lcdTripField.display(
-            #     self.data['IPS']['trip_field'])
-            # self.IPS_window.lcdPersistentMagnetCurrent.display(
-            #     self.data['IPS']['persistent_magnet_current'])
-            # self.IPS_window.lcdTripCurrent.display(
-            #     self.data['IPS']['trip_current'])
-
-            # self.IPS_window.labelStatusMagnet.setText(
-            #     self.data['IPS']['status_magnet'])
-            # self.IPS_window.labelStatusCurrent.setText(
-            #     self.data['IPS']['status_current'])
-            # self.IPS_window.labelStatusActivity.setText(
-            #     self.data['IPS']['status_activity'])
-            # self.IPS_window.labelStatusLocRem.setText(
-            #     self.data['IPS']['status_locrem'])
-            # self.IPS_window.labelStatusSwitchHeater.setText(
-            #     self.data['IPS']['status_switchheater'])
 
     # ------- MISC -------
 

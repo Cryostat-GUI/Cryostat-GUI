@@ -7,7 +7,7 @@ Classes:
             uses the pymeasure SR830 command set
 Author(s):
     bklebel (Benjamin Klebel)
-    Wojtek            
+    Wojtek
 """
 from PyQt5.QtCore import pyqtSlot
 from copy import deepcopy

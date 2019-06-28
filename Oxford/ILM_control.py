@@ -5,7 +5,7 @@ Classes:
             inherits from AbstractLoopThread
                 there, the looping behaviour of this thread is defined
 Author(s):
-    bklebel (Benjamin Klebel)                
+    bklebel (Benjamin Klebel)
 """
 from PyQt5.QtCore import pyqtSlot
 
