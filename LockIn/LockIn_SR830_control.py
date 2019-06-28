@@ -1,4 +1,14 @@
+"""Module containing a class to run a (Standford Research) SR 830 Lock-In Amplifier in a pyqt5 application
 
+Classes:
+    SR830_Updater: a class for interfacing with a SR 830 Lock-In Amplifier
+            inherits from AbstractLoopThread
+                there, the looping behaviour of this thread is defined
+            uses the pymeasure SR830 command set
+Author(s):
+    bklebel (Benjamin Klebel)
+    Wojtek            
+"""
 from PyQt5.QtCore import pyqtSlot
 from copy import deepcopy
 # from importlib import reload
@@ -19,6 +29,7 @@ class SR830_Updater(AbstractLoopThread):
     """
 
     def __init__(self, InstrumentAddress='', **kwargs):
+        """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
 
         self.lockin = SR830(InstrumentAddress)
@@ -31,8 +42,6 @@ class SR830_Updater(AbstractLoopThread):
     @ExceptionHandling
     def running(self):
         """Try to extract all current data from the Lock-In, and emit signal, sending the data
-
-
         """
 
         data = dict()
@@ -56,25 +65,31 @@ class SR830_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setFrequency(self):
+        """set a frequency"""
         self.lockin.frequency = self.set_Frequency_Hz
 
     @pyqtSlot()
     @ExceptionHandling
     def setVoltage(self):
+        """set a voltage"""
         self.lockin.sine_voltage = self.set_Voltage_V
 
     @pyqtSlot()
     def gettoset_Frequency(self, value):
+        """receive and store the value to set the frequency"""
         self.set_Frequency_Hz = value
 
     @pyqtSlot()
     def gettoset_Voltage(self, value):
+        """receive and store the value to set the voltage"""
         self.set_Voltage_V = value
 
     @pyqtSlot()
     def getShuntResistance(self, value):
+        """receive and store the value of the shunt resistance"""
         self.ShuntResistance_Ohm = value
 
     @pyqtSlot()
     def getContactResistance(self, value):
+        """receive and store the value of the samples' contact resistance"""
         self.ContactResistance_Ohm = value

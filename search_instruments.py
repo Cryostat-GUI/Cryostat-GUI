@@ -1,3 +1,7 @@
+"""
+    Author(s):
+        bklebel (Benjamin Klebel)
+"""
 import visa
 from pyvisa.errors import VisaIOError
 

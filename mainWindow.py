@@ -13,6 +13,9 @@
         - 6221 Current Source (AC and DC)
         - DMM7510 7 1/2 Digital Multimeter
         - 2700 Multimeter / Data Acquisition System
+        - SR830 Lock-In Amplifier
+        - SR860 Lock-In Amplifier
+
     Classes:
     mainWindow:
         The main GUI class for the PyQt application

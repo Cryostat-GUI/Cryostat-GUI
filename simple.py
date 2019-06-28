@@ -1,8 +1,15 @@
+"""Module for controlling a Stanford Research SR830 Lock-In Amplifier
+    for use as control device for pressure as well as measuring
+    resistivity
+
+Author(s):
+    bklebel (Benjamin Klebel)
+    Wojtek
+"""
 from pymeasure.instruments.srs import SR830
-import time
 
 import sys
-import os
+# import os
 import time
 import numpy as np
 # from parse import *
