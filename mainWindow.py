@@ -80,7 +80,7 @@ Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 SR830_InstrumentAddress = 'GPIB::9'
 
-errorfile = 'Errors.error'
+errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
 
 
 class mainWindow(QtWidgets.QMainWindow):
