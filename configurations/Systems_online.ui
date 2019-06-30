@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>255</width>
-    <height>470</height>
+    <width>298</width>
+    <height>614</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -49,8 +49,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>196</width>
-            <height>483</height>
+            <width>239</width>
+            <height>552</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
@@ -70,37 +70,11 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
-            <widget class="QCheckBox" name="checkaction_run_Nanovolt_1">
+           <item row="13" column="0">
+            <widget class="QCheckBox" name="checkaction_run_ILM">
              <property name="text">
-              <string>Nanovoltmeter 1 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="14" column="0">
-            <widget class="QCheckBox" name="checkBox_15">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Measuring Multimeter 
-   (Keithley DMM7510)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Cryostat Control Systems</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="checkaction_run_LakeShore350">
-             <property name="text">
-              <string>Sample Temperature Controller 
-   (LakeShore350)</string>
+              <string>Cryogen Level Meter 
+   (Oxford ILM 211)</string>
              </property>
             </widget>
            </item>
@@ -112,29 +86,11 @@
              </property>
             </widget>
            </item>
-           <item row="15" column="0">
-            <widget class="QCheckBox" name="checkBox_18">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkaction_run_LakeShore350">
              <property name="text">
-              <string>Multimeter Switch 
-   (Keithley 2700)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Transport Measuring Devices:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="0">
-            <widget class="QCheckBox" name="checkaction_run_ILM">
-             <property name="text">
-              <string>Cryogen Level Meter 
-   (Oxford ILM 211)</string>
+              <string>Sample Temperature Controller 
+   (LakeShore350)</string>
              </property>
             </widget>
            </item>
@@ -143,17 +99,6 @@
              <property name="text">
               <string>Current Source 1 
    (Keithley 6221)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkaction_run_ITC">
-             <property name="text">
-              <string>VTI Temperature Controller 
-   (Oxford ITC 503)</string>
-             </property>
-             <property name="tristate">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -172,6 +117,14 @@
              </property>
             </widget>
            </item>
+           <item row="8" column="0">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_1">
+             <property name="text">
+              <string>Nanovoltmeter 1 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="0">
             <widget class="Line" name="line_4">
              <property name="orientation">
@@ -179,10 +132,65 @@
              </property>
             </widget>
            </item>
+           <item row="16" column="0">
+            <widget class="QCheckBox" name="checkBox_18">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Multimeter Switch 
+   (Keithley 2700)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Transport Measuring Devices:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Cryostat Control Systems</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkaction_run_ITC">
+             <property name="text">
+              <string>VTI Temperature Controller 
+   (Oxford ITC 503)</string>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="0">
+            <widget class="QCheckBox" name="checkBox_15">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Measuring Multimeter 
+   (Keithley DMM7510)</string>
+             </property>
+            </widget>
+           </item>
            <item row="12" column="0">
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>Auxiliary Systems</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0">
+            <widget class="QCheckBox" name="checkaction_run_SR830">
+             <property name="text">
+              <string>LockIn Amplifier 
+   (SR830)</string>
              </property>
             </widget>
            </item>
@@ -207,8 +215,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>211</width>
-            <height>406</height>
+            <width>254</width>
+            <height>550</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">

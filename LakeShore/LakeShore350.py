@@ -34,9 +34,9 @@ class LakeShore350(AbstractGPIBDeviceDriver):
     use inheritance injection:
     class TCPLakeShore(LakeShore350, TCPInstrument):
         pass
-    where in TCPInstrument you must define 
-        self.go() 
-        self.query() 
+    where in TCPInstrument you must define
+        self.go()
+        self.query()
         self.__init__()
     '''
 

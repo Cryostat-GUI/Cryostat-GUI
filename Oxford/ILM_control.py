@@ -1,9 +1,11 @@
 """Module containing a class to run a (Oxford Instruments) ILM 211 Intelligent Level Meter in a pyqt5 application
 
 Classes:
-    ILM_Updater: a class for interfacing with a ILM 211 Level Meter
+    ILM_Updater: a class for interfacing with an ILM 211 Level Meter
             inherits from AbstractLoopThread
                 there, the looping behaviour of this thread is defined
+Author(s):
+    bklebel (Benjamin Klebel)
 """
 from PyQt5.QtCore import pyqtSlot
 
@@ -112,7 +114,7 @@ class ILM_Updater(AbstractLoopThread):
     @ExceptionHandling
     def setProbingSpeed(self, speed, channel=1):
         """set probing speed for a specific channel
-            
+
             for fast probing, speed = 1
             for slow probing, speed = 0
             this comes from the order in the comboBox in the GUI
@@ -126,3 +128,16 @@ class ILM_Updater(AbstractLoopThread):
     def gettoset_Control(self, value):
         """receive and store the value to set the Control status"""
         self.control_state = value
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def measure_once(self):
+        """measure the helium level once:
+        put the probing speed to 'fast'
+            this will immediately trigger the device to measure it once
+        put the probing speed to 'slow' again
+        measure the helium level and return it
+        """
+        self.ILM.setFast(1)
+        self.ILM.setSlow(1)
+        return self.ILM.getValue(1) * 0.1

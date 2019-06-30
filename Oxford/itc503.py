@@ -59,7 +59,8 @@ class itc503(AbstractSerialDeviceDriver):
         command = '$T{}'.format(temperature)  # + str(int(1000*temperature))
         self.write(command)
 
-    def getStatus(self, run=True):
+    def getStatus(self, run=True) -> dict:
+        """read a general status from the itc 503"""
         answer = self.query('X')
         # print(answer, run)
         autoanswer = ['heater man, gas man', 'heater auto, gas man',
@@ -75,7 +76,7 @@ class itc503(AbstractSerialDeviceDriver):
         # print(a)
         return a
 
-    def getValue(self, variable=0):
+    def getValue(self, variable=0) -> float:
         """Read the variable defined by the index.
 
         There are values 11-13 but generally useless for

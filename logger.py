@@ -401,7 +401,8 @@ class main_Logger(AbstractLoopThread):
                  'Keithley2182_2',
                  'Keithley2182_3',
                  'Keithley6220_1',
-                 'Keithley6220_2']
+                 'Keithley6220_2',
+                 'SR830']
 
         self.connected = self.connectdb(
             self.conf['general']['logfile_location'])

@@ -13,6 +13,9 @@
         - 6221 Current Source (AC and DC)
         - DMM7510 7 1/2 Digital Multimeter
         - 2700 Multimeter / Data Acquisition System
+        - SR830 Lock-In Amplifier
+        - SR860 Lock-In Amplifier
+
     Classes:
     mainWindow:
         The main GUI class for the PyQt application
@@ -29,7 +32,7 @@ a = time.time()
 
 from PyQt5 import QtWidgets, QtGui
 # from PyQt5.QtCore import QObject
-from PyQt5.QtCore import QThread
+# from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -50,6 +53,7 @@ from pyvisa.errors import VisaIOError
 import Oxford
 import LakeShore
 import Keithley
+import LockIn
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
@@ -74,6 +78,9 @@ Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
+SR830_InstrumentAddress = 'GPIB::9'
+
+errorfile = 'Errors.error'
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -105,13 +112,26 @@ class mainWindow(QtWidgets.QMainWindow):
         self.dataLock = Lock()
         self.dataLock_live = Lock()
         self.app = app
+        with open(errorfile, 'a') as f:
+            f.write('{} - {}\n'.format(convert_time(time.time()), 'STARTUP PROGRAM'))
 
         QTimer.singleShot(0, self.initialize_all_windows)
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
 
     def closeEvent(self, event):
-        super().closeEvent(event)
-        self.app.quit()
+        """check for a running measurement
+        give the user a chance to contemplate his wish to quit the application, 
+        in case a measurement is currently running"""
+        reply = QtWidgets.QMessageBox.Yes
+        if self.OneShot_running:
+            reply = QtWidgets.QMessageBox.question(self, 'Cryostat-GUI', "A measurement is running! \nAre you sure to quit?",
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            super().closeEvent(event)
+            self.app.quit()
+        else:
+            event.ignore()
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
@@ -128,6 +148,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_Log_conf()
         self.initialize_window_LakeShore350()
         self.initialize_window_Keithley()
+        self.initialize_window_LockIn()
         self.initialize_window_Errors()
         self.show_data()
         self.window_SystemsOnline.checkactionLogging_LIVE.toggled[
@@ -148,12 +169,20 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
     def softwarecontrol_toggle_locking(self, value):
+        """acquire/release the controls Lock
+        this is used to control the disabling/enabling of GUI elements,
+        in case of a running sequence/measurement"""
         if value:
             self.controls_Lock.acquire()
         else:
             self.controls_Lock.release()
 
     def softwarecontrol_check(self):
+        """disable all respective GUI elements in case
+            the controls_lock is locked
+            thus prevent interference of the user 
+                with a running sequence/measurement
+        """
         # try:
         if self.controls_Lock.locked():
             for c in self.controls:
@@ -217,6 +246,8 @@ class mainWindow(QtWidgets.QMainWindow):
         be handled here. For now, it just shows all errors in the repsective
         window
         """
+        with open(errorfile, 'a') as f:
+            f.write('{} - {}\n'.format(convert_time(time.time()), text))
         self.show_error_textBrowser(text)
 
     def show_error_textBrowser(self, text):
@@ -374,7 +405,7 @@ class mainWindow(QtWidgets.QMainWindow):
     #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
     #                                                                                                             livevsdb="LIVE",
     #                                                                                                             axis='Y5',
-    #                                                                                                             dataplot=self.dataplot_live_conf))
+    # dataplot=self.dataplot_live_conf))
 
     #     self.dataplot_live_conf.buttonBox.clicked.connect(
     #         lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
@@ -421,7 +452,7 @@ class mainWindow(QtWidgets.QMainWindow):
     #                                                                       GUI_value=GUI_value,
     #                                                                       livevsdb="LIVE",
     #                                                                       axis=axis,
-    #                                                                       dataplot=dataplot))
+    # dataplot=dataplot))
 
     # def x_changed(self):
     #     self.plotting_comboValue_Axis_X_plot = self.dataplot.comboValue_Axis_X.currentText()
@@ -588,6 +619,16 @@ class mainWindow(QtWidgets.QMainWindow):
             plt.draw()
 
             plt.show()
+
+    def store_data(self, data: dict, device: str) -> None:
+        """store the timed data in the system list"""
+
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
+        with self.dataLock:
+            self.data[device].update(data)
 
     # ------- Oxford Instruments
     # ------- ------- ITC
@@ -775,15 +816,16 @@ class mainWindow(QtWidgets.QMainWindow):
             Calculate the rate of change of Temperature on the sensors [K/min]
             Store ITC data in self.data['ITC'], update ITC_window
         """
-
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device='ITC')
+        # timedict = {'timeseconds': time.time(),
+        #             'ReadableTime': convert_time(time.time()),
+        #             'SearchableTime': convert_time_searchable(time.time())}
+        # data.update(timedict)
         with self.dataLock:
             # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
             # self.time_itc.append(time.time())
-            self.data['ITC'].update(data)
+            # self.data['ITC'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -831,6 +873,9 @@ class mainWindow(QtWidgets.QMainWindow):
             # if not self.data['ITC']['derivative_action_time'] is None:
             self.ITC_window.lcdPIDerivative.display(
                 self.data['ITC']['derivative_action_time'])
+
+            self.ITC_window.lcdTemp_sens1_calcerr_K.display(
+                self.data['ITC']['Sensor_1_calerr_K'])
 
     # ------- ------- ILM
     def initialize_window_ILM(self):
@@ -891,13 +936,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ilm(self, data):
         """Store ILM data in self.data['ILM'], update ILM_window"""
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+
+        self.store_data(data=data, device='ILM')
         with self.dataLock:
             # data['date'] = convert_time(time.time())
-            self.data['ILM'].update(data)
+            # self.data['ILM'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -995,13 +1039,13 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_ips(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+
+        self.store_data(data=data, device='IPS')
+
         with self.dataLock:
             # data['date'] = convert_time(time.time())
-            self.data['IPS'].update(data)
+            # self.data['IPS'].update(data)
+
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -1238,12 +1282,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 GUI_element.setText('{num:=+10.4f}'.format(num=co))
 
         # data['date'] = convert_time(time.time())
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device='LakeShore350')
+
         with self.dataLock:
-            self.data['LakeShore350'].update(data)
+            # self.data['LakeShore350'].update(data)
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
             # the last value is retained
@@ -1503,12 +1545,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """
             Store Keithley data in self.data['Keithley'], update Keithley_window
         """
-        timedict = {'timeseconds': time.time(),
-                    'ReadableTime': convert_time(time.time()),
-                    'SearchableTime': convert_time_searchable(time.time())}
-        data.update(timedict)
+        self.store_data(data=data, device=dataname)
+
         with self.dataLock:
-            self.data[dataname].update(data)
+            # self.data[dataname].update(data)
 
             # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
             # since the command failed in the communication with the device,
@@ -1532,6 +1572,133 @@ class mainWindow(QtWidgets.QMainWindow):
                         name=dataname, err=key_err.args[0]))
                 except ZeroDivisionError as z_err:
                     self.data[dataname]['Resistance_Ohm'] = np.nan
+
+    # -------------- Lock-In SR 830  ------------------------
+    def initialize_window_LockIn(self):
+        """initialize PS Window"""
+        self.LockIn_window = Window_ui(ui_file='.\\LockIn\\LockIn_control.ui')
+        self.LockIn_window.sig_closing.connect(
+            lambda: self.action_show_SR830.setChecked(False))
+
+        self.window_SystemsOnline.checkaction_run_SR830.clicked[
+            'bool'].connect(self.run_SR830)
+        self.action_show_SR830.triggered['bool'].connect(
+            lambda value: self.show_window(self.LockIn_window, value))
+
+        # self.IPS_window.labelStatusMagnet.setText('')
+        # self.IPS_window.labelStatusCurrent.setText('')
+        # self.IPS_window.labelStatusActivity.setText('')
+        # self.IPS_window.labelStatusLocRem.setText('')
+        # self.IPS_window.labelStatusSwitchHeater.setText('')
+
+    @pyqtSlot(bool)
+    def run_SR830(self, boolean):
+        """start/stop the LockIn SR830 control thread"""
+        global LockIn
+
+        print(LockIn.__doc__)
+        O_LockIn = reload(LockIn.LockIn_SR830_control)
+        SR830_Updater = O_LockIn.SR830_Updater
+
+        if boolean:
+            try:
+                getInfodata = self.running_thread_control(SR830_Updater(
+                    InstrumentAddress=SR830_InstrumentAddress), 'SR830', 'control_SR830')
+
+                getInfodata.sig_Infodata.connect(self.store_data_SR830)
+                # getInfodata.sig_visaerror.connect(self.printing)
+                # getInfodata.sig_assertion.connect(self.printing)
+                getInfodata.sig_visaerror.connect(self.show_error_general)
+                getInfodata.sig_assertion.connect(self.show_error_general)
+
+                getInfodata.sig_visatimeout.connect(
+                    lambda: self.show_error_general('SR830: timeout'))
+
+                # self.IPS_window.comboSetActivity.activated['int'].connect(
+                #     lambda value: self.threads['control_IPS'][0].setActivity(value))
+                # self.IPS_window.comboSetSwitchHeater.activated['int'].connect(
+                # lambda value:
+                # self.threads['control_IPS'][0].setSwitchHeater(value))
+
+                self.LockIn_window.spinSetFrequency_Hz.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].gettoset_Frequency(value))
+
+                self.LockIn_window.spinSetFrequency_Hz.editingFinished.connect(
+                    lambda: self.threads['control_SR830'][0].setFrequency())
+
+                self.LockIn_window.spinSetVoltage_V.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].gettoset_Voltage(value))
+
+                self.LockIn_window.spinSetVoltage_V.editingFinished.connect(
+                    lambda: self.threads['control_SR830'][0].setVoltage())
+
+                self.LockIn_window.spinShuntResistance_kOhm.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].getShuntResistance(value * 1e3))
+                self.LockIn_window.spinContactResistance_Ohm.valueChanged.connect(
+                    lambda value: self.threads['control_SR830'][0].getContactResistance(value))
+
+                # self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(
+                #     lambda value: self.threads['control_IPS'][0].gettoset_FieldSweepRate(value))
+                # self.IPS_window.spinSetFieldSweepRate.editingFinished.connect(
+                # lambda: self.threads['control_IPS'][0].setFieldSweepRate())
+
+                # self.IPS_window.spin_threadinterval.valueChanged.connect(
+                # lambda value:
+                # self.threads['control_IPS'][0].setInterval(value))
+
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    True)
+
+            except (VisaIOError, NameError) as e:
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    False)
+                self.show_error_general(e)
+                # print(e) # TODO: open window displaying the error message
+        else:
+            self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
+            self.stopping_thread('control_SR830')
+
+    # @pyqtSlot(bool)
+    # def show_IPS(self, boolean):
+    #     """display/close the ILM data & control window"""
+    #     if boolean:
+    #         self.IPS_window.show()
+    #     else:
+    #         self.IPS_window.close()
+
+    @pyqtSlot(dict)
+    def store_data_SR830(self, data):
+        """Store PS data in self.data['ILM'], update PS_window"""
+
+        self.store_data(data=data, device='SR830')
+
+        with self.dataLock:
+            # data['date'] = convert_time(time.time())
+            # self.data['SR830'].update(data)
+
+            # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+            # since the command failed in the communication with the device,
+            # the last value is retained
+
+            self.LockIn_window.lcdSetFrequency_Hz.display(
+                self.data['SR830']['Frequency_Hz'])
+            self.LockIn_window.lcdSetVoltage_V.display(
+                self.data['SR830']['Voltage_V'])
+            self.LockIn_window.textX_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['X_V']))
+
+            self.LockIn_window.textSampleCurrent_mA.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['SampleCurrent_mA']))
+            self.LockIn_window.textSampleResistance_Ohm.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['SampleResistance_Ohm']))
+
+            self.LockIn_window.textY_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['Y_V']))
+            self.LockIn_window.textR_V.setText(
+                '{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
+            self.LockIn_window.textTheta_Deg.setText(
+                '{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
+
 
     # ------- MISC -------
 
@@ -1623,6 +1790,7 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.run_OneShot)
         self.action_show_OneShot_Measuring.triggered[
             'bool'].connect(self.show_OneShot)
+        self.OneShot_running = False
 
     @pyqtSlot(bool)
     def run_OneShot(self, boolean):
@@ -1714,12 +1882,15 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_OneShot.textinterval.setText(
             '{0:.2f} s ({1:.2f} min)'.format(sec, sec / 60))
 
+        self.OneShot_running = True
+
     def OneShot_stop(self):
         '''stop the timer, change the state to "stopped" '''
         blue = QtGui.QColor(0, 0, 255)
         self.logging_timer.stop()
         self.window_OneShot.textrunning.setText('Stopped')
         self.window_OneShot.textrunning.setTextColor(blue)
+        self.OneShot_running = False
 
     def OneShot_chooseDatafile(self, OneShot):
         try:
@@ -1776,5 +1947,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()
-    print('date: ', datetime.datetime.now(), '\nstartup time: ', time.time() - a)
+    print('date: ', datetime.datetime.now(),
+          '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
