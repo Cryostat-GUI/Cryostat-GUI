@@ -11,3 +11,4 @@ __pycache__
 *.json
 *.h5
 *.error
+*.conf

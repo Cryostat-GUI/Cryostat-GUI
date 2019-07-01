@@ -160,7 +160,10 @@ class ITC_Updater(AbstractLoopThread):
         a tuple, with
             the first entry being a list of temperatures
             the second entry being a list of dicts with p, i, d values"""
-        PID_id = np.where(self.PID_configuration[0] > temperature)[0][0]
+        try:
+            PID_id = np.where(self.PID_configuration[0] > temperature)[0][0]
+        except IndexError:
+            PID_id = -1
         PID_conf = self.PID_configuration[1][PID_id]
         self.set_prop = PID_conf['p']
         self.set_integral = PID_conf['i']
