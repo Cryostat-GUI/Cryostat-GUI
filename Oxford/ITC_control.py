@@ -78,7 +78,7 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
-        self.PIDFile = '.\\configurations\\PID_conf\\P1C1.conf'
+        self.PIDFile = 'configurations\\PID_conf\\P1C1.conf'
         self.PID_configuration = readPID_fromFile(self.PIDFile)
 
     # @control_checks
@@ -126,7 +126,7 @@ class ITC_Updater(AbstractLoopThread):
             'set_temperature'] - data['temperature_error']
 
         # if self.sweep_running:
-        self.setPID(temperature=data['Sensor_1_K'])
+        self.set_PID(temperature=data['Sensor_1_K'])
 
         self.sig_Infodata.emit(deepcopy(data))
 
