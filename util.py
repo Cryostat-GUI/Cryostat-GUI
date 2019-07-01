@@ -203,6 +203,15 @@ def noKeyError(func):
     return wrapper_noKeyError
 
 
+def readPID_fromFile(filename):
+    """read PID values from file"""
+    arr = np.loadtxt(filename)
+    list_T = arr[:, 0]
+    listPID = [dict(p=arr[x, 1], i=arr[x, 2], d=arr[x, 3])
+               for x in range(arr.shape[0])]
+    return list_T, listPID
+
+
 class dummy:
     """dummy context manager doing nothing at all"""
 

@@ -19,6 +19,7 @@ import numpy as np
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
+from util import readPID_fromFile
 
 
 class ITC_Updater(AbstractLoopThread):
@@ -77,6 +78,9 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
+        self.PIDFile = '.\\configurations\\PID_conf\\P1C1.conf'
+        self.PID_configuration = readPID_fromFile(self.PIDFile)
+
     # @control_checks
     @ExceptionHandling
     def running(self):
@@ -98,6 +102,7 @@ class ITC_Updater(AbstractLoopThread):
             self.sensors['temperature_error'])
         data['set_temperature'] = self.ITC.getValue(
             self.sensors['set_temperature'])
+
         for key in self.sensors.keys():
             try:
 
@@ -119,6 +124,9 @@ class ITC_Updater(AbstractLoopThread):
         # with "calc" in name it would not enter calculations!
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
+
+        # if self.sweep_running:
+        self.setPID(temperature=data['Sensor_1_K'])
 
         self.sig_Infodata.emit(deepcopy(data))
 
@@ -144,6 +152,22 @@ class ITC_Updater(AbstractLoopThread):
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
     #     self.ITC.set_delay_measuring(delay)
+
+    @ExceptionHandling
+    def set_PID(self, temperature):
+        """set the PID values acorrding to the configuration
+        configuration should be stored in self.PID_configuration:
+        a tuple, with
+            the first entry being a list of temperatures
+            the second entry being a list of dicts with p, i, d values"""
+        PID_id = np.where(self.PID_configuration[0] > temperature)[0][0]
+        PID_conf = self.PID_configuration[1][PID_id]
+        self.set_prop = PID_conf['p']
+        self.set_integral = PID_conf['i']
+        self.set_derivative = PID_conf['d']
+        self.setProportional()
+        self.setIntegral()
+        self.setDerivative()
 
     @pyqtSlot(bool)
     @ExceptionHandling
