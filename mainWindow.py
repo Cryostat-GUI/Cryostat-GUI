@@ -180,6 +180,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(f'could not find a key: {e}')
         del settings
 
+        self.window_settings.checkUseAuto.setChecked(self.window_settings.temp_ITC_useAutoPID)
+
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
         this is used to control the disabling/enabling of GUI elements,
@@ -697,7 +699,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
-                    ITC_Instrumentadress), 'ITC', 'control_ITC')
+                    InstrumentAddress=ITC_Instrumentadress, useAutoPID=self.window_settings.temp_ITC_useAutoPID), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)

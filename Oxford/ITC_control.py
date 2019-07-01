@@ -50,7 +50,7 @@ class ITC_Updater(AbstractLoopThread):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, useAutoPID, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         global Oxford
         itc503 = reload(Oxford.itc503).itc503
@@ -80,6 +80,7 @@ class ITC_Updater(AbstractLoopThread):
 
         self.PIDFile = 'configurations\\PID_conf\\P1C1.conf'
         self.PID_configuration = readPID_fromFile(self.PIDFile)
+        self.useAutoPID = useAutoPID
 
     # @control_checks
     @ExceptionHandling
@@ -125,8 +126,8 @@ class ITC_Updater(AbstractLoopThread):
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
 
-        # if self.sweep_running:
-        self.set_PID(temperature=data['Sensor_1_K'])
+        if self.useAutoPID:
+            self.set_PID(temperature=data['Sensor_1_K'])
 
         self.sig_Infodata.emit(deepcopy(data))
 
