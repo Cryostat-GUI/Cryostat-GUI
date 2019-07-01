@@ -36,6 +36,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QSettings
 # from PyQt5.QtWidgets import QtAlignRight
 from PyQt5.uic import loadUi
 
@@ -117,6 +118,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         QTimer.singleShot(0, self.initialize_all_windows)
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
+        QTimer.singleShot(0, self.load_settings)
 
     def closeEvent(self, event):
         """check for a running measurement
@@ -167,6 +169,16 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+
+    def load_settings(self):
+        settings = QSettings("TUW", "CryostatGUI")
+        try:
+            self.window_settings.temp_ITC_useAutoPID = bool(
+                settings.value('ITC_useAutoPID', int))
+        except KeyError as e:
+            QTimer.singleShot(20 * 1e3, self.load_settings)
+            self.show_error_general(f'could not find a key: {e}')
+        del settings
 
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
@@ -274,6 +286,15 @@ class mainWindow(QtWidgets.QMainWindow):
             ui_file='.\\configurations\\settings_global.ui')
         self.actionSettings.triggered.connect(
             lambda: self.show_window(self.window_settings, True))
+
+        self.window_settings.checkUseAuto.toggled[
+            'bool'].connect(self.settings_temp_ITC_useAuto)
+
+    def settings_temp_ITC_useAuto(self, boolean):
+        self.window_settings.temp_ITC_useAutoPID = boolean
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_useAutoPID', int(boolean))
+        del settings
 
     # ------- plotting
     def connectdb(self, dbname):
@@ -1698,7 +1719,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 '{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
             self.LockIn_window.textTheta_Deg.setText(
                 '{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
-
 
     # ------- MISC -------
 
