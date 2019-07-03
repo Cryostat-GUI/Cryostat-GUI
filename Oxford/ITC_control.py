@@ -78,8 +78,7 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
-        self.PIDFile = 'configurations\\PID_conf\\P1C1.conf'
-        self.PID_configuration = readPID_fromFile(self.PIDFile)
+        self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
         self.mainthreadSignals = mainthreadSignals
         self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
         self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)

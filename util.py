@@ -186,6 +186,9 @@ def ExceptionHandling(func):
                     args[0].sig_visatimeout.emit()
                 else:
                     ExceptionSignal(args[0], func, 'VisaIO', e_visa)
+
+            except OSError as e:
+                ExceptionSignal(args[0], func, 'OSError', e)
         else:
             print('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
