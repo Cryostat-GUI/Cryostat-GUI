@@ -335,8 +335,11 @@ class mainWindow(QtWidgets.QMainWindow):
         settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
         del settings
 
-        with open(self.window_settings.temp_ITC_PIDFile) as f:
-            self.window_settings.textConfShow.setText(f.read())
+        try:
+            with open(self.window_settings.temp_ITC_PIDFile) as f:
+                self.window_settings.textConfShow.setText(f.read())
+        except OSError as e:
+            self.show_error_general(f'mainthread: settings PIDFile: OSError {e}')
 
     # ------- plotting
     def connectdb(self, dbname):
