@@ -50,7 +50,7 @@ class ITC_Updater(AbstractLoopThread):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, useAutoPID, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthreadSignals, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         global Oxford
         itc503 = reload(Oxford.itc503).itc503
@@ -80,7 +80,9 @@ class ITC_Updater(AbstractLoopThread):
 
         self.PIDFile = 'configurations\\PID_conf\\P1C1.conf'
         self.PID_configuration = readPID_fromFile(self.PIDFile)
-        self.useAutoPID = useAutoPID
+        self.mainthreadSignals = mainthreadSignals
+        self.mainthreadSignals['checkUseAuto'].connect(self.setCheckAutoPID)
+        self.useAutoPID = True
 
     # @control_checks
     @ExceptionHandling
@@ -143,6 +145,10 @@ class ITC_Updater(AbstractLoopThread):
     #     except VisaIOError as e_visa:
     #         if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
     #             pass
+
+    @ExceptionHandling
+    def setCheckAutoPID(self, boolean):
+        self.useAutoPID = boolean
 
     @ExceptionHandling
     def read_status(self, run=True):
