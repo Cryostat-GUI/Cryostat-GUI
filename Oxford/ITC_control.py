@@ -19,6 +19,7 @@ import numpy as np
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
+from util import readPID_fromFile
 
 
 class ITC_Updater(AbstractLoopThread):
@@ -49,7 +50,7 @@ class ITC_Updater(AbstractLoopThread):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthreadSignals, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         global Oxford
         itc503 = reload(Oxford.itc503).itc503
@@ -77,6 +78,12 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
+        self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
+        self.mainthreadSignals = mainthreadSignals
+        self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
+        self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
+        self.useAutoPID = True
+
     # @control_checks
     @ExceptionHandling
     def running(self):
@@ -98,6 +105,7 @@ class ITC_Updater(AbstractLoopThread):
             self.sensors['temperature_error'])
         data['set_temperature'] = self.ITC.getValue(
             self.sensors['set_temperature'])
+
         for key in self.sensors.keys():
             try:
 
@@ -120,6 +128,9 @@ class ITC_Updater(AbstractLoopThread):
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
 
+        if self.useAutoPID:
+            self.set_PID(temperature=data['Sensor_1_K'])
+
         self.sig_Infodata.emit(deepcopy(data))
 
     # def control_checks(func):
@@ -136,6 +147,17 @@ class ITC_Updater(AbstractLoopThread):
     #             pass
 
     @ExceptionHandling
+    def setCheckAutoPID(self, boolean):
+        """reaction to signal: set AutoPID behaviour"""
+        self.useAutoPID = boolean
+
+    @ExceptionHandling
+    def setPIDFile(self, file):
+        """reaction to signal: set AutoPID lookup file"""
+        self.PIDFile = file
+        self.PID_configuration = readPID_fromFile(self.PIDFile)
+
+    @ExceptionHandling
     def read_status(self, run=True):
         """read the device status"""
         self.device_status = self.ITC.getStatus(run)
@@ -144,6 +166,25 @@ class ITC_Updater(AbstractLoopThread):
     # @pyqtSlot(int)
     # def set_delay_sending(self, delay):
     #     self.ITC.set_delay_measuring(delay)
+
+    @ExceptionHandling
+    def set_PID(self, temperature):
+        """set the PID values acorrding to the configuration
+        configuration should be stored in self.PID_configuration:
+        a tuple, with
+            the first entry being a list of temperatures
+            the second entry being a list of dicts with p, i, d values"""
+        try:
+            PID_id = np.where(self.PID_configuration[0] > temperature)[0][0]
+        except IndexError:
+            PID_id = -1
+        PID_conf = self.PID_configuration[1][PID_id]
+        self.set_prop = PID_conf['p']
+        self.set_integral = PID_conf['i']
+        self.set_derivative = PID_conf['d']
+        self.setProportional()
+        self.setIntegral()
+        self.setDerivative()
 
     @pyqtSlot(bool)
     @ExceptionHandling
