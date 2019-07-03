@@ -88,14 +88,18 @@ class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
 
     sig_arbitrary = pyqtSignal()
+
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
     sig_running_new_thread = pyqtSignal()
+
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
     sig_measure_oneshot_start = pyqtSignal()
     sig_measure_oneshot_stop = pyqtSignal()
     # sig_softwarecontrols = pyqtSignal(dict)
+
+    sig_ITC_useAutoPID = pyqtSignal(bool)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -180,7 +184,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(f'could not find a key: {e}')
         del settings
 
-        self.window_settings.checkUseAuto.setChecked(self.window_settings.temp_ITC_useAutoPID)
+        self.window_settings.checkUseAuto.setChecked(
+            self.window_settings.temp_ITC_useAutoPID)
 
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
@@ -292,8 +297,18 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_settings.checkUseAuto.toggled[
             'bool'].connect(self.settings_temp_ITC_useAuto)
 
+        # store signals in ordered fashion for easy retrieval
+        self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID),
+                         logging=dict(log_general=self.sig_logging,
+                                      log_newconf=self.sig_logging_newconf)
+                         )
+
     def settings_temp_ITC_useAuto(self, boolean):
+        """set the variable for the softwareAutoPID
+        emit signal to notify Thread
+        store it in settings"""
         self.window_settings.temp_ITC_useAutoPID = boolean
+        self.sigs['ITC']['useAutocheck'].emit(boolean)
         settings = QSettings("TUW", "CryostatGUI")
         settings.setValue('ITC_useAutoPID', int(boolean))
         del settings
