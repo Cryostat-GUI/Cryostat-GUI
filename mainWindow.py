@@ -36,6 +36,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QSettings
 # from PyQt5.QtWidgets import QtAlignRight
 from PyQt5.uic import loadUi
 
@@ -80,21 +81,26 @@ Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 SR830_InstrumentAddress = 'GPIB::9'
 
-errorfile = 'Errors.error'
+errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
 
 
 class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
 
     sig_arbitrary = pyqtSignal()
+
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
     sig_running_new_thread = pyqtSignal()
+
     sig_log_measurement = pyqtSignal(dict)
     sig_measure_oneshot = pyqtSignal()
     sig_measure_oneshot_start = pyqtSignal()
     sig_measure_oneshot_stop = pyqtSignal()
     # sig_softwarecontrols = pyqtSignal(dict)
+
+    sig_ITC_useAutoPID = pyqtSignal(bool)
+    sig_ITC_newFilePID = pyqtSignal(str)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -117,6 +123,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         QTimer.singleShot(0, self.initialize_all_windows)
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
+        QTimer.singleShot(0, self.load_settings)
 
     def closeEvent(self, event):
         """check for a running measurement
@@ -167,6 +174,25 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+
+    def load_settings(self):
+        """load all settings store in the QSettings
+        set corresponding values in the 'Global Settings' window"""
+        settings = QSettings("TUW", "CryostatGUI")
+        try:
+            self.window_settings.temp_ITC_useAutoPID = bool(
+                settings.value('ITC_useAutoPID', int))
+            self.window_settings.temp_ITC_PIDFile = settings.value(
+                'ITC_PIDFile', str)
+        except KeyError as e:
+            QTimer.singleShot(20 * 1e3, self.load_settings)
+            self.show_error_general(f'could not find a key: {e}')
+        del settings
+
+        self.window_settings.checkUseAuto.setChecked(
+            self.window_settings.temp_ITC_useAutoPID)
+        self.window_settings.lineConfFile.setText(
+            self.window_settings.temp_ITC_PIDFile)
 
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
@@ -274,6 +300,50 @@ class mainWindow(QtWidgets.QMainWindow):
             ui_file='.\\configurations\\settings_global.ui')
         self.actionSettings.triggered.connect(
             lambda: self.show_window(self.window_settings, True))
+
+        self.window_settings.checkUseAuto.toggled[
+            'bool'].connect(self.settings_temp_ITC_useAutoPID)
+        self.window_settings.lineConfFile.textEdited.connect(
+            self.settings_temp_ITC_PIDFile_store)
+        self.window_settings.pushConfLoad.clicked.connect(
+            self.settings_temp_ITC_PIDFile_send)
+        self.window_settings.lineConfFile.returnPressed.connect(
+            self.settings_temp_ITC_PIDFile_send)
+
+        # store signals in ordered fashion for easy retrieval
+        self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
+                                  newFilePID=self.sig_ITC_newFilePID),
+                         # logging=dict(log_general=self.sig_logging,
+                         #              log_newconf=self.sig_logging_newconf)
+                         )
+
+    def settings_temp_ITC_useAutoPID(self, boolean):
+        """set the variable for the softwareAutoPID
+        emit signal to notify Thread
+        store it in settings"""
+        self.window_settings.temp_ITC_useAutoPID = boolean
+        self.sigs['ITC']['useAutocheck'].emit(boolean)
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_useAutoPID', int(boolean))
+        del settings
+
+    def settings_temp_ITC_PIDFile_store(self, filename):
+        """reaction to signal: ITC PID file: store"""
+        self.window_settings.temp_ITC_PIDFile = filename
+
+    def settings_temp_ITC_PIDFile_send(self):
+        """reaction to signal: ITC PID file: send and store permanently"""
+        self.sigs['ITC']['newFilePID'].emit(
+            self.window_settings.temp_ITC_PIDFile)
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
+        del settings
+
+        try:
+            with open(self.window_settings.temp_ITC_PIDFile) as f:
+                self.window_settings.textConfShow.setText(f.read())
+        except OSError as e:
+            self.show_error_general(f'mainthread: settings PIDFile: OSError {e}')
 
     # ------- plotting
     def connectdb(self, dbname):
@@ -676,7 +746,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
-                    ITC_Instrumentadress), 'ITC', 'control_ITC')
+                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -776,6 +846,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 # thread.start()
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
+
+                self.sigs['ITC']['useAutocheck'].emit(self.window_settings.temp_ITC_useAutoPID)
+                self.sigs['ITC']['newFilePID'].emit(self.window_settings.temp_ITC_PIDFile)
             except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
@@ -1698,7 +1771,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 '{num:=+13.12f}'.format(num=self.data['SR830']['R_V']))
             self.LockIn_window.textTheta_Deg.setText(
                 '{num:=+8.6f}'.format(num=self.data['SR830']['Theta_Deg']))
-
 
     # ------- MISC -------
 
