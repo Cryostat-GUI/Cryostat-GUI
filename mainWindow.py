@@ -176,6 +176,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
     def load_settings(self):
+        """load all settings store in the QSettings
+        set corresponding values in the 'Global Settings' window"""
         settings = QSettings("TUW", "CryostatGUI")
         try:
             self.window_settings.temp_ITC_useAutoPID = bool(
