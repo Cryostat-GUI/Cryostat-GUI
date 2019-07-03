@@ -474,9 +474,26 @@ hardware Address</string>
            </size>
           </property>
           <property name="title">
-           <string>PID values</string>
+           <string>PID</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
+           <item row="3" column="0" colspan="3">
+            <widget class="QTextBrowser" name="textConfShow">
+             <property name="maximumSize">
+              <size>
+               <width>500</width>
+               <height>500</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>PID configuration file</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0" colspan="2">
             <widget class="QCheckBox" name="checkUseAuto">
              <property name="text">
@@ -491,25 +508,15 @@ hardware Address</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>PID configuration file</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="3">
-            <widget class="QTextBrowser" name="textConfShow">
-             <property name="maximumSize">
-              <size>
-               <width>500</width>
-               <height>500</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="2">
             <widget class="QLineEdit" name="lineConfFile"/>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Configuration loaded:</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>

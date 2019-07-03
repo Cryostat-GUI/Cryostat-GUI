@@ -307,6 +307,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.settings_temp_ITC_PIDFile_store)
         self.window_settings.pushConfLoad.clicked.connect(
             self.settings_temp_ITC_PIDFile_send)
+        self.window_settings.lineConfFile.returnPressed.connect(
+            self.settings_temp_ITC_PIDFile_send)
 
         # store signals in ordered fashion for easy retrieval
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
@@ -844,6 +846,9 @@ class mainWindow(QtWidgets.QMainWindow):
                 # thread.start()
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
+
+                self.sigs['ITC']['useAutocheck'].emit(self.window_settings.temp_ITC_useAutoPID)
+                self.sigs['ITC']['newFilePID'].emit(self.window_settings.temp_ITC_PIDFile)
             except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
