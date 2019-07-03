@@ -100,6 +100,7 @@ class mainWindow(QtWidgets.QMainWindow):
     # sig_softwarecontrols = pyqtSignal(dict)
 
     sig_ITC_useAutoPID = pyqtSignal(bool)
+    sig_ITC_newFilePID = pyqtSignal(str)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -295,15 +296,16 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda: self.show_window(self.window_settings, True))
 
         self.window_settings.checkUseAuto.toggled[
-            'bool'].connect(self.settings_temp_ITC_useAuto)
+            'bool'].connect(self.settings_temp_ITC_useAutoPID)
 
         # store signals in ordered fashion for easy retrieval
-        self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID),
+        self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
+                                  newFilePID=self.sig_ITC_newFilePID),
                          logging=dict(log_general=self.sig_logging,
                                       log_newconf=self.sig_logging_newconf)
                          )
 
-    def settings_temp_ITC_useAuto(self, boolean):
+    def settings_temp_ITC_useAutoPID(self, boolean):
         """set the variable for the softwareAutoPID
         emit signal to notify Thread
         store it in settings"""
@@ -714,7 +716,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.ITC = itc503('COM6')
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
-                    InstrumentAddress=ITC_Instrumentadress, useAutoPID=self.window_settings.temp_ITC_useAutoPID), 'ITC', 'control_ITC')
+                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')
 
                 getInfodata.sig_Infodata.connect(self.store_data_itc)
                 # getInfodata.sig_visaerror.connect(self.printing)

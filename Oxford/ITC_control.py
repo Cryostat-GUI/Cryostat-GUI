@@ -81,7 +81,8 @@ class ITC_Updater(AbstractLoopThread):
         self.PIDFile = 'configurations\\PID_conf\\P1C1.conf'
         self.PID_configuration = readPID_fromFile(self.PIDFile)
         self.mainthreadSignals = mainthreadSignals
-        self.mainthreadSignals['checkUseAuto'].connect(self.setCheckAutoPID)
+        self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
+        self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
         self.useAutoPID = True
 
     # @control_checks
@@ -149,6 +150,11 @@ class ITC_Updater(AbstractLoopThread):
     @ExceptionHandling
     def setCheckAutoPID(self, boolean):
         self.useAutoPID = boolean
+
+    @ExceptionHandling
+    def setPIDFile(self, file):
+        self.PIDFile = file
+        self.PID_configuration = readPID_fromFile(self.PIDFile)
 
     @ExceptionHandling
     def read_status(self, run=True):
