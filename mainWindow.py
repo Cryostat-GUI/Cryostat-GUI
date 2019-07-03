@@ -180,6 +180,8 @@ class mainWindow(QtWidgets.QMainWindow):
         try:
             self.window_settings.temp_ITC_useAutoPID = bool(
                 settings.value('ITC_useAutoPID', int))
+            self.window_settings.temp_ITC_PIDFile = settings.value(
+                'ITC_PIDFile', str)
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             self.show_error_general(f'could not find a key: {e}')
@@ -297,12 +299,16 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_settings.checkUseAuto.toggled[
             'bool'].connect(self.settings_temp_ITC_useAutoPID)
+        self.window_settings.lineConfFile.textEdited.connect(
+            self.settings_temp_ITC_PIDFile_store)
+        self.window_settings.lineConfFile.returnPressed.connect(
+            self.settings_temp_ITC_PIDFile_send)
 
         # store signals in ordered fashion for easy retrieval
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
                                   newFilePID=self.sig_ITC_newFilePID),
-                         logging=dict(log_general=self.sig_logging,
-                                      log_newconf=self.sig_logging_newconf)
+                         # logging=dict(log_general=self.sig_logging,
+                         #              log_newconf=self.sig_logging_newconf)
                          )
 
     def settings_temp_ITC_useAutoPID(self, boolean):
@@ -313,6 +319,18 @@ class mainWindow(QtWidgets.QMainWindow):
         self.sigs['ITC']['useAutocheck'].emit(boolean)
         settings = QSettings("TUW", "CryostatGUI")
         settings.setValue('ITC_useAutoPID', int(boolean))
+        del settings
+
+    def settings_temp_ITC_PIDFile_store(self, filename):
+        """reaction to signal: ITC PID file: store"""
+        self.window_settings.temp_ITC_PIDFile = filename
+
+    def settings_temp_ITC_PIDFile_send(self):
+        """reaction to signal: ITC PID file: send and store permanently"""
+        self.sigs['ITC']['newFilePID'].emit(
+            self.window_settings.temp_ITC_PIDFile)
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
         del settings
 
     # ------- plotting

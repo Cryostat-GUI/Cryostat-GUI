@@ -149,10 +149,12 @@ class ITC_Updater(AbstractLoopThread):
 
     @ExceptionHandling
     def setCheckAutoPID(self, boolean):
+        """reaction to signal: set AutoPID behaviour"""
         self.useAutoPID = boolean
 
     @ExceptionHandling
     def setPIDFile(self, file):
+        """reaction to signal: set AutoPID lookup file"""
         self.PIDFile = file
         self.PID_configuration = readPID_fromFile(self.PIDFile)
 
