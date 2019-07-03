@@ -189,6 +189,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_settings.checkUseAuto.setChecked(
             self.window_settings.temp_ITC_useAutoPID)
+        self.window_settings.lineConfFile.setText(
+            self.window_settings.temp_ITC_PIDFile)
 
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
