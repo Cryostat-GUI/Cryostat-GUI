@@ -301,7 +301,7 @@ class mainWindow(QtWidgets.QMainWindow):
             'bool'].connect(self.settings_temp_ITC_useAutoPID)
         self.window_settings.lineConfFile.textEdited.connect(
             self.settings_temp_ITC_PIDFile_store)
-        self.window_settings.lineConfFile.returnPressed.connect(
+        self.window_settings.pushConfLoad.clicked.connect(
             self.settings_temp_ITC_PIDFile_send)
 
         # store signals in ordered fashion for easy retrieval
@@ -332,6 +332,9 @@ class mainWindow(QtWidgets.QMainWindow):
         settings = QSettings("TUW", "CryostatGUI")
         settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
         del settings
+
+        with open(self.window_settings.temp_ITC_PIDFile) as f:
+            self.window_settings.textConfShow.setText(f.read())
 
     # ------- plotting
     def connectdb(self, dbname):
