@@ -30,6 +30,8 @@ from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
 
+import measureSequences as mS
+
 # from qlistmodel import ScanningN
 
 

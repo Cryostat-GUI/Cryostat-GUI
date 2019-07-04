@@ -4,3 +4,4 @@ pyvisa
 matplotlib
 functools
 pymeasure
+measureSequences
