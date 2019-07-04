@@ -191,8 +191,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.window_settings.checkUseAuto.setChecked(
             self.window_settings.temp_ITC_useAutoPID)
-        self.window_settings.lineConfFile.setText(
-            self.window_settings.temp_ITC_PIDFile)
+        if isinstance(self.window_settings.temp_ITC_PIDFile, str):
+            text = self.window_settings.temp_ITC_PIDFile
+        else:
+            text = ''
+        self.window_settings.lineConfFile.setText(text)
 
     def softwarecontrol_toggle_locking(self, value):
         """acquire/release the controls Lock
@@ -333,8 +336,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def settings_temp_ITC_PIDFile_send(self):
         """reaction to signal: ITC PID file: send and store permanently"""
-        self.sigs['ITC']['newFilePID'].emit(
-            self.window_settings.temp_ITC_PIDFile)
+        if isinstance(self.window_settings.temp_ITC_PIDFile, str):
+            text = self.window_settings.temp_ITC_PIDFile
+        else:
+            text = ''
+        self.sigs['ITC']['newFilePID'].emit(text)
+
         settings = QSettings("TUW", "CryostatGUI")
         settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
         del settings
@@ -344,6 +351,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.window_settings.textConfShow.setText(f.read())
         except OSError as e:
             self.show_error_general(f'mainthread: settings PIDFile: OSError {e}')
+        except TypeError as e:
+            self.show_error_general(f'mainthread: settings PIDFile: missing Filename! (TypeError: {e})')
 
     # ------- plotting
     def connectdb(self, dbname):
