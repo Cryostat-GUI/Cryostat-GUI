@@ -91,6 +91,7 @@
     <addaction name="action_show_Keithley"/>
     <addaction name="separator"/>
     <addaction name="action_show_OneShot_Measuring"/>
+    <addaction name="action_show_Measuring_Sequence"/>
    </widget>
    <addaction name="menuControl"/>
    <addaction name="menuOptions"/>
@@ -650,6 +651,11 @@
    </property>
    <property name="text">
     <string>LockIn SR830</string>
+   </property>
+  </action>
+  <action name="action_show_Measuring_Sequence">
+   <property name="text">
+    <string>Sequence Measuring</string>
    </property>
   </action>
  </widget>

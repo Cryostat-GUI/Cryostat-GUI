@@ -51,6 +51,8 @@ import sqlite3
 
 from pyvisa.errors import VisaIOError
 
+import measureSequences as mS
+
 import Oxford
 import LakeShore
 import Keithley
@@ -168,6 +170,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.IPS_window.groupSettings,
             self.LakeShore350_window.groupSettings]
         self.controls_Lock = Lock()
+
+        self.initialize_window_Sequences()
 
         self.softwarecontrol_check()
         self.softwarecontrol_timer = QTimer()
@@ -287,15 +291,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.Errors_window.raise_()
         # self.Errors_window.activateWindow()
 
-    def show_window(self, window, boolean):
+    def show_window(self, window, boolean=None):
         """show or close a window"""
-        if boolean:
+        if boolean is not None:
+            if boolean:
+                window.show()
+                window.raise_()
+                # window.activateWindow()
+                # print('showing:', window)
+            else:
+                window.close()
+        else:
             window.show()
             window.raise_()
-            # window.activateWindow()
-            # print('showing:', window)
-        else:
-            window.close()
 
     def initialize_settings(self):
         """initialise the settings window"""
@@ -856,8 +864,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
                 self.logging_running_ITC = True
 
-                self.sigs['ITC']['useAutocheck'].emit(self.window_settings.temp_ITC_useAutoPID)
-                self.sigs['ITC']['newFilePID'].emit(self.window_settings.temp_ITC_PIDFile)
+                self.sigs['ITC']['useAutocheck'].emit(
+                    self.window_settings.temp_ITC_useAutoPID)
+                self.sigs['ITC']['newFilePID'].emit(
+                    self.window_settings.temp_ITC_PIDFile)
             except (VisaIOError, NameError) as e:
                 self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
                 self.show_error_general(e)
@@ -1858,6 +1868,30 @@ class mainWindow(QtWidgets.QMainWindow):
             self.actionLogging_LIVE.setChecked(False)
             self.data_live = dict()
 
+    def initialize_window_Errors(self):
+        """initialize Error Window"""
+        self.Errors_window = Window_ui(ui_file='.\\configurations\\Errors.ui')
+        self.Errors_window.sig_closing.connect(
+            lambda: self.action_show_Errors.setChecked(False))
+
+        self.Errors_window.textErrors.setHtml('')
+
+        # self.action_run_Errors.triggered['bool'].connect(self.run_ITC)
+        self.action_show_Errors.triggered['bool'].connect(self.show_Errors)
+        # self.show_Errors(True)
+        # self.Errors_window.showMinimized()
+
+    @pyqtSlot(bool)
+    def show_Errors(self, boolean):
+        """display/close the Error window"""
+        if boolean:
+            self.Errors_window.show()
+        else:
+            self.Errors_window.close()
+
+    # ----- Measurements ---------
+
+    # # ------ OneShot/ TimeScanning -----------
     def initialize_window_OneShot(self):
         self.window_OneShot = Window_ui(
             # ui_file='.\\configurations\\OneShotMeasurement.ui')
@@ -2002,27 +2036,33 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.window_OneShot.close()
 
-    def initialize_window_Errors(self):
-        """initialize Error Window"""
-        self.Errors_window = Window_ui(ui_file='.\\configurations\\Errors.ui')
-        self.Errors_window.sig_closing.connect(
-            lambda: self.action_show_Errors.setChecked(False))
+    # # ------ Sequences -----------
 
-        self.Errors_window.textErrors.setHtml('')
+    def initialize_window_Sequences(self):
+        """initialize Sequence running functionalitys"""
+        self.window_SequenceEditor = mS.Sequence_builder()
+        self.window_SequenceEditor.sig_assertion.connect(
+            self.show_error_general)
+        self.window_SequenceEditor.sig_readSequence.connect(
+            self.Sequences_enableRunning)
+        self.window_SequenceEditor.sig_clearedSequence.connect(
+            self.Sequences_disableRunning)
 
-        # self.action_run_Errors.triggered['bool'].connect(self.run_ITC)
-        self.action_show_Errors.triggered['bool'].connect(self.show_Errors)
-        # self.show_Errors(True)
-        # self.Errors_window.showMinimized()
+        self.action_show_Measuring_Sequence.triggered.connect(
+            lambda: self.show_window(self.window_SequenceEditor))
 
-    @pyqtSlot(bool)
-    def show_Errors(self, boolean):
-        """display/close the Error window"""
-        if boolean:
-            self.Errors_window.show()
-        else:
-            self.Errors_window.close()
+    def Sequences_enableRunning(self):
+        """reaction to signal sig_readSequence from the Sequence_builder"""
+        self.window_SequenceEditor.Button_RunSequence.setEnabled(True)
+        self.window_SequenceEditor.Button_AbortSequence.setEnabled(True)
 
+    def Sequences_disableRunning(self):
+        """reaction to signal sig_clearedSequence from the Sequence_builder"""
+        self.window_SequenceEditor.Button_RunSequence.setEnabled(False)
+        self.window_SequenceEditor.Button_AbortSequence.setEnabled(False)
+
+    def run_Sequences(self, sequence, signals):
+        pass
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
