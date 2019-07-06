@@ -60,6 +60,7 @@ import LockIn
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
+from Sequence import Sequence_Thread
 
 from logger import main_Logger, live_Logger, measurement_Logger
 from logger import Logger_configuration
@@ -2051,6 +2052,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_show_Measuring_Sequence.triggered.connect(
             lambda: self.show_window(self.window_SequenceEditor))
 
+        self.window_SequenceEditor.sig_runSequence.connect(self.Sequence_run)  # list is handed over
+        self.window_SequenceEditor.sig_abortSequence.connect(self.Sequence_abort)
+
     def Sequences_enableRunning(self):
         """reaction to signal sig_readSequence from the Sequence_builder"""
         self.window_SequenceEditor.Button_RunSequence.setEnabled(True)
@@ -2061,8 +2065,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_SequenceEditor.Button_RunSequence.setEnabled(False)
         self.window_SequenceEditor.Button_AbortSequence.setEnabled(False)
 
-    def run_Sequences(self, sequence, signals):
+    def Sequence_run(self, sequence):
+        """"""
+
+        sThread = self.running_thread_control(Sequence_Thread(), None, 'Sequence')
+
+    def Sequence_abort(self):
         pass
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
