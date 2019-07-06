@@ -284,18 +284,18 @@ class controls_hardware_disabled:
         self._lock.release()
 
 
-class locking:
-    """Context manager for handling a simple lock"""
+# class locking:
+#     """Context manager for handling a simple lock"""
 
-    def __init__(self, lock):
-        self.lock = lock
-        # print(lock)
+#     def __init__(self, lock):
+#         self.lock = lock
+#         # print(lock)
 
-    def __enter__(self, *args, **kwargs):
-        self.lock.acquire()
+#     def __enter__(self, *args, **kwargs):
+#         self.lock.acquire()
 
-    def __exit__(self, *args, **kwargs):
-        self.lock.release()
+#     def __exit__(self, *args, **kwargs):
+#         self.lock.release()
 
 
 class AbstractThread(QObject):
@@ -339,7 +339,7 @@ class AbstractLoopThread(AbstractThread):
 
             while not self.loop:
                 time.sleep(0.05)
-            with locking(self.lock):
+            with self.lock:
                 self.running()
 
         except AssertionError as assertion:
