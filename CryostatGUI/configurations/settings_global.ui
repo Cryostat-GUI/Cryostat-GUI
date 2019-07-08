@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>669</width>
-    <height>803</height>
+    <width>554</width>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -54,11 +54,179 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>610</width>
-            <height>741</height>
+            <width>495</width>
+            <height>623</height>
            </rect>
           </property>
-          <layout class="QGridLayout" name="gridLayout_4">
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Cryostat Control Systems</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Hardware Address: </string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Loop Interval</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkVTI_ITC503">
+             <property name="text">
+              <string>VTI Temperature Controller 
+   (Oxford ITC 503)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineGPIB_VTI_ITC503">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkSample_LakeShore350">
+             <property name="text">
+              <string>Sample Temperature Controller 
+   (LakeShore350)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_2">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QPushButton" name="pushButton_2">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkVTI_IPS120">
+             <property name="text">
+              <string>VTI Magnet Power Supply 
+   (Oxford IPS 120-10)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_3">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QPushButton" name="pushButton_3">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="3">
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Transport Measuring Devices:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="checkSample_Current1_K6221">
+             <property name="text">
+              <string>Current Source 1 
+   (Keithley 6221)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_4">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QPushButton" name="pushButton_4">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QCheckBox" name="checkSample_Current2_K6221">
+             <property name="text">
+              <string>Current Source 2 
+   (Keithley 6221)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_5">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QPushButton" name="pushButton_5">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="8" column="0">
             <widget class="QCheckBox" name="checkSample_nVolt1_K2182A">
              <property name="text">
@@ -74,186 +242,6 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
-            <widget class="QCheckBox" name="checkSample_nVolt2_K2182A">
-             <property name="text">
-              <string>Nanovoltmeter 2 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="0">
-            <widget class="QCheckBox" name="checkSample_MM2_K2700">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Multimeter Switch 
-   (Keithley 2700)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_9">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_4">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Cryostat Control Systems</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_8">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QCheckBox" name="checkSample_nVolt3_K2182A">
-             <property name="text">
-              <string>Nanovoltmeter 3 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="15" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_10">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_7">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_5">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Transport Measuring Devices:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="0">
-            <widget class="QCheckBox" name="checkVTI_ILM211">
-             <property name="text">
-              <string>Cryogen Level Meter 
-   (Oxford ILM 211)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="15" column="0">
-            <widget class="QCheckBox" name="checkSample_MM1_KDMM7510">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Measuring Multimeter 
-   (Keithley DMM7510)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="2">
-            <widget class="QPushButton" name="pushButton_5">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="2">
-            <widget class="QPushButton" name="pushButton_9">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkVTI_ITC503">
-             <property name="text">
-              <string>VTI Temperature Controller 
-   (Oxford ITC 503)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="2">
-            <widget class="QPushButton" name="pushButton_11">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="2">
-            <widget class="QPushButton" name="pushButton_8">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
-           </item>
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="checkVTI_IPS120">
-             <property name="text">
-              <string>VTI Magnet Power Supply 
-   (Oxford IPS 120-10)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="lineGPIB_VTI_ITC503">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="checkSample_LakeShore350">
-             <property name="text">
-              <string>Sample Temperature Controller 
-   (LakeShore350)</string>
-             </property>
-            </widget>
-           </item>
            <item row="8" column="2">
             <widget class="QPushButton" name="pushButton_6">
              <property name="text">
@@ -265,18 +253,18 @@ hardware Address</string>
              </property>
             </widget>
            </item>
-           <item row="16" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_11">
-             <property name="enabled">
-              <bool>false</bool>
+           <item row="9" column="0">
+            <widget class="QCheckBox" name="checkSample_nVolt2_K2182A">
+             <property name="text">
+              <string>Nanovoltmeter 2 
+   (Keithley 2182A)</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <widget class="QCheckBox" name="checkSample_Current1_K6221">
-             <property name="text">
-              <string>Current Source 1 
-   (Keithley 6221)</string>
+           <item row="9" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_7">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -291,39 +279,29 @@ hardware Address</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
-            <widget class="QPushButton" name="pushButton_3">
+           <item row="10" column="0">
+            <widget class="QCheckBox" name="checkSample_nVolt3_K2182A">
+             <property name="text">
+              <string>Nanovoltmeter 3 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_8">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <widget class="QPushButton" name="pushButton_8">
              <property name="text">
               <string>Enable changing 
 hardware Address</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QPushButton" name="pushButton">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Loop Interval</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="3">
-            <widget class="Line" name="line_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
@@ -334,28 +312,6 @@ hardware Address</string>
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
-            <widget class="QCheckBox" name="checkSample_Current2_K6221">
-             <property name="text">
-              <string>Current Source 2 
-   (Keithley 6221)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_3">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_2">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
            <item row="12" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
@@ -363,43 +319,32 @@ hardware Address</string>
              </property>
             </widget>
            </item>
-           <item row="15" column="2">
-            <widget class="QPushButton" name="pushButton_10">
+           <item row="13" column="0">
+            <widget class="QCheckBox" name="checkVTI_ILM211">
+             <property name="text">
+              <string>Cryogen Level Meter 
+   (Oxford ILM 211)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_9">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="2">
+            <widget class="QPushButton" name="pushButton_9">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Enable changing 
 hardware Address</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QPushButton" name="pushButton_2">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="2">
-            <widget class="QPushButton" name="pushButton_4">
-             <property name="text">
-              <string>Enable changing 
-hardware Address</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Hardware Address: </string>
              </property>
             </widget>
            </item>
@@ -428,6 +373,126 @@ hardware Address</string>
               <bool>true</bool>
              </property>
             </widget>
+           </item>
+           <item row="15" column="0">
+            <widget class="QCheckBox" name="checkaction_run_DSP7265">
+             <property name="text">
+              <string>LockIn Amplifier 
+   (DSP 7265)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_13">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="2">
+            <widget class="QPushButton" name="pushButton_13">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="0">
+            <widget class="QCheckBox" name="checkSample_MM1_KDMM7510">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Measuring Multimeter 
+   (Keithley DMM7510)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_10">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="2">
+            <widget class="QPushButton" name="pushButton_10">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="0">
+            <widget class="QCheckBox" name="checkSample_MM2_K2700">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Multimeter Switch 
+   (Keithley 2700)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="1">
+            <widget class="QLineEdit" name="lineGPIB_INSTRUMENT_11">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="2">
+            <widget class="QPushButton" name="pushButton_11">
+             <property name="text">
+              <string>Enable changing 
+hardware Address</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
+           </item>
+           <item row="3" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_4"/>
+           </item>
+           <item row="6" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_5"/>
+           </item>
+           <item row="7" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_6"/>
+           </item>
+           <item row="8" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_7"/>
+           </item>
+           <item row="9" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_8"/>
+           </item>
+           <item row="10" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_9"/>
+           </item>
+           <item row="13" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_10"/>
+           </item>
+           <item row="14" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_11"/>
+           </item>
+           <item row="15" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_12"/>
+           </item>
+           <item row="16" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_13"/>
+           </item>
+           <item row="17" column="3">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_14"/>
            </item>
           </layout>
          </widget>
@@ -634,12 +699,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>434</x>
-     <y>87</y>
+     <x>551</x>
+     <y>249</y>
     </hint>
     <hint type="destinationlabel">
-     <x>323</x>
-     <y>92</y>
+     <x>333</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -650,12 +715,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>435</x>
-     <y>142</y>
+     <x>551</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
-     <x>365</x>
-     <y>141</y>
+     <x>375</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -666,12 +731,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>430</x>
-     <y>178</y>
+     <x>551</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
-     <x>355</x>
-     <y>171</y>
+     <x>365</x>
+     <y>322</y>
     </hint>
    </hints>
   </connection>
@@ -682,12 +747,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>430</x>
-     <y>252</y>
+     <x>551</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
-     <x>384</x>
-     <y>252</y>
+     <x>394</x>
+     <y>537</y>
     </hint>
    </hints>
   </connection>
@@ -698,12 +763,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>456</x>
-     <y>295</y>
+     <x>551</x>
+     <y>584</y>
     </hint>
     <hint type="destinationlabel">
-     <x>337</x>
-     <y>282</y>
+     <x>347</x>
+     <y>577</y>
     </hint>
    </hints>
   </connection>
@@ -714,12 +779,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>455</x>
-     <y>328</y>
+     <x>551</x>
+     <y>624</y>
     </hint>
     <hint type="destinationlabel">
-     <x>355</x>
-     <y>328</y>
+     <x>365</x>
+     <y>617</y>
     </hint>
    </hints>
   </connection>
@@ -730,12 +795,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>447</x>
-     <y>361</y>
+     <x>551</x>
+     <y>664</y>
     </hint>
     <hint type="destinationlabel">
-     <x>373</x>
-     <y>368</y>
+     <x>383</x>
+     <y>657</y>
     </hint>
    </hints>
   </connection>
@@ -746,12 +811,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>454</x>
-     <y>410</y>
+     <x>551</x>
+     <y>704</y>
     </hint>
     <hint type="destinationlabel">
-     <x>359</x>
-     <y>405</y>
+     <x>369</x>
+     <y>697</y>
     </hint>
    </hints>
   </connection>
@@ -762,12 +827,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>440</x>
-     <y>485</y>
+     <x>551</x>
+     <y>920</y>
     </hint>
     <hint type="destinationlabel">
-     <x>391</x>
-     <y>488</y>
+     <x>401</x>
+     <y>913</y>
     </hint>
    </hints>
   </connection>
@@ -778,12 +843,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>448</x>
-     <y>524</y>
+     <x>551</x>
+     <y>1037</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>524</y>
+     <x>398</x>
+     <y>1033</y>
     </hint>
    </hints>
   </connection>
@@ -794,12 +859,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>461</x>
-     <y>557</y>
+     <x>551</x>
+     <y>1070</y>
     </hint>
     <hint type="destinationlabel">
-     <x>382</x>
-     <y>565</y>
+     <x>392</x>
+     <y>1073</y>
     </hint>
    </hints>
   </connection>
@@ -810,12 +875,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>475</x>
-     <y>96</y>
+     <x>551</x>
+     <y>249</y>
     </hint>
     <hint type="destinationlabel">
-     <x>275</x>
-     <y>91</y>
+     <x>285</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -826,12 +891,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>480</x>
-     <y>124</y>
+     <x>551</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
-     <x>329</x>
-     <y>130</y>
+     <x>339</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -842,12 +907,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>480</x>
-     <y>179</y>
+     <x>551</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
-     <x>333</x>
-     <y>170</y>
+     <x>343</x>
+     <y>322</y>
     </hint>
    </hints>
   </connection>
@@ -858,12 +923,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>476</x>
-     <y>257</y>
+     <x>551</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
-     <x>248</x>
-     <y>244</y>
+     <x>258</x>
+     <y>537</y>
     </hint>
    </hints>
   </connection>
@@ -874,12 +939,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>473</x>
-     <y>298</y>
+     <x>551</x>
+     <y>584</y>
     </hint>
     <hint type="destinationlabel">
-     <x>301</x>
-     <y>298</y>
+     <x>311</x>
+     <y>577</y>
     </hint>
    </hints>
   </connection>
@@ -890,12 +955,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>481</x>
-     <y>337</y>
+     <x>551</x>
+     <y>624</y>
     </hint>
     <hint type="destinationlabel">
-     <x>351</x>
-     <y>337</y>
+     <x>361</x>
+     <y>617</y>
     </hint>
    </hints>
   </connection>
@@ -906,12 +971,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>483</x>
-     <y>368</y>
+     <x>551</x>
+     <y>664</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>365</y>
+     <x>296</x>
+     <y>657</y>
     </hint>
    </hints>
   </connection>
@@ -922,12 +987,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>487</x>
-     <y>410</y>
+     <x>551</x>
+     <y>704</y>
     </hint>
     <hint type="destinationlabel">
-     <x>283</x>
-     <y>414</y>
+     <x>293</x>
+     <y>697</y>
     </hint>
    </hints>
   </connection>
@@ -938,12 +1003,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>479</x>
-     <y>479</y>
+     <x>551</x>
+     <y>920</y>
     </hint>
     <hint type="destinationlabel">
-     <x>303</x>
-     <y>483</y>
+     <x>313</x>
+     <y>913</y>
     </hint>
    </hints>
   </connection>
@@ -954,12 +1019,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>487</x>
-     <y>518</y>
+     <x>551</x>
+     <y>1031</y>
     </hint>
     <hint type="destinationlabel">
-     <x>373</x>
-     <y>531</y>
+     <x>383</x>
+     <y>1033</y>
     </hint>
    </hints>
   </connection>
@@ -970,12 +1035,76 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>482</x>
-     <y>558</y>
+     <x>551</x>
+     <y>1071</y>
     </hint>
     <hint type="destinationlabel">
-     <x>341</x>
-     <y>570</y>
+     <x>351</x>
+     <y>1073</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_12</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>lineGPIB_INSTRUMENT_12</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>476</x>
+     <y>937</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>420</x>
+     <y>941</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_12</sender>
+   <signal>clicked()</signal>
+   <receiver>lineGPIB_INSTRUMENT_12</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>517</x>
+     <y>950</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>318</x>
+     <y>949</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_13</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>lineGPIB_INSTRUMENT_13</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>521</x>
+     <y>986</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>980</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_13</sender>
+   <signal>clicked()</signal>
+   <receiver>lineGPIB_INSTRUMENT_13</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>522</x>
+     <y>984</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>308</x>
+     <y>985</y>
     </hint>
    </hints>
   </connection>

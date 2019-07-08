@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>298</width>
-    <height>614</height>
+    <width>408</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -49,40 +49,16 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>239</width>
-            <height>552</height>
+            <width>349</width>
+            <height>418</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
-           <item row="9" column="0">
-            <widget class="QCheckBox" name="checkaction_run_Nanovolt_2">
+           <item row="14" column="0">
+            <widget class="QCheckBox" name="checkaction_run_SR830">
              <property name="text">
-              <string>Nanovoltmeter 2 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QCheckBox" name="checkaction_run_Nanovolt_3">
-             <property name="text">
-              <string>Nanovoltmeter 3 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="0">
-            <widget class="QCheckBox" name="checkaction_run_ILM">
-             <property name="text">
-              <string>Cryogen Level Meter 
-   (Oxford ILM 211)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="checkaction_run_IPS">
-             <property name="text">
-              <string>VTI Magnet Power Supply 
-   (Oxford IPS 120-10)</string>
+              <string>LockIn Amplifier 
+   (SR830)</string>
              </property>
             </widget>
            </item>
@@ -110,61 +86,10 @@
              </property>
             </widget>
            </item>
-           <item row="11" column="0">
-            <widget class="Line" name="line_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QCheckBox" name="checkaction_run_Nanovolt_1">
-             <property name="text">
-              <string>Nanovoltmeter 1 
-   (Keithley 2182A)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="Line" name="line_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="0">
-            <widget class="QCheckBox" name="checkBox_18">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Multimeter Switch 
-   (Keithley 2700)</string>
-             </property>
-            </widget>
-           </item>
            <item row="5" column="0">
             <widget class="QLabel" name="label_5">
              <property name="text">
               <string>Transport Measuring Devices:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Cryostat Control Systems</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkaction_run_ITC">
-             <property name="text">
-              <string>VTI Temperature Controller 
-   (Oxford ITC 503)</string>
-             </property>
-             <property name="tristate">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -179,6 +104,24 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkaction_run_ITC">
+             <property name="text">
+              <string>VTI Temperature Controller 
+   (Oxford ITC 503)</string>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Cryostat Control Systems</string>
+             </property>
+            </widget>
+           </item>
            <item row="12" column="0">
             <widget class="QLabel" name="label_6">
              <property name="text">
@@ -186,11 +129,83 @@
              </property>
             </widget>
            </item>
-           <item row="14" column="0">
-            <widget class="QCheckBox" name="checkaction_run_SR830">
+           <item row="13" column="0">
+            <widget class="QCheckBox" name="checkaction_run_ILM">
+             <property name="text">
+              <string>Cryogen Level Meter 
+   (Oxford ILM 211)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="1">
+            <widget class="QCheckBox" name="checkaction_run_DSP7265">
              <property name="text">
               <string>LockIn Amplifier 
-   (SR830)</string>
+  (DSP 7265)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0" colspan="2">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="15" column="1">
+            <widget class="QCheckBox" name="checkBox_18">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Multimeter Switch 
+   (Keithley 2700)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_1">
+             <property name="text">
+              <string>Nanovoltmeter 1 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_2">
+             <property name="text">
+              <string>Nanovoltmeter 2 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QCheckBox" name="checkaction_run_Nanovolt_3">
+             <property name="text">
+              <string>Nanovoltmeter 3 
+   (Keithley 2182A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QCheckBox" name="checkaction_run_IPS">
+             <property name="text">
+              <string>VTI Magnet Power Supply 
+   (Oxford IPS 120-10)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QCheckBox" name="checkaction_run_QDMPMSold">
+             <property name="text">
+              <string>QD MPMS (old)</string>
              </property>
             </widget>
            </item>
@@ -215,8 +230,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>254</width>
-            <height>550</height>
+            <width>364</width>
+            <height>416</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
