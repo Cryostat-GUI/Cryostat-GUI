@@ -82,6 +82,7 @@ class ITC_Updater(AbstractLoopThread):
         self.mainthreadSignals = mainthreadSignals
         self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
         self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
+        self.mainthreadSignals['setTemp'].connect(self.setTemperature)
         self.useAutoPID = True
 
     # @control_checks
@@ -302,21 +303,23 @@ class ITC_Updater(AbstractLoopThread):
             # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     @ExceptionHandling
-    def setTemperature(self):
+    def setTemperature(self, value):
         """set Temperature of the instrument
 
         """
         with self.lock:
             self.checksweep()
             if not self.sweep_running:
-                self.ITC.setTemperature(self.set_temperature)
+                self.ITC.setTemperature(value)
+                # print(f'setting ITC temperature: {value}')
                 # self.set_temperature = temp
             else:
                 # print('setTemp: setting sweep.')
-                self.setSweep(self.set_temperature, self.sweep_ramp)
+                self.setSweep(value, self.sweep_ramp)
                 # print('starting sweep!')
+                # print(f'setting ITC sweep: {value}')
                 self.ITC.SweepStart()
                 self.ITC.getValue(0)
 
@@ -418,11 +421,11 @@ class ITC_Updater(AbstractLoopThread):
         """receive and store the value to set the Control status"""
         self.control_state = value
 
-    @pyqtSlot(float)
-    def gettoset_Temperature(self, value):
-        """receive and store the value to set the temperature"""
-        self.set_temperature = value
-        # print('got a new temp:', value)
+    # @pyqtSlot(float)
+    # def gettoset_Temperature(self, value):
+    #     """receive and store the value to set the temperature"""
+    #     self.set_temperature = value
+    #     # print('got a new temp:', value)
 
     @pyqtSlot()
     def gettoset_Proportional(self, value):

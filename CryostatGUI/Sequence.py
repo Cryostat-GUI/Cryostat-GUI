@@ -37,8 +37,9 @@ import measureSequences as mS
 class Sequence_Functions(object):
     """docstring for Functions"""
 
-    def __init__(self, device_handles):
+    def __init__(self, device_handles, probe_Toffset):
         self.devices = device_handles
+        self.temp_VTI_offset = probe_Toffset
 
     def setTemperature(self, temperature: float) -> None:
         """
@@ -48,6 +49,7 @@ class Sequence_Functions(object):
             needs to be implemented.
             TODO: override method
         """
+        # self.devices['ITC'].
         print('setTemperature :: temp = {}'.format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
@@ -86,8 +88,9 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
     sig_aborted = pyqtSignal()
     sig_finished = pyqtSignal(str)
 
-    def __init__(self, sequence, signals, **kwargs):
-        super().__init__(sequence=sequence, **kwargs)
+    def __init__(self, sequence, signals, device_handles, **kwargs):
+        super().__init__(sequence=sequence, device_handles=device_handles, **kwargs)
+        self.devices = device_handles
 
     @ExceptionHandling
     def work(self):

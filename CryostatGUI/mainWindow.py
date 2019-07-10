@@ -104,6 +104,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     sig_ITC_useAutoPID = pyqtSignal(bool)
     sig_ITC_newFilePID = pyqtSignal(str)
+    sig_ITC_setTemperature = pyqtSignal(float)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -324,7 +325,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # store signals in ordered fashion for easy retrieval
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
-                                  newFilePID=self.sig_ITC_newFilePID),
+                                  newFilePID=self.sig_ITC_newFilePID,
+                                  setTemp=self.sig_ITC_setTemperature),
                          # logging=dict(log_general=self.sig_logging,
                          #              log_newconf=self.sig_logging_newconf)
                          )
@@ -735,12 +737,14 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(float)
     @noKeyError
     def ITC_fun_setTemp_valcha(self, value):
-        self.threads['control_ITC'][0].gettoset_Temperature(value)
+        # self.threads['control_ITC'][0].gettoset_Temperature(value)
+        self.ITC['setTemperature'] = value
 
     @pyqtSlot()
     @noKeyError
     def ITC_fun_setTemp_edfin(self):
-        self.threads['control_ITC'][0].setTemperature()
+        # self.threads['control_ITC'][0].setTemperature()
+        self.sigs['ITC']['setTemp'].emit(self.ITC['setTemperature'])
 
     @pyqtSlot(float)
     @noKeyError
@@ -762,6 +766,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 # self.ITC = itc503('COM6')
+                self.ITC = dict(setTemperature=4)
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
                     InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')
