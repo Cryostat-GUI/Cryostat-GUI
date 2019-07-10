@@ -105,6 +105,7 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_ITC_useAutoPID = pyqtSignal(bool)
     sig_ITC_newFilePID = pyqtSignal(str)
     sig_ITC_setTemperature = pyqtSignal(float)
+    sig_ITC_programSweep = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -734,6 +735,8 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
+        self.ITC = dict(setTemperature=4)
+
     @pyqtSlot(float)
     @noKeyError
     def ITC_fun_setTemp_valcha(self, value):
@@ -749,6 +752,7 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(float)
     @noKeyError
     def ITC_fun_setRamp_valcha(self, value):
+        self.ITC['RampRate'] = value
         self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot()
@@ -766,7 +770,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 # self.ITC = itc503('COM6')
-                self.ITC = dict(setTemperature=4)
+                
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
                     InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')

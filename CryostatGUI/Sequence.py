@@ -37,8 +37,10 @@ import measureSequences as mS
 class Sequence_Functions(object):
     """docstring for Functions"""
 
-    def __init__(self, device_handles, probe_Toffset):
-        self.devices = device_handles
+    # sig_message = pyqtSignal(str)
+
+    def __init__(self, device_signals, probe_Toffset):
+        self.devices = device_signals
         self.temp_VTI_offset = probe_Toffset
 
     def setTemperature(self, temperature: float) -> None:
@@ -49,7 +51,7 @@ class Sequence_Functions(object):
             needs to be implemented.
             TODO: override method
         """
-        # self.devices['ITC'].
+        self.devices['ITC']['setTemp'].emit(temperature)
         print('setTemperature :: temp = {}'.format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
@@ -59,6 +61,7 @@ class Sequence_Functions(object):
             needs to be implemented.
             TODO: override method
         """
+        self.devices['IPS']['setField'].emit(dict(field=field, EndMode=EndMode))
         print(f'setField :: field = {field}, EndMode = {EndMode}')
 
     def setPosition(self, position: float, speedindex: float) -> None:
@@ -79,6 +82,8 @@ class Sequence_Functions(object):
         """
         # super().message_to_user(message)
         # print(message)
+        # self.devices['general']['message_to_user'].emit(message)
+        self.sig_message.emit(message)
         print(f'message_to_user :: message = {message}')
 
 
@@ -87,10 +92,11 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
 
     sig_aborted = pyqtSignal()
     sig_finished = pyqtSignal(str)
+    sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence, signals, device_handles, **kwargs):
-        super().__init__(sequence=sequence, device_handles=device_handles, **kwargs)
-        self.devices = device_handles
+    def __init__(self, sequence, signals, device_signals, **kwargs):
+        super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
+        self.devices = device_signals
 
     @ExceptionHandling
     def work(self):
@@ -104,6 +110,9 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
             here, the devices should be programmed to start
             the respective Sweep of temperatures
         """
+        self.devices['ITC']['setTemp'].emit(start)
+        self.checkStable_Temp(temp=start, direction=0, ApproachMode='Fast')
+        self.devices['ITC']['programSweep'].emit(dict(start=start, end=end, SweepRate=SweepRate))
         print(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}')
 
     def scan_H_programSweep(self, start: float, end: float, Nsteps: float, fields: list, SweepRate: float, EndMode: str, SpacingCode: str = 'uniform'):
