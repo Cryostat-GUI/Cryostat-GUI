@@ -80,11 +80,13 @@ class ITC_Updater(AbstractLoopThread):
         # self.__isRunning = True
 
         self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
+        self.useAutoPID = True
         self.mainthreadSignals = mainthreadSignals
         self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
         self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
         self.mainthreadSignals['setTemp'].connect(self.setTemperature)
-        self.useAutoPID = True
+        self.mainthreadSignals['programSweep'].connect(self.startSweep)
+        self.mainthreadSignals['stopSweep'].connect(self.stopSweep)
 
     # @control_checks
     @ExceptionHandling
@@ -188,11 +190,27 @@ class ITC_Updater(AbstractLoopThread):
         self.setIntegral()
         self.setDerivative()
 
+    def startSweep(self, d):
+        with self.lock:
+            self.setSweep(setpoint_temp=d['end'],
+                          rate=d['SweepRate'],
+                          start=d['start'])
+            self.ITC.SweepStart()
+            self.ITC.getValue(0)  # whatever this is needed for
+
+    @ExceptionHandling
+    def stopSweep(self):
+        with self.lock:
+            self.ITC.SweepStop()
+
     @pyqtSlot()
     @ExceptionHandling
-    def setSweep(self, setpoint_temp, rate):
+    def setSweep(self, setpoint_temp, rate, start=False):
         # with self.lock:
-        setpoint_now = self.ITC.getValue(0)
+        if start:
+            setpoint_now = start
+        else:
+            setpoint_now = self.ITC.getValue(0)
         # print('setpoint now = ', setpoint_now)
         if rate == 0:
             n_sweeps = 0
@@ -261,28 +279,28 @@ class ITC_Updater(AbstractLoopThread):
         # for x in self.ITC.readSweepTable():
         # print(x)
 
-    @pyqtSlot(bool)
-    @ExceptionHandling
-    def setSweepStatus(self, bools):
-        self.sweep_running = bools
-        # print('set sweep status to', bools)
-        with self.lock:
-            # print('sweepstatus: I locked the thread!')
-            if not bools:
-                # print('sweepstatus: stopping the sweep')
-                self.checksweep()
-                self.ITC.setTemperature(self.set_temperature)
-        # print('sweepstatus: I unlocked the device')
-        # if bools:
-            # print('set the sweep status: ', bools)
-        #     print('sweepstatus: set the temperature')
-        #     self.setTemperature()
+    # @pyqtSlot(bool)
+    # @ExceptionHandling
+    # def setSweepStatus(self, bools):
+    #     self.sweep_running = bools
+    #     # print('set sweep status to', bools)
+    #     with self.lock:
+    #         # print('sweepstatus: I locked the thread!')
+    #         if not bools:
+    #             # print('sweepstatus: stopping the sweep')
+    #             self.checksweep()
+    #             self.ITC.setTemperature(self.set_temperature)
+    #     # print('sweepstatus: I unlocked the device')
+    #     # if bools:
+    #         # print('set the sweep status: ', bools)
+    #     #     print('sweepstatus: set the temperature')
+    #     #     self.setTemperature()
 
-    @pyqtSlot(float)
-    @ExceptionHandling
-    def gettoset_sweepRamp(self, value):
-        self.sweep_ramp = value
-        # print('set sweep ramp to', value)
+    # @pyqtSlot(float)
+    # @ExceptionHandling
+    # def gettoset_sweepRamp(self, value):
+    #     self.sweep_ramp = value
+    #     # print('set sweep ramp to', value)
 
     @ExceptionHandling
     def checksweep(self, stop=True):
@@ -295,15 +313,17 @@ class ITC_Updater(AbstractLoopThread):
         except ValueError:
             status['sweep'] = True
         # print('sweep status: ', status['sweep'])
-        self.sweep_running_device = status
+        self.sweep_running_device = status['sweep']
         if stop:
             if status['sweep'] or self.sweep_first:
                 # print('setTemp: sweep running, stopping sweep')
                 self.ITC.SweepStop()
                 self.sweep_first = False
+
+        return self.sweep_running_device
         # else:
-            # print('I did not see a running sweep!',
-            # self.device_status['sweep'])
+        # print('I did not see a running sweep!',
+        # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
 
     @pyqtSlot(float)
@@ -312,29 +332,30 @@ class ITC_Updater(AbstractLoopThread):
         """set Temperature of the instrument
 
         """
-        with self.lock:
-            self.checksweep()
-            if not self.sweep_running:
-                self.ITC.setTemperature(value)
-                # print(f'setting ITC temperature: {value}')
-                # self.set_temperature = temp
-            else:
-                # print('setTemp: setting sweep.')
-                self.setSweep(value, self.sweep_ramp)
-                # print('starting sweep!')
-                # print(f'setting ITC sweep: {value}')
-                self.ITC.SweepStart()
-                self.ITC.getValue(0)
+        self.ITC.setTemperature(value)
+        # with self.lock:
+        #     self.checksweep()
+        #     if not self.sweep_running:
+        #         self.ITC.setTemperature(value)
+        #         # print(f'setting ITC temperature: {value}')
+        #         # self.set_temperature = temp
+        #     else:
+        #         # print('setTemp: setting sweep.')
+        #         self.setSweep(value, self.sweep_ramp)
+        #         # print('starting sweep!')
+        #         # print(f'setting ITC sweep: {value}')
+        #         self.ITC.SweepStart()
+        #         self.ITC.getValue(0)
 
-    @pyqtSlot(float)
-    @ExceptionHandling
-    def setSweepRamp(self):
-        with self.lock:
-            if self.sweep_running:
-                self.checksweep()
-                self.setSweep(self.set_temperature, self.sweep_ramp)
-                self.ITC.SweepStart()
-                self.ITC.getValue(0)
+    # @pyqtSlot(float)
+    # @ExceptionHandling
+    # def setSweepRamp(self):
+    #     with self.lock:
+    #         if self.sweep_running:
+    #             self.checksweep()
+    #             self.setSweep(self.set_temperature, self.sweep_ramp)
+    #             self.ITC.SweepStart()
+    #             self.ITC.getValue(0)
 
     @pyqtSlot()
     @ExceptionHandling
