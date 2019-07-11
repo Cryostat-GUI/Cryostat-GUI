@@ -739,7 +739,7 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
-        self.ITC = dict(setTemperature=4)
+        self.ITC = dict(setTemperature=4, RampRate=10)
 
     @pyqtSlot(float)
     @noKeyError

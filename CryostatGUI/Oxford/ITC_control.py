@@ -70,6 +70,7 @@ class ITC_Updater(AbstractLoopThread):
         self.sweep_parameters = None
         self.sweep_running = False
         self.sweep_running_device = False
+        self.checksweep(stop=False)
         self.sweep_ramp = 0
         self.sweep_first = False
 
@@ -187,7 +188,7 @@ class ITC_Updater(AbstractLoopThread):
         self.setIntegral()
         self.setDerivative()
 
-    @pyqtSlot(bool)
+    @pyqtSlot()
     @ExceptionHandling
     def setSweep(self, setpoint_temp, rate):
         # with self.lock:
@@ -260,7 +261,7 @@ class ITC_Updater(AbstractLoopThread):
         # for x in self.ITC.readSweepTable():
         # print(x)
 
-    @pyqtSlot(float)
+    @pyqtSlot(bool)
     @ExceptionHandling
     def setSweepStatus(self, bools):
         self.sweep_running = bools
@@ -284,7 +285,7 @@ class ITC_Updater(AbstractLoopThread):
         # print('set sweep ramp to', value)
 
     @ExceptionHandling
-    def checksweep(self):
+    def checksweep(self, stop=True):
         # print('checking sweep')
         status = self.read_status(run=False)
         # print(status)
@@ -294,10 +295,12 @@ class ITC_Updater(AbstractLoopThread):
         except ValueError:
             status['sweep'] = True
         # print('sweep status: ', status['sweep'])
-        if status['sweep'] or self.sweep_first:
-            # print('setTemp: sweep running, stopping sweep')
-            self.ITC.SweepStop()
-            self.sweep_first = False
+        self.sweep_running_device = status
+        if stop:
+            if status['sweep'] or self.sweep_first:
+                # print('setTemp: sweep running, stopping sweep')
+                self.ITC.SweepStop()
+                self.sweep_first = False
         # else:
             # print('I did not see a running sweep!',
             # self.device_status['sweep'])
