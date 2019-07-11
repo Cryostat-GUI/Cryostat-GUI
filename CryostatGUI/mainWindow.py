@@ -735,7 +735,7 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda value: self.show_window(self.ITC_window, value))
         # self.mdiArea.addSubWindow(self.ITC_window)
 
-        self.ITC = dict(setTemperature=4)
+        self.ITC = dict(setTemperature=4, RampRate=10)
 
     @pyqtSlot(float)
     @noKeyError
@@ -753,7 +753,7 @@ class mainWindow(QtWidgets.QMainWindow):
     @noKeyError
     def ITC_fun_setRamp_valcha(self, value):
         self.ITC['RampRate'] = value
-        self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+        # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot()
     @noKeyError
