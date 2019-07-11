@@ -334,8 +334,6 @@ class mainWindow(QtWidgets.QMainWindow):
                                   setTemp=self.sig_ITC_setTemperature,
                                   programSweep=self.sig_ITC_programSweep,
                                   stopSweep=self.sig_ITC_stopSweep),
-                         # logging=dict(log_general=self.sig_logging,
-                         #              log_newconf=self.sig_logging_newconf)
                          )
 
     def settings_temp_ITC_useAutoPID(self, boolean):

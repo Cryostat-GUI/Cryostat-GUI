@@ -207,10 +207,10 @@ class ITC_Updater(AbstractLoopThread):
     @ExceptionHandling
     def setSweep(self, setpoint_temp, rate, start=False):
         # with self.lock:
-        if start:
-            setpoint_now = start
-        else:
-            setpoint_now = self.ITC.getValue(0)
+        # if start:
+        #     setpoint_now = start
+        # else:
+        setpoint_now = self.ITC.getValue(0)
         # print('setpoint now = ', setpoint_now)
         if rate == 0:
             n_sweeps = 0
