@@ -40,7 +40,7 @@ from PyQt5.QtCore import QSettings
 # from PyQt5.QtWidgets import QtAlignRight
 from PyQt5.uic import loadUi
 
-
+import os
 import sys
 import datetime
 from threading import Lock
@@ -85,6 +85,9 @@ Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 SR830_InstrumentAddress = 'GPIB::9'
 
 errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
+
+directory = os.path.dirname(errorfile)
+os.makedirs(directory, exist_ok=True)
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -770,7 +773,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 # self.ITC = itc503('COM6')
-                
+
                 # getInfodata = cls_itc(self.ITC)
                 getInfodata = self.running_thread_control(ITC_Updater(
                     InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')
@@ -2061,8 +2064,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.action_show_Measuring_Sequence.triggered.connect(
             lambda: self.show_window(self.window_SequenceEditor))
 
-        self.window_SequenceEditor.sig_runSequence.connect(self.Sequence_run)  # list is handed over
-        self.window_SequenceEditor.sig_abortSequence.connect(self.Sequence_abort)
+        self.window_SequenceEditor.sig_runSequence.connect(
+            self.Sequence_run)  # list is handed over
+        self.window_SequenceEditor.sig_abortSequence.connect(
+            self.Sequence_abort)
 
     def Sequences_enableRunning(self):
         """reaction to signal sig_readSequence from the Sequence_builder"""
@@ -2077,7 +2082,8 @@ class mainWindow(QtWidgets.QMainWindow):
     def Sequence_run(self, sequence):
         """"""
 
-        sThread = self.running_thread_control(Sequence_Thread(), None, 'Sequence')
+        sThread = self.running_thread_control(
+            Sequence_Thread(), None, 'Sequence')
 
     def Sequence_abort(self):
         pass
