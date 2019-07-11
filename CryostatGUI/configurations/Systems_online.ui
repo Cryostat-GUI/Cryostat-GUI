@@ -141,7 +141,7 @@
             <widget class="QCheckBox" name="checkaction_run_DSP7265">
              <property name="text">
               <string>LockIn Amplifier 
-  (DSP 7265)</string>
+  (SR860)</string>
              </property>
             </widget>
            </item>
@@ -199,13 +199,6 @@
              <property name="text">
               <string>VTI Magnet Power Supply 
    (Oxford IPS 120-10)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QCheckBox" name="checkaction_run_QDMPMSold">
-             <property name="text">
-              <string>QD MPMS (old)</string>
              </property>
             </widget>
            </item>

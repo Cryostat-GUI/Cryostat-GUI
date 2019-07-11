@@ -330,7 +330,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # store signals in ordered fashion for easy retrieval
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
                                   newFilePID=self.sig_ITC_newFilePID,
-                                  setTemp=self.sig_ITC_setTemperature),
+                                  setTemp=self.sig_ITC_setTemperature, 
+                                  programSweep=self.sig_ITC_programSweep),
                          # logging=dict(log_general=self.sig_logging,
                          #              log_newconf=self.sig_logging_newconf)
                          )
@@ -756,11 +757,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @noKeyError
     def ITC_fun_setRamp_valcha(self, value):
         self.ITC['RampRate'] = value
-        self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+        # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot()
     @noKeyError
     def ITC_fun_setRamp_edfin(self):
+        self.sigs['ITC']['programSweep'].emit(dict())
         self.threads['control_ITC'][0].setSweepRamp()
 
     @pyqtSlot(bool)
