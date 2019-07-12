@@ -942,11 +942,11 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             # possibly implement putting the instrument back to local operation
             self.ITC_window.spinsetTemp.valueChanged.disconnect()
-            self.ITC_window.spinsetTemp.editingFinished.disconnect()
+            # self.ITC_window.spinsetTemp.editingFinished.disconnect()
             self.ITC_window.spinsetGasOutput.valueChanged.disconnect()
-            self.ITC_window.spinsetGasOutput.editingFinished.disconnect()
+            # self.ITC_window.spinsetGasOutput.editingFinished.disconnect()
             self.ITC_window.spinsetHeaterPercent.valueChanged.disconnect()
-            self.ITC_window.spinsetHeaterPercent.editingFinished.disconnect()
+            # self.ITC_window.spinsetHeaterPercent.editingFinished.disconnect()
             self.ITC_window.spinsetProportionalID.valueChanged.disconnect()
             self.ITC_window.spinsetProportionalID.editingFinished.disconnect()
             self.ITC_window.spinsetPIntegrationD.valueChanged.disconnect()
@@ -1035,6 +1035,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.ITC_window.lcdTemp_sens1_calcerr_K.display(
                 self.data['ITC']['Sensor_1_calerr_K'])
+
+            self.ITC_window.combosetAutocontrol.setCurrentIndex(
+                self.data['ITC']['autocontrol'])
 
     # ------- ------- ILM
     def initialize_window_ILM(self):

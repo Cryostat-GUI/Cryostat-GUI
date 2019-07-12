@@ -119,6 +119,7 @@ class ITC_Updater(AbstractLoopThread):
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
                 self.data_last[key] = value
+                data['autocontrol'] = int(self.read_status()['auto_int'])
 
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
@@ -356,6 +357,8 @@ class ITC_Updater(AbstractLoopThread):
             start = instance.ITC.getValue(0) if values[
                         'isSweepStartCurrent'] else values['start']
             instance.checksweep(stop=True)
+            autocontrol = instance.data_last['status']['auto_int']
+            instance.ITC.setAutoControl(0)
             while instance.data_last['sweep']:
                 time.sleep(0.01)
                 print('sleeping')
@@ -372,6 +375,7 @@ class ITC_Updater(AbstractLoopThread):
                     instance.ITC.getValue(0)  # whatever this is needed fo
                 else:
                     instance.ITC.setTemperature(values['setTemp'])
+                instance.ITC.setAutoControl(autocontrol)
 
         with self.lock_newthread:
             t1 = threading.Thread(target=settingtheTemp, args=(values,))

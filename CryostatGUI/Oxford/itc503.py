@@ -70,6 +70,7 @@ class itc503(AbstractSerialDeviceDriver):
 
         a = dict(auto=autoanswer[int(answer[3])],
                  loc_rem=locanswer[int(answer[5])],
+                 auto_int=answer[3],
                  sweep=answer[7],
                  sensor_control=answer[9],
                  autopid=answer[11])
