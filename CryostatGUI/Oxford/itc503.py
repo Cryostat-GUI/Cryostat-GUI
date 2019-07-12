@@ -300,8 +300,9 @@ class itc503(AbstractSerialDeviceDriver):
                 'ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
         self.write('$S{}'.format(point))
 
-    def SweepStop(self):
-        """Stop any sweep which is currently running"""
+    def SweepJumpToLast(self):
+        """Stop any sweep which is currently running
+        meaning to jump to the last part of the sweep"""
         self.write('$S31')
 
     def readSweepTable(self):

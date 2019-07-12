@@ -107,8 +107,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     sig_ITC_useAutoPID = pyqtSignal(bool)
     sig_ITC_newFilePID = pyqtSignal(str)
-    sig_ITC_setTemperature = pyqtSignal(float)
-    sig_ITC_programSweep = pyqtSignal(dict)
+    sig_ITC_setTemperature = pyqtSignal(dict)
     sig_ITC_stopSweep = pyqtSignal()
 
     def __init__(self, app, **kwargs):
@@ -332,7 +331,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
                                   newFilePID=self.sig_ITC_newFilePID,
                                   setTemp=self.sig_ITC_setTemperature,
-                                  programSweep=self.sig_ITC_programSweep,
                                   stopSweep=self.sig_ITC_stopSweep),
                          )
 
@@ -747,27 +745,27 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values['setTemperature'] = value
 
-    @noKeyError
-    def ITC_fun_setSweep(self, force=False):
-        with self.dataLock:
-            settempdevice = self.data['ITC']['set_temperature']
-        if not np.isclose(settempdevice, self.ITC_values['setTemperature']) or force:
-            print('setting sweep', settempdevice)
-            self.sigs['ITC']['stopSweep'].emit()
-            self.sigs['ITC']['setTemp'].emit(settempdevice)
-            self.sigs['ITC']['programSweep'].emit(dict(start=settempdevice,
-                                                       end=self.ITC_values[
-                                                           'setTemperature'],
-                                                       SweepRate=self.ITC_values['SweepRate']))
+    # @noKeyError
+    # def ITC_fun_setSweep(self, force=False):
+    #     with self.dataLock:
+    #         settempdevice = self.data['ITC']['set_temperature']
+    #     if not np.isclose(settempdevice, self.ITC_values['setTemperature']) or force:
+    #         print('setting sweep', settempdevice)
+    #         self.sigs['ITC']['stopSweep'].emit()
+    #         self.sigs['ITC']['setTemp'].emit(settempdevice)
+    #         self.sigs['ITC']['programSweep'].emit(dict(start=settempdevice,
+    #                                                    end=self.ITC_values[
+    #                                                        'setTemperature'],
+    #                                                    SweepRate=self.ITC_values['SweepRate']))
 
-    @pyqtSlot()
-    @noKeyError
-    def ITC_fun_setTemp_edfin(self):
-        # self.threads['control_ITC'][0].setTemperature()
-        if self.ITC_values['Sweep_status_software']:
-            self.ITC_fun_setSweep()
-        else:
-            self.sigs['ITC']['setTemp'].emit(self.ITC_values['setTemperature'])
+    # @pyqtSlot()
+    # @noKeyError
+    # def ITC_fun_setTemp_edfin(self):
+    #     # self.threads['control_ITC'][0].setTemperature()
+    #     if self.ITC_values['Sweep_status_software']:
+    #         self.ITC_fun_setSweep()
+    #     else:
+    #         self.sigs['ITC']['setTemp'].emit(self.ITC_values['setTemperature'])
 
     @pyqtSlot(float)
     @noKeyError
@@ -775,24 +773,42 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ITC_values['SweepRate'] = value
         # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
-    @pyqtSlot()
-    @noKeyError
-    def ITC_fun_setRamp_edfin(self):
-        if self.ITC_values['Sweep_status_software']:
-            self.ITC_fun_setSweep(force=True)
-        # self.threads['control_ITC'][0].setSweepRamp()
+    # @pyqtSlot()
+    # @noKeyError
+    # def ITC_fun_setRamp_edfin(self):
+    #     if self.ITC_values['Sweep_status_software']:
+    #         self.ITC_fun_setSweep(force=True)
+    #     # self.threads['control_ITC'][0].setSweepRamp()
 
     @pyqtSlot(bool)
     @noKeyError
     def ITC_fun_checkSweep_toggled(self, boolean):
         self.ITC_values['Sweep_status_software'] = boolean
-        if boolean:
-            self.ITC_fun_setSweep()
-        else:
-            with self.dataLock:
-                settempdevice = self.data['ITC']['set_temperature']
-            self.sigs['ITC']['stopSweep'].emit()
-            self.sigs['ITC']['setTemp'].emit(settempdevice)
+        # if boolean:
+        #     self.ITC_fun_setSweep()
+        # else:
+        #     with self.dataLock:
+        #         settempdevice = self.data['ITC']['set_temperature']
+        #     self.sigs['ITC']['stopSweep'].emit()
+        #     self.sigs['ITC']['setTemp'].emit(settempdevice)
+
+    @pyqtSlot()
+    @noKeyError
+    def ITC_fun_sendConfTemp(self):
+        self.ITC_fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
+                               isSweepStartCurrent=True,
+                               setTemp=self.ITC_values['setTemperature'],
+                               end=self.ITC_values['setTemperature'],
+                               SweepRate=self.ITC_values['SweepRate'])
+
+    @pyqtSlot(dict)
+    def ITC_fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
+        self.sigs['ITC']['setTemp'].emit(dict(isSweep=isSweep,
+                                              isSweepStartCurrent=isSweepStartCurrent,
+                                              setTemp=setTemp,
+                                              start=start,
+                                              end=end,
+                                              SweepRate=SweepRate))
 
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
@@ -824,16 +840,19 @@ class mainWindow(QtWidgets.QMainWindow):
                 # setting ITC values by GUI ITC window
                 self.ITC_window.spinsetTemp.valueChanged.connect(
                     self.ITC_fun_setTemp_valcha)
-                self.ITC_window.spinsetTemp.editingFinished.connect(
-                    self.ITC_fun_setTemp_edfin)
+                # self.ITC_window.spinsetTemp.editingFinished.connect(
+                #     self.ITC_fun_setTemp_edfin)
 
                 self.ITC_window.checkSweep.toggled['bool'].connect(
                     self.ITC_fun_checkSweep_toggled)
 
                 self.ITC_window.dspinSetRamp.valueChanged.connect(
                     self.ITC_fun_setRamp_valcha)
-                self.ITC_window.dspinSetRamp.editingFinished.connect(
-                    self.ITC_fun_setRamp_edfin)
+                # self.ITC_window.dspinSetRamp.editingFinished.connect(
+                #     self.ITC_fun_setRamp_edfin)
+
+                self.ITC_window.commandSendConfTemp.clicked.connect(
+                    self.ITC_fun_sendConfTemp)
 
                 def change_gas(self):
                     """to be worked in a separate worker thread (separate

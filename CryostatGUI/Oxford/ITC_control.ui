@@ -52,7 +52,7 @@
          <bool>false</bool>
         </property>
         <property name="digitCount">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -110,7 +110,7 @@ diff to Setpoint</string>
          <bool>false</bool>
         </property>
         <property name="digitCount">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -137,7 +137,7 @@ diff to Setpoint</string>
       <item row="5" column="1" colspan="2">
        <widget class="QLCDNumber" name="lcdTemp_err">
         <property name="digitCount">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -150,7 +150,7 @@ diff to Setpoint</string>
          <bool>false</bool>
         </property>
         <property name="digitCount">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="mode">
          <enum>QLCDNumber::Dec</enum>
@@ -193,7 +193,7 @@ diff to Setpoint</string>
       <item row="2" column="1" colspan="2">
        <widget class="QLCDNumber" name="lcdTemp_sens1_calcerr_K">
         <property name="digitCount">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -258,6 +258,113 @@ diff to Setpoint</string>
       <item row="0" column="0" colspan="4">
        <widget class="QWidget" name="widget" native="true">
         <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="2">
+          <widget class="QLCDNumber" name="lcdTemp_set">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="digitCount">
+            <number>6</number>
+           </property>
+           <property name="segmentStyle">
+            <enum>QLCDNumber::Flat</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1" colspan="2">
+          <widget class="QComboBox" name="combosetHeatersens">
+           <item>
+            <property name="text">
+             <string>Sensor 1</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 2</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sensor 3</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="3">
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Heater Sensor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1" colspan="2">
+          <widget class="QComboBox" name="combosetAutocontrol">
+           <item>
+            <property name="text">
+             <string>heater man, gas man</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>heater auto, gas man</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>heater man, gas auto</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>heater auto, gas auto</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QDoubleSpinBox" name="spinsetGasOutput">
+           <property name="inputMethodHints">
+            <set>Qt::ImhFormattedNumbersOnly|Qt::ImhMultiLine</set>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="singleStep">
+            <double>0.500000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QCheckBox" name="checkGas_gothroughzero">
+           <property name="text">
+            <string>go through zero</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="2">
+          <widget class="QDoubleSpinBox" name="spinsetHeaterPercent">
+           <property name="decimals">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="dspinSetRamp">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="2">
           <widget class="QCheckBox" name="checkSweep">
            <property name="enabled">
@@ -271,17 +378,18 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_17">
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Gas Output [%]</string>
+            <string>Heater Output 
+[% of max]</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_7">
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>Autocontrol</string>
+            <string>Gas Output [%]</string>
            </property>
           </widget>
          </item>
@@ -308,10 +416,10 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="dspinSetRamp">
-           <property name="enabled">
-            <bool>true</bool>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Autocontrol</string>
            </property>
           </widget>
          </item>
@@ -331,111 +439,10 @@ diff to Setpoint</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Heater Output 
-[% of max]</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1" colspan="2">
-          <widget class="QDoubleSpinBox" name="spinsetHeaterPercent">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Heater Sensor</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1" colspan="2">
-          <widget class="QComboBox" name="combosetAutocontrol">
-           <item>
-            <property name="text">
-             <string>heater man, gas man</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>heater auto, gas man</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>heater man, gas auto</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>heater auto, gas auto</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLCDNumber" name="lcdTemp_set">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="digitCount">
-            <number>6</number>
-           </property>
-           <property name="segmentStyle">
-            <enum>QLCDNumber::Flat</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1" colspan="2">
-          <widget class="QComboBox" name="combosetHeatersens">
-           <item>
-            <property name="text">
-             <string>Sensor 1</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 2</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Sensor 3</string>
-            </property>
-           </item>
-          </widget>
-         </item>
          <item row="2" column="0" colspan="3">
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QDoubleSpinBox" name="spinsetGasOutput">
-           <property name="inputMethodHints">
-            <set>Qt::ImhFormattedNumbersOnly|Qt::ImhMultiLine</set>
-           </property>
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="singleStep">
-            <double>0.500000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QCheckBox" name="checkGas_gothroughzero">
+          <widget class="QCommandLinkButton" name="commandSendConfTemp">
            <property name="text">
-            <string>go through zero</string>
+            <string>Send Configuration</string>
            </property>
           </widget>
          </item>

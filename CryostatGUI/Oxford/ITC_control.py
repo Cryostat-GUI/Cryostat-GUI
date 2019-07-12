@@ -15,7 +15,8 @@ from pyvisa.errors import VisaIOError
 from copy import deepcopy
 from importlib import reload
 import numpy as np
-# import time
+import time
+import threading
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -85,8 +86,10 @@ class ITC_Updater(AbstractLoopThread):
         self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
         self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
         self.mainthreadSignals['setTemp'].connect(self.setTemperature)
-        self.mainthreadSignals['programSweep'].connect(self.startSweep)
         self.mainthreadSignals['stopSweep'].connect(self.stopSweep)
+        self.data_last = dict()
+
+        self.lock_newthread = threading.Lock()
 
     # @control_checks
     @ExceptionHandling
@@ -115,6 +118,7 @@ class ITC_Updater(AbstractLoopThread):
 
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
+                self.data_last[key] = value
 
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
@@ -131,6 +135,8 @@ class ITC_Updater(AbstractLoopThread):
         # with "calc" in name it would not enter calculations!
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
+        self.data_last['status'] = self.read_status()
+        self.data_last['sweep'] = self.checksweep(stop=False)
 
         if self.useAutoPID:
             self.set_PID(temperature=data['Sensor_1_K'])
@@ -190,27 +196,32 @@ class ITC_Updater(AbstractLoopThread):
         self.setIntegral()
         self.setDerivative()
 
-    def startSweep(self, d):
-        with self.lock:
-            self.setSweep(setpoint_temp=d['end'],
-                          rate=d['SweepRate'],
-                          start=d['start'])
-            self.ITC.SweepStart()
-            self.ITC.getValue(0)  # whatever this is needed for
+    # def startSweep(self, d):
+    #     with self.lock:
+    #         self.setSweep(setpoint_temp=d['end'],
+    #                       rate=d['SweepRate'],
+    #                       start=d['start'])
+    #         self.ITC.SweepStart()
+    #         self.ITC.getValue(0)  # whatever this is needed for
 
     @ExceptionHandling
     def stopSweep(self):
-        with self.lock:
-            self.ITC.SweepStop()
+        # with self.lock:
+        self.setSweep(setpoint_temp=self.ITC.getValue(0),
+                      rate=50,
+                      start=False)
+        time.sleep(0.1)
+        self.ITC.SweepJumpToLast()
+        time.sleep(0.1)
 
     @pyqtSlot()
     @ExceptionHandling
     def setSweep(self, setpoint_temp, rate, start=False):
         # with self.lock:
-        # if start:
-        #     setpoint_now = start
-        # else:
-        setpoint_now = self.ITC.getValue(0)
+        if start:
+            setpoint_now = start
+        else:
+            setpoint_now = self.ITC.getValue(0)
         # print('setpoint now = ', setpoint_now)
         if rate == 0:
             n_sweeps = 0
@@ -314,11 +325,9 @@ class ITC_Updater(AbstractLoopThread):
             status['sweep'] = True
         # print('sweep status: ', status['sweep'])
         self.sweep_running_device = status['sweep']
-        if stop:
-            if status['sweep'] or self.sweep_first:
-                # print('setTemp: sweep running, stopping sweep')
-                self.ITC.SweepStop()
-                self.sweep_first = False
+        if stop and status['sweep']:
+            # print('setTemp: sweep running, stopping sweep')
+            self.stopSweep()
 
         return self.sweep_running_device
         # else:
@@ -326,13 +335,47 @@ class ITC_Updater(AbstractLoopThread):
         # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
 
-    @pyqtSlot(float)
+    @pyqtSlot(dict)
     @ExceptionHandling
-    def setTemperature(self, value):
+    def setTemperature(self, values):
         """set Temperature of the instrument
 
+        dict(isSweep=isSweep,
+             isSweepStartCurrent=isSweepStartCurrent,
+             setTemp=setTemp,
+             start=start,
+             end=end,
+             SweepRate=SweepRate)
+
         """
-        self.ITC.setTemperature(value)
+        values['self'] = self
+
+        def settingtheTemp(values):
+            instance = values['self']
+            # stop sweep if it runs
+            start = instance.ITC.getValue(0) if values[
+                        'isSweepStartCurrent'] else values['start']
+            instance.checksweep(stop=True)
+            while instance.data_last['sweep']:
+                time.sleep(0.01)
+                print('sleeping')
+            else:
+                time.sleep(0.1)
+            with instance.lock:
+                if values['isSweep']:
+                    # set up sweep
+
+                    instance.setSweep(setpoint_temp=values['end'],
+                                      rate=values['SweepRate'],
+                                      start=start)
+                    instance.ITC.SweepStart()
+                    instance.ITC.getValue(0)  # whatever this is needed fo
+                else:
+                    instance.ITC.setTemperature(values['setTemp'])
+
+        with self.lock_newthread:
+            t1 = threading.Thread(target=settingtheTemp, args=(values,))
+            t1.start()
         # with self.lock:
         #     self.checksweep()
         #     if not self.sweep_running:
