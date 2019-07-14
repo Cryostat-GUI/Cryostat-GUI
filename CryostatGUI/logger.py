@@ -277,7 +277,7 @@ class main_Logger(AbstractLoopThread):
                     tablename, key, typeof(dictname[key]))
                 # print(sql)
                 self.mycursor.execute(sql)
-            except OperationalError as err:
+            except OperationalError:
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
 

@@ -72,6 +72,7 @@ from util import Workerclass
 from util import running_thread
 from util import noKeyError
 from util import Window_plotting_specification
+from util import ExceptionHandling
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -94,6 +95,7 @@ class mainWindow(QtWidgets.QMainWindow):
     """This is the main GUI Window, where other windows will be spawned from"""
 
     sig_arbitrary = pyqtSignal()
+    sig_assertion = pyqtSignal(str)
 
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
@@ -114,6 +116,8 @@ class mainWindow(QtWidgets.QMainWindow):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
+
+        self.__name__ = 'MainWindow'
         self.threads = dict(Lock=Lock())
         # self.threads = dict()
         self.threads_tiny = list()
@@ -133,9 +137,11 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
         QTimer.singleShot(0, self.load_settings)
 
+        self.sig_assertion.connect(self.show_error_general)
+
     def closeEvent(self, event):
         """check for a running measurement
-        give the user a chance to contemplate his wish to quit the application, 
+        give the user a chance to contemplate his wish to quit the application,
         in case a measurement is currently running"""
         reply = QtWidgets.QMessageBox.Yes
         if self.OneShot_running:
@@ -219,7 +225,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def softwarecontrol_check(self):
         """disable all respective GUI elements in case
             the controls_lock is locked
-            thus prevent interference of the user 
+            thus prevent interference of the user
                 with a running sequence/measurement
         """
         # try:
@@ -740,19 +746,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ITC_values = dict(setTemperature=4, SweepRate=2)
 
     @pyqtSlot(float)
-    @noKeyError
+    @ExceptionHandling
     def ITC_fun_setTemp_valcha(self, value):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values['setTemperature'] = value
 
     @pyqtSlot(float)
-    @noKeyError
+    @ExceptionHandling
     def ITC_fun_setRamp_valcha(self, value):
         self.ITC_values['SweepRate'] = value
         # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot(bool)
-    @noKeyError
+    @ExceptionHandling
     def ITC_fun_checkSweep_toggled(self, boolean):
         self.ITC_values['Sweep_status_software'] = boolean
         # if boolean:
@@ -764,13 +770,22 @@ class mainWindow(QtWidgets.QMainWindow):
         #     self.sigs['ITC']['setTemp'].emit(settempdevice)
 
     @pyqtSlot()
-    @noKeyError
+    @ExceptionHandling
     def ITC_fun_sendConfTemp(self):
         self.ITC_fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
                                isSweepStartCurrent=True,
                                setTemp=self.ITC_values['setTemperature'],
                                end=self.ITC_values['setTemperature'],
                                SweepRate=self.ITC_values['SweepRate'])
+
+    @pyqtSlot(dict)
+    @ExceptionHandling
+    def ITC_fun_routeSignalTemps(self, d: dict) -> None:
+        self.ITC_fun_startTemp(isSweep=d['Sweep_status_software'],
+                               isSweepStartCurrent=d['isSweepStartCurrent'],
+                               setTemp=d['setTemperature'],
+                               end=d['setTemperature'],
+                               SweepRate=d['SweepRate'])
 
     @pyqtSlot(dict)
     def ITC_fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
