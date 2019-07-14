@@ -22,6 +22,8 @@ from pymeasure.instruments.srs import SR830
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
+from datetime import datetime
+
 
 class SR830_Updater(AbstractLoopThread):
     """Updater class to update all instrument data of the SR830
@@ -59,6 +61,8 @@ class SR830_Updater(AbstractLoopThread):
         data['SampleCurrent_mA'] = SampleCurrent_A * 1e3
 
         data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+
+        data['realtime'] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(data))
 

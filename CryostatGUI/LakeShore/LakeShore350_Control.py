@@ -15,6 +15,8 @@ import LakeShore
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
+from datetime import datetime
+
 
 class LakeShore350_Updater(AbstractLoopThread):
     """Updater class for the LakeShore350 Temperature controller
@@ -143,6 +145,8 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Sensor_3_Ohm'] = temp_list3[2]
         self.sensors['Sensor_4_Ohm'] = temp_list3[3]
         self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
+
+        data['realtime'] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 

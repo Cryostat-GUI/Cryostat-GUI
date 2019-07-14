@@ -16,6 +16,7 @@ from copy import deepcopy
 from importlib import reload
 import numpy as np
 import time
+from datetime import datetime
 import threading
 
 from util import AbstractLoopThread
@@ -138,6 +139,7 @@ class ITC_Updater(AbstractLoopThread):
             'set_temperature'] - data['temperature_error']
         self.data_last['status'] = self.read_status()
         self.data_last['sweep'] = self.checksweep(stop=False)
+        data['realtime'] = datetime.now()
 
         if self.useAutoPID:
             self.set_PID(temperature=data['Sensor_1_K'])

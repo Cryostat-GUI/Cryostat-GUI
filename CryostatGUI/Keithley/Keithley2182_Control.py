@@ -11,6 +11,8 @@ from importlib import reload
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
+from datetime import datetime
+
 
 class Keithley2182_Updater(AbstractLoopThread):
     """This is the worker thread, which updates all instrument data of one Keithley 2182 device.
@@ -41,6 +43,8 @@ class Keithley2182_Updater(AbstractLoopThread):
     def running(self):
         """Measure Voltage, send the data"""
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
+
+        self.sensors['realtime'] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 

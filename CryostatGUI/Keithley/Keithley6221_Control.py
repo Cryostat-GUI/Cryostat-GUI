@@ -12,6 +12,8 @@ from copy import deepcopy
 from util import AbstractEventhandlingThread
 from util import ExceptionHandling
 
+# from datetime import datetime
+
 
 class Keithley6221_Updater(AbstractEventhandlingThread):
     """This is the worker thread, which updates all instrument data of a Keithely 6221

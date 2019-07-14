@@ -20,6 +20,8 @@ import Oxford
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
+from datetime import datetime
+
 
 class IPS_Updater(AbstractLoopThread):
     """Updater class for the Intelligent Power Supply (IPS) 120-10
@@ -135,6 +137,9 @@ class IPS_Updater(AbstractLoopThread):
                 # key_f_timeout = key
                 data[key] = self.PS.getValue(idx_sensor)
             data.update(self.getStatus())
+
+            data['realtime'] = datetime.now()
+
             self.sig_Infodata.emit(deepcopy(data))
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])

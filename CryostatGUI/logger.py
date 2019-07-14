@@ -15,6 +15,8 @@ from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
 import math
 
+from datetime import datetime
+
 
 from util import AbstractLoopThread
 from util import AbstractEventhandlingThread
@@ -221,6 +223,8 @@ class main_Logger(AbstractLoopThread):
         self.not_yet_initialised = False
         self.local_list = []
 
+        self.houroffset = [datetime.now() - datetime.utcnow()][0].total_seconds()/3600
+
     def running(self):
         '''perpetual logging function, which is asking for logging data'''
         try:
@@ -301,6 +305,8 @@ class main_Logger(AbstractLoopThread):
         try:
             for key in dictname:
                 var, bools = testing_NaN(dictname[key])
+                if isinstance(var, type(datetime.now())):
+                    var = 'UTC' + '{:+05.0f} '.format(self.houroffset) + var.strftime('%Y-%m-%d  %H:%M:%S.%f')
                 if not bools:
                     sql = """UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                                                                  column=key,
