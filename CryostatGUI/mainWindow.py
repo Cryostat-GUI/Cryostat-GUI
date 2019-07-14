@@ -745,40 +745,11 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values['setTemperature'] = value
 
-    # @noKeyError
-    # def ITC_fun_setSweep(self, force=False):
-    #     with self.dataLock:
-    #         settempdevice = self.data['ITC']['set_temperature']
-    #     if not np.isclose(settempdevice, self.ITC_values['setTemperature']) or force:
-    #         print('setting sweep', settempdevice)
-    #         self.sigs['ITC']['stopSweep'].emit()
-    #         self.sigs['ITC']['setTemp'].emit(settempdevice)
-    #         self.sigs['ITC']['programSweep'].emit(dict(start=settempdevice,
-    #                                                    end=self.ITC_values[
-    #                                                        'setTemperature'],
-    #                                                    SweepRate=self.ITC_values['SweepRate']))
-
-    # @pyqtSlot()
-    # @noKeyError
-    # def ITC_fun_setTemp_edfin(self):
-    #     # self.threads['control_ITC'][0].setTemperature()
-    #     if self.ITC_values['Sweep_status_software']:
-    #         self.ITC_fun_setSweep()
-    #     else:
-    #         self.sigs['ITC']['setTemp'].emit(self.ITC_values['setTemperature'])
-
     @pyqtSlot(float)
     @noKeyError
     def ITC_fun_setRamp_valcha(self, value):
         self.ITC_values['SweepRate'] = value
         # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
-
-    # @pyqtSlot()
-    # @noKeyError
-    # def ITC_fun_setRamp_edfin(self):
-    #     if self.ITC_values['Sweep_status_software']:
-    #         self.ITC_fun_setSweep(force=True)
-    #     # self.threads['control_ITC'][0].setSweepRamp()
 
     @pyqtSlot(bool)
     @noKeyError
@@ -960,14 +931,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.stopping_thread('control_ITC')
             self.window_SystemsOnline.checkaction_run_ITC.setChecked(False)
             self.logging_running_ITC = False
-
-    # @pyqtSlot(bool)
-    # def show_ITC(self, boolean):
-    #     """display/close the ITC data & control window"""
-    #     if boolean:
-    #         self.ITC_window.show()
-    #     else:
-    #         self.ITC_window.close()
 
     @pyqtSlot(dict)
     def store_data_itc(self, data):
@@ -1189,14 +1152,6 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.window_SystemsOnline.checkaction_run_IPS.setChecked(False)
             self.stopping_thread('control_IPS')
-
-    # @pyqtSlot(bool)
-    # def show_IPS(self, boolean):
-    #     """display/close the ILM data & control window"""
-    #     if boolean:
-    #         self.IPS_window.show()
-    #     else:
-    #         self.IPS_window.close()
 
     @pyqtSlot(dict)
     def store_data_ips(self, data):
@@ -1819,14 +1774,6 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
             self.stopping_thread('control_SR830')
-
-    # @pyqtSlot(bool)
-    # def show_IPS(self, boolean):
-    #     """display/close the ILM data & control window"""
-    #     if boolean:
-    #         self.IPS_window.show()
-    #     else:
-    #         self.IPS_window.close()
 
     @pyqtSlot(dict)
     def store_data_SR830(self, data):
