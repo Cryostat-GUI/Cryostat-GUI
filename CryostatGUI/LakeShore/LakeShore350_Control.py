@@ -146,7 +146,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors['Sensor_4_Ohm'] = temp_list3[3]
         self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
 
-        data['realtime'] = datetime.now()
+        self.sensors['realtime'] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 

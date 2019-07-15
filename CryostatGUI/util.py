@@ -37,7 +37,8 @@ import os
 
 # from contextlib import suppress
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime as dt
+from datetime import timedelta as td
 from visa import VisaIOError
 from threading import Lock
 
@@ -56,18 +57,37 @@ from PyQt5.QtWidgets import QSizePolicy
 
 def convert_time_date(ts):
     """converts timestamps from time.time() into date string"""
-    return datetime.fromtimestamp(ts).strftime('%d%m%Y')
+    return dt.fromtimestamp(ts).strftime('%d%m%Y')
 
 
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
-    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d::%H:%M:%S')
+    return dt.fromtimestamp(ts).strftime('%Y-%m-%d::%H:%M:%S')
+
+
+def convert_time_reverse(tstr):
+    """convert time-string into datetime object"""
+    return dt.strptime(tstr, '%Y-%m-%d::%H:%M:%S')
 
 
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+    return dt.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
 
+
+def convert_time_searchable_reverse(tstr):
+    """convert the time string into datetime object"""
+    return dt.strptime(tstr, '%Y%m%d%H%M%S')
+
+
+def convert_time_realtime_reverse(tstr):
+    """convert the realtime entry in the database back to a datetime object
+    Timezones are for now ignored, apart from the note in the database entry"""
+    # var = 'UTC' + '{:+05.0f} '.format(self.houroffset) + var.strftime('%Y-%m-%d  %H:%M:%S.%f')
+    utcoffset = td(hours=float(tstr[3:8]))
+    var = dt.strptime(tstr[8:], '%Y-%m-%d  %H:%M:%S.%f')
+    return var
+    pass
 
 # def loopcontrol_threads(threads, loopcondition):
 #     """
@@ -81,6 +101,7 @@ def convert_time_searchable(ts):
 #         #     thread[0].loop = loopcondition
 #         if loopcondition:
 #             thread[0].lock.release()
+
 
 def shaping(entry):
     """adjust the shape of data-arrays given to matplotlib,

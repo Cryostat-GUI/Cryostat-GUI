@@ -26,6 +26,9 @@
      <property name="text">
       <string>SILENCIO</string>
      </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item row="1" column="0" colspan="2">
