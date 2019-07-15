@@ -345,10 +345,14 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         returns: temperature as a float
         """
         gotit = False
+        uptodate = False
         try:
-            with self.datalock:
-                while (dt.now() - self.data[self.tempdefinition[0]][self.tempdefinition[1]]).total_seconds() > 10:
-                    self.sig_assertion.emit('Sequence: Temperature data not sufficiently up to date.')
+            while not uptodate:
+                with self.datalock:
+                    uptodate = (dt.now() - self.data[self.tempdefinition[0]][self.tempdefinition[1]]).total_seconds() > 10
+                    if not uptodate:
+                        self.sig_assertion.emit('Sequence: Temperature data not sufficiently up to date.')
+                        time.sleep(0.02)
         except KeyError as err:
             self.sig_assertion.emit('Sequence: getTemperature: no data: {}'.format(err.args[0]))
             temp = self.getTemperature()
