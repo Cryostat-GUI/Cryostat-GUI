@@ -281,7 +281,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence, data, datalock, dataLive, data_LiveLock, tempdefinition=['LakeShore350', 'Sensor_1_K'], device_signals, **kwargs):
+    def __init__(self, sequence, data, datalock, dataLive, data_LiveLock, device_signals, tempdefinition=['LakeShore350', 'Sensor_1_K'], **kwargs):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
         self.devices = device_signals
         self.data = data
