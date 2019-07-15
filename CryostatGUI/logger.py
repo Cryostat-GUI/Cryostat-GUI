@@ -40,6 +40,9 @@ def testing_NaN(variable):
     except ValueError:
         var = variable
         bo = False
+    except TypeError:
+        var = variable
+        bo = False
     return var, bo
 
 
