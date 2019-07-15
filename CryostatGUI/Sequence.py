@@ -344,23 +344,32 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         implement measuring the temperature used for control
         returns: temperature as a float
         """
+        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1])
+
+    def readDataFromList(self, dataind1: str, dataind2: str) -> float:
+        """retrieve a datapoint from the central list"""
         gotit = False
         uptodate = False
         try:
             while not uptodate:
                 with self.datalock:
-                    uptodate = (dt.now() - self.data[self.tempdefinition[0]][self.tempdefinition[1]]).total_seconds() > 10
+                    uptodate = (
+                        dt.now() - self.data[dataind1][dataind2]).total_seconds() > 10
                     if not uptodate:
-                        self.sig_assertion.emit('Sequence: Temperature data not sufficiently up to date.')
+                        self.sig_assertion.emit(
+                            'Sequence: readData: data not sufficiently up to date.')
                         time.sleep(0.02)
         except KeyError as err:
-            self.sig_assertion.emit('Sequence: getTemperature: no data: {}'.format(err.args[0]))
+            self.sig_assertion.emit(
+                'Sequence: readData: no data: {}'.format(err.args[0]))
+            time.sleep(0.02)
             temp = self.getTemperature()
             gotit = True
 
         if not gotit:
-            temp = self.data[self.tempdefinition[0]][self.tempdefinition[1]]
-        print(f'getTemperature :: returning random value: {temp}')
+            temp = self.data[dataind1][dataind2]
+        self.sig_assertion.emit(
+            '{%Y-%m-%d  %H:%M:%S.%f}  Sequence: readData :: got a datum: {temp}'.format(dt.datetime.now(), temp))
         return temp
 
     def getPosition(self) -> float:
@@ -417,6 +426,18 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
+        if direction == 0:
+            # no information, temp should really stabilize
+            pass
+            t = self.getTemperature()
+        if direction == 1:
+            # temperature should be rising, all temperatures above temp are
+            # fine
+            pass
+        if direction == -1:
+            # temperature should be falling, all temperatures below temp are
+            # fine
+            pass
         print(f'checkstable_Temp :: Temp: {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
     def checkField(self, Field: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
@@ -469,6 +490,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """Shut down instruments to a safe standby-configuration"""
         print(f'Shutdown :: going into safe shutdown mode')
 
+    @staticmethod
     def chamber_purge(self):
         """purge the chamber
 
@@ -476,6 +498,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_purge :: purging chamber')
 
+    @staticmethod
     def chamber_vent(self):
         """vent the chamber
 
@@ -483,6 +506,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_vent :: venting chamber')
 
+    @staticmethod
     def chamber_seal(self):
         """seal the chamber
 
@@ -490,6 +514,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_seal :: sealing chamber')
 
+    @staticmethod
     def chamber_continuous(self, action):
         """pump or vent the chamber continuously"""
         if action == 'pumping':
@@ -497,6 +522,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         if action == 'venting':
             print(f'chamber_continuous :: venting continuously')
 
+    @staticmethod
     def chamber_high_vacuum(self):
         """pump the chamber to high vacuum
 
