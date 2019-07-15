@@ -323,6 +323,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}')
 
+    @ staticmethod
     def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
         """
             Method to be overriden by a child class
@@ -344,19 +345,33 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         implement measuring the temperature used for control
         returns: temperature as a float
         """
+        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1])
+
+    def readDataFromList(self, dataind1: str, dataind2: str) -> float:
+        """retrieve a datapoint from the central list"""
         gotit = False
+        uptodate = False
         try:
-            with self.datalock:
-                while (dt.now() - self.data[self.tempdefinition[0]][self.tempdefinition[1]]).total_seconds() > 10:
-                    self.sig_assertion.emit('Sequence: Temperature data not sufficiently up to date.')
+            while not uptodate:
+                with self.datalock:
+                    uptodate = (
+                        dt.now() - self.data[dataind1][dataind2]).total_seconds() > 10
+                    if not uptodate:
+                        self.sig_assertion.emit(
+                            'Sequence: readData: data not sufficiently up to date.')
+                        self.check_running()
+                        time.sleep(0.02)
         except KeyError as err:
-            self.sig_assertion.emit('Sequence: getTemperature: no data: {}'.format(err.args[0]))
+            self.sig_assertion.emit(
+                'Sequence: readData: no data: {}'.format(err.args[0]))
+            self.check_running()
+            time.sleep(0.02)
             temp = self.getTemperature()
             gotit = True
 
         if not gotit:
-            temp = self.data[self.tempdefinition[0]][self.tempdefinition[1]]
-        print(f'getTemperature :: returning random value: {temp}')
+            temp = self.data[dataind1][dataind2]
+        self.sig_assertion.emit(f'Sequence: readData :: got a datum: {temp}')
         return temp
 
     def getPosition(self) -> float:
@@ -381,6 +396,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         print(f'getField :: returning random value: {val}')
         return val
 
+    @staticmethod
     def getChamber(self):
         """Read the Chamber status
 
@@ -413,6 +429,26 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
+        if direction == 0:
+            # no information, temp should really stabilize
+            pass
+            t = self.getTemperature()
+        if ApproachMode == 'Sweep':
+            if direction == 1:
+                # temp should be rising, all temps above 'temp' are fine
+                while self.getTemperature() < temp:
+                    self.check_running()
+                    time.sleep(0.02)
+            if direction == -1:
+                # temp should be falling, all temps below 'temp' are fine
+                while self.getTemperature() > temp:
+                    self.check_running()
+                    time.sleep(0.02)
+            if direction == 0:
+                self.sig_assertion.emit('Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+                self.stop()
+                self.check_running()
+
         print(f'checkstable_Temp :: Temp: {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
     def checkField(self, Field: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
@@ -465,6 +501,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """Shut down instruments to a safe standby-configuration"""
         print(f'Shutdown :: going into safe shutdown mode')
 
+    @staticmethod
     def chamber_purge(self):
         """purge the chamber
 
@@ -472,6 +509,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_purge :: purging chamber')
 
+    @staticmethod
     def chamber_vent(self):
         """vent the chamber
 
@@ -479,6 +517,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_vent :: venting chamber')
 
+    @staticmethod
     def chamber_seal(self):
         """seal the chamber
 
@@ -486,6 +525,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_seal :: sealing chamber')
 
+    @staticmethod
     def chamber_continuous(self, action):
         """pump or vent the chamber continuously"""
         if action == 'pumping':
@@ -493,6 +533,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         if action == 'venting':
             print(f'chamber_continuous :: venting continuously')
 
+    @staticmethod
     def chamber_high_vacuum(self):
         """pump the chamber to high vacuum
 
@@ -529,10 +570,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
             (to) the new datafile
         """
         print(f'res_change_datafile :: change the datafile to: {datafile}, with mode {mode}.')
-
-    def stop(self):
-        """stop the sequence execution by setting self.__isRunning to False"""
-        self.__isRunning = False
 
     @pyqtSlot()
     def setTempVTIOffset(self, offset):
