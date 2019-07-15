@@ -11,7 +11,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 
 # import sys
-# import datetime
+import datetime as dt
 # import pickle
 # import os
 # import re
@@ -281,9 +281,14 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence, signals, device_signals, **kwargs):
+    def __init__(self, sequence, data, datalock, dataLive, data_LiveLock, tempdefinition=['LakeShore350', 'Sensor_1_K'], device_signals, **kwargs):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
         self.devices = device_signals
+        self.data = data
+        self.dataLock = datalock
+        self.data_Live = dataLive
+        self.data_LiveLock = data_LiveLock
+        self.tempdefinition = tempdefinition
 
     @ExceptionHandling
     def work(self):
@@ -339,9 +344,20 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         implement measuring the temperature used for control
         returns: temperature as a float
         """
-        val = np.random.rand() * 300
-        print(f'getTemperature :: returning random value: {val}')
-        return val
+        gotit = False
+        try:
+            with self.datalock:
+                while (dt.now() - self.data[self.tempdefinition[0]][self.tempdefinition[1]]).total_seconds() > 10:
+                    self.sig_assertion.emit('Sequence: Temperature data not sufficiently up to date.')
+        except KeyError as err:
+            self.sig_assertion.emit('Sequence: getTemperature: no data: {}'.format(err.args[0]))
+            temp = self.getTemperature()
+            gotit = True
+
+        if not gotit:
+            temp = self.data[self.tempdefinition[0]][self.tempdefinition[1]]
+        print(f'getTemperature :: returning random value: {temp}')
+        return temp
 
     def getPosition(self) -> float:
         """

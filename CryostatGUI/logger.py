@@ -223,7 +223,7 @@ class main_Logger(AbstractLoopThread):
         self.not_yet_initialised = False
         self.local_list = []
 
-        self.houroffset = [datetime.now() - datetime.utcnow()][0].total_seconds()/3600
+        self.houroffset = (datetime.now() - datetime.utcnow()).total_seconds()/3600
 
     def running(self):
         '''perpetual logging function, which is asking for logging data'''

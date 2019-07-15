@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>554</width>
-    <height>685</height>
+    <width>531</width>
+    <height>676</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -54,8 +54,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>495</width>
-            <height>623</height>
+            <width>472</width>
+            <height>614</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
@@ -505,13 +505,6 @@ hardware Address</string>
        <string>Temperature Control</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0">
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>LakeShore 350</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="maximumSize">
@@ -585,6 +578,42 @@ hardware Address</string>
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Sequences - compound control</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Temperature Sensor for Control</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QComboBox" name="comboBox_2"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Offset between VTI &amp; Sample</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_15">
+            <property name="maximum">
+             <double>300.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
