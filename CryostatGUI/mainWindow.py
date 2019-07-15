@@ -42,7 +42,7 @@ from PyQt5.uic import loadUi
 
 import os
 import sys
-import datetime
+import datetime as dt
 from threading import Lock
 import numpy as np
 from copy import deepcopy
@@ -85,7 +85,7 @@ Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
 SR830_InstrumentAddress = 'GPIB::9'
 
-errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
+errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 
 directory = os.path.dirname(errorfile)
 os.makedirs(directory, exist_ok=True)
@@ -298,9 +298,10 @@ class mainWindow(QtWidgets.QMainWindow):
     def show_error_textBrowser(self, text):
         """ append error to Error window"""
         self.Errors_window.textErrors.append(
-            '{} - {}'.format(convert_time(time.time()), text))
-        self.Errors_window.show()
-        self.Errors_window.raise_()
+            '{%Y-%m-%d  %H:%M:%S.%f} - {}'.format(dt.datetime.now(), text))
+        if not self.Errors_window.checkSilence.isChecked:
+            self.Errors_window.show()
+            self.Errors_window.raise_()
         # self.Errors_window.activateWindow()
 
     def show_window(self, window, boolean=None):
