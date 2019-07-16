@@ -281,7 +281,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence, data, datalock, dataLive, data_LiveLock, device_signals, tempdefinition=['LakeShore350', 'Sensor_1_K'], **kwargs):
+    def __init__(self, sequence: list, data: list, datalock, dataLive: list, data_LiveLock, device_signals: dict, thresholdsconf: dict, tempdefinition: list, **kwargs):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
         self.devices = device_signals
         self.data = data
@@ -289,6 +289,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         self.data_Live = dataLive
         self.data_LiveLock = data_LiveLock
         self.tempdefinition = tempdefinition
+        self.thresholdsconf = thresholdsconf
 
     @ExceptionHandling
     def work(self):
@@ -323,7 +324,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}')
 
-    @ staticmethod
     def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
         """
             Method to be overriden by a child class
@@ -355,6 +355,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         data = self.data_Live if Live else self.data
         try:
             while not uptodate:
+                self.check_running()
                 with datalock:
                     dateentry = data[dataind1]['realtime']
                     if Live:
@@ -362,8 +363,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
                     uptodate = (dt.now() - dateentry).total_seconds() > 10
                     if not uptodate:
                         self.sig_assertion.emit(
-                            'Sequence: readData: data not sufficiently up to date.')
-                        self.check_running()
+                            f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
                         time.sleep(0.02)
         except KeyError as err:
             self.sig_assertion.emit(
@@ -403,7 +403,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         print(f'getField :: returning random value: {val}')
         return val
 
-    @staticmethod
     def getChamber(self):
         """Read the Chamber status
 
@@ -436,20 +435,45 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
+
         if direction == 0:
             # no information, temp should really stabilize
             stable = False
             while not stable:
+                self.check_running()
+                count = 0
+
                 temperature = self.getTemperature()
                 mean = self.readDataFromList(dataind1=self.tempdefinition[0],
-                                             dataind2=self.tempdefinition[1] + '_calc_ar_mean',
+                                             dataind2=self.tempdefinition[
+                                                 1] + '_calc_ar_mean',
                                              Live=True)
+                stderr_rel = self.readDataFromList(dataind1=self.tempdefinition[0],
+                                                   dataind2=self.tempdefinition[
+                                                       1] + '_calc_stderr_rel',
+                                                   Live=True)
                 slope_rel = self.readDataFromList(dataind1=self.tempdefinition[0],
-                                                  dataind2=self.tempdefinition[1] + '_calc_slope_rel',
+                                                  dataind2=self.tempdefinition[
+                                                      1] + '_calc_slope_rel',
                                                   Live=True)
                 slope_residuals = self.readDataFromList(dataind1=self.tempdefinition[0],
-                                                        dataind2=self.tempdefinition[1] + '_calc_slope_residuals',
+                                                        dataind2=self.tempdefinition[
+                                                            1] + '_calc_slope_residuals',
                                                         Live=True)
+
+                if abs(temperature - temp) < self.thresholdsconf['threshold_temp']:
+                    count += 1
+                if abs(mean - temp) < self.thresholdsconf['threshold_mean']:
+                    count += 1
+                if abs(stderr_rel) < self.thresholdsconf['threshold_stderr_rel']:
+                    count += 1
+                if abs(slope_rel) < self.thresholdsconf[' threshold_slope_rel']:
+                    count += 1
+                if abs(slope_residuals) < self.thresholdsconf['threshold_slope_residuals']:
+                    count += 1
+
+                if count >= 5:
+                    stable = True
 
         if ApproachMode == 'Sweep':
             if direction == 1:
@@ -520,7 +544,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """Shut down instruments to a safe standby-configuration"""
         print(f'Shutdown :: going into safe shutdown mode')
 
-    @staticmethod
     def chamber_purge(self):
         """purge the chamber
 
@@ -528,7 +551,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_purge :: purging chamber')
 
-    @staticmethod
     def chamber_vent(self):
         """vent the chamber
 
@@ -536,7 +558,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_vent :: venting chamber')
 
-    @staticmethod
     def chamber_seal(self):
         """seal the chamber
 
@@ -544,7 +565,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         print(f'chamber_seal :: sealing chamber')
 
-    @staticmethod
     def chamber_continuous(self, action):
         """pump or vent the chamber continuously"""
         if action == 'pumping':
@@ -552,7 +572,6 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         if action == 'venting':
             print(f'chamber_continuous :: venting continuously')
 
-    @staticmethod
     def chamber_high_vacuum(self):
         """pump the chamber to high vacuum
 

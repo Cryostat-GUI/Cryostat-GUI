@@ -2101,9 +2101,23 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def Sequence_run(self, sequence):
         """"""
-
+        thresholds = dict(
+            threshold_temp=200,
+            threshold_mean=200,
+            threshold_stderr_rel=10,
+            threshold_slope_rel=10,
+            threshold_slope_residuals=10)
+        tempdefinition = ['LakeShore350', 'Sensor_1_K']
         sThread = self.running_thread_control(
-            Sequence_Thread(), None, 'Sequence')
+            Sequence_Thread(sequence=sequence,
+                            data=self.data,
+                            dataLive=self.data_live,
+                            datalock=self.dataLock,
+                            data_Livelock=self.dataLock_live,
+                            device_signals=self.sigs,
+                            thresholdsconf=thresholds,
+                            tempdefinition=tempdefinition,
+                            ), None, 'Sequence')
 
     def Sequence_abort(self):
         pass
