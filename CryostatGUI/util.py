@@ -199,6 +199,7 @@ def ExceptionHandling(func):
                 ExceptionSignal(args[0], func, 'Attribute', e_attr)
 
             except NotImplementedError as e_implement:
+                e_implement.args = [str(e_implement)]
                 ExceptionSignal(args[0], func, 'NotImplemented', e_implement)
 
             except VisaIOError as e_visa:
@@ -328,8 +329,8 @@ class AbstractThread(QObject):
     timeouterror = VisaIOError(-1073807339)
     sig_Infodata = pyqtSignal(dict)
 
-    def __init__(self):
-        QThread.__init__(self)
+    def __init__(self, **kwargs):
+        QThread.__init__(self, **kwargs)
 
     @pyqtSlot()
     def work(self):

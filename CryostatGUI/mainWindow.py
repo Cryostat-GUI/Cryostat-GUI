@@ -2101,6 +2101,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def Sequence_run(self, sequence):
         """"""
+
         thresholds = dict(
             threshold_temp=200,
             threshold_mean=200,
@@ -2108,19 +2109,31 @@ class mainWindow(QtWidgets.QMainWindow):
             threshold_slope_rel=10,
             threshold_slope_residuals=10)
         tempdefinition = ['LakeShore350', 'Sensor_1_K']
-        sThread = self.running_thread_control(
-            Sequence_Thread(sequence=sequence,
-                            data=self.data,
-                            dataLive=self.data_live,
-                            datalock=self.dataLock,
-                            data_Livelock=self.dataLock_live,
-                            device_signals=self.sigs,
-                            thresholdsconf=thresholds,
-                            tempdefinition=tempdefinition,
-                            ), None, 'Sequence')
+        tempdefinition = ['ITC', 'Sensor_1_K']
+        try:
+            if 'Sequence' in self.threads:
+                self.stopping_thread('Sequence')
+            sThread = self.running_thread_control(
+                Sequence_Thread(sequence=sequence,
+                                data=self.data,
+                                dataLive=self.data_live,
+                                datalock=self.dataLock,
+                                data_LiveLock=self.dataLock_live,
+                                device_signals=self.sigs,
+                                thresholdsconf=thresholds,
+                                tempdefinition=tempdefinition,
+                                controlsLock=self.controls_Lock
+                                ), None, 'Sequence')
+
+            sThread.sig_message.connect(self.show_error_general)
+            sThread.sig_assertion.connect(self.show_error_general)
+
+        except AttributeError:
+            self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
 
     def Sequence_abort(self):
-        pass
+        self.threads['Sequence'][0].stop()
+        self.stopping_thread('Sequence')
 
 
 if __name__ == '__main__':

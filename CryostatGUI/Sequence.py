@@ -221,11 +221,12 @@ def measure_resistance_multichannel(threads,
 class Sequence_Functions(object):
     """docstring for Functions"""
 
-    # sig_message = pyqtSignal(str)
+    sig_message = pyqtSignal(str)
 
-    def __init__(self, device_signals, probe_Toffset):
+    def __init__(self, device_signals, **kwargs):
+        super().__init__(**kwargs)
         self.devices = device_signals
-        self.temp_VTI_offset = probe_Toffset
+        # self.temp_VTI_offset = probe_Toffset
 
     def setTemperature(self, temperature: float) -> None:
         """
@@ -274,15 +275,18 @@ class Sequence_Functions(object):
         print(f'message_to_user :: message = {message}')
 
 
-class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
+class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     """docstring for Sequence_Thread"""
 
     sig_aborted = pyqtSignal()
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence: list, data: list, datalock, dataLive: list, data_LiveLock, device_signals: dict, thresholdsconf: dict, tempdefinition: list, **kwargs):
+    def __init__(self, sequence: list, data: list, datalock, dataLive: list, data_LiveLock, device_signals: dict, thresholdsconf: dict, tempdefinition: list, controlsLock, **kwargs):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
+
+        self.__name__ = 'runSequence'
+
         self.devices = device_signals
         self.data = data
         self.dataLock = datalock
@@ -290,12 +294,14 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         self.data_LiveLock = data_LiveLock
         self.tempdefinition = tempdefinition
         self.thresholdsconf = thresholdsconf
+        self.controlsLock = controlsLock
 
     @ExceptionHandling
     def work(self):
         '''run the sequence, emit the finish-line'''
-
-        fin = self.running()
+        # print('I will now start to work!')
+        with self.controlsLock:
+            fin = self.running()
         self.sig_finished.emit(fin)
 
     def scan_T_programSweep(self, start: float, end: float, Nsteps: float, temperatures: list, SweepRate: float, SpacingCode: str = 'uniform'):
@@ -353,19 +359,27 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         uptodate = False
         datalock = self.data_LiveLock if Live else self.dataLock
         data = self.data_Live if Live else self.data
+        # print('reading from list')
         try:
             while not uptodate:
                 self.check_running()
                 with datalock:
+                    # print('locked onto the (Live=', Live, f'data: {dataind1}, {dataind2}')
                     dateentry = data[dataind1]['realtime']
                     if Live:
                         dateentry = dateentry[-1]
-                    uptodate = (dt.now() - dateentry).total_seconds() > 10
+                    # print('time: ', dateentry)
+                    # print('timediff: ', (dt.datetime.now() - dateentry).total_seconds())
+                    uptodate = (dt.datetime.now() -
+                                dateentry).total_seconds() < 10
+                    # print('uptodate:', uptodate)
                     if not uptodate:
+                        # print('not up to date')
                         self.sig_assertion.emit(
                             f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
                         time.sleep(0.02)
         except KeyError as err:
+            # print('KeyErr')
             self.sig_assertion.emit(
                 'Sequence: readData: no data: {}'.format(err.args[0]))
             self.check_running()
@@ -374,6 +388,7 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
                 dataind1=dataind1, dataind2=dataind2, Live=Live)
             gotit = True
 
+        # print('came through')
         if not gotit:
             temp = data[dataind1][dataind2]
         if Live:
@@ -435,11 +450,19 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
-
-        if direction == 0:
+        # print('checking for stable temp')
+        if direction == 0 or ApproachMode != 'Sweep':
             # no information, temp should really stabilize
+
+            if ApproachMode == 'Sweep':
+                self.sig_assertion.emit(
+                    'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+                self.stop()
+                self.check_running()
+
             stable = False
             while not stable:
+                # print('waiting for stabilized temp')
                 self.check_running()
                 count = 0
 
@@ -467,30 +490,28 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
                     count += 1
                 if abs(stderr_rel) < self.thresholdsconf['threshold_stderr_rel']:
                     count += 1
-                if abs(slope_rel) < self.thresholdsconf[' threshold_slope_rel']:
+                if abs(slope_rel) < self.thresholdsconf['threshold_slope_rel']:
                     count += 1
                 if abs(slope_residuals) < self.thresholdsconf['threshold_slope_residuals']:
                     count += 1
 
                 if count >= 5:
                     stable = True
+                else:
+                    time.sleep(1)
 
-        if ApproachMode == 'Sweep':
-            if direction == 1:
-                # temp should be rising, all temps above 'temp' are fine
-                while self.getTemperature() < temp:
-                    self.check_running()
-                    time.sleep(0.02)
-            if direction == -1:
-                # temp should be falling, all temps below 'temp' are fine
-                while self.getTemperature() > temp:
-                    self.check_running()
-                    time.sleep(0.02)
-            if direction == 0:
-                self.sig_assertion.emit(
-                    'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-                self.stop()
+        elif direction == 1:
+            # temp should be rising, all temps above 'temp' are fine
+            while self.getTemperature() < temp:
                 self.check_running()
+                # print(f'temp not yet above {temp}!')
+                time.sleep(1)
+        elif direction == -1:
+            # temp should be falling, all temps below 'temp' are fine
+            while self.getTemperature() > temp:
+                self.check_running()
+                # print(f'temp not yet below {temp}!')
+                time.sleep(1)
 
         print(f'checkstable_Temp :: Temp: {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
