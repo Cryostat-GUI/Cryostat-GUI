@@ -445,7 +445,7 @@ class live_Logger(AbstractLoopThread):
     """docstring for live_Logger"""
 
     def __init__(self, mainthread, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.mainthread = mainthread
         self.interval = 1
         self.length_list = 60
@@ -458,7 +458,7 @@ class live_Logger(AbstractLoopThread):
             # 'stddev': lambda time, value: np.nanstd(value),
             # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
             # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
-            # 'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
+            'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
             # 'test': lambda time, value: print(time),
             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),
             # 'slope_of_mean': lambda time, value: nppolyfit(time, value, deg=1)[1] * 60
