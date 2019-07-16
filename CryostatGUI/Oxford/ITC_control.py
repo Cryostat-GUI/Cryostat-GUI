@@ -356,14 +356,17 @@ class ITC_Updater(AbstractLoopThread):
         def settingtheTemp(values):
             instance = values['self']
             # stop sweep if it runs
-            start = instance.ITC.getValue(0) if values[
-                        'isSweepStartCurrent'] else values['start']
+            if 'start' in values:
+                starting = values['start']
+            else:
+                starting = instance.ITC.getValue(0)
+            start = instance.ITC.getValue(0) if values['isSweepStartCurrent'] else starting
             instance.checksweep(stop=True)
             autocontrol = instance.data_last['status']['auto_int']
             instance.ITC.setAutoControl(0)
             while instance.data_last['sweep']:
                 time.sleep(0.01)
-                print('sleeping')
+                # print('sleeping')
             else:
                 time.sleep(0.1)
             with instance.lock:
