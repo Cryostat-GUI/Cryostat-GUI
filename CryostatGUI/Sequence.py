@@ -347,15 +347,19 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1])
 
-    def readDataFromList(self, dataind1: str, dataind2: str) -> float:
+    def readDataFromList(self, dataind1: str, dataind2: str, Live: bool = False) -> float:
         """retrieve a datapoint from the central list"""
         gotit = False
         uptodate = False
+        datalock = self.data_LiveLock if Live else self.dataLock
+        data = self.data_Live if Live else self.data
         try:
             while not uptodate:
-                with self.datalock:
-                    uptodate = (
-                        dt.now() - self.data[dataind1][dataind2]).total_seconds() > 10
+                with datalock:
+                    dateentry = data[dataind1]['realtime']
+                    if Live:
+                        dateentry = dateentry[-1]
+                    uptodate = (dt.now() - dateentry).total_seconds() > 10
                     if not uptodate:
                         self.sig_assertion.emit(
                             'Sequence: readData: data not sufficiently up to date.')
@@ -365,12 +369,15 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
             self.sig_assertion.emit(
                 'Sequence: readData: no data: {}'.format(err.args[0]))
             self.check_running()
-            time.sleep(0.02)
-            temp = self.getTemperature()
+            time.sleep(1)
+            temp = self.readDataFromList(
+                dataind1=dataind1, dataind2=dataind2, Live=Live)
             gotit = True
 
         if not gotit:
-            temp = self.data[dataind1][dataind2]
+            temp = data[dataind1][dataind2]
+        if Live:
+            temp = temp[-1]
         self.sig_assertion.emit(f'Sequence: readData :: got a datum: {temp}')
         return temp
 
@@ -431,8 +438,19 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
         """
         if direction == 0:
             # no information, temp should really stabilize
-            pass
-            t = self.getTemperature()
+            stable = False
+            while not stable:
+                temperature = self.getTemperature()
+                mean = self.readDataFromList(dataind1=self.tempdefinition[0],
+                                             dataind2=self.tempdefinition[1] + '_calc_ar_mean',
+                                             Live=True)
+                slope_rel = self.readDataFromList(dataind1=self.tempdefinition[0],
+                                                  dataind2=self.tempdefinition[1] + '_calc_slope_rel',
+                                                  Live=True)
+                slope_residuals = self.readDataFromList(dataind1=self.tempdefinition[0],
+                                                        dataind2=self.tempdefinition[1] + '_calc_slope_residuals',
+                                                        Live=True)
+
         if ApproachMode == 'Sweep':
             if direction == 1:
                 # temp should be rising, all temps above 'temp' are fine
@@ -445,7 +463,8 @@ class Sequence_Thread(AbstractThread, mS.Sequence_runner, Sequence_Functions):
                     self.check_running()
                     time.sleep(0.02)
             if direction == 0:
-                self.sig_assertion.emit('Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+                self.sig_assertion.emit(
+                    'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
                 self.stop()
                 self.check_running()
 
