@@ -298,8 +298,8 @@ class mainWindow(QtWidgets.QMainWindow):
     def show_error_textBrowser(self, text):
         """ append error to Error window"""
         self.Errors_window.textErrors.append(
-            '{%Y-%m-%d  %H:%M:%S.%f} - {}'.format(dt.datetime.now(), text))
-        if not self.Errors_window.checkSilence.isChecked:
+            '{} - {}'.format(dt.datetime.now().strftime('%Y-%m-%d  %H:%M:%S.%f'), text))
+        if not self.Errors_window.checkSilence.isChecked():
             self.Errors_window.show()
             self.Errors_window.raise_()
         # self.Errors_window.activateWindow()
@@ -2113,6 +2113,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()
-    print('date: ', datetime.datetime.now(),
+    print('date: ', dt.datetime.now(),
           '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
