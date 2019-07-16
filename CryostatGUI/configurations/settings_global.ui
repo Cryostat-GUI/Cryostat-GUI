@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>531</width>
-    <height>676</height>
+    <width>639</width>
+    <height>702</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,8 +54,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>472</width>
-            <height>614</height>
+            <width>580</width>
+            <height>640</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
@@ -516,68 +516,64 @@ hardware Address</string>
          <property name="title">
           <string>Oxford ITC503</string>
          </property>
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>30</y>
-            <width>400</width>
-            <height>321</height>
-           </rect>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>400</width>
-            <height>500</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>PID</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_7">
-           <item row="3" column="0" colspan="3">
-            <widget class="QTextBrowser" name="textConfShow">
-             <property name="maximumSize">
-              <size>
-               <width>500</width>
-               <height>500</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>PID configuration file</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QCheckBox" name="checkUseAuto">
-             <property name="text">
-              <string>Use auto-configuration (from file)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="pushConfLoad">
-             <property name="text">
-              <string>Load</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="lineConfFile"/>
-           </item>
-           <item row="2" column="0" colspan="3">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Configuration loaded:</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="maximumSize">
+             <size>
+              <width>1000</width>
+              <height>500</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>PID</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_7">
+             <item row="3" column="0" colspan="3">
+              <widget class="QTextBrowser" name="textConfShow">
+               <property name="maximumSize">
+                <size>
+                 <width>3000</width>
+                 <height>500</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>PID configuration file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0" colspan="2">
+              <widget class="QCheckBox" name="checkUseAuto">
+               <property name="text">
+                <string>Use auto-configuration (from file)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QPushButton" name="pushConfLoad">
+               <property name="text">
+                <string>Load</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="lineConfFile"/>
+             </item>
+             <item row="2" column="0" colspan="3">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Configuration loaded:</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item row="0" column="0">
@@ -602,15 +598,98 @@ hardware Address</string>
           <item row="1" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Offset between VTI &amp; Sample</string>
+             <string>Offset between VTI &amp; Sample [K]</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1" colspan="2">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_15">
+           <widget class="QDoubleSpinBox" name="spin_Sequence_sampleOffsetLinear_K">
             <property name="maximum">
              <double>300.000000000000000</double>
             </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QGroupBox" name="groupBox_4">
+            <property name="title">
+             <string>stabilizing temperatures</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_13">
+               <property name="text">
+                <string>Temp mean threshold [K]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string>Temp threshold [K]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_14">
+               <property name="text">
+                <string>slope threshold [K/min]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>slope residuals threshold</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_Tmean_K">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>300.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_slope_Kpmin">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="maximum">
+                <double>100.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_slopeResiduals">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="maximum">
+                <double>100.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_T_K">
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>300.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
