@@ -55,7 +55,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         Sensor_4_Ohm=None,
         OutputMode=None)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
@@ -64,7 +64,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         LS = reload(LakeShore.LakeShore350)
         try:
             self.LakeShore350 = LS.LakeShore350(
-                InstrumentAddress=InstrumentAddress)
+                InstrumentAddress=InstrumentAddress, comLock=comLock)
         except VisaIOError as e:
             self.sig_assertion.emit('running in control: {}'.format(e))
             return
