@@ -30,12 +30,13 @@ class SR830_Updater(AbstractLoopThread):
 
     """
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
 
         self.lockin = SR830(InstrumentAddress)
         self.__name__ = 'SR830_Updater ' + InstrumentAddress
+        self._comLock = comLock
 
         # self.interval = 0.05
         self.ShuntResistance_Ohm = 0
@@ -47,13 +48,14 @@ class SR830_Updater(AbstractLoopThread):
         """
 
         data = dict()
-        data['Frequency_Hz'] = self.lockin.frequency
+        with self._comLock:
+            data['Frequency_Hz'] = self.lockin.frequency
 
-        data['Voltage_V'] = self.lockin.sine_voltage
-        data['X_V'] = self.lockin.x
-        data['Y_V'] = self.lockin.y
-        data['R_V'] = self.lockin.magnitude
-        data['Theta_Deg'] = self.lockin.theta
+            data['Voltage_V'] = self.lockin.sine_voltage
+            data['X_V'] = self.lockin.x
+            data['Y_V'] = self.lockin.y
+            data['R_V'] = self.lockin.magnitude
+            data['Theta_Deg'] = self.lockin.theta
 
         # in mili ampers, 50 ohm is the internal resistance of the lockin
         SampleCurrent_A = data['Voltage_V'] / \
@@ -70,13 +72,15 @@ class SR830_Updater(AbstractLoopThread):
     @ExceptionHandling
     def setFrequency(self):
         """set a frequency"""
-        self.lockin.frequency = self.set_Frequency_Hz
+        with self._comLock:
+            self.lockin.frequency = self.set_Frequency_Hz
 
     @pyqtSlot()
     @ExceptionHandling
     def setVoltage(self):
         """set a voltage"""
-        self.lockin.sine_voltage = self.set_Voltage_V
+        with self._comLock:
+            self.lockin.sine_voltage = self.set_Voltage_V
 
     @pyqtSlot()
     def gettoset_Frequency(self, value):

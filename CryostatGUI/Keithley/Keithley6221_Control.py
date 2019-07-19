@@ -37,10 +37,10 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         #        Stop_Current = None
     )
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
 
-        self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress)
+        self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off

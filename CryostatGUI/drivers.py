@@ -145,8 +145,9 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
 class AbstractGPIBDeviceDriver(AbstractVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, comLock, **kwargs):
         super().__init__(**kwargs)
+        self._comLock = comLock
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device

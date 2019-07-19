@@ -28,14 +28,14 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         global Keithley
         K_2182 = reload(Keithley.Keithley2182)
 
         self.Keithley2182 = K_2182.Keithley2182(
-            InstrumentAddress=InstrumentAddress)
+            InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
 
     # @control_checks

@@ -129,6 +129,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.dataLock = Lock()
         self.dataLock_live = Lock()
+        self.GPIB_comLock = Lock()
         self.app = app
         with open(errorfile, 'a') as f:
             f.write('{} - {}\n'.format(convert_time(time.time()), 'STARTUP PROGRAM'))
@@ -1245,7 +1246,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(LakeShore350_Updater(
-                    InstrumentAddress=LakeShore_InstrumentAddress), 'LakeShore350', 'control_LakeShore350')
+                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -1548,7 +1549,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 worker = self.running_thread_control(
-                    clas(InstrumentAddress=instradress), dataname, threadname)
+                    clas(InstrumentAddress=instradress, comLock=self.GPIB_comLock), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
                     lambda data: self.store_data_Keithley(data, dataname, **kwargs))
@@ -1736,7 +1737,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(SR830_Updater(
-                    InstrumentAddress=SR830_InstrumentAddress), 'SR830', 'control_SR830')
+                    InstrumentAddress=SR830_InstrumentAddress, comLock=self.GPIB_comLock), 'SR830', 'control_SR830')
 
                 getInfodata.sig_Infodata.connect(self.store_data_SR830)
                 # getInfodata.sig_visaerror.connect(self.printing)
