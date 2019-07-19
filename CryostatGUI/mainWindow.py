@@ -184,6 +184,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.controls_Lock = Lock()
 
         self.initialize_window_Sequences()
+        self.initialize_mdiArea()
 
         self.softwarecontrol_check()
         self.softwarecontrol_timer = QTimer()
@@ -374,6 +375,132 @@ class mainWindow(QtWidgets.QMainWindow):
             self.show_error_general(f'mainthread: settings PIDFile: OSError {e}')
         except TypeError as e:
             self.show_error_general(f'mainthread: settings PIDFile: missing Filename! (TypeError: {e})')
+
+    # ------ Sequences -----------
+
+    def initialize_window_Sequences(self):
+        """initialize Sequence running functionalitys"""
+        pass
+        self.SequenceRunningLock = Lock()
+        self.timerSequenceWindowsActive = QTimer()
+        self.timerSequenceWindowsActive.timeout.connect(
+            self.Sequence_SetActiveSequenceName)
+        self.timerSequenceWindowsActive.start(100)
+
+    def initialize_mdiArea(self):
+        """initialise all commands for the mdiArea and subwindows"""
+        self.actionNew_Sequence.triggered.connect(self.Sequence_newWindow)
+        self.mdiArea_windows = dict()
+        self.mdiArea_SequenceCount = 0
+        self.pushSequenceRun.clicked.connect(self.Sequence_running)
+        self.pushSequenceAbort.clicked.connect(self.Sequence_abort)
+
+    def Sequence_newWindow(self):
+        SB = mS.Sequence_builder()
+        self.mdiArea_SequenceCount += 1
+        name = f'Sequence_subwindow_{self.mdiArea_SequenceCount}'
+        self.mdiArea_newWindow(SB, name)
+
+    def Sequence_SetActiveSequenceName(self):
+        try:
+            SB = self.mdiArea.activeSubWindow().widget()
+            file = SB.sequence_file
+            self.labelSequenceSelected.setText(os.path.basename(file))
+        except AttributeError:
+            pass
+
+    @pyqtSlot()
+    def mdiArea_newWindow(self, window, name):
+
+        # window = mS.Sequence_builder()
+
+        sub = QtWidgets.QMdiSubWindow()
+
+        sub.setWidget(window)
+        # sub.setWindowTitle("subwindow"+str(MainWindow.count))
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
+        self.mdiArea_windows[name] = [window, sub]
+
+        window.sig_closing.connect(lambda: self.mdiArea_removeWindow(name))
+
+    def mdiArea_removeWindow(self, name):
+        del self.mdiArea_windows[name]
+        if 'Sequence' in name:
+            self.mdiArea_SequenceCount -= 1
+
+    @pyqtSlot()
+    def Sequence_running(self) -> None:
+        """acquire Lock for running sequences,
+        get the data from the active window
+        start the sequence,
+        change pushButton parameters
+        """
+        self.SequenceRunningLock.acquire()
+        SB = self.mdiArea.activeSubWindow().widget()
+        self.pushSequenceAbort.setEnabled(True)
+        self.pushSequenceRun.setEnabled(False)
+        self.labelSequenceStatus.setText('Running: \n' + os.path.basename(SB.sequence_file))
+        if 'control_Logging_live' in self.threads:
+            self.stopping_thread('control_Logging_live')
+        self.run_logger_live(True)
+        
+        self.Sequence_run(SB.data)
+
+    @pyqtSlot(str)
+    def Sequence_finished(self, exitcode: str) -> None:
+        """release Lock for running sequences, change pushButton parameters,
+        report exitcode"""
+        self.SequenceRunningLock.release()
+        self.pushSequenceAbort.setEnabled(False)
+        self.pushSequenceRun.setEnabled(True)
+        self.labelSequenceStatus.setText('Idle')
+        self.show_error_general('Sequence finished with exitcode: ' + exitcode)
+
+    def Sequence_run(self, sequence: list) -> None:
+        """"""
+
+        thresholds = dict(
+            threshold_temp=200,
+            threshold_mean=200,
+            threshold_stderr_rel=10,
+            threshold_slope_rel=10,
+            threshold_slope_residuals=10)
+        tempdefinition = ['LakeShore350', 'Sensor_1_K']
+        tempdefinition = ['ITC', 'Sensor_1_K']
+        try:
+            if 'Sequence' in self.threads:
+                self.stopping_thread('Sequence')
+            sThread = self.running_thread_control(
+                Sequence_Thread(sequence=sequence,
+                                data=self.data,
+                                dataLive=self.data_live,
+                                datalock=self.dataLock,
+                                data_LiveLock=self.dataLock_live,
+                                device_signals=self.sigs,
+                                thresholdsconf=thresholds,
+                                tempdefinition=tempdefinition,
+                                controlsLock=self.controls_Lock
+                                ), None, 'Sequence')
+
+            sThread.sig_message.connect(self.show_error_general)
+            sThread.sig_assertion.connect(self.show_error_general)
+            sThread.sig_finished.connect(self.Sequence_finished)
+
+        except AttributeError:
+            self.Sequence_finished('START LIVE LOGGING FOR SEQUENCE!')
+            # self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
+            # self.pushSequenceAbort.setEnabled(False)
+            # self.pushSequenceRun.setEnabled(True)
+            # self.SequenceRunningLock.release()
+
+    def Sequence_abort(self):
+        try:
+            self.threads['Sequence'][0].stop()
+            self.stopping_thread('Sequence')
+        except KeyError:
+            pass
+            self.show_error_general('Sequence: no sequence running!')
 
     # ------- plotting
 
@@ -1750,73 +1877,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.show()
         else:
             self.window_OneShot.close()
-
-    # # ------ Sequences -----------
-
-    def initialize_window_Sequences(self):
-        """initialize Sequence running functionalitys"""
-        self.window_SequenceEditor = mS.Sequence_builder()
-        self.window_SequenceEditor.sig_assertion.connect(
-            self.show_error_general)
-        self.window_SequenceEditor.sig_readSequence.connect(
-            self.Sequences_enableRunning)
-        self.window_SequenceEditor.sig_clearedSequence.connect(
-            self.Sequences_disableRunning)
-
-        self.action_show_Measuring_Sequence.triggered.connect(
-            lambda: self.show_window(self.window_SequenceEditor))
-
-        self.window_SequenceEditor.sig_runSequence.connect(
-            self.Sequence_run)  # list is handed over
-        self.window_SequenceEditor.sig_abortSequence.connect(
-            self.Sequence_abort)
-
-    def Sequences_enableRunning(self):
-        """reaction to signal sig_readSequence from the Sequence_builder"""
-        self.window_SequenceEditor.Button_RunSequence.setEnabled(True)
-        self.window_SequenceEditor.Button_AbortSequence.setEnabled(True)
-
-    def Sequences_disableRunning(self):
-        """reaction to signal sig_clearedSequence from the Sequence_builder"""
-        self.window_SequenceEditor.Button_RunSequence.setEnabled(False)
-        self.window_SequenceEditor.Button_AbortSequence.setEnabled(False)
-
-    def Sequence_run(self, sequence):
-        """"""
-
-        thresholds = dict(
-            threshold_temp=200,
-            threshold_mean=200,
-            threshold_stderr_rel=10,
-            threshold_slope_rel=10,
-            threshold_slope_residuals=10)
-        tempdefinition = ['LakeShore350', 'Sensor_1_K']
-        tempdefinition = ['ITC', 'Sensor_1_K']
-        try:
-            if 'Sequence' in self.threads:
-                self.stopping_thread('Sequence')
-            sThread = self.running_thread_control(
-                Sequence_Thread(sequence=sequence,
-                                data=self.data,
-                                dataLive=self.data_live,
-                                datalock=self.dataLock,
-                                data_LiveLock=self.dataLock_live,
-                                device_signals=self.sigs,
-                                thresholdsconf=thresholds,
-                                tempdefinition=tempdefinition,
-                                controlsLock=self.controls_Lock
-                                ), None, 'Sequence')
-
-            sThread.sig_message.connect(self.show_error_general)
-            sThread.sig_assertion.connect(self.show_error_general)
-
-        except AttributeError:
-            self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
-
-    def Sequence_abort(self):
-        self.threads['Sequence'][0].stop()
-        self.stopping_thread('Sequence')
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
