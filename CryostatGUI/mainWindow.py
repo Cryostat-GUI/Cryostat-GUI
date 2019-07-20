@@ -48,8 +48,11 @@ import numpy as np
 from copy import deepcopy
 from importlib import reload
 import sqlite3
+import logging
+from logging.handlers import RotatingFileHandler
 
 from pyvisa.errors import VisaIOError
+import visa
 
 import measureSequences as mS
 
@@ -89,6 +92,15 @@ errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 
 directory = os.path.dirname(errorfile)
 os.makedirs(directory, exist_ok=True)
+
+logger1 = logging.getLogger('pyvisa')
+fh = RotatingFileHandler('Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.log', maxBytes=int(5e7), backupCount=int(1e5))
+fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger1.addHandler(fh)
+visa.log_to_screen()
 
 
 class mainWindow(QtWidgets.QMainWindow):
