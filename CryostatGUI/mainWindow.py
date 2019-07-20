@@ -83,7 +83,7 @@ Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
-SR830_InstrumentAddress = 'GPIB::9'
+SR830_InstrumentAddress = 'GPIB::9::INSTR'
 
 errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 
@@ -1730,7 +1730,7 @@ class mainWindow(QtWidgets.QMainWindow):
         """start/stop the LockIn SR830 control thread"""
         global LockIn
 
-        print(LockIn.__doc__)
+        # print(LockIn.__doc__)
         O_LockIn = reload(LockIn.LockIn_SR830_control)
         SR830_Updater = O_LockIn.SR830_Updater
 

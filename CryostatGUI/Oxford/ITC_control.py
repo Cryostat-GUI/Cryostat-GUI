@@ -120,7 +120,6 @@ class ITC_Updater(AbstractLoopThread):
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
                 self.data_last[key] = value
-                data['autocontrol'] = int(self.read_status()['auto_int'])
 
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
@@ -135,11 +134,13 @@ class ITC_Updater(AbstractLoopThread):
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
+
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
         self.data_last['status'] = self.read_status()
         self.data_last['sweep'] = self.checksweep(stop=False)
         data['realtime'] = datetime.now()
+        data['autocontrol'] = int(self.data_last['status']['auto_int'])
 
         if self.useAutoPID:
             self.set_PID(temperature=data['Sensor_1_K'])
@@ -360,7 +361,8 @@ class ITC_Updater(AbstractLoopThread):
                 starting = values['start']
             else:
                 starting = instance.ITC.getValue(0)
-            start = instance.ITC.getValue(0) if values['isSweepStartCurrent'] else starting
+            start = instance.ITC.getValue(
+                0) if values['isSweepStartCurrent'] else starting
             instance.checksweep(stop=True)
             autocontrol = instance.data_last['status']['auto_int']
             instance.ITC.setAutoControl(0)
