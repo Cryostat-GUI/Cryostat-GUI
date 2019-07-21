@@ -67,7 +67,7 @@ from LakeShore.LakeShore350_Control import LakeShore350_Updater
 from Keithley.Keithley2182_Control import Keithley2182_Updater
 from Keithley.Keithley6221_Control import Keithley6221_Updater
 
-from  LockIn.LockIn_SR830_control import SR830_Updater
+from LockIn.LockIn_SR830_control import SR830_Updater
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
@@ -155,7 +155,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
         QTimer.singleShot(0, self.load_settings)
 
-
         self.sig_assertion.connect(self.show_error_general)
 
     def closeEvent(self, event):
@@ -211,9 +210,11 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer.start(100)
 
         # start logging only after GUI initialisations
-        QTimer.singleShot(1e2, self.setup_logging)  
+        QTimer.singleShot(1e2, self.setup_logging)
 
     def setup_logging(self):
+        """set up the logger, handler, for now in DEBUG
+        TODO: connect logging levels with GUI preferences"""
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
         self.Log_DBhandler = SQLiteHandler(db='Errors\\dblog.db')

@@ -38,7 +38,6 @@ from abc import abstractproperty
 identity = lambda x: x
 
 from datetime import datetime as dt
-import logging
 
 
 class SQLBase(object):
@@ -86,7 +85,7 @@ class SQLBase(object):
                             "unique_lock ON lock (locked);")
                         conn.cursor().execute("INSERT INTO lock VALUES (1)")
                         break
-                    except conn.OperationalError as ex:
+                    except conn.OperationalError:
                         pass
                     # except sqlite3.IntegrityError:
                         # pass
