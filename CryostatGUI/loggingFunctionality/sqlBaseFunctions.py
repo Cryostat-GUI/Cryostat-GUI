@@ -88,8 +88,8 @@ class SQLBase(object):
                         break
                     except conn.OperationalError as ex:
                         pass
-                    except sqlite3.IntegrityError:
-                        pass
+                    # except sqlite3.IntegrityError:
+                        # pass
                 yield conn
             finally:
                 conn.cursor().execute("DELETE FROM lock")
@@ -100,11 +100,11 @@ class SQLBase(object):
             conn.execute(cls.sql_schema)
 
     def insert(self, db=None):
-        try:
-            with self._conn_db(db) as conn:
-                conn.execute(self.sql_insert, self.as_row)
-        except sqlite3.IntegrityError:
-            logging.debug('there went something wrong with this: {}'.format(self.as_row))
+        # try:
+        with self._conn_db(db) as conn:
+            conn.execute(self.sql_insert, self.as_row)
+        # except sqlite3.IntegrityError:
+            # logging.debug('there went something wrong with this: {}'.format(self.as_row))
 
 
 def _SQLiteRecord_fields():

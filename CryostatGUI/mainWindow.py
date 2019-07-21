@@ -49,8 +49,8 @@ from copy import deepcopy
 # from importlib import reload
 import sqlite3
 import logging
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG)
 
 # from logging.handlers import RotatingFileHandler
 
@@ -105,21 +105,7 @@ errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 directory = os.path.dirname(errorfile)
 os.makedirs(directory, exist_ok=True)
 
-# logger1 = logging.getLogger('pyvisa')
-# fh = RotatingFileHandler('Errors\\' + dt.datetime.now().strftime(
-#     '%Y%m%d') + '.log', maxBytes=int(5e7), backupCount=int(1e5))
-# fh.setLevel(logging.DEBUG)
-# formatter = logging.Formatter(
-#     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# fh.setFormatter(formatter)
-# logger1.addHandler(fh)
-# visa.log_to_screen()
-
-logger_visa = logging.getLogger('pyvisa')
-handler = SQLiteHandler(db='Errors\\dblog.db')
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
-logger_visa.addHandler(handler)
+# logger.addHandler(handler)
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -169,6 +155,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
         QTimer.singleShot(0, self.load_settings)
 
+
         self.sig_assertion.connect(self.show_error_general)
 
     def closeEvent(self, event):
@@ -188,8 +175,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.WARNING)
+
         self.window_SystemsOnline = Window_ui(
             ui_file='.\\configurations\\Systems_online.ui')
         self.actionSystems_Online.triggered.connect(
@@ -223,10 +209,16 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
-        self.logger.setLevel(logging.DEBUG)
-        # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
 
-        # self.logger = logging.getLogger('mainCryostat')
+        # start logging only after GUI initialisations
+        QTimer.singleShot(1e2, self.setup_logging)  
+
+    def setup_logging(self):
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.DEBUG)
+        self.Log_DBhandler = SQLiteHandler(db='Errors\\dblog.db')
+        self.Log_DBhandler.setLevel(logging.DEBUG)
+        self.logger.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
@@ -1270,7 +1262,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(LakeShore350_Updater(
-                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock, log=logger), 'LakeShore350', 'control_LakeShore350')
+                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)

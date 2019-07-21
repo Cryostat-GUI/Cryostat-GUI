@@ -55,7 +55,7 @@ from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
-# logger = logging.getLogger('utility')
+logger = logging.getLogger(__name__)
 
 
 def convert_time_date(ts):
@@ -194,31 +194,31 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
 
         except NotImplementedError as e:
             # thread.logger.exception(s)
-            logging.exception(s)
+            logger.exception(s)
             e.args = [str(e)]
             ExceptionSignal(args[0], func, 'NotImplemented', e)
 
@@ -229,12 +229,12 @@ def ExceptionHandling(func):
             else:
                 s = ExceptionSignal(args[0], func, 'VisaIO', e)
                 # thread.logger.exception(s)
-                logging.exception(s)
+                logger.exception(s)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
             # thread.logger.exception(e)
-            logging.exception(e)
+            logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
