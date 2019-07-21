@@ -1,12 +1,13 @@
 
 # from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 # from PyQt5.uic import loadUi
 
 from Keithley.Keithley6221 import Keithley6221
-from pyvisa.errors import VisaIOError
+# from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
+import logging
 
 # from util import AbstractThread
 from util import AbstractEventhandlingThread
@@ -37,8 +38,9 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         #        Stop_Current = None
     )
 
-    def __init__(self, comLock, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
+        self.logger = logging.getLogger(__name__)
 
         self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress

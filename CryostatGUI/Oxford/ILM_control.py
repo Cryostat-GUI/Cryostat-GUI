@@ -18,7 +18,9 @@ from datetime import datetime
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
-import Oxford
+# import Oxford
+import logging
+from Oxford.ilm211 import ilm211
 
 
 class ILM_Updater(AbstractLoopThread):
@@ -45,10 +47,11 @@ class ILM_Updater(AbstractLoopThread):
     # channel_2_wire_current=7,
     # needle_valve_position=10)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        global Oxford
-        ilm211 = reload(Oxford.ilm211).ilm211
+        # global Oxford
+        # ilm211 = reload(Oxford.ilm211).ilm211
+        self.logger = log if log else logging.getLogger(__name__)
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'ILM_Updater ' + InstrumentAddress
         self.control_state = 3

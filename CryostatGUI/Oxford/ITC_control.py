@@ -9,15 +9,17 @@ Author(s):
 """
 from PyQt5.QtCore import pyqtSlot
 
-import Oxford
+# import Oxford
+from Oxford.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
-from importlib import reload
+# from importlib import reload
 import numpy as np
 import time
 from datetime import datetime
 import threading
+import logging
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -52,10 +54,11 @@ class ITC_Updater(AbstractLoopThread):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, mainthreadSignals, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthreadSignals, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        global Oxford
-        itc503 = reload(Oxford.itc503).itc503
+        # global Oxford
+        # itc503 = reload(Oxford.itc503).itc503
+        self.logger = log if log else logging.getLogger(__name__)
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'ITC_Updater ' + InstrumentAddress

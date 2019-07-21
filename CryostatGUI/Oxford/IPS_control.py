@@ -15,7 +15,8 @@ from PyQt5.QtCore import pyqtSlot
 
 from pyvisa.errors import VisaIOError
 
-import Oxford
+from Oxford.ips120 import ips120
+import logging
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -113,11 +114,12 @@ class IPS_Updater(AbstractLoopThread):
                                  '2': 'reverse (verification)',
                                  '4': 'output clamped (requested)'})
 
-    def __init__(self, InstrumentAddress):
-        super().__init__()
+    def __init__(self, InstrumentAddress, log=None, **kwargs):
+        super().__init__(**kwargs)
+        self.logger = log if log else logging.getLogger(__name__)
         # QThread.__init__(self)
-        global Oxford
-        ips120 = reload(Oxford.ips120).ips120
+        # global Oxford
+        # ips120 = reload(Oxford.ips120).ips120
         self.PS = ips120(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'IPS_Updater ' + InstrumentAddress
         self.field_setpoint = 0
