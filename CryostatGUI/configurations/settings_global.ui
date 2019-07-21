@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>657</width>
+    <width>664</width>
     <height>734</height>
    </rect>
   </property>
@@ -20,12 +20,106 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>General</string>
       </attribute>
+      <widget class="QGroupBox" name="groupBox_5">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>40</y>
+         <width>491</width>
+         <height>191</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>System Logging Configuration</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>280</y>
+         <width>611</width>
+         <height>111</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Backend Logging Configuration</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_11">
+        <item row="2" column="2">
+         <widget class="QRadioButton" name="radioLevelError">
+          <property name="text">
+           <string>Error</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QRadioButton" name="radioLevelWarning">
+          <property name="text">
+           <string>Warning</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_22">
+          <property name="text">
+           <string>Database Logfile Location:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="5">
+         <widget class="QRadioButton" name="radioLevelDebug">
+          <property name="text">
+           <string>Debug</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="4">
+         <widget class="QRadioButton" name="radioLevelInfo">
+          <property name="text">
+           <string>Info</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QRadioButton" name="radioLevelCritical">
+          <property name="text">
+           <string>Critical</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_23">
+          <property name="text">
+           <string>Logging Level:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_14">
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="5">
+         <widget class="QPushButton" name="pushButton_15">
+          <property name="text">
+           <string>Update</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="4">
+         <widget class="QLineEdit" name="lineFilelocation"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -54,7 +148,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>598</width>
+            <width>605</width>
             <height>672</height>
            </rect>
           </property>
@@ -545,7 +639,7 @@ hardware Address</string>
                <property name="title">
                 <string>stabilizing temperatures: Thresholds</string>
                </property>
-               <layout class="QGridLayout" name="gridLayout_8" rowstretch="0,0,0,0,0,0,0,0,0,0" columnstretch="0,0,1,0,1">
+               <layout class="QGridLayout" name="gridLayout_8" rowstretch="0,0,0,0,0,0,0,0" columnstretch="0,0,1,0,1">
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_12">
                   <property name="text">

@@ -75,13 +75,13 @@ def change_to_correct_types(tablename, dictname):
     sql = []
     if not dictname:
         raise AssertionError('Logger: dict does not yet exist')
-    sql.append('''PRAGMA foreign_keys = 0''')
+    sql.append('''PRAGMA foreign_keys = 0;''')
     sql.append(
-        '''CREATE TABLE python_temp_{table} AS SELECT * FROM {table}'''.format(table=tablename))
-    sql.append('''DROP TABLE {table}'''.format(table=tablename))
+        '''CREATE TABLE python_temp_{table} AS SELECT * FROM {table};'''.format(table=tablename))
+    sql.append('''DROP TABLE {table};'''.format(table=tablename))
     # sql.append("CREATE TABLE IF NOT EXISTS {} (id INTEGER PRIMARY KEY)".format(tablename))
     sql.append('''CREATE TABLE IF NOT EXISTS {} '''.format(
-        tablename) + sql_buildDictTableString(dictname))
+        tablename) + sql_buildDictTableString(dictname) + ''';''')
     # for key in dictname.keys():
     #     sql.append("ALTER TABLE  {} ADD COLUMN {} {}".format(tablename,key,typeof(dictname[key])))
 
@@ -91,10 +91,10 @@ def change_to_correct_types(tablename, dictname):
     sql_temp += ''') SELECT id'''
     for key in dictname.keys():
         sql_temp += ''',{}'''.format(key)
-    sql_temp += ''' FROM python_temp_{table}'''.format(table=tablename)
+    sql_temp += ''' FROM python_temp_{table};'''.format(table=tablename)
     sql.append(sql_temp)
-    sql.append('''DROP TABLE python_temp_{table}'''.format(table=tablename))
-    sql.append('''PRAGMA foreign_keys = 1''')
+    sql.append('''DROP TABLE python_temp_{table};'''.format(table=tablename))
+    sql.append('''PRAGMA foreign_keys = 1;''')
     return sql
 
 

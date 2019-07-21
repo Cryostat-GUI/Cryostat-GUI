@@ -46,31 +46,46 @@ import datetime as dt
 from threading import Lock
 import numpy as np
 from copy import deepcopy
-from importlib import reload
+# from importlib import reload
 import sqlite3
+import logging
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG)
+
+# from logging.handlers import RotatingFileHandler
 
 from pyvisa.errors import VisaIOError
+import visa
 
 import measureSequences as mS
 
-import Oxford
-import LakeShore
-import Keithley
-import LockIn
+# import Oxford
+from Oxford.ITC_control import ITC_Updater
+from Oxford.ILM_control import ILM_Updater
+from Oxford.IPS_control import IPS_Updater
+from LakeShore.LakeShore350_Control import LakeShore350_Updater
+from Keithley.Keithley2182_Control import Keithley2182_Updater
+from Keithley.Keithley6221_Control import Keithley6221_Updater
+
+from LockIn.LockIn_SR830_control import SR830_Updater
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
 from Sequence import Sequence_Thread
 
-from logger import main_Logger, live_Logger, measurement_Logger
-from logger import Logger_configuration
+from loggingFunctionality.logger import main_Logger
+from loggingFunctionality.logger import live_Logger
+from loggingFunctionality.logger import measurement_Logger
+from loggingFunctionality.logger import Logger_configuration
+
+from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
 from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
 from util import Workerclass
 from util import running_thread
-from util import noKeyError
+# from util import noKeyError
 from util import Window_plotting_specification
 from util import ExceptionHandling
 
@@ -83,12 +98,14 @@ Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
 Keithley6221_1_InstrumentAddress = 'GPIB0::5::INSTR'
 Keithley6221_2_InstrumentAddress = 'GPIB0::6::INSTR'
-SR830_InstrumentAddress = 'GPIB::9'
+SR830_InstrumentAddress = 'GPIB::9::INSTR'
 
 errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 
 directory = os.path.dirname(errorfile)
 os.makedirs(directory, exist_ok=True)
+
+# logger.addHandler(handler)
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -157,6 +174,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
+
         self.window_SystemsOnline = Window_ui(
             ui_file='.\\configurations\\Systems_online.ui')
         self.actionSystems_Online.triggered.connect(
@@ -191,7 +209,18 @@ class mainWindow(QtWidgets.QMainWindow):
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
-        # self.sig_softwarecontrols.connect(lambda value: self.softwarecontrol_toggle(value['controls'], value['lock'], value['bools'] ))
+
+        # start logging only after GUI initialisations
+        QTimer.singleShot(1e2, self.setup_logging)
+
+    def setup_logging(self):
+        """set up the logger, handler, for now in DEBUG
+        TODO: connect logging levels with GUI preferences"""
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.DEBUG)
+        self.Log_DBhandler = SQLiteHandler(db='Errors\\dblog.db')
+        self.Log_DBhandler.setLevel(logging.DEBUG)
+        self.logger.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
@@ -610,15 +639,12 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ITC(self, boolean):
         """method to start/stop the thread which controls the Oxford ITC"""
-        global Oxford
-        O_ITC = reload(Oxford.ITC_control)
-        ITC_Updater = O_ITC.ITC_Updater
 
         if boolean:
             try:
 
                 getInfodata = self.running_thread_control(ITC_Updater(
-                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC']), 'ITC', 'control_ITC')
+                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC'], log=self.logger), 'ITC', 'control_ITC')
 
                 self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
                 with getInfodata.lock:
@@ -842,13 +868,10 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_ILM(self, boolean):
         """start/stop the Level Meter thread"""
-        global Oxford
-        O_ILM = reload(Oxford.ILM_control)
-        ILM_Updater = O_ILM.ILM_Updater
         if boolean:
             try:
                 getInfodata = self.running_thread_control(ILM_Updater(
-                    InstrumentAddress=ILM_Instrumentadress), 'ILM', 'control_ILM')
+                    InstrumentAddress=ILM_Instrumentadress, log=self.logger), 'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -933,14 +956,11 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_IPS(self, boolean):
         """start/stop the Powersupply thread"""
-        global Oxford
-        O_IPS = reload(Oxford.IPS_control)
-        IPS_Updater = O_IPS.IPS_Updater
 
         if boolean:
             try:
                 getInfodata = self.running_thread_control(IPS_Updater(
-                    InstrumentAddress=IPS_Instrumentadress), 'IPS', 'control_IPS')
+                    InstrumentAddress=IPS_Instrumentadress, log=self.logger), 'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -1048,14 +1068,11 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_LakeShore350(self, boolean):
         """start/stop the LakeShore350 thread"""
-        global LakeShore
-        LC = reload(LakeShore.LakeShore350_Control)
-        LakeShore350_Updater = LC.LakeShore350_Updater
 
         if boolean:
             try:
                 getInfodata = self.running_thread_control(LakeShore350_Updater(
-                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock), 'LakeShore350', 'control_LakeShore350')
+                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -1127,6 +1144,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                     False)
                 self.show_error_general('running: {}'.format(e))
+                self.logger.exception('could not start LakeShore350')
 
         else:
             self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
@@ -1271,7 +1289,7 @@ class mainWindow(QtWidgets.QMainWindow):
             lambda: self.action_show_Keithley.setChecked(False))
 
         # -------- Nanovoltmeters
-        confdict2182_1 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+        confdict2182_1 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_1_InstrumentAddress,
                               dataname='Keithley2182_1',
                               threadname='control_Keithley2182_1',
@@ -1284,7 +1302,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_1,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_1)
 
-        confdict2182_2 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+        confdict2182_2 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_2_InstrumentAddress,
                               dataname='Keithley2182_2',
                               threadname='control_Keithley2182_2',
@@ -1297,7 +1315,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Display=self.Keithley_window.checkBox_Display_2,
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_2)
 
-        confdict2182_3 = dict(clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+        confdict2182_3 = dict(clas=Keithley2182_Updater,
                               instradress=Keithley2182_3_InstrumentAddress,
                               dataname='Keithley2182_3',
                               threadname='control_Keithley2182_3',
@@ -1311,7 +1329,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_CBox_Autorange=self.Keithley_window.checkBox_Autorange_3)
 
         # -------- Current Sources
-        confdict6221_1 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
+        confdict6221_1 = dict(clas=Keithley6221_Updater,
                               instradress=Keithley6221_1_InstrumentAddress,
                               dataname='Keithley6221_1',
                               threadname='control_Keithley6221_1',
@@ -1319,7 +1337,7 @@ class mainWindow(QtWidgets.QMainWindow):
                               GUI_push=self.Keithley_window.pushToggleOut_1,
                               GUI_menu_action=self.window_SystemsOnline.checkaction_run_Current_1)
 
-        confdict6221_2 = dict(clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
+        confdict6221_2 = dict(clas=Keithley6221_Updater,
                               instradress=Keithley6221_2_InstrumentAddress,
                               dataname='Keithley6221_2',
                               threadname='control_Keithley6221_2',
@@ -1344,21 +1362,16 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_Keithley(self, boolean, clas, instradress, dataname, threadname, GUI_menu_action, **kwargs):
         """start/stop the Keithley thread"""
-        global Keithley
-        # global Keithley6221_Updater
-        # global Keithley2182_Updater
-        K_2182 = reload(Keithley.Keithley2182_Control)
-        K_6221 = reload(Keithley.Keithley6221_Control)
 
         if 'GUI_number2' in kwargs:
-            clas = K_6221.Keithley6221_Updater
+            clas = Keithley6221_Updater
         else:
-            clas = K_2182.Keithley2182_Updater
+            clas = Keithley2182_Updater
 
         if boolean:
             try:
                 worker = self.running_thread_control(
-                    clas(InstrumentAddress=instradress, comLock=self.GPIB_comLock), dataname, threadname)
+                    clas(InstrumentAddress=instradress, comLock=self.GPIB_comLock, log=self.logger), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
                     lambda data: self.store_data_Keithley(data, dataname, **kwargs))
@@ -1537,16 +1550,11 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(bool)
     def run_SR830(self, boolean):
         """start/stop the LockIn SR830 control thread"""
-        global LockIn
-
-        print(LockIn.__doc__)
-        O_LockIn = reload(LockIn.LockIn_SR830_control)
-        SR830_Updater = O_LockIn.SR830_Updater
 
         if boolean:
             try:
                 getInfodata = self.running_thread_control(SR830_Updater(
-                    InstrumentAddress=SR830_InstrumentAddress, comLock=self.GPIB_comLock), 'SR830', 'control_SR830')
+                    InstrumentAddress=SR830_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger), 'SR830', 'control_SR830')
 
                 getInfodata.sig_Infodata.connect(self.store_data_SR830)
                 # getInfodata.sig_visaerror.connect(self.printing)

@@ -28,11 +28,12 @@ import matplotlib.gridspec as gridspec
 
 
 import functools
-import inspect
+# import inspect
 import time
 import numpy as np
 import json
 import os
+import logging
 
 
 # from contextlib import suppress
@@ -53,6 +54,8 @@ from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
+
+logger = logging.getLogger(__name__)
 
 
 def convert_time_date(ts):
@@ -170,49 +173,70 @@ def running_thread(worker, info=None, **kwargs):
 
 def ExceptionSignal(thread, func, e_type, err):
     """Emit assertion-signal with relevant information"""
-    thread.sig_assertion.emit('{}: {}: {}: {}'.format(
+    string = '{}: {}: {}: {}'.format(
         thread.__name__,
         func.__name__,
         e_type,
-        err.args[0]))
+        err.args[0])
+
+    thread.sig_assertion.emit(string)
+    return string
 
 
 def ExceptionHandling(func):
+
     @functools.wraps(func)
     def wrapper_ExceptionHandling(*args, **kwargs):
-        if inspect.isclass(type(args[0])):
-            try:
-                return func(*args, **kwargs)
-            except AssertionError as e_ass:
-                ExceptionSignal(args[0], func, 'Assertion', e_ass)
+        # if inspect.isclass(type(args[0])):
+        # thread = args[0]
+        try:
+            return func(*args, **kwargs)
+        except AssertionError as e:
+            s = ExceptionSignal(args[0], func, 'Assertion', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
 
-            except TypeError as e_type:
-                ExceptionSignal(args[0], func, 'Type', e_type)
+        except TypeError as e:
+            s = ExceptionSignal(args[0], func, 'Type', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
 
-            except KeyError as e_key:
-                ExceptionSignal(args[0], func, 'Key', e_key)
+        except KeyError as e:
+            s = ExceptionSignal(args[0], func, 'Key', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
 
-            except ValueError as e_val:
-                ExceptionSignal(args[0], func, 'Value', e_val)
+        except ValueError as e:
+            s = ExceptionSignal(args[0], func, 'Value', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
 
-            except AttributeError as e_attr:
-                ExceptionSignal(args[0], func, 'Attribute', e_attr)
+        except AttributeError as e:
+            s = ExceptionSignal(args[0], func, 'Attribute', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
 
-            except NotImplementedError as e_implement:
-                e_implement.args = [str(e_implement)]
-                ExceptionSignal(args[0], func, 'NotImplemented', e_implement)
+        except NotImplementedError as e:
+            # thread.logger.exception(s)
+            logger.exception(s)
+            e.args = [str(e)]
+            ExceptionSignal(args[0], func, 'NotImplemented', e)
 
-            except VisaIOError as e_visa:
-                if isinstance(e_visa, type(args[0].timeouterror)) and \
-                        e_visa.args == args[0].timeouterror.args:
-                    args[0].sig_visatimeout.emit()
-                else:
-                    ExceptionSignal(args[0], func, 'VisaIO', e_visa)
+        except VisaIOError as e:
+            if isinstance(e, type(args[0].timeouterror)) and \
+                    e.args == args[0].timeouterror.args:
+                args[0].sig_visatimeout.emit()
+            else:
+                s = ExceptionSignal(args[0], func, 'VisaIO', e)
+                # thread.logger.exception(s)
+                logger.exception(s)
 
-            except OSError as e:
-                ExceptionSignal(args[0], func, 'OSError', e)
-        else:
-            print('There is a bug!! ' + func.__name__)
+        except OSError as e:
+            s = ExceptionSignal(args[0], func, 'OSError', e)
+            # thread.logger.exception(e)
+            logger.exception(e)
+        # else:
+        #     logger.warning('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
 
 
@@ -223,7 +247,7 @@ def noKeyError(func):
         try:
             return func(*args, **kwargs)
 
-        except KeyError as e_key:
+        except KeyError:
             pass
     return wrapper_noKeyError
 
@@ -331,6 +355,7 @@ class AbstractThread(QObject):
 
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
+        self.logger = logging.getLogger(__name__)
 
     @pyqtSlot()
     def work(self):
@@ -416,6 +441,7 @@ class Workerclass(QObject):
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
+        self.logger = logging.getLogger(__name__)
 
     def work(self):
         """run the passed function"""
@@ -432,6 +458,7 @@ class Window_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, **kwargs):
+        self.logger = logging.getLogger(__name__)
         if 'lock' in kwargs:
             del kwargs['lock']
         super().__init__(**kwargs)
@@ -542,6 +569,7 @@ class Window_plotting_m(Window_ui):
     def __init__(self, data, labels_x, labels_y, legend_labels, number, title='your advertisment could be here!', multiple=False, updateinterval=2, linestyle='*-', navtoolbar=False, **kwargs):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
+        self.logger = logging.getLogger(__name__)
         self.data = data
         self.labels_x = labels_x
         self.labels_y = labels_y
@@ -690,6 +718,7 @@ class Window_plotting_specification(Window_ui):
 
     def __init__(self, mainthread, ui_file='.\\configurations\\Data_display_selection_live_multiple.ui', **kwargs):
         super().__init__(ui_file, **kwargs)
+        self.logger = logging.getLogger(__name__)
 
         self.ui_file_plotselection = '.\\configurations\\Data_display_selection_presetempty.ui'
         self.presets_path = './configurations/plotting_presets/'

@@ -2,16 +2,16 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-import Keithley
+from Keithley.Keithley2182 import Keithley2182
 
 from copy import deepcopy
-from importlib import reload
 
 # from util import AbstractThread
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
 from datetime import datetime
+import logging
 
 
 class Keithley2182_Updater(AbstractLoopThread):
@@ -28,13 +28,14 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None)
 
-    def __init__(self, comLock, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        global Keithley
-        K_2182 = reload(Keithley.Keithley2182)
+        self.logger = logging.getLogger(__name__)
+        # global Keithley
+        # K_2182 = reload(Keithley.Keithley2182)
 
-        self.Keithley2182 = K_2182.Keithley2182(
+        self.Keithley2182 = Keithley2182(
             InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
 

@@ -9,15 +9,17 @@ Author(s):
 """
 from PyQt5.QtCore import pyqtSlot
 
-import Oxford
+# import Oxford
+from Oxford.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
-from importlib import reload
+# from importlib import reload
 import numpy as np
 import time
 from datetime import datetime
 import threading
+import logging
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -52,10 +54,11 @@ class ITC_Updater(AbstractLoopThread):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, mainthreadSignals, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthreadSignals, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        global Oxford
-        itc503 = reload(Oxford.itc503).itc503
+        # global Oxford
+        # itc503 = reload(Oxford.itc503).itc503
+        self.logger = log if log else logging.getLogger(__name__)
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
         self.__name__ = 'ITC_Updater ' + InstrumentAddress
@@ -120,7 +123,6 @@ class ITC_Updater(AbstractLoopThread):
                 value = self.ITC.getValue(self.sensors[key])
                 data[key] = value
                 self.data_last[key] = value
-                data['autocontrol'] = int(self.read_status()['auto_int'])
 
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
@@ -135,11 +137,13 @@ class ITC_Updater(AbstractLoopThread):
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
+
         data['Sensor_1_calerr_K'] = data[
             'set_temperature'] - data['temperature_error']
         self.data_last['status'] = self.read_status()
         self.data_last['sweep'] = self.checksweep(stop=False)
         data['realtime'] = datetime.now()
+        data['autocontrol'] = int(self.data_last['status']['auto_int'])
 
         if self.useAutoPID:
             self.set_PID(temperature=data['Sensor_1_K'])
@@ -360,7 +364,8 @@ class ITC_Updater(AbstractLoopThread):
                 starting = values['start']
             else:
                 starting = instance.ITC.getValue(0)
-            start = instance.ITC.getValue(0) if values['isSweepStartCurrent'] else starting
+            start = instance.ITC.getValue(
+                0) if values['isSweepStartCurrent'] else starting
             instance.checksweep(stop=True)
             autocontrol = instance.data_last['status']['auto_int']
             instance.ITC.setAutoControl(0)

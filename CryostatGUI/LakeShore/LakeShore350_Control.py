@@ -8,14 +8,16 @@ Classes:
 from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
-from importlib import reload
+# from importlib import reload
 
-import LakeShore
+# import LakeShore
+from LakeShore.LakeShore350 import LakeShore350
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
 
 from datetime import datetime
+import logging
 
 
 class LakeShore350_Updater(AbstractLoopThread):
@@ -55,15 +57,17 @@ class LakeShore350_Updater(AbstractLoopThread):
         Sensor_4_Ohm=None,
         OutputMode=None)
 
-    def __init__(self, comLock, InstrumentAddress='', **kwargs):
+    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
+        # self.logger = log if log else logging.getLogger(__name__)
+        # print(self.logger, self.logger.name)
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
-        global LakeShore
-        LS = reload(LakeShore.LakeShore350)
+        # global LakeShore
+        # LS = reload(LakeShore.LakeShore350)
         try:
-            self.LakeShore350 = LS.LakeShore350(
+            self.LakeShore350 = LakeShore350(
                 InstrumentAddress=InstrumentAddress, comLock=comLock)
         except VisaIOError as e:
             self.sig_assertion.emit('running in control: {}'.format(e))
