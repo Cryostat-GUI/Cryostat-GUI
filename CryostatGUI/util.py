@@ -770,7 +770,7 @@ class Window_plotting_specification(Window_ui):
         if filename == '-':
             return
         filename = os.path.join(self.presets_path, str(filename) + '.json')
-        print(filename)
+        # print(filename)
         try:
             with open(filename) as f:
                 self.selection_int = json.load(f)

@@ -278,7 +278,7 @@ class Sequence_Functions(object):
 class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     """docstring for Sequence_Thread"""
 
-    sig_aborted = pyqtSignal()
+    # sig_aborted = pyqtSignal()
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
@@ -300,9 +300,14 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     def work(self):
         '''run the sequence, emit the finish-line'''
         # print('I will now start to work!')
-        with self.controlsLock:
-            fin = self.running()
-        self.sig_finished.emit(fin)
+        try:
+            with self.controlsLock:
+                fin = self.running()
+        finally:
+            try:
+                self.sig_finished.emit(fin)
+            except NameError:
+                self.sig_finished.emit('An Error occurred! Aborted completely!')
 
     def scan_T_programSweep(self, start: float, end: float, Nsteps: float, temperatures: list, SweepRate: float, SpacingCode: str = 'uniform'):
         """
@@ -330,13 +335,13 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         """
         print(f'scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}')
 
-    def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
-        """
-            Method to be overriden by a child class
-            here, the devices should be programmed to start
-            the respective Sweep of positions
-        """
-        print(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex}, SpacingCode: {SpacingCode}')
+    # def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
+    #     """
+    #         Method to be overriden by a child class
+    #         here, the devices should be programmed to start
+    #         the respective Sweep of positions
+    #     """
+    #     print(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex}, SpacingCode: {SpacingCode}')
 
     def setFieldEndMode(self, EndMode: str) -> bool:
         """Method to be overridden by a child class
@@ -418,16 +423,16 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         print(f'getField :: returning random value: {val}')
         return val
 
-    def getChamber(self):
-        """Read the Chamber status
+    # def getChamber(self):
+    #     """Read the Chamber status
 
-        Method to be overriden by child class
-        implement measuring whether the chamber is ready
-        returns: chamber status
-        """
-        val = np.random.rand() * 4
-        print(f'getChamber :: returning random value: {val}')
-        return val
+    #     Method to be overriden by child class
+    #     implement measuring whether the chamber is ready
+    #     returns: chamber status
+    #     """
+    #     val = np.random.rand() * 4
+    #     print(f'getChamber :: returning random value: {val}')
+    #     return val
 
     def checkStable_Temp(self, temp: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
         """wait for the temperature to stabilize
@@ -538,67 +543,67 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         """
         print(f'checkField :: Field: {Field} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
-    def checkPosition(self, position: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
-        """check whether the Field has passed a certain value
+    # def checkPosition(self, position: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
+    #     """check whether the Field has passed a certain value
 
-        param: position:
-            the field which needs to be arrived to continue
-            function must block until the field has reached this value!
-            (apart from checking whether the sequence qas aborted)
+    #     param: position:
+    #         the field which needs to be arrived to continue
+    #         function must block until the field has reached this value!
+    #         (apart from checking whether the sequence qas aborted)
 
-        param: direction:
-            indicates whether the 'Field' should currently be
-                rising or falling
-                direction =  0: default, no information / non-sweeping
-                direction =  1: temperature should be rising
-                direction = -1: temperature should be falling
+    #     param: direction:
+    #         indicates whether the 'Field' should currently be
+    #             rising or falling
+    #             direction =  0: default, no information / non-sweeping
+    #             direction =  1: temperature should be rising
+    #             direction = -1: temperature should be falling
 
-        param: ApproachMode:
-            specifies the mode of approach in the scan this function is called
+    #     param: ApproachMode:
+    #         specifies the mode of approach in the scan this function is called
 
-        method should be overriden - possibly some convenience functionality
-            will be added in the future
-        """
-        print(f'checkPosition :: position: {position} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
+    #     method should be overriden - possibly some convenience functionality
+    #         will be added in the future
+    #     """
+    #     print(f'checkPosition :: position: {position} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
         print(f'Shutdown :: going into safe shutdown mode')
 
-    def chamber_purge(self):
-        """purge the chamber
+    # def chamber_purge(self):
+    #     """purge the chamber
 
-        must block until the chamber is purged
-        """
-        print(f'chamber_purge :: purging chamber')
+    #     must block until the chamber is purged
+    #     """
+    #     print(f'chamber_purge :: purging chamber')
 
-    def chamber_vent(self):
-        """vent the chamber
+    # def chamber_vent(self):
+    #     """vent the chamber
 
-        must block until the chamber is vented
-        """
-        print(f'chamber_vent :: venting chamber')
+    #     must block until the chamber is vented
+    #     """
+    #     print(f'chamber_vent :: venting chamber')
 
-    def chamber_seal(self):
-        """seal the chamber
+    # def chamber_seal(self):
+    #     """seal the chamber
 
-        must block until the chamber is sealed
-        """
-        print(f'chamber_seal :: sealing chamber')
+    #     must block until the chamber is sealed
+    #     """
+    #     print(f'chamber_seal :: sealing chamber')
 
-    def chamber_continuous(self, action):
-        """pump or vent the chamber continuously"""
-        if action == 'pumping':
-            print(f'chamber_continuous :: pumping continuously')
-        if action == 'venting':
-            print(f'chamber_continuous :: venting continuously')
+    # def chamber_continuous(self, action):
+    #     """pump or vent the chamber continuously"""
+    #     if action == 'pumping':
+    #         print(f'chamber_continuous :: pumping continuously')
+    #     if action == 'venting':
+    #         print(f'chamber_continuous :: venting continuously')
 
-    def chamber_high_vacuum(self):
-        """pump the chamber to high vacuum
+    # def chamber_high_vacuum(self):
+    #     """pump the chamber to high vacuum
 
-        must block until the chamber is  at high vacuum
-        """
-        print(f'chamber_high_vacuum :: bringing the chamber to HV')
+    #     must block until the chamber is  at high vacuum
+    #     """
+    #     print(f'chamber_high_vacuum :: bringing the chamber to HV')
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity

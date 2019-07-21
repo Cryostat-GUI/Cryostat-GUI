@@ -203,6 +203,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.controls_Lock = Lock()
 
         self.initialize_window_Sequences()
+        self.initialize_mdiArea()
 
         self.softwarecontrol_check()
         self.softwarecontrol_timer = QTimer()
@@ -405,15 +406,133 @@ class mainWindow(QtWidgets.QMainWindow):
         except TypeError as e:
             self.show_error_general(f'mainthread: settings PIDFile: missing Filename! (TypeError: {e})')
 
-    # ------- plotting
-    def connectdb(self, dbname):
-        """connect to the database, provide the cursor for the whole class"""
+    # ------ Sequences -----------
+
+    def initialize_window_Sequences(self):
+        """initialize Sequence running functionalitys"""
+        pass
+        self.SequenceRunningLock = Lock()
+        self.timerSequenceWindowsActive = QTimer()
+        self.timerSequenceWindowsActive.timeout.connect(
+            self.Sequence_SetActiveSequenceName)
+        self.timerSequenceWindowsActive.start(100)
+
+    def initialize_mdiArea(self):
+        """initialise all commands for the mdiArea and subwindows"""
+        self.actionNew_Sequence.triggered.connect(self.Sequence_newWindow)
+        self.mdiArea_windows = dict()
+        self.mdiArea_SequenceCount = 0
+        self.pushSequenceRun.clicked.connect(self.Sequence_running)
+        self.pushSequenceAbort.clicked.connect(self.Sequence_abort)
+
+    def Sequence_newWindow(self):
+        SB = mS.Sequence_builder()
+        self.mdiArea_SequenceCount += 1
+        name = f'Sequence_subwindow_{self.mdiArea_SequenceCount}'
+        self.mdiArea_newWindow(SB, name)
+
+    def Sequence_SetActiveSequenceName(self):
         try:
-            self.conn = sqlite3.connect(dbname)
-            self.mycursor = self.conn.cursor()
-        except sqlite3.connect.Error as err:
-            raise AssertionError(
-                "Logger: Couldn't establish connection {}".format(err))
+            SB = self.mdiArea.activeSubWindow().widget()
+            file = SB.sequence_file
+            self.labelSequenceSelected.setText(os.path.basename(file))
+        except AttributeError:
+            pass
+
+    @pyqtSlot()
+    def mdiArea_newWindow(self, window, name):
+
+        # window = mS.Sequence_builder()
+
+        sub = QtWidgets.QMdiSubWindow()
+
+        sub.setWidget(window)
+        # sub.setWindowTitle("subwindow"+str(MainWindow.count))
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
+        self.mdiArea_windows[name] = [window, sub]
+
+        window.sig_closing.connect(lambda: self.mdiArea_removeWindow(name))
+
+    def mdiArea_removeWindow(self, name):
+        del self.mdiArea_windows[name]
+        if 'Sequence' in name:
+            self.mdiArea_SequenceCount -= 1
+
+    @pyqtSlot()
+    def Sequence_running(self) -> None:
+        """acquire Lock for running sequences,
+        get the data from the active window
+        start the sequence,
+        change pushButton parameters
+        """
+        self.SequenceRunningLock.acquire()
+        SB = self.mdiArea.activeSubWindow().widget()
+        self.pushSequenceAbort.setEnabled(True)
+        self.pushSequenceRun.setEnabled(False)
+        self.labelSequenceStatus.setText('Running: \n' + os.path.basename(SB.sequence_file))
+        if 'control_Logging_live' in self.threads:
+            self.stopping_thread('control_Logging_live')
+        self.run_logger_live(True)
+        
+        self.Sequence_run(SB.data)
+
+    @pyqtSlot(str)
+    def Sequence_finished(self, exitcode: str) -> None:
+        """release Lock for running sequences, change pushButton parameters,
+        report exitcode"""
+        self.SequenceRunningLock.release()
+        self.pushSequenceAbort.setEnabled(False)
+        self.pushSequenceRun.setEnabled(True)
+        self.labelSequenceStatus.setText('Idle')
+        self.show_error_general('Sequence finished with exitcode: ' + exitcode)
+
+    def Sequence_run(self, sequence: list) -> None:
+        """"""
+
+        thresholds = dict(
+            threshold_temp=200,
+            threshold_mean=200,
+            threshold_stderr_rel=10,
+            threshold_slope_rel=10,
+            threshold_slope_residuals=10)
+        tempdefinition = ['LakeShore350', 'Sensor_1_K']
+        tempdefinition = ['ITC', 'Sensor_1_K']
+        try:
+            if 'Sequence' in self.threads:
+                self.stopping_thread('Sequence')
+            sThread = self.running_thread_control(
+                Sequence_Thread(sequence=sequence,
+                                data=self.data,
+                                dataLive=self.data_live,
+                                datalock=self.dataLock,
+                                data_LiveLock=self.dataLock_live,
+                                device_signals=self.sigs,
+                                thresholdsconf=thresholds,
+                                tempdefinition=tempdefinition,
+                                controlsLock=self.controls_Lock
+                                ), None, 'Sequence')
+
+            sThread.sig_message.connect(self.show_error_general)
+            sThread.sig_assertion.connect(self.show_error_general)
+            sThread.sig_finished.connect(self.Sequence_finished)
+
+        except AttributeError:
+            self.Sequence_finished('START LIVE LOGGING FOR SEQUENCE!')
+            # self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
+            # self.pushSequenceAbort.setEnabled(False)
+            # self.pushSequenceRun.setEnabled(True)
+            # self.SequenceRunningLock.release()
+
+    def Sequence_abort(self):
+        try:
+            self.threads['Sequence'][0].stop()
+            self.stopping_thread('Sequence')
+        except KeyError:
+            pass
+            self.show_error_general('Sequence: no sequence running!')
+
+    # ------- plotting
 
     def show_data(self):  # a lot of work to do
         """connect GUI signals for plotting, setting up some of the needs of plotting"""
@@ -426,329 +545,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.windows_plotting = []
         self.plotting_window_count = 0
 
-        #  these will hold the strings which the user selects to extract the data from db with the sql query and plot it
-        # x,y1.. is for tablenames, x,y1.._plot is for column names in the
-        # # tables respectively
-        # self.plotting_instrument_for_x = 0
-        # self.plotting_instrument_for_y1 = 0
-        # self.plotting_instrument_for_y2 = 0
-
-        # self.plotting_comboValue_Axis_X_plot = 0
-        # self.plotting_comboValue_Axis_Y1_plot = 0
-        # self.plotting_data_y2_plot = 0
-
-    def show_dataplotdb_configuration(self):
-        self.dataplot_db = Window_ui(
-            ui_file='.\\configurations\\Data_display_selection_database.ui')
-        self.dataplot_db.show()
-        #  populating the combobox instruments tab with tablenames:
-        self.mycursor.execute(
-            "SELECT name FROM sqlite_master where type='table'")
-        axis2 = self.mycursor.fetchall()
-        axis2.insert(0, ("-",))
-
-        self.dataplot_db.comboInstr_Axis_X.clear()
-        self.dataplot_db.comboInstr_Axis_Y1.clear()
-        self.dataplot_db.comboInstr_Axis_Y2.clear()
-        self.dataplot_db.comboInstr_Axis_Y3.clear()
-        self.dataplot_db.comboInstr_Axis_Y4.clear()
-        self.dataplot_db.comboInstr_Axis_Y5.clear()
-
-        for i in axis2:
-            self.dataplot_db.comboInstr_Axis_X.addItems(i)
-            self.dataplot_db.comboInstr_Axis_Y1.addItems(i)
-            self.dataplot_db.comboInstr_Axis_Y2.addItems(i)
-            self.dataplot_db.comboInstr_Axis_Y3.addItems(i)
-            self.dataplot_db.comboInstr_Axis_Y4.addItems(i)
-            self.dataplot_db.comboInstr_Axis_Y5.addItems(i)
-        self.dataplot_db.comboInstr_Axis_X.activated.connect(self.selection_x)
-        self.dataplot_db.comboInstr_Axis_Y1.activated.connect(
-            self.selection_y1)
-        self.dataplot_db.buttonBox.clicked.connect(self.plotstart)
-
-        # def show_dataplotlive_configuration(self):
-        #     """
-        #         open the window for configuration of the Live-plotting to be done,
-        #         fill the comboboxes with respective values, to choose from instruments
-        #         connect to actions being taken in this configuration window
-        #     """
-        #     self.dataplot_live_conf = Window_ui(
-        #         ui_file='.\\configurations\\Data_display_selection_live.ui')
-
-        #     # initialize some "storage space" for data
-        #     self.dataplot_live_conf.axes = dict()
-        #     self.dataplot_live_conf.data = dict()
-
-        #     if not hasattr(self, "data_live"):
-        #         self.show_error_general('no live data to plot!')
-
-        #         self.show_error_general(
-        #             'If you want to see live data, start the live logger!')
-        #         return
-        #     self.dataplot_live_conf.show()
-
-        #     with self.dataLock_live:
-        #         axis_instrument = list(self.data_live)  # all the dictionary keys
-        #     axis_instrument.insert(0, "-")  # for no chosen value by default
-        #     self.dataplot_live_conf.comboInstr_Axis_X.clear()
-        #     self.dataplot_live_conf.comboInstr_Axis_Y1.clear()
-        #     self.dataplot_live_conf.comboInstr_Axis_Y2.clear()
-        #     self.dataplot_live_conf.comboInstr_Axis_Y3.clear()
-        #     self.dataplot_live_conf.comboInstr_Axis_Y4.clear()
-        #     self.dataplot_live_conf.comboInstr_Axis_Y5.clear()
-
-        #     # for i in axis_instrument:  # filling the comboboxes for the instrument
-        #     # print(i, type(i))
-        #     self.dataplot_live_conf.comboInstr_Axis_X.addItems(axis_instrument)
-        #     self.dataplot_live_conf.comboInstr_Axis_Y1.addItems(axis_instrument)
-        #     self.dataplot_live_conf.comboInstr_Axis_Y2.addItems(axis_instrument)
-        #     self.dataplot_live_conf.comboInstr_Axis_Y3.addItems(axis_instrument)
-        #     self.dataplot_live_conf.comboInstr_Axis_Y4.addItems(axis_instrument)
-        #     self.dataplot_live_conf.comboInstr_Axis_Y5.addItems(axis_instrument)
-        #     # actions in case instruments are chosen in comboboxes
-        #     self.dataplot_live_conf.comboInstr_Axis_X.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_X,
-        #                                                                                                            GUI_instr=self.dataplot_live_conf.comboInstr_Axis_X,
-        #                                                                                                            livevsdb="LIVE",
-        #                                                                                                            axis='X',
-        #                                                                                                            dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.comboInstr_Axis_Y1.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y1,
-        #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y1,
-        #                                                                                                             livevsdb="LIVE",
-        #                                                                                                             axis='Y1',
-        #                                                                                                             dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.comboInstr_Axis_Y2.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y2,
-        #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y2,
-        #                                                                                                             livevsdb="LIVE",
-        #                                                                                                             axis='Y2',
-        #                                                                                                             dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.comboInstr_Axis_Y3.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y3,
-        #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y3,
-        #                                                                                                             livevsdb="LIVE",
-        #                                                                                                             axis='Y3',
-        #                                                                                                             dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.comboInstr_Axis_Y4.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y4,
-        #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y4,
-        #                                                                                                             livevsdb="LIVE",
-        #                                                                                                             axis='Y4',
-        #                                                                                                             dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.comboInstr_Axis_Y5.activated.connect(lambda: self.plotting_selection_instrument(GUI_value=self.dataplot_live_conf.comboValue_Axis_Y5,
-        #                                                                                                             GUI_instr=self.dataplot_live_conf.comboInstr_Axis_Y5,
-        #                                                                                                             livevsdb="LIVE",
-        #                                                                                                             axis='Y5',
-        # dataplot=self.dataplot_live_conf))
-
-        #     self.dataplot_live_conf.buttonBox.clicked.connect(
-        #         lambda: self.plotting_display(dataplot=self.dataplot_live_conf))
-        #     self.dataplot_live_conf.buttonBox.clicked.connect(
-        #         lambda: self.dataplot_live_conf.close())
-        #     self.dataplot_live_conf.buttonCancel.clicked.connect(
-        #         lambda: self.dataplot_live_conf.close())
-
     def show_dataplotlive_configuration_new(self):
         '''new plotting specification procedure'''
         self.window_configuration = Window_plotting_specification(self)
         self.window_configuration.sig_error.connect(self.show_error_general)
 
-        # def plotting_selection_instrument(self, livevsdb, GUI_instr, GUI_value, axis, dataplot):
-        #     """
-        #        filling the Value column combobox in case the corresponding
-        #        element of the instrument column combobox was chosen
-        #        thus:
-        #             - check for the chosen instrument,
-        #             - get the data for the new combobox
-        #             - chose the action
-        #     """
-
-        #     instrument_name = GUI_instr.currentText()
-        #     # print("instrument for x was set to: ",self.plotting_instrument_for_x)
-        #     if livevsdb == "LIVE":
-        #         with self.dataLock_live:
-        #             try:
-        #                 value_names = list(self.data_live[instrument_name])
-        #             except KeyError:
-        #                 self.show_error_general('plotting: do not choose "-" '
-        #                                         'please, there is nothing behind it!')
-        #                 return
-        #     # elif livevsdb == "DB":
-        #     #     axis = []
-        #     #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_x))
-        #     #     colnames= self.mycursor.description
-        #         # for row in colnames:
-        #         #     axis.append(row[0])
-        #     GUI_value.clear()
-        #     GUI_value.addItems(("-",))
-        #     GUI_value.addItems(value_names)
-        #     GUI_value.activated.connect(lambda: self.plotting_selection_value(GUI_instr=GUI_instr,
-        #                                                                       GUI_value=GUI_value,
-        #                                                                       livevsdb="LIVE",
-        #                                                                       axis=axis,
-        # dataplot=dataplot))
-
-        # def x_changed(self):
-        #     self.plotting_comboValue_Axis_X_plot = self.dataplot.comboValue_Axis_X.currentText()
-
-        # def plotting_selection_value(self, GUI_instr, GUI_value, livevsdb, axis, dataplot):
-        #     value_name = GUI_value.currentText()
-        #     instrument_name = GUI_instr.currentText()
-        #     dataplot.axes[axis] = '{}: {}'.format(instrument_name, value_name)
-
-        #     if livevsdb == 'LIVE':
-        #         with self.dataLock_live:
-        #             try:
-        #                 dataplot.data[axis] = self.data_live[
-        #                     instrument_name][value_name]
-        #             except KeyError:
-        #                 self.show_error_general('plotting: do not choose "-" '
-        #                                         'please, there is nothing behind it!')
-        #                 return
-
-        # def plotting_display(self, dataplot):
-        #     y = None
-        #     try:
-        #         x = dataplot.data['X']
-        #         y = [dataplot.data[key] for key in dataplot.data if key != 'X']
-        #     except KeyError:
-        #         self.show_error_general(
-        #             'Plotting: You certainly did not choose an X axis, try again!')
-        #         return
-        #     if y is None:
-        #         self.show_error_general(
-        #             'Plotting: You did not choose a single Y axis to plot, try again!')
-        #         return
-        #     data = [[x, yn] for yn in y]
-        #     label_y = None
-        #     try:
-        #         label_y = dataplot.axes['Y1']
-        #     except KeyError:
-        #         for key in dataplot.axes:
-        #             try:
-        #                 label_y = dataplot.axes[key]
-        #             except KeyError:
-        #                 pass
-
-        #     legend_labels = [dataplot.axes[key]
-        #                      for key in sorted(dataplot.axes) if key != 'X']
-        #     if label_y is None:
-        #         self.show_error_general(
-        #             'Plotting: You did not choose a single Y axis to plot, try again!')
-        #         return
-        #     self.plotting_window_count += 1
-        #     number = deepcopy(self.plotting_window_count)
-        #     window = Window_plotting(data=data,
-        #                              label_x=dataplot.axes['X'],
-        #                              label_y=label_y,
-        #                              legend_labels=legend_labels,
-        #                              lock=self.dataLock_live,
-        #                              number=number)
-        #     # print(type(window))
-        #     window.sig_closing.connect(lambda:
-        #                                self.plotting_deleting_window(window, number))
-        #     self.windows_plotting.append(window)
-        #     window.show()
-
     def plotting_deleting_window(self, window, number):
         """delete the window entry in the list of windows
             was planned to fix the memory leak, not sure if it really works
+            this is operated from Window_plotting_specification in util.py!
         """
         for ct, w in enumerate(self.windows_plotting):
             if w.number == number:
                 del self.windows_plotting[ct]
-
-    def selection_y1(self, dataplot, livevsdb):
-        dataplot.comboValue_Axis_Y1.addItems(tuple("-"))
-        instrument_for_y1 = self.dataplot.comboInstr_Axis_Y1.currentText()
-
-        axis = []
-        if livevsdb == "LIVE":
-            axis = list(self.data_live[instrument_for_y1])
-        # elif livevsdb == "DB":
-        #     self.mycursor.execute("SELECT * FROM {}".format(self.plotting_instrument_for_y1))
-        #     colnames= self.mycursor.description
-            # for row in colnames:
-            #     axis.append(row[0])
-        self.dataplot.comboValue_Axis_Y1.addItems(axis)
-        self.dataplot.comboValue_Axis_Y1.activated.connect(self.y1_changed)
-
-    def y1_changed(self):
-        self.plotting_comboValue_Axis_Y1_plot = self.dataplot.comboValue_Axis_Y1.currentText()
-
-    # gotta have an if statement for the case when x and y values are from
-    # different tables
-    def plotstart(self):
-        print(self.plotting_comboValue_Axis_X_plot,
-              self.plotting_comboValue_Axis_Y1_plot, self.plotting_instrument_for_x)
-        array1 = []
-        array2 = []
-        if self.plotting_instrument_for_x == self.plotting_instrument_for_y1:
-            sql = "SELECT {},{} from {} ".format(
-                self.plotting_comboValue_Axis_X_plot, self.plotting_comboValue_Axis_Y1_plot, self.plotting_instrument_for_x)
-            self.mycursor.execute(sql)
-            data = self.mycursor.fetchall()
-
-            for row in data:
-                array1.append(list(row))
-
-            # this is for is for omiting 'None' values from the array, skipping
-            # this step would cause the plot to break!
-
-            nparray = np.asarray(array1)[np.asarray(array1) != np.array(None)]
-
-            # After renaming x to instrument_for_x and y1 to instrument_for_y1, the nparray became 1 dimensional, so the
-            # original code:nparray_x = nparray[:,[0]] did not work, this is a workaround, i have no idea what caused it.
-            # selecting different instruments for x and y doesn't have this
-            # problem as the data is stored in separate arrays.
-
-            nparray_x = nparray[0::2]
-            nparray_y = nparray[1::2]
-
-            plt.figure()
-            plt.plot(nparray_x, nparray_y)
-            # labels:
-            plt.xlabel(self.plotting_comboValue_Axis_X_plot)
-            plt.ylabel(self.plotting_comboValue_Axis_Y1_plot)
-
-            plt.draw()
-
-            plt.show()
-        else:
-            sql = "SELECT {} FROM {}".format(
-                self.plotting_comboValue_Axis_X_plot, self.plotting_instrument_for_x)
-            self.mycursor.execute(sql)
-            data = self.mycursor.fetchall()
-
-            for row in data:
-                array1.append(list(row))
-            nparray_x = np.asarray(
-                array1)[np.asarray(array1) != np.array(None)]
-
-            sql = "SELECT {} FROM {}".format(
-                self.plotting_comboValue_Axis_Y1_plot, self.plotting_instrument_for_y1)
-            self.mycursor.execute(sql)
-            data = self.mycursor.fetchall()
-
-            for row in data:
-                array2.append(list(row))
-            nparray_y = np.asarray(
-                array2)[np.asarray(array2) != np.array(None)]
-
-            # there can be still some problems if the dimensions don't match
-            # so:
-            if len(nparray_x) > len(nparray_y):
-                nparray_x = nparray_x[0:len(nparray_y)]
-            else:
-                nparray_y = nparray_y[0:len(nparray_x)]
-
-            plt.figure()
-            plt.plot(nparray_x, nparray_y)
-            # labels:
-            plt.xlabel(self.plotting_comboValue_Axis_X_plot +
-                       " from table: " + str(self.plotting_instrument_for_x))
-            plt.ylabel(self.plotting_comboValue_Axis_Y1_plot +
-                       " from table: " + str(self.plotting_instrument_for_y1))
-
-            plt.draw()
-
-            plt.show()
 
     def store_data(self, data: dict, device: str) -> None:
         """store the timed data in the system list"""
@@ -2077,73 +1886,6 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.show()
         else:
             self.window_OneShot.close()
-
-    # # ------ Sequences -----------
-
-    def initialize_window_Sequences(self):
-        """initialize Sequence running functionalitys"""
-        self.window_SequenceEditor = mS.Sequence_builder()
-        self.window_SequenceEditor.sig_assertion.connect(
-            self.show_error_general)
-        self.window_SequenceEditor.sig_readSequence.connect(
-            self.Sequences_enableRunning)
-        self.window_SequenceEditor.sig_clearedSequence.connect(
-            self.Sequences_disableRunning)
-
-        self.action_show_Measuring_Sequence.triggered.connect(
-            lambda: self.show_window(self.window_SequenceEditor))
-
-        self.window_SequenceEditor.sig_runSequence.connect(
-            self.Sequence_run)  # list is handed over
-        self.window_SequenceEditor.sig_abortSequence.connect(
-            self.Sequence_abort)
-
-    def Sequences_enableRunning(self):
-        """reaction to signal sig_readSequence from the Sequence_builder"""
-        self.window_SequenceEditor.Button_RunSequence.setEnabled(True)
-        self.window_SequenceEditor.Button_AbortSequence.setEnabled(True)
-
-    def Sequences_disableRunning(self):
-        """reaction to signal sig_clearedSequence from the Sequence_builder"""
-        self.window_SequenceEditor.Button_RunSequence.setEnabled(False)
-        self.window_SequenceEditor.Button_AbortSequence.setEnabled(False)
-
-    def Sequence_run(self, sequence):
-        """"""
-
-        thresholds = dict(
-            threshold_temp=200,
-            threshold_mean=200,
-            threshold_stderr_rel=10,
-            threshold_slope_rel=10,
-            threshold_slope_residuals=10)
-        tempdefinition = ['LakeShore350', 'Sensor_1_K']
-        tempdefinition = ['ITC', 'Sensor_1_K']
-        try:
-            if 'Sequence' in self.threads:
-                self.stopping_thread('Sequence')
-            sThread = self.running_thread_control(
-                Sequence_Thread(sequence=sequence,
-                                data=self.data,
-                                dataLive=self.data_live,
-                                datalock=self.dataLock,
-                                data_LiveLock=self.dataLock_live,
-                                device_signals=self.sigs,
-                                thresholdsconf=thresholds,
-                                tempdefinition=tempdefinition,
-                                controlsLock=self.controls_Lock
-                                ), None, 'Sequence')
-
-            sThread.sig_message.connect(self.show_error_general)
-            sThread.sig_assertion.connect(self.show_error_general)
-
-        except AttributeError:
-            self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
-
-    def Sequence_abort(self):
-        self.threads['Sequence'][0].stop()
-        self.stopping_thread('Sequence')
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
