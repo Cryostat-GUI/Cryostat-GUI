@@ -216,11 +216,14 @@ class mainWindow(QtWidgets.QMainWindow):
     def setup_logging(self):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
+        self.logger_all = logging.getLogger()
+        self.logger_all.setLevel(logging.DEBUG)
         self.Log_DBhandler = SQLiteHandler(db='Errors\\dblog.db')
         self.Log_DBhandler.setLevel(logging.DEBUG)
-        self.logger.addHandler(self.Log_DBhandler)
+        self.logger_all.addHandler(self.Log_DBhandler)
+
+        self.logger_personal = logging.getLogger('CryostatGUI.main')
+        self.logger_personal.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
@@ -410,12 +413,13 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_window_Sequences(self):
         """initialize Sequence running functionalitys"""
-        pass
         self.SequenceRunningLock = Lock()
         self.timerSequenceWindowsActive = QTimer()
         self.timerSequenceWindowsActive.timeout.connect(
             self.Sequence_SetActiveSequenceName)
         self.timerSequenceWindowsActive.start(100)
+
+        self.SequencePaused = False
 
     def initialize_mdiArea(self):
         """initialise all commands for the mdiArea and subwindows"""
@@ -424,11 +428,14 @@ class mainWindow(QtWidgets.QMainWindow):
         self.mdiArea_SequenceCount = 0
         self.pushSequenceRun.clicked.connect(self.Sequence_running)
         self.pushSequenceAbort.clicked.connect(self.Sequence_abort)
+        self.pushSequencePause.clicked.connect(self.Sequence_pause)
 
     def Sequence_newWindow(self):
-        SB = mS.Sequence_builder()
+        SB = mS.Sequence_builder(display_only=True)
+        SB.window_FileDialogOpen()
         self.mdiArea_SequenceCount += 1
         name = f'Sequence_subwindow_{self.mdiArea_SequenceCount}'
+        self.logger_personal.debug('new Sequence window, sequence_file: {}'.format(SB.sequence_file))
         self.mdiArea_newWindow(SB, name)
 
     def Sequence_SetActiveSequenceName(self):
@@ -455,6 +462,7 @@ class mainWindow(QtWidgets.QMainWindow):
         window.sig_closing.connect(lambda: self.mdiArea_removeWindow(name))
 
     def mdiArea_removeWindow(self, name):
+        self.mdiArea.activateNextSubWindow()
         del self.mdiArea_windows[name]
         if 'Sequence' in name:
             self.mdiArea_SequenceCount -= 1
@@ -467,14 +475,20 @@ class mainWindow(QtWidgets.QMainWindow):
         change pushButton parameters
         """
         self.SequenceRunningLock.acquire()
-        SB = self.mdiArea.activeSubWindow().widget()
+        try:
+            SB = self.mdiArea.activeSubWindow().widget()
+        except AttributeError:
+            self.logger_personal.warning('Tried to run a sequence without active Sequence!')
+            self.SequenceRunningLock.release()
+            return
+        self.logger_personal.debug(str(SB.data))
         self.pushSequenceAbort.setEnabled(True)
         self.pushSequenceRun.setEnabled(False)
-        self.labelSequenceStatus.setText('Running: \n' + os.path.basename(SB.sequence_file))
-        if 'control_Logging_live' in self.threads:
-            self.stopping_thread('control_Logging_live')
-        self.run_logger_live(True)
-        
+        self.labelSequenceStatus.setText(
+            'Running: \n' + os.path.basename(SB.sequence_file))
+        if 'control_Logging_live' not in self.threads:
+            self.run_logger_live(True)
+
         self.Sequence_run(SB.data)
 
     @pyqtSlot(str)
@@ -531,6 +545,16 @@ class mainWindow(QtWidgets.QMainWindow):
         except KeyError:
             pass
             self.show_error_general('Sequence: no sequence running!')
+
+    def Sequence_pause(self):
+        if self.SequencePaused:
+            self.threads['Sequence'][0].continue_()
+            self.SequencePaused = False
+            self.pushSequencePause.setText('Pause')
+        else:
+            self.SequencePaused = True
+            self.threads['Sequence'][0].pause()
+            self.pushSequencePause.setText('Continue')
 
     # ------- plotting
 

@@ -35,9 +35,14 @@ from contextlib import contextmanager
 from abc import abstractproperty
 # from abc import abstractmethod
 
-identity = lambda x: x
-
 from datetime import datetime as dt
+
+# identity = lambda x: x
+
+
+def identity(x):
+    """identity function"""
+    return x
 
 
 class SQLBase(object):
@@ -99,11 +104,11 @@ class SQLBase(object):
             conn.execute(cls.sql_schema)
 
     def insert(self, db=None):
-        # try:
-        with self._conn_db(db) as conn:
-            conn.execute(self.sql_insert, self.as_row)
-        # except sqlite3.IntegrityError:
-            # logging.debug('there went something wrong with this: {}'.format(self.as_row))
+        try:
+            with self._conn_db(db) as conn:
+                conn.execute(self.sql_insert, self.as_row)
+        except sqlite3.IntegrityError:
+            logging.error('This log entry does not seem unique: {}'.format(self.as_row))
 
 
 def _SQLiteRecord_fields():
@@ -262,7 +267,8 @@ class SQLiteHandler(logging.Handler):
             record.asctime
         except AttributeError:
             # record.asctime = record.created
-            record.asctime = dt.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
+            record.asctime = dt.fromtimestamp(
+                record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
 
         # Insert log record:
         SQLiteRecord(record.asctime,

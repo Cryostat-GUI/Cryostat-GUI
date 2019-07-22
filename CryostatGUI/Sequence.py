@@ -14,7 +14,7 @@ from PyQt5.QtCore import QTimer
 import datetime as dt
 # import pickle
 # import os
-# import re
+import re
 import time
 from copy import deepcopy
 import pandas as pd
@@ -310,7 +310,8 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             try:
                 self.sig_finished.emit(fin)
             except NameError:
-                self.sig_finished.emit('An Error occurred! Aborted sequence completely!')
+                self.sig_finished.emit(
+                    'An Error occurred! Aborted sequence completely!')
                 logger.error('An Error occurred! Aborted sequence completely!')
 
     def scan_T_programSweep(self, start: float, end: float, Nsteps: float, temperatures: list, SweepRate: float, SpacingCode: str = 'uniform'):
@@ -345,7 +346,9 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     #         here, the devices should be programmed to start
     #         the respective Sweep of positions
     #     """
-    #     logger.debug(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex}, SpacingCode: {SpacingCode}')
+    # logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
+    # Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex},
+    # SpacingCode: {SpacingCode}')
 
     def setFieldEndMode(self, EndMode: str) -> bool:
         """Method to be overridden by a child class
@@ -373,7 +376,8 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             while not uptodate:
                 self.check_running()
                 with datalock:
-                    # logger.debug('locked onto the (Live= ' + str(Live) + f') data: {dataind1}, {dataind2}')
+                    # logger.debug('locked onto the (Live= ' + str(Live) + f')
+                    # data: {dataind1}, {dataind2}')
                     dateentry = data[dataind1]['realtime']
                     if Live:
                         dateentry = dateentry[-1]
@@ -469,7 +473,8 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             if ApproachMode == 'Sweep':
                 self.sig_assertion.emit(
                     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-                logger.error('no direction information available in Sweep, cannot check temperature!')
+                logger.error(
+                    'no direction information available in Sweep, cannot check temperature!')
                 self.stop()
                 self.check_running()
 
@@ -528,6 +533,25 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
         logger.debug(f'Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
+    def execute_remark(self, remark: str, **kwargs) -> None:
+        """use the given remark
+
+        shoud be overriden in case the remark means anything"""
+        try:
+            if remark.strip()[:5] == 'scanT':
+                logger.debug('scan T explicitly')
+                temps = [float(x) for x in mS.searchf_number.findall(remark)]
+                self.execute_scan_T(start=temps[0], end=temps[-1],
+                                    temperatures_forced=temps,
+                                    Nsteps=None, SweepRate=None,
+                                    ApproachMode='No O\'Shoot',
+                                    SpacingCode=None,
+                                    commands=[{'typ': 'Wait', 'Temp': True, 'Field': False, 'Position': False, 'Chamber': False, 'Delay': 60.0, 'DisplayText': '   Wait for Temperature & 60.0 seconds more'}])
+        except IndexError:
+            pass
+
+        self.message_to_user(f'remark: {remark}')
+
     def checkField(self, Field: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
         """check whether the Field has passed a certain value
 
@@ -567,12 +591,13 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     #             direction = -1: temperature should be falling
 
     #     param: ApproachMode:
-    #         specifies the mode of approach in the scan this function is called
+    # specifies the mode of approach in the scan this function is called
 
     #     method should be overriden - possibly some convenience functionality
     #         will be added in the future
     #     """
-    #     logger.debug(f'checkPosition :: position: {position} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
+    # logger.debug(f'checkPosition :: position: {position} is stable!,
+    # ApproachMode = {ApproachMode}, direction = {direction}')
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
