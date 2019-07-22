@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>664</width>
-    <height>734</height>
+    <width>829</width>
+    <height>989</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -31,8 +31,8 @@
         <rect>
          <x>20</x>
          <y>40</y>
-         <width>491</width>
-         <height>191</height>
+         <width>661</width>
+         <height>231</height>
         </rect>
        </property>
        <property name="title">
@@ -42,81 +42,238 @@
       <widget class="QGroupBox" name="groupBox_6">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>280</y>
-         <width>611</width>
-         <height>111</height>
+         <x>20</x>
+         <y>390</y>
+         <width>731</width>
+         <height>271</height>
         </rect>
        </property>
        <property name="title">
         <string>Backend Logging Configuration</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_11">
-        <item row="2" column="2">
-         <widget class="QRadioButton" name="radioLevelError">
-          <property name="text">
-           <string>Error</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QRadioButton" name="radioLevelWarning">
-          <property name="text">
-           <string>Warning</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
+        <item row="0" column="0" colspan="4">
          <widget class="QLabel" name="label_22">
           <property name="text">
            <string>Database Logfile Location:</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="5">
-         <widget class="QRadioButton" name="radioLevelDebug">
-          <property name="text">
-           <string>Debug</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="4">
-         <widget class="QRadioButton" name="radioLevelInfo">
-          <property name="text">
-           <string>Info</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QRadioButton" name="radioLevelCritical">
-          <property name="text">
-           <string>Critical</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_23">
-          <property name="text">
-           <string>Logging Level:</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QPushButton" name="pushButton_14">
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
            <string>Browse</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="5">
+        <item row="1" column="1" colspan="2">
+         <widget class="QLineEdit" name="lineFilelocation"/>
+        </item>
+        <item row="1" column="3">
          <widget class="QPushButton" name="pushButton_15">
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
            <string>Update</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1" colspan="4">
-         <widget class="QLineEdit" name="lineFilelocation"/>
+        <item row="3" column="0" colspan="4">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QGroupBox" name="groupBox_10">
+            <property name="title">
+             <string>CryostatGUI</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_14">
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioLogLevelCryostatGUI_Critical">
+               <property name="text">
+                <string>Critical</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QRadioButton" name="radioLogLevelCryostatGUI_Debug">
+               <property name="text">
+                <string>Debug</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="radioLogLevelCryostatGUI_Warning">
+               <property name="text">
+                <string>Warning</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioLogLevelCryostatGUI_Error">
+               <property name="text">
+                <string>Error</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="radioLogLevelCryostatGUI_Info">
+               <property name="text">
+                <string>Info</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_9">
+            <property name="title">
+             <string>measureSequences</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_13">
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="radioLogLevelmeasureSequences_Warning">
+               <property name="text">
+                <string>Warning</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioLogLevelmeasureSequences_Error">
+               <property name="text">
+                <string>Error</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="radioLogLevelmeasureSequences_Info">
+               <property name="text">
+                <string>Info</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioLogLevelmeasureSequences_Critical">
+               <property name="text">
+                <string>Critical</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QRadioButton" name="radioLogLevelmeasureSequences_Debug">
+               <property name="text">
+                <string>Debug</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_8">
+            <property name="title">
+             <string>PyQt</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_12">
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyQt_Warning">
+               <property name="text">
+                <string>Warning</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyQt_Error">
+               <property name="text">
+                <string>Error</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyQt_Info">
+               <property name="text">
+                <string>Info</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyQt_Critical">
+               <property name="text">
+                <string>Critical</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyQt_Debug">
+               <property name="text">
+                <string>Debug</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_7">
+            <property name="title">
+             <string>pyvisa</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_10">
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyVISA_Warning">
+               <property name="text">
+                <string>Warning</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyVISA_Error">
+               <property name="text">
+                <string>Error</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyVISA_Info">
+               <property name="text">
+                <string>Info</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyVISA_Critical">
+               <property name="text">
+                <string>Critical</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QRadioButton" name="radioLogLevelPyVISA_Debug">
+               <property name="text">
+                <string>Debug</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_23">
+          <property name="text">
+           <string>Logging Levels:</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -148,8 +305,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>605</width>
-            <height>672</height>
+            <width>770</width>
+            <height>927</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
@@ -604,6 +761,9 @@ hardware Address</string>
          <layout class="QGridLayout" name="gridLayout_9" rowstretch="0,1">
           <item row="0" column="0">
            <widget class="QGroupBox" name="groupBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="title">
              <string>Sequences - compound control</string>
             </property>
