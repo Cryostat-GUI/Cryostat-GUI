@@ -218,11 +218,13 @@ class mainWindow(QtWidgets.QMainWindow):
         TODO: connect logging levels with GUI preferences"""
         self.logger_all = logging.getLogger()
         self.logger_all.setLevel(logging.DEBUG)
-        self.Log_DBhandler = SQLiteHandler(db='Errors\\dblog.db')
+        self.Log_DBhandler = SQLiteHandler(
+            db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
         self.Log_DBhandler.setLevel(logging.DEBUG)
         self.logger_all.addHandler(self.Log_DBhandler)
 
         self.logger_personal = logging.getLogger('CryostatGUI.main')
+        self.logger_personal.setLevel(logging.DEBUG)
         self.logger_personal.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
@@ -435,7 +437,8 @@ class mainWindow(QtWidgets.QMainWindow):
         SB.window_FileDialogOpen()
         self.mdiArea_SequenceCount += 1
         name = f'Sequence_subwindow_{self.mdiArea_SequenceCount}'
-        self.logger_personal.debug('new Sequence window, sequence_file: {}'.format(SB.sequence_file))
+        self.logger_personal.debug(
+            'new Sequence window, sequence_file: {}'.format(SB.sequence_file))
         self.mdiArea_newWindow(SB, name)
 
     def Sequence_SetActiveSequenceName(self):
@@ -478,7 +481,8 @@ class mainWindow(QtWidgets.QMainWindow):
         try:
             SB = self.mdiArea.activeSubWindow().widget()
         except AttributeError:
-            self.logger_personal.warning('Tried to run a sequence without active Sequence!')
+            self.logger_personal.warning(
+                'Tried to run a sequence without active Sequence!')
             self.SequenceRunningLock.release()
             return
         self.logger_personal.debug(str(SB.data))
@@ -487,7 +491,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.labelSequenceStatus.setText(
             'Running: \n' + os.path.basename(SB.sequence_file))
         if 'control_Logging_live' not in self.threads:
-            self.run_logger_live(True)
+            # self.run_logger_live(True)
+            self.window_SystemsOnline.checkactionLogging_LIVE.setChecked(True)
 
         self.Sequence_run(SB.data)
 
@@ -668,7 +673,7 @@ class mainWindow(QtWidgets.QMainWindow):
             try:
 
                 getInfodata = self.running_thread_control(ITC_Updater(
-                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC'], log=self.logger), 'ITC', 'control_ITC')
+                    InstrumentAddress=ITC_Instrumentadress, mainthreadSignals=self.sigs['ITC'], log=self.logger_personal), 'ITC', 'control_ITC')
 
                 self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
                 with getInfodata.lock:
@@ -895,7 +900,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(ILM_Updater(
-                    InstrumentAddress=ILM_Instrumentadress, log=self.logger), 'ILM', 'control_ILM')
+                    InstrumentAddress=ILM_Instrumentadress, log=self.logger_personal), 'ILM', 'control_ILM')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ilm)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -984,7 +989,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(IPS_Updater(
-                    InstrumentAddress=IPS_Instrumentadress, log=self.logger), 'IPS', 'control_IPS')
+                    InstrumentAddress=IPS_Instrumentadress, log=self.logger_personal), 'IPS', 'control_IPS')
 
                 getInfodata.sig_Infodata.connect(self.store_data_ips)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -1096,7 +1101,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(LakeShore350_Updater(
-                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger), 'LakeShore350', 'control_LakeShore350')
+                    InstrumentAddress=LakeShore_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger_personal), 'LakeShore350', 'control_LakeShore350')
 
                 getInfodata.sig_Infodata.connect(self.store_data_LakeShore350)
                 # getInfodata.sig_visaerror.connect(self.printing)
@@ -1168,7 +1173,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                     False)
                 self.show_error_general('running: {}'.format(e))
-                self.logger.exception('could not start LakeShore350')
+                self.logger_personal.exception('could not start LakeShore350')
 
         else:
             self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
@@ -1395,7 +1400,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 worker = self.running_thread_control(
-                    clas(InstrumentAddress=instradress, comLock=self.GPIB_comLock, log=self.logger), dataname, threadname)
+                    clas(InstrumentAddress=instradress, comLock=self.GPIB_comLock, log=self.logger_personal), dataname, threadname)
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
                     lambda data: self.store_data_Keithley(data, dataname, **kwargs))
@@ -1578,7 +1583,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
             try:
                 getInfodata = self.running_thread_control(SR830_Updater(
-                    InstrumentAddress=SR830_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger), 'SR830', 'control_SR830')
+                    InstrumentAddress=SR830_InstrumentAddress, comLock=self.GPIB_comLock, log=self.logger_personal), 'SR830', 'control_SR830')
 
                 getInfodata.sig_Infodata.connect(self.store_data_SR830)
                 # getInfodata.sig_visaerror.connect(self.printing)

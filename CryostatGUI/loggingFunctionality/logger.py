@@ -456,8 +456,8 @@ class live_Logger(AbstractLoopThread):
         self.calculations = {
             'ar_mean': lambda time, value: np.nanmean(value),
             # 'stddev': lambda time, value: np.nanstd(value),
-            # 'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
-            # 'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
+            'stderr': lambda time, value: np.nanstd(value) / np.sqrt(len(value)),
+            'stddev_rel': lambda time, value: np.nanstd(value) / np.nanmean(value),
             'stderr_rel': lambda time, value: np.nanstd(value) / (np.nanmean(value) * np.sqrt(len(value))),
             # 'test': lambda time, value: print(time),
             'slope': lambda time, value: nppolyfit(time, value, deg=1, full=True),

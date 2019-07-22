@@ -363,8 +363,9 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         implement measuring the temperature used for control
         returns: temperature as a float
         """
-        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1])
+        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=True)
 
+    @ExceptionHandling
     def readDataFromList(self, dataind1: str, dataind2: str, Live: bool = False) -> float:
         """retrieve a datapoint from the central list"""
         gotit = False
@@ -383,21 +384,22 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                         dateentry = dateentry[-1]
                     # print('time: ', dateentry)
                     # print('timediff: ', (dt.datetime.now() - dateentry).total_seconds())
-                    uptodate = (dt.datetime.now() -
-                                dateentry).total_seconds() < 10
+                    timediff = (dt.datetime.now() -
+                                dateentry).total_seconds()
+                    uptodate = timediff < 10
                     # print('uptodate:', uptodate)
                     if not uptodate:
                         # print('not up to date')
                         self.sig_assertion.emit(
                             f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
-                        logger.warning(f'data not sufficiently up to date. ({dataind1})')
-                        time.sleep(0.02)
+                        logger.warning(f'data not sufficiently up to date. ({dataind1}): {timediff}')
+                        time.sleep(0.5)
         except KeyError as err:
             # print('KeyErr')
             self.sig_assertion.emit(
                 'Sequence: readData: no data: {}'.format(err.args[0]))
             logger.error(
-                'no data: {} for request {}: {}'.format(err.args[0], dataind1, dataind2))
+                'no data: {} for request (Live={}) {}: {}'.format(err.args[0], Live, dataind1, dataind2))
             self.check_running()
             time.sleep(1)
             temp = self.readDataFromList(
@@ -406,10 +408,17 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
         # print('came through')
         if not gotit:
-            temp = data[dataind1][dataind2]
-        if Live:
+            with datalock:
+                temp = data[dataind1][dataind2]
+        try:
+            logger.info(f'received from {dataind1} {dataind2}: {temp}')
+            # temp = float(temp)
             temp = temp[-1]
-        logger.debug(f'received from {dataind1} {dataind2}: {temp}')
+        except TypeError:
+            if Live:
+                logger.warning(f'datapoints are not a list: {temp}')
+        except IndexError:
+            logger.warning(f'datapoints are maybe an empty list: {temp}')
         return temp
 
     def getPosition(self) -> float:
