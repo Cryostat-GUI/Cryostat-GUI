@@ -43,13 +43,13 @@ class LakeShore350(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def go(self, command):
-        """write a command to the instrument"""
-        return super().go(command)
+    # def go(self, command):
+    #     """write a command to the instrument"""
+    #     return super().go(command)
 
-    def query(self, command):
-        """write a command to the instrument and return its answer"""
-        return super().query(command)
+    # def query(self, command):
+    #     """write a command to the instrument and return its answer"""
+    #     return super().query(command)
 
     def ClearInterfaceCommand(self):
         """Clears the bits in the Status Register, Standard Event Status Register, and Operation Event Register,
