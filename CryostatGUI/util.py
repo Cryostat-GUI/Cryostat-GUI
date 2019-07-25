@@ -55,7 +55,7 @@ from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('CryostatGUI.utility')
 
 
 def convert_time_date(ts):
@@ -733,6 +733,7 @@ class Window_plotting_specification(Window_ui):
 
             self.sig_error.emit(
                 'If you want to see live data, start the live logger!')
+            logger.warning('no live data to plot!')
             self.close()
             return
         self.show()
@@ -776,6 +777,7 @@ class Window_plotting_specification(Window_ui):
                 self.selection_int = json.load(f)
         except FileNotFoundError:
             self.sig_error.emit(f'Plotting: The preset file you wanted ({filename}) was not found!')
+            logger.warning(f'The preset file you wanted ({filename}) was not found!')
             return
         # print(len(self.selection_int))
         self.tablist = []
@@ -931,6 +933,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit('plotting: do not choose "-" '
                                         'please, there is nothing behind it!')
+                    logger.warning('do not choose "-" please, there is nothing behind it!')
                     return
 
         GUI_value.clear()
@@ -969,6 +972,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit(
                         'Plotting: There was to be an empty plot - I ignored it....')
+                    logger.warning('There was to be an empty plot - I ignored it....')
                     continue
                 y = []
                 # print(x)
@@ -977,10 +981,13 @@ class Window_plotting_specification(Window_ui):
                     # print(plot_entry[ax])
                     if ('instrument' and 'value') in plot_entry[ax]:
                         # print('found something!')
-                        y.append(self.mainthread.data_live[plot_entry[ax][
-                                 'instrument']][plot_entry[ax]['value']])
-                        labels_l.append('{}: {}'.format(
-                            plot_entry[ax]['instrument'], plot_entry[ax]['value']))
+                        try:
+                            y.append(self.mainthread.data_live[plot_entry[ax][
+                                     'instrument']][plot_entry[ax]['value']])
+                            labels_l.append('{}: {}'.format(
+                                plot_entry[ax]['instrument'], plot_entry[ax]['value']))
+                        except KeyError:
+                            logger.warning('some key was specified which is not present in the data!')
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
 

@@ -129,6 +129,9 @@ class mainWindow(QtWidgets.QMainWindow):
     sig_ITC_setTemperature = pyqtSignal(dict)
     sig_ITC_stopSweep = pyqtSignal()
 
+    sig_Sequence_sendingData = pyqtSignal(dict)
+    sig_Sequence_sendingDataLive = pyqtSignal(dict)
+
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         loadUi('.\\configurations\\Cryostat GUI.ui', self)
@@ -375,6 +378,8 @@ class mainWindow(QtWidgets.QMainWindow):
                                   newFilePID=self.sig_ITC_newFilePID,
                                   setTemp=self.sig_ITC_setTemperature,
                                   stopSweep=self.sig_ITC_stopSweep),
+                         Sequence=dict(data=self.sig_Sequence_sendingData,
+                                       dataLive=self.sig_Sequence_sendingDataLive),
                          )
 
     def settings_temp_ITC_useAutoPID(self, boolean):
@@ -506,15 +511,24 @@ class mainWindow(QtWidgets.QMainWindow):
         self.labelSequenceStatus.setText('Idle')
         self.show_error_general('Sequence finished with exitcode: ' + exitcode)
 
+    def Sequence_sendingData(self):
+        """sending data to the sequence thread"""
+        self.sigs['Sequence']['data'].emit(self.data)
+        self.sigs['Sequence']['dataLive'].emit(self.data_live)
+
     def Sequence_run(self, sequence: list) -> None:
         """"""
 
+        self.Sequencedata_timer = QTimer()
+        self.Sequencedata_timer.timeout.connect(self.Sequence_sendingData)
+        self.Sequencedata_timer.start(1e3)
+
         thresholds = dict(
-            threshold_temp=200,
-            threshold_mean=200,
-            threshold_stderr_rel=10,
-            threshold_slope_rel=10,
-            threshold_slope_residuals=10)
+            threshold_temp=260,
+            threshold_mean=260,
+            threshold_stderr_rel=100,
+            threshold_slope_rel=100,
+            threshold_slope_residuals=100)
         tempdefinition = ['LakeShore350', 'Sensor_1_K']
         tempdefinition = ['ITC', 'Sensor_1_K']
         try:
@@ -537,6 +551,7 @@ class mainWindow(QtWidgets.QMainWindow):
             sThread.sig_finished.connect(self.Sequence_finished)
 
         except AttributeError:
+            self.logger_personal.exception('AttributeError')
             self.Sequence_finished('START LIVE LOGGING FOR SEQUENCE!')
             # self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
             # self.pushSequenceAbort.setEnabled(False)
@@ -820,6 +835,7 @@ class mainWindow(QtWidgets.QMainWindow):
             Store ITC data in self.data['ITC'], update ITC_window
         """
         self.store_data(data=data, device='ITC')
+        # print('ITC data:', data['realtime'])
         # timedict = {'timeseconds': time.time(),
         #             'ReadableTime': convert_time(time.time()),
         #             'SearchableTime': convert_time_searchable(time.time())}

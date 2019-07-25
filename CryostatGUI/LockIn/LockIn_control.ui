@@ -192,7 +192,7 @@
      <property name="title">
       <string>Stuff</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
       <item row="2" column="1">
        <widget class="QTextEdit" name="textSampleCurrent_mA">
         <property name="maximumSize">

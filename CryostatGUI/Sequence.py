@@ -299,6 +299,16 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         self.thresholdsconf = thresholdsconf
         self.controlsLock = controlsLock
 
+        self.devices['Sequence']['data'].connect(self.storing_data)
+        self.devices['Sequence']['dataLive'].connect(self.storing_dataLive)
+
+    def storing_data(self, data):
+        self.data = data
+        pass
+
+    def storing_dataLive(self, data):
+        self.data_Live = data
+
     # @ExceptionHandling
     def work(self):
         '''run the sequence, emit the finish-line'''
@@ -357,13 +367,43 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         logger.debug(f'setFieldEndMode :: EndMode = {EndMode}')
 
     def getTemperature(self) -> float:
-        """Read the temperature
+        """Read the temperature 
 
         Method to be overriden by child class
         implement measuring the temperature used for control
         returns: temperature as a float
         """
-        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=True)
+        return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False)
+
+    def check_uptodate(self, dataind1: str, Live) -> bool:
+        datalock = self.data_LiveLock if Live else self.dataLock
+        data = self.data_Live if Live else self.data
+
+        with datalock:
+            # logger.debug('locked onto the (Live= ' + str(Live) + f')
+            # data: {dataind1}, {dataind2}')
+            dateentry = data[dataind1]['realtime']
+            if Live:
+                dateentry = dateentry[-1]
+            # print('time: ', dateentry)
+            # print('timediff: ', (dt.datetime.now() - dateentry).total_seconds())
+            # if dataind1 == 'ITC':
+                # print(dateentry, dt.datetime.now(), (dt.datetime.now() -
+                #                                      dateentry).total_seconds())
+            timediff = (dt.datetime.now() -
+                        dateentry).total_seconds()
+            uptodate = timediff < 10
+            # print('uptodate:', uptodate)
+        time.sleep(1)
+        if not uptodate:
+            # print('not up to date')
+            self.sig_assertion.emit(
+                f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
+            logger.warning(f'data not sufficiently up to date. ({dataind1}): {timediff}')
+            time.sleep(1)
+            return False
+        else:
+            return True
 
     @ExceptionHandling
     def readDataFromList(self, dataind1: str, dataind2: str, Live: bool = False) -> float:
@@ -376,24 +416,8 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         try:
             while not uptodate:
                 self.check_running()
-                with datalock:
-                    # logger.debug('locked onto the (Live= ' + str(Live) + f')
-                    # data: {dataind1}, {dataind2}')
-                    dateentry = data[dataind1]['realtime']
-                    if Live:
-                        dateentry = dateentry[-1]
-                    # print('time: ', dateentry)
-                    # print('timediff: ', (dt.datetime.now() - dateentry).total_seconds())
-                    timediff = (dt.datetime.now() -
-                                dateentry).total_seconds()
-                    uptodate = timediff < 10
-                    # print('uptodate:', uptodate)
-                    if not uptodate:
-                        # print('not up to date')
-                        self.sig_assertion.emit(
-                            f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
-                        logger.warning(f'data not sufficiently up to date. ({dataind1}): {timediff}')
-                        time.sleep(0.5)
+                uptodate = self.check_uptodate(dataind1=dataind1, Live=Live)
+
         except KeyError as err:
             # print('KeyErr')
             self.sig_assertion.emit(
