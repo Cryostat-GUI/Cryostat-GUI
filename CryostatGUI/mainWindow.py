@@ -242,6 +242,7 @@ class mainWindow(QtWidgets.QMainWindow):
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             self.show_error_general(f'could not find a key: {e}')
+            self.logger_personal.warning(f'key {e} was not found in the settings')
         del settings
 
         self.window_settings.checkUseAuto.setChecked(
@@ -364,6 +365,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.actionSettings.triggered.connect(
             lambda: self.show_window(self.window_settings, True))
 
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('Sequence_PresetsPath', './configurations/presets_sequences/')
+        del settings
+
+        # self.window_settings.groupBox.setEnabled(False)
+
         self.window_settings.checkUseAuto.toggled[
             'bool'].connect(self.settings_temp_ITC_useAutoPID)
         self.window_settings.lineConfFile.textEdited.connect(
@@ -381,6 +388,21 @@ class mainWindow(QtWidgets.QMainWindow):
                          Sequence=dict(data=self.sig_Sequence_sendingData,
                                        dataLive=self.sig_Sequence_sendingDataLive),
                          )
+
+        # self.window_settings.combo_thresholdsLoadingPreset.activated[
+        #     'QString'].connect(self.restoring_preset)
+
+    # def settings_sequence_parsePresets(self):
+    #     settings = QSettings("TUW", "CryostatGUI")
+    #     path_presets = settings.value('Sequence_PresetsPath', str)
+    #     del settings
+    #     os.makedirs(path_presets, exist_ok=True)
+    #     files = [os.path.splitext(f)[0] for f in os.listdir(
+    #         self.presets_path) if f.endswith('.json') and
+    #         os.path.isfile(os.path.join(path_presets, f))]
+    #     self.window_Settings.combo_thresholdsLoadingPreset.clear()
+    #     self.window_Settings.combo_thresholdsLoadingPreset.addItem('-')
+    #     self.window_Settings.combo_thresholdsLoadingPreset.addItems(files)
 
     def settings_temp_ITC_useAutoPID(self, boolean):
         """set the variable for the softwareAutoPID
