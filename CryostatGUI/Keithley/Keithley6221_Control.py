@@ -52,11 +52,13 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 #        self.Stop_Current_value = 0
 
     def getCurrent_A(self):
+        """return currently operated current value"""
         return self.Current_A_value
 
     @pyqtSlot()
     @ExceptionHandling
     def disable(self):
+        """disable the output current"""
         self.Keithley6221.disable()
         self.Current_A_storage = self.Current_A_value
         # for logging/application running:
@@ -66,6 +68,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     @ExceptionHandling
     def enable(self):
+        """enable the output current"""
         self.Keithley6221.enable()
         self.Current_A_value = self.Current_A_storage
         self.setCurrent_A()
@@ -74,10 +77,12 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     @ExceptionHandling
     def getstatus(self):
+        """retrieve output current status"""
         return int(self.Keithley6221.getstatus()[0])
 
     @ExceptionHandling
     def toggle_frontpanel(self, bools, text='In sequence...'):
+        """toggle frontpanel display text"""
         if bools:
             self.Keithley6221.enable_frontpanel(text)
         else:
@@ -86,33 +91,49 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @pyqtSlot()
     @ExceptionHandling
     def setCurrent_A(self):
+        """set a previously stored value for the current"""
         self.Keithley6221.setCurrent(self.Current_A_value)
         self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
 
     @pyqtSlot()
     @ExceptionHandling
+    def setCurrent(self, current: float):
+        """set a pass value for the current"""
+        self.Current_A_value = current
+        self.Current_A_storage = current
+        self.Keithley6221.setCurrent(current)
+        self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
+
+    @pyqtSlot()
+    @ExceptionHandling
     def setSweep(self):
+        """set a current sweep"""
         self.Keithley6221.SetupSweet(
             self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
 
     @pyqtSlot()
     @ExceptionHandling
     def startSweep(self):
+        """start a current sweep"""
         self.Keithley6221.StartSweep()
 
     @pyqtSlot(float)
     def gettoset_Current_A(self, value):
+        """store a current value for later usage"""
         self.Current_A_value = value
         self.Current_A_storage = value
 
     @pyqtSlot(float)
     def gettoset_Start_Current(self, value):
+        """store a start current for a sweep"""
         self.Start_Current_value = value
 
     @pyqtSlot(float)
     def gettoset_Step_Current(self, value):
+        """store a step current for a sweep"""
         self.Step_Current_value = value
 
     @pyqtSlot(float)
     def gettoset_Stop_Current(self, value):
+        """store a stop current for a sweep"""
         self.Stop_Current_value = value

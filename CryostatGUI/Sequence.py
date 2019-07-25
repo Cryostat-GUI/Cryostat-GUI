@@ -36,6 +36,7 @@ import measureSequences as mS
 
 import logging
 logger = logging.getLogger('CryostatGUI.Sequences')
+logger_measure = logging.getLogger('CryostatGUI.measuring')
 
 
 def measure_resistance_singlechannel(threads,
@@ -144,6 +145,8 @@ def measure_resistance_multichannel(threads,
                len(excitation_currents_A)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
+            logger.error(
+                'number of excitation currents, current sources and voltmeters does not coincide!')
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
     data = dict()
@@ -219,6 +222,48 @@ def measure_resistance_multichannel(threads,
     # for x in data: print(x)
     # df = pd.DataFrame.from_dict(data)
     return data
+
+
+def AbstractMeasureResistance(channel_current, channel_voltage, exc_curr, iv_characteristic):
+    """Abstract logic for resistance measurement"""
+    currents = []
+    voltages = []
+    resistance = dict()
+    for current_base in iv_characteristic:
+        for currentfactor in [-1,  1]:
+            current = exc_curr * currentfactor * current_base
+            currents.append(current)
+            channel_current.setCurrent(current)
+            voltage = channel_voltage.read_Voltage()
+            voltages.append(voltage)
+    c, stats = polyfit(currents, voltages, deg=1, full=True)
+    resistance['coeff'] = c[1]
+    resistance['residuals'] = stats[0][0]
+    logger_measure.info('Measured Resistance {} for ch current: {}, ch voltage: {}, iv_char: {}, excitation: {}'.format(
+        resistance, channel_current, channel_voltage, iv_characteristic, exc_curr))
+    return resistance, currents, voltages
+
+
+def AbstractMeasureResistanceMultichannel(channels_current: list, channels_voltage: list, iv_characteristic: list, exc_currs: list):
+    """Abstract logic for multichannel resistance measurement"""
+    lengths = [len(channels_current),
+               len(channels_voltage),
+               len(exc_currs)]
+    for c in comb(lengths, 2):
+        if c[0] != c[1]:
+            logger.error(
+                'number of excitation currents, current sources and voltmeters does not coincide!')
+
+    resistances = []
+    excitations = []
+    voltages = []
+    for chC, chV, exc in zip(channels_current, channels_voltage, exc_currs):
+        R, I, V = AbstractMeasureResistance(chC, chV, exc, iv_characteristic)
+        resistances.append(R)
+        excitations.append(I)
+        voltages.append(V)
+
+    return resistances, excitations, voltages
 
 
 class Sequence_Functions(object):
