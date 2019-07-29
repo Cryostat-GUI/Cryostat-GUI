@@ -206,6 +206,11 @@ def ExceptionHandling(func):
             # thread.logger.exception(s)
             logger.exception(s)
 
+        except IndexError as e:
+            s = ExceptionSignal(args[0], func, 'Index', e)
+            # thread.logger.exception(s)
+            logger.exception(s)
+
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
