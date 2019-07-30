@@ -77,7 +77,7 @@ class SQLBase(object):
     @contextmanager
     def _conn_db(cls, db=None):
         db = db if db is not None else cls.db
-        with sqlite3.connect(db) as conn:
+        with sqlite3.connect(db, timeout=20) as conn:
             try:
                 while True:
                     try:
@@ -108,7 +108,8 @@ class SQLBase(object):
             with self._conn_db(db) as conn:
                 conn.execute(self.sql_insert, self.as_row)
         except sqlite3.IntegrityError:
-            logging.error('This log entry does not seem unique: {}'.format(self.as_row))
+            logging.error(
+                'This log entry does not seem unique: {}'.format(self.as_row))
 
 
 def _SQLiteRecord_fields():
