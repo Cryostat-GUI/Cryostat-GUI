@@ -145,7 +145,7 @@ def measure_resistance_multichannel(threads,
                len(excitation_currents_A)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
-            logger.error(
+            logger_measure.error(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
@@ -251,7 +251,7 @@ def AbstractMeasureResistanceMultichannel(channels_current: list, channels_volta
                len(exc_currs)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
-            logger.error(
+            logger_measure.error(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
 
     resistances = []
@@ -439,7 +439,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                         dateentry).total_seconds()
             uptodate = timediff < 10
             # print('uptodate:', uptodate)
-        time.sleep(1)
+        # time.sleep(1)
         if not uptodate:
             # print('not up to date')
             self.sig_assertion.emit(
@@ -459,6 +459,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         data = self.data_Live if Live else self.data
         # print('reading from list')
         try:
+            # TODO: include timeout....and throw error, or sth
             while not uptodate:
                 self.check_running()
                 uptodate = self.check_uptodate(dataind1=dataind1, Live=Live)
