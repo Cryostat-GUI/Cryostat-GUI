@@ -51,6 +51,7 @@ import sqlite3
 import logging
 # logger = logging.getLogger()
 # logger.setLevel(logging.DEBUG)
+import json
 
 # from logging.handlers import RotatingFileHandler
 
@@ -80,6 +81,8 @@ from loggingFunctionality.logger import Logger_configuration
 
 from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
+from settings import windowSettings
+
 from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
@@ -88,6 +91,11 @@ from util import running_thread
 # from util import noKeyError
 from util import Window_plotting_specification
 from util import ExceptionHandling
+
+import zmq
+from zmqcomms import zmqquery_handle
+from zmqcomms import zmqquery
+from zmqcomms import genericAnswer
 
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
@@ -131,6 +139,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     sig_Sequence_sendingData = pyqtSignal(dict)
     sig_Sequence_sendingDataLive = pyqtSignal(dict)
+    sig_Sequence_newconf = pyqtSignal(dict)
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -178,11 +187,14 @@ class mainWindow(QtWidgets.QMainWindow):
     def initialize_all_windows(self):
         """window and GUI initialisatoins"""
 
+        self.setup_logging_base()
+
         self.window_SystemsOnline = Window_ui(
             ui_file='.\\configurations\\Systems_online.ui')
         self.actionSystems_Online.triggered.connect(
             lambda: self.window_SystemsOnline.show())
 
+        self.initialize_zmq()
         self.initialize_settings()
 
         self.initialize_window_ITC()
@@ -216,19 +228,88 @@ class mainWindow(QtWidgets.QMainWindow):
         # start logging only after GUI initialisations
         QTimer.singleShot(1e2, self.setup_logging)
 
-    def setup_logging(self):
-        """set up the logger, handler, for now in DEBUG
-        TODO: connect logging levels with GUI preferences"""
+    def initialize_zmq(self):
+        '''set up zmq communications'''
+        self.logger_personal.debug('initializing zmq communications')
+        self.zmq_context = zmq.Context()
+        self.zmq_smain_inproc = self.zmq_context.socket(zmq.REP)
+        self.zmq_smain_inproc.bind("inproc://main_line")
+
+        self.zmq_smain_tcp = self.zmq_context.socket(zmq.REP)
+        self.zmq_smain_tcp.bind(f"tcp://*:{5556}")
+
+        self.timer_zmqhandling = QTimer()
+        self.timer_zmqhandling.timeout.connect(self.zmq_handling)
+        self.timer_zmqhandling.start(1e2)
+        # QTimer.singleShot(1e2, self.zmq_handling)
+
+    # @pyqtSlot()
+    def zmq_handling(self):
+        '''handle any messages which might have arrived'''
+        # self.logger_personal.debug('handling zmq requests')
+        zmqquery_handle(self.zmq_smain_inproc, self.zmq_handlefunction)
+        zmqquery_handle(self.zmq_smain_tcp, self.zmq_handlefunction)
+        # self.logger_personal.debug('handled zmq requests')
+        # QTimer.singleShot(1e2, self.zmq_handling)
+
+    def zmq_handlefunction(self, socket, message):
+        '''handle incoming zmq requests'''
+        self.logger_personal.debug(
+            f'handling message: {message} for socket: {socket}')
+        if message == b'data':
+            # with self.dataLock:
+            #     jdata = json.dumps(self.data)
+            # socket.send(jdata.encode('utf-8'))
+            socket.send_json(self.data)
+        elif message == b'dataLive':
+            # with self.dataLock_live:
+            #     jdata = json.dumps(self.data_live)
+            # socket.send(jdata.encode('utf-8'))
+            socket.send_json(self.data_live)
+
+        else:
+            dic1 = '{'
+            dic2 = b'{'
+            d_bool = False
+            for d in [dic1, dic2]:
+                try:
+                    d_bool = message.startswith(d)
+                except TypeError:
+                    pass
+            if d_bool:
+                mes_dict = json.loads(message)
+                # TODO: handle received data
+            else:
+                # the genericAnswer Exception is caughth in zmqquery_handle() 
+                raise genericAnswer(f'I do not know how to reply to that: {message}')
+
+    def setup_logging_base(self):
         self.logger_all = logging.getLogger()
-        self.logger_all.setLevel(logging.DEBUG)
+        self.logger_personal = logging.getLogger('CryostatGUI.main')
+
         self.Log_DBhandler = SQLiteHandler(
             db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
         self.Log_DBhandler.setLevel(logging.DEBUG)
-        self.logger_all.addHandler(self.Log_DBhandler)
 
-        self.logger_personal = logging.getLogger('CryostatGUI.main')
         self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_personal.addHandler(self.Log_DBhandler)
+        self.logger_all.setLevel(logging.ERROR)
+        # self.logger_personal.addHandler(self.Log_DBhandler)
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger_personal.addHandler(handler)
+        self.logger_all.addHandler(handler)
+
+    def setup_logging(self):
+        """set up the logger, handler, for now in DEBUG
+        TODO: connect logging levels with GUI preferences"""
+
+        self.logger_all.setLevel(logging.DEBUG)
+
+        # self.logger_all.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
@@ -360,25 +441,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_settings(self):
         """initialise the settings window"""
-        self.window_settings = Window_ui(
-            ui_file='.\\configurations\\settings_global.ui')
-        self.actionSettings.triggered.connect(
-            lambda: self.show_window(self.window_settings, True))
-
-        settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue('Sequence_PresetsPath', './configurations/presets_sequences/')
-        del settings
-
-        # self.window_settings.groupBox.setEnabled(False)
-
-        self.window_settings.checkUseAuto.toggled[
-            'bool'].connect(self.settings_temp_ITC_useAutoPID)
-        self.window_settings.lineConfFile.textEdited.connect(
-            self.settings_temp_ITC_PIDFile_store)
-        self.window_settings.pushConfLoad.clicked.connect(
-            self.settings_temp_ITC_PIDFile_send)
-        self.window_settings.lineConfFile.returnPressed.connect(
-            self.settings_temp_ITC_PIDFile_send)
 
         # store signals in ordered fashion for easy retrieval
         self.sigs = dict(ITC=dict(useAutocheck=self.sig_ITC_useAutoPID,
@@ -386,57 +448,19 @@ class mainWindow(QtWidgets.QMainWindow):
                                   setTemp=self.sig_ITC_setTemperature,
                                   stopSweep=self.sig_ITC_stopSweep),
                          Sequence=dict(data=self.sig_Sequence_sendingData,
-                                       dataLive=self.sig_Sequence_sendingDataLive),
+                                       dataLive=self.sig_Sequence_sendingDataLive,
+                                       newconf=self.sig_Sequence_newconf),
                          )
 
-        # self.window_settings.combo_thresholdsLoadingPreset.activated[
-        #     'QString'].connect(self.restoring_preset)
-
-    # def settings_sequence_parsePresets(self):
-    #     settings = QSettings("TUW", "CryostatGUI")
-    #     path_presets = settings.value('Sequence_PresetsPath', str)
-    #     del settings
-    #     os.makedirs(path_presets, exist_ok=True)
-    #     files = [os.path.splitext(f)[0] for f in os.listdir(
-    #         self.presets_path) if f.endswith('.json') and
-    #         os.path.isfile(os.path.join(path_presets, f))]
-    #     self.window_Settings.combo_thresholdsLoadingPreset.clear()
-    #     self.window_Settings.combo_thresholdsLoadingPreset.addItem('-')
-    #     self.window_Settings.combo_thresholdsLoadingPreset.addItems(files)
-
-    def settings_temp_ITC_useAutoPID(self, boolean):
-        """set the variable for the softwareAutoPID
-        emit signal to notify Thread
-        store it in settings"""
-        self.window_settings.temp_ITC_useAutoPID = boolean
-        self.sigs['ITC']['useAutocheck'].emit(boolean)
         settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue('ITC_useAutoPID', int(boolean))
+        settings.setValue('Sequence_PresetsPath',
+                          './configurations/presets_sequences/')
         del settings
 
-    def settings_temp_ITC_PIDFile_store(self, filename):
-        """reaction to signal: ITC PID file: store"""
-        self.window_settings.temp_ITC_PIDFile = filename
-
-    def settings_temp_ITC_PIDFile_send(self):
-        """reaction to signal: ITC PID file: send and store permanently"""
-        if isinstance(self.window_settings.temp_ITC_PIDFile, str):
-            text = self.window_settings.temp_ITC_PIDFile
-        else:
-            text = ''
-        self.sigs['ITC']['newFilePID'].emit(text)
-
-        settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue('ITC_PIDFile', self.window_settings.temp_ITC_PIDFile)
-        del settings
-
-        try:
-            with open(self.window_settings.temp_ITC_PIDFile) as f:
-                self.window_settings.textConfShow.setText(f.read())
-        except OSError as e:
-            self.show_error_general(f'mainthread: settings PIDFile: OSError {e}')
-        except TypeError as e:
-            self.show_error_general(f'mainthread: settings PIDFile: missing Filename! (TypeError: {e})')
+        self.window_settings = windowSettings(signals=self.sigs, zmqcontext=self.zmq_context, data=dict(
+            data=self.data, dataLock=self.dataLock))
+        self.actionSettings.triggered.connect(
+            lambda: self.show_window(self.window_settings, True))
 
     # ------ Sequences -----------
 
@@ -543,13 +567,13 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.Sequencedata_timer = QTimer()
         self.Sequencedata_timer.timeout.connect(self.Sequence_sendingData)
-        self.Sequencedata_timer.start(1e3)
+        # self.Sequencedata_timer.start(1e3)
 
         thresholds = dict(
-            threshold_temp=260,
-            threshold_mean=260,
+            threshold_T_K=260,
+            threshold_Tmean_K=260,
             threshold_stderr_rel=100,
-            threshold_slope_rel=100,
+            threshold_relslope_Kpmin=100,
             threshold_slope_residuals=100)
         tempdefinition = ['LakeShore350', 'Sensor_1_K']
         tempdefinition = ['ITC', 'Sensor_1_K']
@@ -558,14 +582,15 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.stopping_thread('Sequence')
             sThread = self.running_thread_control(
                 Sequence_Thread(sequence=sequence,
-                                data=self.data,
-                                dataLive=self.data_live,
-                                datalock=self.dataLock,
-                                data_LiveLock=self.dataLock_live,
+                                # data=self.data,
+                                # dataLive=self.data_live,
+                                # datalock=self.dataLock,
+                                # data_LiveLock=self.dataLock_live,
                                 device_signals=self.sigs,
                                 thresholdsconf=thresholds,
                                 tempdefinition=tempdefinition,
-                                controlsLock=self.controls_Lock
+                                controlsLock=self.controls_Lock,
+                                zmqcontext=self.zmq_context,
                                 ), None, 'Sequence')
 
             sThread.sig_message.connect(self.show_error_general)
@@ -574,16 +599,13 @@ class mainWindow(QtWidgets.QMainWindow):
 
         except AttributeError:
             self.logger_personal.exception('AttributeError')
-            self.Sequence_finished('START LIVE LOGGING FOR SEQUENCE!')
-            # self.show_error_general('START LIVE LOGGING FOR SEQUENCE!')
-            # self.pushSequenceAbort.setEnabled(False)
-            # self.pushSequenceRun.setEnabled(True)
-            # self.SequenceRunningLock.release()
+            self.Sequence_finished('AttributeError')
 
     def Sequence_abort(self):
         try:
             self.threads['Sequence'][0].stop()
             self.stopping_thread('Sequence')
+            self.Sequencedata_timer.stop()
         except KeyError:
             pass
             self.show_error_general('Sequence: no sequence running!')
@@ -593,10 +615,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.threads['Sequence'][0].continue_()
             self.SequencePaused = False
             self.pushSequencePause.setText('Pause')
+            self.Sequencedata_timer.start(1e3)
         else:
             self.SequencePaused = True
             self.threads['Sequence'][0].pause()
             self.pushSequencePause.setText('Continue')
+            self.Sequencedata_timer.stop()
 
     # ------- plotting
 

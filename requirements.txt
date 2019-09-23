@@ -4,4 +4,5 @@ pyvisa
 matplotlib
 functools
 pymeasure
+pyzmq
 measureSequences
