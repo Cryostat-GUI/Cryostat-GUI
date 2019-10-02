@@ -15,6 +15,7 @@ import datetime as dt
 # import pickle
 # import os
 import re
+import zmq
 import time
 from copy import deepcopy
 import pandas as pd
@@ -30,6 +31,9 @@ from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
 
+from zmqcomms import zmqquery
+from zmqcomms import zmqquery_dict
+
 import measureSequences as mS
 
 # from qlistmodel import ScanningN
@@ -37,6 +41,10 @@ import measureSequences as mS
 import logging
 logger = logging.getLogger('CryostatGUI.Sequences')
 logger_measure = logging.getLogger('CryostatGUI.measuring')
+
+
+class problemAbort(Exception):
+    pass
 
 
 def measure_resistance_singlechannel(threads,
@@ -145,7 +153,7 @@ def measure_resistance_multichannel(threads,
                len(excitation_currents_A)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
-            logger.error(
+            logger_measure.error(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
             raise AssertionError(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
@@ -251,7 +259,7 @@ def AbstractMeasureResistanceMultichannel(channels_current: list, channels_volta
                len(exc_currs)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
-            logger.error(
+            logger_measure.error(
                 'number of excitation currents, current sources and voltmeters does not coincide!')
 
     resistances = []
@@ -330,37 +338,55 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
 
-    def __init__(self, sequence: list, data: list, datalock, dataLive: list, data_LiveLock, device_signals: dict, thresholdsconf: dict, tempdefinition: list, controlsLock, **kwargs):
+    def __init__(self, sequence: list,
+                 # data: list, datalock, dataLive: list, data_LiveLock,
+                 device_signals: dict, thresholdsconf: dict, tempdefinition: list, controlsLock, zmqcontext, **kwargs):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
 
         self.__name__ = 'runSequence'
 
         self.devices = device_signals
-        self.data = data
-        self.dataLock = datalock
-        self.data_Live = dataLive
-        self.data_LiveLock = data_LiveLock
+        # self.data = data
+        # self.dataLock = datalock
+        # self.data_Live = dataLive
+        # self.data_LiveLock = data_LiveLock
         self.tempdefinition = tempdefinition
         self.thresholdsconf = thresholdsconf
         self.controlsLock = controlsLock
 
-        self.devices['Sequence']['data'].connect(self.storing_data)
-        self.devices['Sequence']['dataLive'].connect(self.storing_dataLive)
+        self.zmq_context = zmqcontext
+        self.zmq_sSeq = self.zmq_context.socket(zmq.REQ)
+        # self.zmq_sSeq.connect("inproc://main_line")
+        self.zmq_sSeq.connect("tcp://localhost:{}".format(5556))
 
-    def storing_data(self, data):
-        self.data = data
-        pass
+        # self.devices['Sequence']['data'].connect(self.storing_data)
+        # self.devices['Sequence']['dataLive'].connect(self.storing_dataLive)
 
-    def storing_dataLive(self, data):
-        self.data_Live = data
+        self.devices['Sequence']['newconf'].connect(self.storing_thresholds)
+
+        # logger_measure.debug('data from main:' + zmqquery(self.zmq_sSeq, 'data'))
+
+    # def storing_data(self, data):
+    #     self.data = data
+
+    # def storing_dataLive(self, data):
+    #     self.data_Live = data
+
+    def storing_thresholds(self, thresholds):
+        self.thresholdsconf = thresholds
 
     # @ExceptionHandling
     def work(self):
         '''run the sequence, emit the finish-line'''
         # print('I will now start to work!')
+        # print('data from main:' ,zmqquery(self.zmq_sSeq, 'data'))
         try:
             with self.controlsLock:
                 fin = self.running()
+        except problemAbort as e:
+            fin = f'Error occurred, aborting sequence! Error: {e}'
+            logger.error(fin)
+
         finally:
             try:
                 self.sig_finished.emit(fin)
@@ -421,30 +447,23 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         return self.readDataFromList(dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False)
 
     def check_uptodate(self, dataind1: str, Live) -> bool:
-        datalock = self.data_LiveLock if Live else self.dataLock
-        data = self.data_Live if Live else self.data
 
-        with datalock:
-            # logger.debug('locked onto the (Live= ' + str(Live) + f')
-            # data: {dataind1}, {dataind2}')
-            dateentry = data[dataind1]['realtime']
-            if Live:
-                dateentry = dateentry[-1]
-            # print('time: ', dateentry)
-            # print('timediff: ', (dt.datetime.now() - dateentry).total_seconds())
-            # if dataind1 == 'ITC':
-                # print(dateentry, dt.datetime.now(), (dt.datetime.now() -
-                #                                      dateentry).total_seconds())
-            timediff = (dt.datetime.now() -
-                        dateentry).total_seconds()
-            uptodate = timediff < 10
-            # print('uptodate:', uptodate)
-        time.sleep(1)
+        if Live:
+            data = zmqquery_dict(self.zmq_sSeq, 'dataLive')
+        else:
+            data = zmqquery_dict(self.zmq_sSeq, 'data')
+        dateentry = data[dataind1]['realtime']
+        if Live:
+            dateentry = dateentry[-1]
+
+        timediff = (dt.datetime.now() -
+                    dateentry).total_seconds()
+        uptodate = timediff < 10
         if not uptodate:
             # print('not up to date')
             self.sig_assertion.emit(
-                f'Sequence: readData: data not sufficiently up to date. ({dataind1})')
-            logger.warning(f'data not sufficiently up to date. ({dataind1}): {timediff}')
+                f'Sequence: readData: data not sufficiently up to date. ({dataind1}: {timediff})')
+            logger.warning(f'data not sufficiently up to date. ({dataind1}: {timediff})')
             time.sleep(1)
             return False
         else:
@@ -455,10 +474,11 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         """retrieve a datapoint from the central list"""
         gotit = False
         uptodate = False
-        datalock = self.data_LiveLock if Live else self.dataLock
-        data = self.data_Live if Live else self.data
+        # datalock = self.data_LiveLock if Live else self.dataLock
+        # data = self.data_Live if Live else self.data
         # print('reading from list')
         try:
+            # TODO: include timeout....and throw error, or sth
             while not uptodate:
                 self.check_running()
                 uptodate = self.check_uptodate(dataind1=dataind1, Live=Live)
@@ -477,8 +497,10 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
         # print('came through')
         if not gotit:
-            with datalock:
-                temp = data[dataind1][dataind2]
+            # with datalock:
+            data = zmqquery_dict(self.zmq_sSeq, 'data')
+            # print(data)
+            temp = data[dataind1][dataind2]
         try:
             logger.info(f'received from {dataind1} {dataind2}: {temp}')
             # temp = float(temp)
@@ -549,16 +571,17 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             # no information, temp should really stabilize
 
             if ApproachMode == 'Sweep':
-                self.sig_assertion.emit(
-                    'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-                logger.error(
-                    'no direction information available in Sweep, cannot check temperature!')
-                self.stop()
-                self.check_running()
+                # self.sig_assertion.emit(
+                #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+                # logger.error(
+                #     'no direction information available in Sweep, cannot check temperature!')
+                raise problemAbort('no direction information available in Sweep, cannot check temperature!')
+                # self.stop()
+                # self.check_running()
 
             stable = False
             while not stable:
-                logger.debug('waiting for stabilized temp')
+                logger.debug(f'waiting for stabilized temp: {temp}')
                 self.check_running()
                 count = 0
 
@@ -580,13 +603,13 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                                                             1] + '_calc_slope_residuals',
                                                         Live=True)
 
-                if abs(temperature - temp) < self.thresholdsconf['threshold_temp']:
+                if abs(temperature - temp) < self.thresholdsconf['threshold_T_K']:
                     count += 1
-                if abs(mean - temp) < self.thresholdsconf['threshold_mean']:
+                if abs(mean - temp) < self.thresholdsconf['threshold_Tmean_K']:
                     count += 1
                 if abs(stderr_rel) < self.thresholdsconf['threshold_stderr_rel']:
                     count += 1
-                if abs(slope_rel) < self.thresholdsconf['threshold_slope_rel']:
+                if abs(slope_rel) < self.thresholdsconf['threshold_relslope_Kpmin']:
                     count += 1
                 if abs(slope_residuals) < self.thresholdsconf['threshold_slope_residuals']:
                     count += 1

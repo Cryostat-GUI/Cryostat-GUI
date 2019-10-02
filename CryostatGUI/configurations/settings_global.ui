@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>628</width>
-    <height>630</height>
+    <width>829</width>
+    <height>989</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,8 +29,8 @@
       <widget class="QGroupBox" name="groupBox_5">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>40</y>
+         <x>40</x>
+         <y>690</y>
          <width>661</width>
          <height>231</height>
         </rect>
@@ -40,11 +40,14 @@
        </property>
       </widget>
       <widget class="QGroupBox" name="groupBox_6">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>300</y>
-         <width>511</width>
+         <y>390</y>
+         <width>731</width>
          <height>271</height>
         </rect>
        </property>
@@ -277,6 +280,44 @@
         </item>
        </layout>
       </widget>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>60</y>
+         <width>321</width>
+         <height>101</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Paths to preset folders</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Plotting</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Temperaturecontrol</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_2"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -305,8 +346,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>569</width>
-            <height>607</height>
+            <width>770</width>
+            <height>927</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
@@ -756,22 +797,20 @@ hardware Address</string>
        <string>Temperature Control</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="1" column="0">
-        <widget class="QWidget" name="TemperatureControl" native="true">
-         <layout class="QGridLayout" name="gridLayout_9" rowstretch="0,1,0">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item row="2" column="0">
+       <item row="0" column="0">
+        <widget class="QWidget" name="widget" native="true">
+         <layout class="QGridLayout" name="gridLayout_9" rowstretch="0,1">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="Sequences_tempcontrol_groupbox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="title">
+             <string>Sequences - compound control</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QGroupBox" name="groupBox_2">
             <property name="maximumSize">
              <size>
@@ -837,215 +876,6 @@ hardware Address</string>
                  </widget>
                 </item>
                </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="title">
-             <string>Sequences - compound control</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="4" column="0" rowspan="2">
-              <widget class="QGroupBox" name="groupBox_4">
-               <property name="title">
-                <string>stabilizing temperatures: Thresholds</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_8" rowstretch="1,1,0,0,0,0,0" columnstretch="0,0,0,0">
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Temp [K]</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="2">
-                 <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_slopeResiduals">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="2">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_15">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="0">
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string>slope residuals</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_18">
-                  <property name="text">
-                   <string>standard error (relative)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>Temp mean [K]</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="2">
-                 <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_T_K">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>300.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="2">
-                 <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_Tmean_K">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>300.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_14">
-                  <property name="text">
-                   <string>slope (relative) [1/min]</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="2">
-                 <widget class="QDoubleSpinBox" name="spin_Sequence_threshold_slope_Kpmin">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item row="4" column="1" colspan="2">
-              <layout class="QGridLayout" name="gridLayout_15">
-               <item row="0" column="1">
-                <widget class="QComboBox" name="combo_thresholdsLoadingPreset"/>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_17">
-                 <property name="text">
-                  <string>Save preset</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_16">
-                 <property name="text">
-                  <string>Load preset</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_thresholdsSavingPreset"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLabel" name="label_21">
-               <property name="text">
-                <string>Sensor</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QComboBox" name="combo_SensorMeas_Instrument"/>
-             </item>
-             <item row="1" column="1">
-              <widget class="QComboBox" name="combo_SensorControl_Instrument"/>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>Instrument</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Offset between VTI &amp; Sample [K]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QComboBox" name="combo_SensorControl_Sensor"/>
-             </item>
-             <item row="2" column="2">
-              <widget class="QComboBox" name="combo_SensorMeas_Sensor"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Temperature Sensor for Measurements</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_10">
-               <property name="text">
-                <string>Temperature Sensor for Control</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QDoubleSpinBox" name="spin_Sequence_sampleOffsetLinear_K">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="maximum">
-                <double>300.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1" colspan="2">
-              <widget class="QCommandLinkButton" name="command_sendThresholds">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Send Configuration</string>
-               </property>
               </widget>
              </item>
             </layout>
@@ -1166,12 +996,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>208</y>
+     <x>551</x>
+     <y>249</y>
     </hint>
     <hint type="destinationlabel">
-     <x>343</x>
-     <y>201</y>
+     <x>333</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -1182,12 +1012,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>248</y>
+     <x>551</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
-     <x>385</x>
-     <y>241</y>
+     <x>375</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -1198,12 +1028,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>288</y>
+     <x>551</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
-     <x>375</x>
-     <y>281</y>
+     <x>365</x>
+     <y>322</y>
     </hint>
    </hints>
   </connection>
@@ -1214,12 +1044,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>462</y>
+     <x>551</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
-     <x>404</x>
-     <y>455</y>
+     <x>394</x>
+     <y>537</y>
     </hint>
    </hints>
   </connection>
@@ -1230,12 +1060,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>502</y>
+     <x>551</x>
+     <y>584</y>
     </hint>
     <hint type="destinationlabel">
-     <x>357</x>
-     <y>495</y>
+     <x>347</x>
+     <y>577</y>
     </hint>
    </hints>
   </connection>
@@ -1246,12 +1076,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>542</y>
+     <x>551</x>
+     <y>624</y>
     </hint>
     <hint type="destinationlabel">
-     <x>375</x>
-     <y>535</y>
+     <x>365</x>
+     <y>617</y>
     </hint>
    </hints>
   </connection>
@@ -1262,12 +1092,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>582</y>
+     <x>551</x>
+     <y>664</y>
     </hint>
     <hint type="destinationlabel">
-     <x>393</x>
-     <y>575</y>
+     <x>383</x>
+     <y>657</y>
     </hint>
    </hints>
   </connection>
@@ -1278,12 +1108,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>622</y>
+     <x>551</x>
+     <y>704</y>
     </hint>
     <hint type="destinationlabel">
-     <x>379</x>
-     <y>615</y>
+     <x>369</x>
+     <y>697</y>
     </hint>
    </hints>
   </connection>
@@ -1294,12 +1124,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>797</y>
+     <x>551</x>
+     <y>920</y>
     </hint>
     <hint type="destinationlabel">
-     <x>411</x>
-     <y>790</y>
+     <x>401</x>
+     <y>913</y>
     </hint>
    </hints>
   </connection>
@@ -1310,12 +1140,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>917</y>
+     <x>551</x>
+     <y>1037</y>
     </hint>
     <hint type="destinationlabel">
-     <x>408</x>
-     <y>910</y>
+     <x>398</x>
+     <y>1033</y>
     </hint>
    </hints>
   </connection>
@@ -1326,12 +1156,12 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>957</y>
+     <x>551</x>
+     <y>1070</y>
     </hint>
     <hint type="destinationlabel">
-     <x>402</x>
-     <y>950</y>
+     <x>392</x>
+     <y>1073</y>
     </hint>
    </hints>
   </connection>
@@ -1342,12 +1172,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>208</y>
+     <x>551</x>
+     <y>249</y>
     </hint>
     <hint type="destinationlabel">
-     <x>295</x>
-     <y>201</y>
+     <x>285</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -1358,12 +1188,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>248</y>
+     <x>551</x>
+     <y>289</y>
     </hint>
     <hint type="destinationlabel">
-     <x>349</x>
-     <y>241</y>
+     <x>339</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -1374,12 +1204,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>288</y>
+     <x>551</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
-     <x>353</x>
-     <y>281</y>
+     <x>343</x>
+     <y>322</y>
     </hint>
    </hints>
   </connection>
@@ -1390,12 +1220,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>462</y>
+     <x>551</x>
+     <y>544</y>
     </hint>
     <hint type="destinationlabel">
-     <x>268</x>
-     <y>455</y>
+     <x>258</x>
+     <y>537</y>
     </hint>
    </hints>
   </connection>
@@ -1406,12 +1236,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>502</y>
+     <x>551</x>
+     <y>584</y>
     </hint>
     <hint type="destinationlabel">
-     <x>321</x>
-     <y>495</y>
+     <x>311</x>
+     <y>577</y>
     </hint>
    </hints>
   </connection>
@@ -1422,12 +1252,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>542</y>
+     <x>551</x>
+     <y>624</y>
     </hint>
     <hint type="destinationlabel">
-     <x>371</x>
-     <y>535</y>
+     <x>361</x>
+     <y>617</y>
     </hint>
    </hints>
   </connection>
@@ -1438,12 +1268,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>582</y>
+     <x>551</x>
+     <y>664</y>
     </hint>
     <hint type="destinationlabel">
-     <x>306</x>
-     <y>575</y>
+     <x>296</x>
+     <y>657</y>
     </hint>
    </hints>
   </connection>
@@ -1454,12 +1284,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>622</y>
+     <x>551</x>
+     <y>704</y>
     </hint>
     <hint type="destinationlabel">
-     <x>303</x>
-     <y>615</y>
+     <x>293</x>
+     <y>697</y>
     </hint>
    </hints>
   </connection>
@@ -1470,12 +1300,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>797</y>
+     <x>551</x>
+     <y>920</y>
     </hint>
     <hint type="destinationlabel">
-     <x>323</x>
-     <y>790</y>
+     <x>313</x>
+     <y>913</y>
     </hint>
    </hints>
   </connection>
@@ -1486,12 +1316,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>917</y>
+     <x>551</x>
+     <y>1031</y>
     </hint>
     <hint type="destinationlabel">
-     <x>393</x>
-     <y>910</y>
+     <x>383</x>
+     <y>1033</y>
     </hint>
    </hints>
   </connection>
@@ -1502,12 +1332,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>957</y>
+     <x>551</x>
+     <y>1071</y>
     </hint>
     <hint type="destinationlabel">
-     <x>361</x>
-     <y>950</y>
+     <x>351</x>
+     <y>1073</y>
     </hint>
    </hints>
   </connection>
@@ -1518,44 +1348,44 @@ hardware Address</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>837</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>430</x>
-     <y>830</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_12</sender>
-   <signal>clicked()</signal>
-   <receiver>lineGPIB_INSTRUMENT_12</receiver>
-   <slot>setFocus()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>710</x>
-     <y>837</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>328</x>
-     <y>830</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_13</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>lineGPIB_INSTRUMENT_13</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>710</x>
-     <y>877</y>
+     <x>476</x>
+     <y>937</y>
     </hint>
     <hint type="destinationlabel">
      <x>420</x>
-     <y>870</y>
+     <y>941</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_12</sender>
+   <signal>clicked()</signal>
+   <receiver>lineGPIB_INSTRUMENT_12</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>517</x>
+     <y>950</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>318</x>
+     <y>949</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_13</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>lineGPIB_INSTRUMENT_13</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>521</x>
+     <y>986</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>980</y>
     </hint>
    </hints>
   </connection>
@@ -1566,12 +1396,12 @@ hardware Address</string>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>710</x>
-     <y>877</y>
+     <x>522</x>
+     <y>984</y>
     </hint>
     <hint type="destinationlabel">
-     <x>318</x>
-     <y>870</y>
+     <x>308</x>
+     <y>985</y>
     </hint>
    </hints>
   </connection>

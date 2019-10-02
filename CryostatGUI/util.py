@@ -754,8 +754,8 @@ class Window_plotting_specification(Window_ui):
 
         self.parse_presets()
 
-        self.combo_loadingpreset.currentIndexChanged[
-            'QString'].connect(self.restoring_preset)
+        # self.combo_loadingpreset.currentIndexChanged[
+        #     'QString'].connect(self.restoring_preset)
 
         self.buttonBox.clicked.connect(self.displaying)
 
