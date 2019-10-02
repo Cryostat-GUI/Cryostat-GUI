@@ -40,8 +40,8 @@ class LakeShore350(AbstractGPIBDeviceDriver):
         self.__init__()
     '''
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     # def go(self, command):
     #     """write a command to the instrument"""
@@ -1118,7 +1118,7 @@ class LakeShore350(AbstractGPIBDeviceDriver):
                 "Input_Value Parameter must be the integer 0 or a string in  ['A', 'B', 'C', 'D'].")
 
         # necessary to implement if-else for A,B,C,D or 0?
-        answer = self.query('KRDG? ' + '{0:1d}'.format(input_value))
+        answer = self.query('KRDG? ' + '{0:1}'.format(input_value))
         try:
             answer = [float(x) for x in answer]
         except TypeError as e:

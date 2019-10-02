@@ -114,8 +114,8 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
     """
     timeouterror = VisaIOError(-1073807339)
 
-    def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # self._visa_resource.query_delay = 0.
         self._visa_resource.timeout = timeout
@@ -145,9 +145,10 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
 class AbstractGPIBDeviceDriver(AbstractVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, comLock, **kwargs):
-        super().__init__(**kwargs)
-        self._comLock = comLock
+    def __init__(self, comLock=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if comLock is not None:
+            self._comLock = comLock
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
