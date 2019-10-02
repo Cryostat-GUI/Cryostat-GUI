@@ -1829,7 +1829,10 @@ class LakeShore350(AbstractGPIBDeviceDriver):
                 "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
         answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
-        return [float(x) for x in answer]
+        try:
+            return [float(x) for x in answer]
+        except TypeError:
+            return float(answer)
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
