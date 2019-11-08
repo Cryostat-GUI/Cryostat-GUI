@@ -45,8 +45,8 @@ class Keithley6221(AbstractGPIBDeviceDriver):
 
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     # def go(self, command):
     #     return super().go(command)
