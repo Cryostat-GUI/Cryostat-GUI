@@ -170,7 +170,6 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         """
         pass
 
-
     def query_error(self):
         """As error and status messages occur, they are placed in the Error Queue. This query command
         is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
@@ -183,3 +182,49 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
         return self.query(':SYST:ERR?')
+
+    def error_gen(self):
+        """As error and status messages occur, they are placed in the Error Queue. This query command
+        is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
+        hold up to ten messages. Each time you read the queue, the “oldest” message is read, and that
+        message is then removed from the queue.
+        If the queue becomes full, the “350, Queue Overflow” message occupies the last memory
+        location in the register. On power-up, the queue is empty. When the Error Queue is empty, the
+        “0, No error” message is placed in the Error Queue.
+        The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
+        defined messages, and positive (+) numbers are used for Keithley defined messages.
+        Appendix B lists the messages."""
+        yield self.query(':SYST:ERR?')
+
+    @property
+    def AC_frequency(self):
+        return self.query('Source:Wave:freq?')
+
+    @AC_frequency.setter
+    def AC_frequency(self, frequency):
+        self.go('Source:Wave:FREQ {}'.format(frequency))
+
+    @property
+    def AC_amplitude(self):
+        return self.query('Source:Wave:amplitude?')
+
+    @AC_amplitude.setter
+    def AC_amplitude(self, amplitude):
+        self.go('Source:Wave:amplitude {}'.format(amplitude))
+
+    def AC_setup_sine(self, frequency, amplitude):
+        self.go('*RST')
+        self.go('Source:Wave:function SIN')
+        self.AC_frequency = frequency
+        self.AC_amplitude = amplitude
+        self.go('Source:Wave:ranging BEST')
+        self.go('Source:Wave:duration:time infinity')
+        # self.write('Source:Wave:ARM')
+        # self.write('Source:Wave:Initiate')
+
+    def AC_start(self):
+        self.go('Source:Wave:ARM')
+        self.go('Source:Wave:Init')
+
+    def AC_stop(self):
+        self.go('Source:Wave:abort')
