@@ -35,6 +35,7 @@ ni = False
 try:
     # the pyvisa manager we'll use to connect to the GPIB resources
     NI_RESOURCE_MANAGER = visa.ResourceManager()
+#        'C:\\Windows\\System32\\visa32.dll')
     ni = True
 except OSError:
     logger.exception(
@@ -72,7 +73,8 @@ class AbstractVISADriver(object):
             raise NameError('The Keysight VISA library was not found!')
 
         resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
-        ) == 'ks' else NI_RESOURCE_MANAGER
+         ) == 'ks' else NI_RESOURCE_MANAGER
+#        resource_manager = NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
 
     def res_close(self):

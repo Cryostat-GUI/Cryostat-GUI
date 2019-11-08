@@ -188,6 +188,7 @@ class mainWindow(QtWidgets.QMainWindow):
         """window and GUI initialisatoins"""
 
         self.setup_logging_base()
+        # self.setup_logging()
 
         self.window_SystemsOnline = Window_ui(
             ui_file='.\\configurations\\Systems_online.ui')
@@ -296,7 +297,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.logger_personal.addHandler(self.Log_DBhandler)
 
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(logging.ERROR)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
@@ -307,9 +308,9 @@ class mainWindow(QtWidgets.QMainWindow):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
 
-        self.logger_all.setLevel(logging.DEBUG)
+        self.logger_all.setLevel(logging.INFO)
 
-        # self.logger_all.addHandler(self.Log_DBhandler)
+        self.logger_all.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
