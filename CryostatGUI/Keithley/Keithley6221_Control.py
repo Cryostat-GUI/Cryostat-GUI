@@ -62,7 +62,6 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         self.error = self.Keithley6221.query_error()
         if self.error[0] != '0':
             self.logger.error('code:{}, message:{}'.format(self.error[0], self.error[1].strip('"')))
-            raise AssertionError(self.error)
 
     def getCurrent_A(self):
         """return currently operated current value"""
