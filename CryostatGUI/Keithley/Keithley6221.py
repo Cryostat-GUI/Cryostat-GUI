@@ -170,7 +170,6 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         """
         pass
 
-
     def query_error(self):
         """As error and status messages occur, they are placed in the Error Queue. This query command
         is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
@@ -183,3 +182,16 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
         return self.query(':SYST:ERR?')
+
+    def error_gen(self):
+        """As error and status messages occur, they are placed in the Error Queue. This query command
+        is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
+        hold up to ten messages. Each time you read the queue, the “oldest” message is read, and that
+        message is then removed from the queue.
+        If the queue becomes full, the “350, Queue Overflow” message occupies the last memory
+        location in the register. On power-up, the queue is empty. When the Error Queue is empty, the
+        “0, No error” message is placed in the Error Queue.
+        The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
+        defined messages, and positive (+) numbers are used for Keithley defined messages.
+        Appendix B lists the messages."""
+        yield self.query(':SYST:ERR?')
