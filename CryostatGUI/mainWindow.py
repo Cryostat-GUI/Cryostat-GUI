@@ -280,8 +280,9 @@ class mainWindow(QtWidgets.QMainWindow):
             if d_bool:
                 mes_dict = json.loads(message)
                 # TODO: handle received data
+                raise genericAnswer(f'I do not know how to reply to that: {mes_dict}')
             else:
-                # the genericAnswer Exception is caughth in zmqquery_handle() 
+                # the genericAnswer Exception is caughth in zmqquery_handle()
                 raise genericAnswer(f'I do not know how to reply to that: {message}')
 
     def setup_logging_base(self):
