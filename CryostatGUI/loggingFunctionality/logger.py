@@ -33,6 +33,10 @@ from util import convert_time_date
 from sqlite3 import OperationalError
 
 
+import logging
+logger = logging.getLogger('CryostatGUI.loggingFunctionality')
+
+
 def testing_NaN(variable):
     try:
         if variable is not None:
@@ -476,13 +480,14 @@ class live_Logger(AbstractLoopThread):
                        'slope_residuals': lambda value, mean: value[1][0][0] * 60 if len(value[1][0]) > 0 else np.nan}
         self.noCalc = ['time', 'Time', 'logging',
                        'band', 'Loop', 'Range', 'Setup', 'calc']
+        start_http_server(8000)
+
         self.pre_init()
-        self.initialisation()
+        # self.initialisation() # this is done by starting this new thread anyways!
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
 
-        start_http_server(8000)
         
 
     @pyqtSlot()  # int
@@ -539,7 +544,14 @@ class live_Logger(AbstractLoopThread):
                             # print(instr, varkey)
                             self.data_live[instr][
                                 varkey].append(dic[varkey])
-                            self.Gauges[instr][varkey].set(dic[varkey])
+                            # print(instr, varkey)
+                            # print(self.Gauges)
+                            try:
+                                self.Gauges[instr][varkey].set(dic[varkey])
+                            except TypeError as err:
+                                logger.info(err.args[0])
+                            except ValueError as err:
+                                logger.info(err.args[0])                                
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -559,7 +571,7 @@ class live_Logger(AbstractLoopThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
-            self.sig_assertion.emit("live logger" + key.args[0])
+            self.sig_assertion.emit("live logger: " + key.args[0])
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -607,19 +619,31 @@ class live_Logger(AbstractLoopThread):
         self.time_init = False
         self.count = 0
         self.counting = True
-        self.Gauges = dict()
+        try:
+            self.Gauges['ITC']
+        except AttributeError:
+            self.Gauges = dict()
         with self.dataLock:
             with self.dataLock_live:
                 self.mainthread.data_live = deepcopy(self.data)
                 self.data_live = self.mainthread.data_live
                 for instrument in self.data:
+                    print(self.Gauges)
                     dic = self.data[instrument]
                     dic.update(timedict)
-                    self.Gauges[instrument] = dict()
+                    if instrument not in self.Gauges.keys():
+                        self.Gauges[instrument] = dict()
                     self.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.data_live[instrument][variablekey] = []
-                        self.Gauges[instrument][variablekey] = Gauge('CryoGUI_{}_{}'.format(instrument, variablekey), '')
+                        try:
+                            # print(instrument, variablekey)
+                            if variablekey not in self.Gauges[instrument].keys():
+                                self.Gauges[instrument][variablekey] = Gauge('CryoGUI_{}_{}'.format(instrument, variablekey), '')
+                                # print(self.Gauges)
+                        except ValueError:
+                            # print('sth went wrong', instrument, variablekey)
+                            logger.info('sth went wrong with registering prometheus Gauges')
                         if all([x not in variablekey for x in self.noCalc]):
                             for calc in self.calculations:
                                 self.data_live[instrument][
