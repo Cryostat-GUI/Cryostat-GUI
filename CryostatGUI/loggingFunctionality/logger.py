@@ -539,6 +539,7 @@ class live_Logger(AbstractLoopThread):
                             # print(instr, varkey)
                             self.data_live[instr][
                                 varkey].append(dic[varkey])
+                            self.Gauges[instr][varkey].set(dic[varkey])
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -606,6 +607,7 @@ class live_Logger(AbstractLoopThread):
         self.time_init = False
         self.count = 0
         self.counting = True
+        self.Gauges = dict()
         with self.dataLock:
             with self.dataLock_live:
                 self.mainthread.data_live = deepcopy(self.data)
@@ -613,9 +615,11 @@ class live_Logger(AbstractLoopThread):
                 for instrument in self.data:
                     dic = self.data[instrument]
                     dic.update(timedict)
+                    self.Gauges[instrument] = dict()
                     self.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.data_live[instrument][variablekey] = []
+                        self.Gauges[instrument][variablekey] = Gauge('CryoGUI_{}_{}'.format(instrument, variablekey), '')
                         if all([x not in variablekey for x in self.noCalc]):
                             for calc in self.calculations:
                                 self.data_live[instrument][
