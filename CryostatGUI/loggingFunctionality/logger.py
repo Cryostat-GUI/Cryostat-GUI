@@ -619,6 +619,7 @@ class live_Logger(AbstractLoopThread):
                     self.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.data_live[instrument][variablekey] = []
+                        print(instrument, variablekey)
                         self.Gauges[instrument][variablekey] = Gauge('CryoGUI_{}_{}'.format(instrument, variablekey), '')
                         if all([x not in variablekey for x in self.noCalc]):
                             for calc in self.calculations:
