@@ -623,6 +623,8 @@ class live_Logger(AbstractLoopThread):
             self.Gauges['ITC']
         except AttributeError:
             self.Gauges = dict()
+        except KeyError:
+            pass
         with self.dataLock:
             with self.dataLock_live:
                 self.mainthread.data_live = deepcopy(self.data)

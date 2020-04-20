@@ -17,6 +17,7 @@ from copy import deepcopy
 #
 # import LockIn
 
+import numpy as np
 from pymeasure.instruments.srs import SR830
 
 from util import AbstractLoopThread
@@ -64,7 +65,10 @@ class SR830_Updater(AbstractLoopThread):
             (self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50)
         data['SampleCurrent_mA'] = SampleCurrent_A * 1e3
 
-        data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+        try:
+            data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+        except ZeroDivisionError:
+            data['SampleResistance_Ohm'] = np.NaN
 
         data['realtime'] = datetime.now()
 
