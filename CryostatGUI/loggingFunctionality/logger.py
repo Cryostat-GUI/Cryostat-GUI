@@ -483,12 +483,11 @@ class live_Logger(AbstractLoopThread):
         start_http_server(8000)
 
         self.pre_init()
-        # self.initialisation() # this is done by starting this new thread anyways!
+        # self.initialisation() # this is done by starting this new thread
+        # anyways!
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
-
-        
 
     @pyqtSlot()  # int
     def work(self):
@@ -549,9 +548,11 @@ class live_Logger(AbstractLoopThread):
                             try:
                                 self.Gauges[instr][varkey].set(dic[varkey])
                             except TypeError as err:
-                                logger.info(err.args[0])
+                                if not err.args[0] == "float() argument must be a string or a number, not 'datetime.datetime'":
+                                    logger.exception(err.args[0])
                             except ValueError as err:
-                                logger.info(err.args[0])                                
+                                if not err.args[0].startswith('could not convert string to float'):
+                                    logger.exception(err.args[0])
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -641,11 +642,13 @@ class live_Logger(AbstractLoopThread):
                         try:
                             # print(instrument, variablekey)
                             if variablekey not in self.Gauges[instrument].keys():
-                                self.Gauges[instrument][variablekey] = Gauge('CryoGUI_{}_{}'.format(instrument, variablekey), '')
+                                self.Gauges[instrument][variablekey] = Gauge(
+                                    'CryoGUI_{}_{}'.format(instrument, variablekey), '')
                                 # print(self.Gauges)
                         except ValueError:
                             # print('sth went wrong', instrument, variablekey)
-                            logger.info('sth went wrong with registering prometheus Gauges')
+                            logger.info(
+                                'sth went wrong with registering prometheus Gauges')
                         if all([x not in variablekey for x in self.noCalc]):
                             for calc in self.calculations:
                                 self.data_live[instrument][
