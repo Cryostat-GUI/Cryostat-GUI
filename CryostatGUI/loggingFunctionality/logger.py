@@ -548,11 +548,15 @@ class live_Logger(AbstractLoopThread):
                             try:
                                 self.Gauges[instr][varkey].set(dic[varkey])
                             except TypeError as err:
-                                if not err.args[0] == "float() argument must be a string or a number, not 'datetime.datetime'":
+                                if not err.args[0].startswith("float() argument must be a string or a number"):
                                     logger.exception(err.args[0])
+                                else:
+                                    logger.debug(err.args[0])
                             except ValueError as err:
                                 if not err.args[0].startswith('could not convert string to float'):
                                     logger.exception(err.args[0])
+                                else:
+                                    logger.debug(err.args[0])
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
