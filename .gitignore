@@ -4,6 +4,7 @@ __pycache__
 *.iml
 *archiv*
 *.DS_Store*
+*png
 *.db*
 *.pickle
 *.idea
