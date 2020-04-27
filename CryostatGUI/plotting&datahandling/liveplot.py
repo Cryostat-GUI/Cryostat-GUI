@@ -9,7 +9,7 @@ data = 'Logs/cooldown_20200422_2.db'
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
-line, = ax1.plot([], [], 'o', color='b')
+line, = ax1.plot([], [], 'o-', color='b', markersize=5)
 
 
 def create_connection(db_file):
