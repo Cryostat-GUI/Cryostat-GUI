@@ -2,7 +2,7 @@
 from data_functions import conf
 
 filebase = './../Logs/'
-data = filebase + 'cooldown_20200422_2.db'
+data = filebase + 'cooldown_20200422_5.db'
 
 
 if __name__ == '__main__':

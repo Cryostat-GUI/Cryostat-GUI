@@ -8,10 +8,14 @@ import numpy as np
 
 filebase = './../Logs/'
 data_static = [dict(filename=filebase + 'cooldown_20200422_2.db',
-                    label='0 deg', df=None), 
-              ]
-data_dyn = [dict(filename=filebase + 'cooldown_20200422_3.db',
-                 label='45 deg', df=None)]
+                    label='0 deg', df=None),
+               dict(filename=filebase + 'cooldown_20200422_3.db',
+                    label='45 deg', df=None),
+               dict(filename=filebase + 'cooldown_20200422_4.db',
+                    label='100 deg', df=None),
+               ]
+data_dyn = [dict(filename=filebase + 'cooldown_20200422_5.db',
+                 label='135 deg', df=None)]
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
