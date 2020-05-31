@@ -74,7 +74,7 @@ class AbstractVISADriver(object):
 
         resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
          ) == 'ks' else NI_RESOURCE_MANAGER
-#        resource_manager = NI_RESOURCE_MANAGER
+        #        resource_manager = NI_RESOURCE_MANAGER
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
 
     def res_close(self):
