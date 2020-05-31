@@ -244,12 +244,12 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setHeater_Range(self, range_value = None):
+    def setHeater_Range(self, range_value=None):
         """set Heater Range for Output 1
         """
-        if range_value == None:
+        if range_value is None:
             self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
-        if not range_value == None:
+        elif range_value is not None:
             self.LakeShore350.HeaterRangeCommand(1, range_value)
 
     @pyqtSlot()
