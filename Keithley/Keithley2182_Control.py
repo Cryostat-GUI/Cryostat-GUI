@@ -44,7 +44,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     def running(self):
         """Measure Voltage, send the data"""
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
-        self.sennsors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
+        self.sensors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
         self.sensors['Present_K'] = self.Keithley2182.measurePresentTemperature()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
