@@ -43,19 +43,25 @@ from datetime import timedelta as td
 from visa import VisaIOError
 from threading import Lock
 
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
-from PyQt5 import QtWidgets
 
-from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
+from zmqcomms import zmqClient
+
+
 logger = logging.getLogger('CryostatGUI.utility')
+
+
+class BlockedError(Exception):
+    pass
 
 
 def convert_time_date(ts):
@@ -302,6 +308,21 @@ class loops_off:
             thread.lock.release()
 
 
+class noblockLock(object):
+    """docstring for noblockLock"""
+
+    def __init__(self, lock):
+        super().__init__()
+        self._lock = lock
+
+    def __enter__(self, *args, **kwargs):
+        if not self._lock.acquire(blocking=False):
+            raise BlockedError
+
+    def __exit__(self, *args, **kwargs):
+        self._lock.release()
+
+
 # class controls_software_disabled:
 #     """Context manager for disabling all controls in GUI"""
 
@@ -347,6 +368,63 @@ class controls_hardware_disabled:
 
 #     def __exit__(self, *args, **kwargs):
 #         self.lock.release()
+
+
+class AbstractApp(QtWidgets.QMainWindow):
+    """docstring for AbstractApp"""
+
+    sig_assertion = pyqtSignal(str)
+    sig_visaerror = pyqtSignal(str)
+    sig_visatimeout = pyqtSignal()
+    timeouterror = VisaIOError(-1073807339)
+    sig_Infodata = pyqtSignal(dict)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
+
+
+class AbstractLoopApp(AbstractApp):
+    """Abstract application class to be used with instruments 
+
+    this needs to be used in conjunction with a zmqClass!
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.interval = 0.5  # second
+        self.lock = Lock()
+
+    @pyqtSlot()  # int
+    # @ExceptionHandling  # this is being done with all functions again, still...
+    def work(self):
+        """class method which is working all the time while the thread is running. """
+        try:
+            self.zmq_handle()
+            with noblockLock(self.lock):
+                self.running()
+        except BlockedError:
+            pass
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.work)
+
+    def running(self):
+        """class method to be overriden """
+        raise NotImplementedError
+
+    @pyqtSlot(float)
+    def setInterval(self, interval):
+        """set the interval between running events in seconds"""
+        self.interval = interval
+
+
+class AbstractLoopClient(AbstractLoopApp, zmqClient):
+    """docstring for AbstractLoopClient"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class AbstractThread(QObject):
@@ -938,7 +1016,8 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit('plotting: do not choose "-" '
                                         'please, there is nothing behind it!')
-                    logger.warning('do not choose "-" please, there is nothing behind it!')
+                    logger.warning(
+                        'do not choose "-" please, there is nothing behind it!')
                     return
 
         GUI_value.clear()
@@ -977,7 +1056,8 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit(
                         'Plotting: There was to be an empty plot - I ignored it....')
-                    logger.warning('There was to be an empty plot - I ignored it....')
+                    logger.warning(
+                        'There was to be an empty plot - I ignored it....')
                     continue
                 y = []
                 # print(x)
@@ -992,7 +1072,8 @@ class Window_plotting_specification(Window_ui):
                             labels_l.append('{}: {}'.format(
                                 plot_entry[ax]['instrument'], plot_entry[ax]['value']))
                         except KeyError:
-                            logger.warning('some key was specified which is not present in the data!')
+                            logger.warning(
+                                'some key was specified which is not present in the data!')
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
 

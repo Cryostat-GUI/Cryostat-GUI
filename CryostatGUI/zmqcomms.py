@@ -14,21 +14,6 @@ class customEx(Exception):
     pass
 
 
-class ZMQdevice(object):
-    """docstring for ZMQdevice"""
-
-    def __init__(self, zmqcontext=None, port=5556, *args, **kwargs):
-        super(ZMQdevice, self).__init__(*args, **kwargs)
-        try:
-
-            self.zmq_tcp = self.zmq_context.socket(zmq.REP)
-        except AttributeError:
-            self.zmqcontext = zmq.Context()
-            self.zmq_tcp = self.zmq_context.socket(zmq.REP)
-
-        self.zmq_tcp.bind(f"tcp://*:{port}")
-
-
 def zmqquery_handle(socket, handlefun):
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
     # context = zmq.Context()
@@ -88,3 +73,179 @@ def zmqquery_dict(socket, query):
         return -1
     except customEx:
         return message
+
+
+class zmqBare(object):
+    """docstring for zmqBare"""
+    pass
+
+
+class zmqClient(zmqBare):
+    """docstring for zmqDev"""
+
+    def __init__(self, context=None, _ident=None, ip_maincontrol='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._name = _ident
+        self._zctx = context or zmq.Context()
+        self.comms_tcp = self._zctx.socket(zmq.DEALER)
+        self.comms_tcp.identity = u'client{}'.format(
+            _ident).encode('ascii')  # id
+        self.comms_tcp.connect(f'tcp://{ip_maincontrol}:{port_reqp}')
+
+        self.comms_downstream = self._zctx.socket(zmq.SUB)
+        self.comms_downstream.connect(f'tcp://{ip_maincontrol}:{port_downstream}')
+        self.comms_downstream.setsockopt(
+            zmq.SUBSCRIBE, u'{}'.format(self.name).encode('ascii'))
+        # zmq.SUBSCRIBE, b'')
+
+        self.comms_upstream = self._zctx.socket(zmq.PUB)
+        self.comms_upstream.connect(f'tcp://{ip_maincontrol}:{port_upstream}')
+
+        self.poller = zmq.Poller()
+        self.poller.register(self.comms_tcp, zmq.POLLIN)
+        self.poller.register(self.comms_downstream, zmq.POLLIN)
+
+    # def work_zmq(self):
+    #     try:
+    #         # self.comms_pub.send_multipart([u'client{}'.format(self.name).encode(
+    #         #     'ascii'), u'comes from client{}'.format(self.name).encode('ascii')])
+    #         # print(f'client {self._name} polling')
+    #         self.zmq_handle()
+    #     except KeyboardInterrupt:
+    #         pass
+
+    def zmq_handle(self):
+        evts = dict(self.poller.poll(zmq.DONTWAIT))
+        if self.comms_tcp in evts:
+            try:
+                while True:
+                    msg = self.comms_tcp.recv(zmq.NOBLOCK)
+                    if msg.decode('utf-8')[-1] == '?':
+                        pass
+                        # answer = retrieve_answer()
+                        # self.comms_tcp.send(answer)
+
+            except zmq.Again:
+                pass
+        if self.comms_downstream in evts:
+            try:
+                while True:
+                    msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
+                    self.act_on_command(msg)
+                    # act on commands!
+            except zmq.Again as e:
+                pass
+
+    def act_on_command(self, command):
+        raise NotImplementedError
+
+
+class zmqMainControl(zmqBare):
+    """docstring for zmqDev"""
+
+    def __init__(self, context=None, _ident='mainControl', ip_maincontrol='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._name = _ident
+        self._zctx = context or zmq.Context()
+        self.comms_tcp = self._zctx.socket(zmq.ROUTER)
+        self.comms_tcp.identity = b'mainControl'  # id
+        self.comms_tcp.bind(f'tcp://{ip_maincontrol}:{port_reqp}')
+
+        self.comms_downstream = self._zctx.socket(zmq.PUB)
+        self.comms_downstream.bind(f'tcp://{ip_maincontrol}:{port_downstream}')
+
+        self.comms_inproc = self._zctx.socket(zmq.ROUTER)
+        self.comms_inproc.identity = b'mainControl'  # id
+        self.comms_inproc.bind(f'inproc://main')
+        # self.comms_upstream = self._zctx.socket(zmq.SUB)
+        # self.comms_upstream.bind(f'tcp://{ip_maincontrol}:{port_upstream}')
+        # self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b'')
+
+        self.poller = zmq.Poller()
+        self.poller.register(self.comms_tcp, zmq.POLLIN)
+        self.poller.register(self.comms_inproc, zmq.POLLIN)
+        self.ct = 0
+
+    # def work(self):
+    #     # print('polling')
+    #     self.zmq_handle()
+
+    def zmq_handle(self):
+        # try:
+            # while True:
+        evts = dict(self.poller.poll(zmq.DONTWAIT))
+        if self.comms_tcp in evts:
+            try:
+                while True:
+                    msg = self.comms_tcp.recv_multipart(
+                        zmq.NOBLOCK)
+                    address, message = msg[0], msg[1]
+                    if message.decode('utf-8')[-1] == '?':
+                        pass
+                    # do something, most likely this will not be used
+                    # extensively
+
+            except zmq.Again:
+                pass
+        if self.comms_inproc in evts:
+            try:
+                while True:
+                    msg = self.comms_inproc.recv_multipart(
+                        zmq.NOBLOCK)
+                    address, message = msg[0], msg[1]
+                    if message.decode('utf-8')[-1] == '?':
+                        pass
+                        # do something - here, most likely a query is passed on to
+                        # the dataStore, and the answer is returned in turn
+                        self.comms_inproc.send_multipart(
+                            [b'dataStore', message])
+                        _, data = self.comms_inproc.recv_multipart()
+                        self.comms_tcp.send_multipart([address, data])
+            except zmq.Again:
+                pass
+
+
+class zmqDataStore(zmqBare):
+    """docstring for zmqDev"""
+
+    def __init__(self, context=None, _ident='dataStore', ip_maincontrol='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._name = _ident
+        self._zctx = context or zmq.Context()
+        self.comms_tcp = self._zctx.socket(zmq.DEALER)
+        self.comms_tcp.identity = b'dataStore'  # id
+        self.comms_tcp.connect(f'tcp://{ip_maincontrol}:{port_reqp}')
+
+        self.comms_upstream = self._zctx.socket(zmq.SUB)
+        self.comms_upstream.bind(f'tcp://{ip_maincontrol}:{port_upstream}')
+        self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b'')
+
+        self.poller = zmq.Poller()
+        self.poller.register(self.comms_tcp, zmq.POLLIN)
+        self.poller.register(self.comms_upstream, zmq.POLLIN)
+        self.ct = 0
+
+    # def work(self):
+    #     self.zmq_handle()
+
+    def zmq_handle(self):
+        evts = dict(self.poller.poll(zmq.DONTWAIT))
+        if self.comms_tcp in evts:
+            try:
+                while True:
+                    msg = self.comms_tcp.recv(zmq.NOBLOCK)
+                    if msg.decode('utf-8')[-1] == '?':
+                        pass
+                        # self.comms_tcp.send()
+                    # do something - most likely hand out data to an asking
+                    # process
+            except zmq.Again:
+                pass
+        if self.comms_upstream in evts:
+            try:
+                while True:
+                    msg = self.comms_upstream.recv_multipart(zmq.NOBLOCK)
+                    # print(msg)
+                    # store data!
+            except zmq.Again as e:
+                pass
