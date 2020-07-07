@@ -513,94 +513,83 @@ class Window_ui(QtWidgets.QWidget):
         # event.accept()  # let the window close
         super().closeEvent(event)
 
+class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
-# class Window_plotting(QtWidgets.QDialog, Window_ui):
-#     """Small window containing a plot, which updates itself regularly"""
-#     sig_closing = pyqtSignal()
+    def __init__(self, icon, parent=None):
+        super(SystemTrayIcon, self).__init__(icon, parent)
+        parent.pyqt_trayMenu = QtWidgets.QMenu(parent)
+        exitAction = parent.pyqt_trayMenu.addAction("Exit")
+        exitAction.triggered.connect(parent.close)
+        self.setContextMenu(parent.pyqt_trayMenu)
 
-#     def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
-#         """storing data, building the window layout, starting timer to update"""
-#         super().__init__(**kwargs)
-#         self.data = data
-#         self.label_x = label_x
-#         self.label_y = label_y
-#         self.title = title
-#         self.legend = legend_labels
-#         self.number = number
-#         if 'lock' in kwargs:
-#             self.lock = kwargs['lock']
-#         else:
-#             self.lock = dummy()
 
-#         self.interval = 2
+class Window_trayService_ui(QtWidgets.QWidget):
+    """Class for a small window, the UI of which is loaded from the .ui file
 
-#         # a figure instance to plot on
-#         self.figure = Figure()
+    emits a signal when being closed
+    """
 
-#         # this is the Canvas Widget that displays the `figure`
-#         # it takes the `figure` instance as a parameter to __init__
-#         self.canvas = FigureCanvas(self.figure)
+    sig_closing = pyqtSignal()
+    sig_error = pyqtSignal(str)
 
-#         # this is the Navigation widget
-#         # it takes the Canvas widget and a parent
-#         self.toolbar = NavigationToolbar(self.canvas, self)
+    def __init__(self, ui_file=None, **kwargs):
+        self.logger = logging.getLogger(__name__)
+        super().__init__(**kwargs)
+        if ui_file is not None:
+            loadUi(ui_file, self)
 
-#         # Just some button connected to `plot` method
-#         # self.button = QtWidgets.QPushButton('Plot')
-#         # self.button.clicked.connect(self.plot)
+        icon = QtGui.QIcon('TU-Signet.png')
+        self.pyqt_sysTray = SystemTrayIcon(icon, self)
+        # self.pyqt_sysTray.setIcon(QtGui.QIcon(icon))
+        self.setWindowIcon(QtGui.QIcon(icon))
 
-#         # set the layout
-#         layout = QtWidgets.QVBoxLayout()
-#         layout.addWidget(self.toolbar)
-#         layout.addWidget(self.canvas)
-#         # layout.addWidget(self.button)
-#         self.setLayout(layout)
-#         self.lines = []
-#         self.plot_base()
+        self.pyqt_sysTray.activated.connect(self.restore_window)
+        
+        # for demonstration purpose:
+    #     dummy = self.pyqt_trayMenu.addAction('nothing')
+    #     dummy.triggered.connect(self.nothing)
 
-#         self.timer = QTimer()
-#         self.timer.timeout.connect(self.plot)
-#         self.timer.start(self.interval * 1e3)
+    # def nothing(self):
+    #     print('wweeeee')
 
-#     def plot_base(self):
-#         """create the first plot"""
+    def initialise_minimized(self):
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)
+        self.pyqt_sysTray.show()
+        self.hide()
 
-#         self.ax = self.figure.add_subplot(111)
-#         self.ax.set_title(self.title)
-#         self.ax.set_xlabel(self.label_x)
-#         self.ax.set_ylabel(self.label_y)
+    def event(self, event):
+        if (event.type() == QtCore.QEvent.WindowStateChange and
+                self.isMinimized()):
+            # take out of taskbar
+            self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)
+            self.pyqt_sysTray.show()
+            return True
+        else:
+            return super().event(event)
 
-#         # discards the old graph
-#         if not isinstance(self.data, list):
-#             self.data = [self.data]
-#         self.ax.clear()
-#         # print(self.data)
-#         with self.lock:
-#             for entry, label in zip(self.data, self.legend):
-#                 ent0, ent1 = shaping(entry)
-#                 self.lines.append(self.ax.plot(
-#                     ent0, ent1, '*-', label=label)[0])
-#         self.ax.legend()
+    def closeEvent(self, event):
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            'Message', "Are you sure to quit this application?\n\n" +
+            "'Yes'    will kill me (if I am a service, I might restart immediately)\n" +
+            "'No'     will minimize me to the Tray\n" +
+            "'Cancel' will do....nothing",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel)
 
-#     def plot(self):
-#         ''' update the plotted data in-place '''
-#         try:
-#             with self.lock:
-#                 for ct, entry in enumerate(self.data):
-#                     ent0, ent1 = shaping(entry)
-#                     self.lines[ct].set_xdata(ent0)
-#                     self.lines[ct].set_ydata(ent1)
-#             self.ax.relim()
-#             self.ax.autoscale_view()
-#             self.canvas.draw()
-#         except ValueError as e_val:
-#             print('ValueError: ', e_val.args[0])
+        if reply == QtWidgets.QMessageBox.Yes:
+            event.accept()
+        elif reply == QtWidgets.QMessageBox.Cancel:
+            event.ignore()
+        else:
+            self.pyqt_sysTray.show()
+            self.hide()
+            event.ignore()
 
-#     def closeEvent(self, event):
-#         """stop the timer for updating the plot, super to parent class method"""
-#         self.timer.stop()
-#         super().closeEvent(event)
-#     #     del self
+    def restore_window(self, reason):
+        if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
+            self.pyqt_sysTray.hide()
+            self.showNormal()
 
 
 class Window_plotting_m(Window_ui):
