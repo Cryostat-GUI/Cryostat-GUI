@@ -98,19 +98,6 @@ def convert_time_realtime_reverse(tstr):
     return var
     pass
 
-# def loopcontrol_threads(threads, loopcondition):
-#     """
-#         temporarily turn off the loop function of
-#         an AbstractLoopThread class instance
-#     """
-#     for thread in threads:
-#         # with suppress(AttributeError):  # eventhandlingThread somewhere....
-#         #     while bool(thread[0].loop) is bool(loopcondition):
-#         #         time.sleep(0.1)  # wait
-#         #     thread[0].loop = loopcondition
-#         if loopcondition:
-#             thread[0].lock.release()
-
 
 def shaping(entry):
     """adjust the shape of data-arrays given to matplotlib,
@@ -200,38 +187,38 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, 'Index', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            logger.exception(s)
+            args[0].logger.exception(s)
 
         except NotImplementedError as e:
+            s = ExceptionSignal(args[0], func, 'NotImplemented', e)
             # thread.logger.exception(s)
-            logger.exception(s)
-            e.args = [str(e)]
-            ExceptionSignal(args[0], func, 'NotImplemented', e)
+            args[0].logger.exception(s)
+            # e.args = [str(e)]
 
         except VisaIOError as e:
             if isinstance(e, type(args[0].timeouterror)) and \
@@ -240,12 +227,11 @@ def ExceptionHandling(func):
             else:
                 s = ExceptionSignal(args[0], func, 'VisaIO', e)
                 # thread.logger.exception(s)
-                logger.exception(s)
+                args[0].logger.exception(s)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
-            # thread.logger.exception(e)
-            logger.exception(e)
+            args[0].logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
@@ -323,19 +309,6 @@ class noblockLock(object):
         self._lock.release()
 
 
-# class controls_software_disabled:
-#     """Context manager for disabling all controls in GUI"""
-
-#     def __init__(self, lock):
-#         self._lock = lock
-
-#     def __enter__(self, *args, **kwargs):
-#         self._lock.acquire()
-
-#     def __exit__(self, *args, **kwargs):
-#         self._lock.release()
-
-
 class controls_hardware_disabled:
     """Context manager for disabling all Front panel controls
         on instruments
@@ -354,20 +327,6 @@ class controls_hardware_disabled:
         for thread in self._threads:
             self._threads[thread][0].toggle_frontpanel(True)
         self._lock.release()
-
-
-# class locking:
-#     """Context manager for handling a simple lock"""
-
-#     def __init__(self, lock):
-#         self.lock = lock
-#         # print(lock)
-
-#     def __enter__(self, *args, **kwargs):
-#         self.lock.acquire()
-
-#     def __exit__(self, *args, **kwargs):
-#         self.lock.release()
 
 
 class AbstractApp(QtWidgets.QMainWindow):
@@ -396,7 +355,6 @@ class AbstractLoopApp(AbstractApp):
         self.lock = Lock()
 
     @pyqtSlot()  # int
-    # @ExceptionHandling  # this is being done with all functions again, still...
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
@@ -411,7 +369,7 @@ class AbstractLoopApp(AbstractApp):
             QTimer.singleShot(self.interval * 1e3, self.work)
 
     def running(self):
-        """class method to be overriden """
+        """class method to be overriden for periodic tasks"""
         raise NotImplementedError
 
     @pyqtSlot(float)
