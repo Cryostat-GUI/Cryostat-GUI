@@ -5,11 +5,12 @@ Classes:
             inherits from AbstractLoopThread
                 there, the looping behaviour of this thread is defined
 """
-from PyQt5.QtCore import pyqtSignal
+# from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
 # from importlib import reload
+import json
 
 # import LakeShore
 from LakeShore.LakeShore350 import LakeShore350
@@ -20,7 +21,7 @@ from util import ExceptionHandling
 from util import AbstractLoopClient
 
 from datetime import datetime
-import logging
+# import logging
 
 
 class LakeShore350_Control(AbstractLoopClient):
@@ -60,13 +61,13 @@ class LakeShore350_Control(AbstractLoopClient):
         Sensor_4_Ohm=None,
         OutputMode=None)
 
-    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
         # print(self.logger, self.logger.name)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'LakeShore350_Updater ' + InstrumentAddress
+        self.__name__ = 'LakeShore350_control ' + InstrumentAddress
         # global LakeShore
         # LS = reload(LakeShore.LakeShore350)
         try:
@@ -155,7 +156,8 @@ class LakeShore350_Control(AbstractLoopClient):
 
         self.sensors['realtime'] = datetime.now()
 
-        self.sig_Infodata.emit(deepcopy(self.sensors))
+        # self.sig_Infodata.emit(deepcopy(self.sensors))
+        self.comms_upstream.send_multipart([self.comms_name, json.dumps(self.sensors)])
 
     @ExceptionHandling
     def configSensor(self):
