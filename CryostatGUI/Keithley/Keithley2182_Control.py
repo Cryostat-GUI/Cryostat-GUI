@@ -26,12 +26,18 @@ class Keithley2182_Updater(AbstractLoopThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(Voltage_V=None)
+    sensors = dict(
+        Voltage_V=None,
+        Internal_K=None,
+        Present_K=None)
 
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.ERROR)
+        self.save_InstrumentAddress = InstrumentAddress
+        self.save_comLock = comLock
         # global Keithley
         # K_2182 = reload(Keithley.Keithley2182)
 
@@ -44,10 +50,20 @@ class Keithley2182_Updater(AbstractLoopThread):
     def running(self):
         """Measure Voltage, send the data"""
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
+        self.sensors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
+        self.sensors['Present_K'] = self.Keithley2182.measurePresentTemperature()
 
         self.sensors['realtime'] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
+
+        error = self.Keithley2182.query_error()
+        if error[0] != '0':
+            self.logger.error('code:{}, message:{}'.format(
+                error[0], error[1].strip('"')))
+            if error[0] == '-213':
+                self.Keithley2182 = Keithley2182(
+                    InstrumentAddress=self.save_InstrumentAddress, comLock=self.save_comLock)
 
     @pyqtSlot()
     @ExceptionHandling

@@ -40,9 +40,12 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        self.logger = logging.getLogger(__name__)
 
-        self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress, comLock=comLock)
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.ERROR)
+
+        self.Keithley6221 = Keithley6221(
+            InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off
@@ -50,6 +53,21 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
 #        self.Start_Current_value = 0
 #        self.Step_Current_value = 0
 #        self.Stop_Current_value = 0
+
+    def running(self):
+        """only needed for debugging
+        self.interval in parent class is definde as 500.
+        self.interval here is redefined for higher rate of queries.
+        """
+        self.interval = 0.5  # seconds
+        # error = self.Keithley6221.query_error()
+        for error in self.Keithley6221.error_gen():
+            if error[0] != '0':
+                self.logger.error('code:{}, message:{}'.format(
+                    error[0], error[1].strip('"')))
+                raise AssertionError(self.error)
+            else:
+                break
 
     def getCurrent_A(self):
         """return currently operated current value"""

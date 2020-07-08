@@ -18,6 +18,10 @@ import math
 from datetime import datetime
 
 
+from prometheus_client import start_http_server
+from prometheus_client import Gauge
+
+
 from util import AbstractLoopThread
 from util import AbstractEventhandlingThread
 from util import Window_ui
@@ -27,6 +31,10 @@ from util import convert_time_date
 
 
 from sqlite3 import OperationalError
+
+
+import logging
+logger = logging.getLogger('CryostatGUI.loggingFunctionality')
 
 
 def testing_NaN(variable):
@@ -226,7 +234,8 @@ class main_Logger(AbstractLoopThread):
         self.not_yet_initialised = False
         self.local_list = []
 
-        self.houroffset = (datetime.now() - datetime.utcnow()).total_seconds()/3600
+        self.houroffset = (datetime.now() - datetime.utcnow()
+                           ).total_seconds() / 3600
 
     def running(self):
         '''perpetual logging function, which is asking for logging data'''
@@ -309,7 +318,9 @@ class main_Logger(AbstractLoopThread):
             for key in dictname:
                 var, bools = testing_NaN(dictname[key])
                 if isinstance(var, type(datetime.now())):
-                    var = 'UTC' + '{:+05.0f} '.format(self.houroffset) + var.strftime('%Y-%m-%d  %H:%M:%S.%f')
+                    var = 'UTC' + \
+                        '{:+05.0f} '.format(self.houroffset) + \
+                        var.strftime('%Y-%m-%d  %H:%M:%S.%f')
                 if not bools:
                     sql = """UPDATE {table} SET {column}={value} WHERE {sec}={sec_now}""".format(table=tablename,
                                                                                                  column=key,
@@ -469,8 +480,11 @@ class live_Logger(AbstractLoopThread):
                        'slope_residuals': lambda value, mean: value[1][0][0] * 60 if len(value[1][0]) > 0 else np.nan}
         self.noCalc = ['time', 'Time', 'logging',
                        'band', 'Loop', 'Range', 'Setup', 'calc']
+        start_http_server(8000)
+
         self.pre_init()
-        self.initialisation()
+        # self.initialisation() # this is done by starting this new thread
+        # anyways!
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
@@ -529,6 +543,20 @@ class live_Logger(AbstractLoopThread):
                             # print(instr, varkey)
                             self.data_live[instr][
                                 varkey].append(dic[varkey])
+                            # print(instr, varkey)
+                            # print(self.Gauges)
+                            try:
+                                self.Gauges[instr][varkey].set(dic[varkey])
+                            except TypeError as err:
+                                if not err.args[0].startswith("float() argument must be a string or a number"):
+                                    logger.exception(err.args[0])
+                                else:
+                                    logger.debug(err.args[0])
+                            except ValueError as err:
+                                if not err.args[0].startswith('could not convert string to float'):
+                                    logger.exception(err.args[0])
+                                else:
+                                    logger.debug(err.args[0])
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -548,7 +576,7 @@ class live_Logger(AbstractLoopThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         except KeyError as key:
-            self.sig_assertion.emit("live logger" + key.args[0])
+            self.sig_assertion.emit("live logger: " + key.args[0])
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -596,16 +624,35 @@ class live_Logger(AbstractLoopThread):
         self.time_init = False
         self.count = 0
         self.counting = True
+        try:
+            self.Gauges['ITC']
+        except AttributeError:
+            self.Gauges = dict()
+        except KeyError:
+            pass
         with self.dataLock:
             with self.dataLock_live:
                 self.mainthread.data_live = deepcopy(self.data)
                 self.data_live = self.mainthread.data_live
                 for instrument in self.data:
+                    print(self.Gauges)
                     dic = self.data[instrument]
                     dic.update(timedict)
+                    if instrument not in self.Gauges.keys():
+                        self.Gauges[instrument] = dict()
                     self.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.data_live[instrument][variablekey] = []
+                        try:
+                            # print(instrument, variablekey)
+                            if variablekey not in self.Gauges[instrument].keys():
+                                self.Gauges[instrument][variablekey] = Gauge(
+                                    'CryoGUI_{}_{}'.format(instrument, variablekey), '')
+                                # print(self.Gauges)
+                        except ValueError:
+                            # print('sth went wrong', instrument, variablekey)
+                            logger.info(
+                                'sth went wrong with registering prometheus Gauges')
                         if all([x not in variablekey for x in self.noCalc]):
                             for calc in self.calculations:
                                 self.data_live[instrument][

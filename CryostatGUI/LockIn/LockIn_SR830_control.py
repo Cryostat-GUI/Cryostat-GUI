@@ -17,6 +17,7 @@ from copy import deepcopy
 #
 # import LockIn
 
+import numpy as np
 from pymeasure.instruments.srs import SR830
 
 from util import AbstractLoopThread
@@ -41,7 +42,7 @@ class SR830_Updater(AbstractLoopThread):
         self._comLock = comLock
 
         # self.interval = 0.05
-        self.ShuntResistance_Ohm = 0
+        self.ShuntResistance_Ohm = 1e3  # default value in the GUI
         self.ContactResistance_Ohm = 0
 
     @ExceptionHandling
@@ -59,12 +60,18 @@ class SR830_Updater(AbstractLoopThread):
             data['R_V'] = self.lockin.magnitude
             data['Theta_Deg'] = self.lockin.theta
 
+            data['ShuntResistance_user_Ohm'] = self.ShuntResistance_Ohm
+            data['ContactResistance_user_Ohm'] = self.ContactResistance_Ohm
+
         # in mili ampers, 50 ohm is the internal resistance of the lockin
         SampleCurrent_A = data['Voltage_V'] / \
             (self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50)
         data['SampleCurrent_mA'] = SampleCurrent_A * 1e3
 
-        data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+        try:
+            data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+        except ZeroDivisionError:
+            data['SampleResistance_Ohm'] = np.NaN
 
         data['realtime'] = datetime.now()
 

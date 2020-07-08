@@ -14,6 +14,21 @@ class customEx(Exception):
     pass
 
 
+class ZMQdevice(object):
+    """docstring for ZMQdevice"""
+
+    def __init__(self, zmqcontext=None, port=5556, *args, **kwargs):
+        super(ZMQdevice, self).__init__(*args, **kwargs)
+        try:
+
+            self.zmq_tcp = self.zmq_context.socket(zmq.REP)
+        except AttributeError:
+            self.zmqcontext = zmq.Context()
+            self.zmq_tcp = self.zmq_context.socket(zmq.REP)
+
+        self.zmq_tcp.bind(f"tcp://*:{port}")
+
+
 def zmqquery_handle(socket, handlefun):
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
     # context = zmq.Context()

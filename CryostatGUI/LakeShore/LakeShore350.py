@@ -12,6 +12,7 @@ import logging
 from itertools import combinations
 
 from drivers import AbstractGPIBDeviceDriver
+from drivers import AbstractEthernetDeviceDriver
 
 # create a logger object for this module
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ logger.addHandler(logging.StreamHandler())
 #         "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
 
 
-class LakeShore350(AbstractGPIBDeviceDriver):
+class LakeShore350_bare(object):
     '''class to interface with a LakeShore350
 
     in order to change the self.go() and self.query() commands,
@@ -40,8 +41,8 @@ class LakeShore350(AbstractGPIBDeviceDriver):
         self.__init__()
     '''
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     # def go(self, command):
     #     """write a command to the instrument"""
@@ -1118,7 +1119,7 @@ class LakeShore350(AbstractGPIBDeviceDriver):
                 "Input_Value Parameter must be the integer 0 or a string in  ['A', 'B', 'C', 'D'].")
 
         # necessary to implement if-else for A,B,C,D or 0?
-        answer = self.query('KRDG? ' + '{0:1d}'.format(input_value))
+        answer = self.query('KRDG? ' + '{0:1}'.format(input_value))
         try:
             answer = [float(x) for x in answer]
         except TypeError as e:
@@ -1829,7 +1830,10 @@ class LakeShore350(AbstractGPIBDeviceDriver):
                 "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
 
         answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
-        return [float(x) for x in answer]
+        try:
+            return [float(x) for x in answer]
+        except TypeError:
+            return float(answer)
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
@@ -2076,3 +2080,17 @@ class LakeShore350(AbstractGPIBDeviceDriver):
                 "Zone parameter must be an integer in between 1 - 10.")
 
         return self.query('ZONE? ' + '{0:1d},{1:2d}'.format(output, zone))
+
+
+class LakeShore350(AbstractGPIBDeviceDriver, LakeShore350_bare):
+    """docstring for LakeShore350"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class LakeShore350_ethernet(AbstractEthernetDeviceDriver, LakeShore350_bare):
+    """docstring for LakeShore350"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

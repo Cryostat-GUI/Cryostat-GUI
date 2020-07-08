@@ -6,3 +6,4 @@ functools
 pymeasure
 pyzmq
 measureSequences
+prometheus-client
