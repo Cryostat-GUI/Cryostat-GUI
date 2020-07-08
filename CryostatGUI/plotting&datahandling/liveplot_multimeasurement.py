@@ -7,15 +7,32 @@ import numpy as np
 
 
 filebase = './../Logs/'
-data_static = [dict(filename=filebase + 'cooldown_20200422_2.db',
-                    label='0 deg', df=None),
-               dict(filename=filebase + 'cooldown_20200422_3.db',
-                    label='45 deg', df=None),
-               dict(filename=filebase + 'cooldown_20200422_4.db',
-                    label='100 deg', df=None),
-               ]
-data_dyn = [dict(filename=filebase + 'cooldown_20200422_5.db',
-                 label='135 deg', df=None)]
+data_static = [
+    # dict(filename=filebase + 'cooldown_20200422_7.db',
+    #      label='0 deg', df=None),
+    # dict(filename=filebase + 'cooldown_20200422_8.db',
+    #      label='45 deg', df=None),
+    # dict(filename=filebase + 'cooldown_20200422_9.db',
+    #      label='70 deg', df=None),
+    dict(filename=filebase + 'cooldown_20200422_10.db',
+         label='0 deg', df=None),
+    dict(filename=filebase + 'cooldown_20200422_11.db',
+         label='90 deg', df=None),
+    dict(filename=filebase + 'cooldown_20200422_12.db',
+         label='90 deg rerun', df=None),
+    dict(filename=filebase + 'cooldown_20200422_13.db',
+         label='180 deg', df=None),
+    dict(filename=filebase + 'cooldown_20200422_14.db',
+         label='180 deg rerun', df=None),
+    dict(filename=filebase + 'cooldown_20200422_15.db',
+         label='90 deg rerun', df=None),
+    dict(filename=filebase + 'cooldown_20200422_17.db',
+         label='135', df=None),
+    dict(filename=filebase + 'cooldown_20200422_18.db',
+         label='135 deg rerun', df=None),
+]
+data_dyn = [dict(filename=filebase + 'cooldown_20200422_19.db',
+                 label='135 deg rerun2', df=None)]
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
