@@ -46,7 +46,7 @@ def zmqquery(socket, query):
                 raise customEx
             except zmq.Again:
                 time.sleep(0.2)
-                print('no answer')
+                logger.debug('no answer')
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
         return -1
@@ -67,7 +67,7 @@ def zmqquery_dict(socket, query):
                 raise customEx
             except zmq.Again:
                 time.sleep(0.2)
-                print('no answer')
+                logger.debug('no answer')
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
         return -1
