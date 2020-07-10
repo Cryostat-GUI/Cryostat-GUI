@@ -7,6 +7,7 @@ Classes:
 """
 # from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QTimer 
 from PyQt5 import QtWidgets
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
@@ -22,6 +23,8 @@ import sys
 from util import ExceptionHandling
 from util import AbstractLoopClient
 from util import Window_trayService_ui
+
+from zmqcomms import dec, enc
 
 from datetime import datetime
 # import logging
@@ -42,7 +45,7 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(
+    data = dict(
         Heater_Output_percentage=None,
         Heater_Output_mW=None,
         Temp_K=None,
@@ -171,46 +174,55 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
         Try to extract all current data from LakeShore350,
         and emit signal, sending the data
         """
-
-        self.sensors['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
-        self.sensors['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
+        # print('run')
+        # -------------------------------------------------------------------------------------------------------------------------
+        self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
+        self.data['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
             0]
 
-        self.sensors['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
+        self.data['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
         temp_list = self.LakeShore350.KelvinReadingQuery(0)
-        self.sensors['Sensor_1_K'] = temp_list[0]
-        self.sensors['Sensor_2_K'] = temp_list[1]
-        self.sensors['Sensor_3_K'] = temp_list[2]
-        self.sensors['Sensor_4_K'] = temp_list[3]
+        self.data['Sensor_1_K'] = temp_list[0]
+        self.data['Sensor_2_K'] = temp_list[1]
+        self.data['Sensor_3_K'] = temp_list[2]
+        self.data['Sensor_4_K'] = temp_list[3]
         ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-        self.sensors['Ramp_Rate'] = ramp_rate if self.Temp_K_value > self.sensors[
+        self.data['Ramp_Rate'] = ramp_rate if self.Temp_K_value > self.data[
             'Temp_K'] else - ramp_rate
         temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-        self.sensors['Loop_P_Param'] = temp_list2[0]
-        self.sensors['Loop_I_Param'] = temp_list2[1]
-        self.sensors['Loop_D_Param'] = temp_list2[2]
+        self.data['Loop_P_Param'] = temp_list2[0]
+        self.data['Loop_I_Param'] = temp_list2[1]
+        self.data['Loop_D_Param'] = temp_list2[2]
 
-        self.sensors['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
-        self.sensors['Heater_Range_times_10'] = self.sensors[
+        self.data['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
+        self.data['Heater_Range_times_10'] = self.data[
             'Heater_Range'] * 10
-        self.sensors[
+        self.data[
             'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
-        self.sensors['Heater_Output_mW'] = self.sensors['Heater_Output_percentage'] / \
+        self.data['Heater_Output_mW'] = self.data['Heater_Output_percentage'] / \
             100 * self._max_power * 1e3 * \
-            10**(-(5 - self.sensors['Heater_Range']))
+            10**(-(5 - self.data['Heater_Range']))
 
         temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
-        self.sensors['Sensor_1_Ohm'] = temp_list3[0]
-        self.sensors['Sensor_2_Ohm'] = temp_list3[1]
-        self.sensors['Sensor_3_Ohm'] = temp_list3[2]
-        self.sensors['Sensor_4_Ohm'] = temp_list3[3]
-        self.sensors['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
+        self.data['Sensor_1_Ohm'] = temp_list3[0]
+        self.data['Sensor_2_Ohm'] = temp_list3[1]
+        self.data['Sensor_3_Ohm'] = temp_list3[2]
+        self.data['Sensor_4_Ohm'] = temp_list3[3]
+        self.data['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
 
-        self.sensors['realtime'] = datetime.now()
-
-        # self.sig_Infodata.emit(deepcopy(self.sensors))
+        self.data['realtime'] = datetime.now()
+        # -------------------------------------------------------------------------------------------------------------------------
+        # self.sig_Infodata.emit(deepcopy(self.data))
         self.comms_upstream.send_multipart(
-            [self.comms_name, json.dumps(self.sensors)])
+            [self.comms_name, enc(json.dumps(self.data))])
+
+    @ExceptionHandling
+    def act_on_command(self, command):
+        if 'setTemp_K' in command:
+            self.setTemp_K(command['setTemp_K'])
+        if 'configTempLimit' in command:
+            self.configTempLimit(command['configTempLimit'])
+
 
     @ExceptionHandling
     def configSensor(self):
@@ -234,17 +246,21 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
         self._max_power = self._heater_resistance * self._max_current**2  # [W]
 
     @ExceptionHandling
-    def configTempLimit(self):
+    def configTempLimit(self, confdict=None):
         """sets temperature limit
         """
+        if confdict is None:
+            confdict = {key:400 for key in ['A', 'B', 'C', 'D']}
         for i in ['A', 'B', 'C', 'D']:
             self.LakeShore350.TemperatureLimitCommand(i, 400.)
 
     @pyqtSlot()
     @ExceptionHandling
-    def setTemp_K(self):
+    def setTemp_K(self temp=None):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
+        if temp is not None:
+            self.Temp_K_value = temp
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
         self.LakeShore350.ControlSetpointRampParameterCommand(
             1, self.Ramp_status_internal, self.Ramp_Rate_value)
@@ -293,20 +309,20 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
     @pyqtSlot()
     @ExceptionHandling
     def setLoopP_Param(self):
-        self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.sensors[
-                                                      'Loop_I_Param'], self.sensors['Loop_D_Param'])
+        self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.data[
+                                                      'Loop_I_Param'], self.data['Loop_D_Param'])
 
     @pyqtSlot()
     @ExceptionHandling
     def setLoopI_Param(self):
         self.LakeShore350.ControlLoopPIDValuesCommand(
-            1, self.sensors['Loop_P_Param'], self.LoopI_value, self.sensors['Loop_D_Param'])
+            1, self.data['Loop_P_Param'], self.LoopI_value, self.data['Loop_D_Param'])
 
     @pyqtSlot()
     @ExceptionHandling
     def setLoopD_Param(self):
         self.LakeShore350.ControlLoopPIDValuesCommand(
-            1, self.sensors['Loop_P_Param'], self.sensors['Loop_I_Param'], self.LoopD_value)
+            1, self.data['Loop_P_Param'], self.data['Loop_I_Param'], self.LoopD_value)
 
     @pyqtSlot()
     @ExceptionHandling
@@ -398,7 +414,7 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = LakeShore350_Control(ui_file='LakeShore_main.ui', Name='LakeShore350')
+    form = LakeShore350_Control(ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

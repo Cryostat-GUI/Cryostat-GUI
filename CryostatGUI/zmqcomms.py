@@ -1,9 +1,18 @@
 import zmq
 import logging
-import time
+from time import sleep as timesleep
+from json import loads as dictload
 # from threading import Thread
 
 logger = logging.getLogger('CryostatGUI.zmqComm')
+
+
+def enc(msg):
+    return u'{}'.format(msg).encode('utf-8')
+
+
+def dec(msg):
+    return msg.decode('utf-8')
 
 
 class genericAnswer(Exception):
@@ -45,7 +54,7 @@ def zmqquery(socket, query):
                 message = socket.recv(flags=zmq.NOBLOCK)
                 raise customEx
             except zmq.Again:
-                time.sleep(0.2)
+                timesleep(0.2)
                 print('no answer')
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
@@ -66,7 +75,7 @@ def zmqquery_dict(socket, query):
                 message = socket.recv_json(flags=zmq.NOBLOCK)
                 raise customEx
             except zmq.Again:
-                time.sleep(0.2)
+                timesleep(0.2)
                 print('no answer')
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
@@ -115,15 +124,16 @@ class zmqClient(zmqBare):
     #         pass
 
     def zmq_handle(self):
+        # print('zmq handling')
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         if self.comms_tcp in evts:
             try:
                 while True:
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
                     if msg.decode('utf-8')[-1] == '?':
-                        pass
-                        # answer = retrieve_answer()
-                        # self.comms_tcp.send(answer)
+                        # answer = retrieve_answer(dec(msg))
+                        answer = enc(self.data)
+                        self.comms_tcp.send(answer)
 
             except zmq.Again:
                 pass
@@ -131,12 +141,13 @@ class zmqClient(zmqBare):
             try:
                 while True:
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
-                    self.act_on_command(msg)
+                    command_dict = dictload(dec(msg[1]))
+                    self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
                 pass
 
-    def act_on_command(self, command):
+    def act_on_command(self, command: dict) -> None:
         raise NotImplementedError
 
 
@@ -164,7 +175,6 @@ class zmqMainControl(zmqBare):
         self.poller = zmq.Poller()
         self.poller.register(self.comms_tcp, zmq.POLLIN)
         self.poller.register(self.comms_inproc, zmq.POLLIN)
-        self.ct = 0
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
@@ -216,7 +226,6 @@ class zmqDataStore(zmqBare):
         self.poller = zmq.Poller()
         self.poller.register(self.comms_tcp, zmq.POLLIN)
         self.poller.register(self.comms_upstream, zmq.POLLIN)
-        self.ct = 0
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))

@@ -356,6 +356,9 @@ class AbstractLoopApp(AbstractApp):
         self.interval = 0.5  # second
         self.lock = Lock()
 
+        QTimer.singleShot(0, self.work)
+        
+
     @pyqtSlot()  # int
     def work(self):
         """class method which is working all the time while the thread is running. """
