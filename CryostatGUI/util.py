@@ -338,9 +338,11 @@ class AbstractApp(QtWidgets.QMainWindow):
     timeouterror = VisaIOError(-1073807339)
     sig_Infodata = pyqtSignal(dict)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, ui_file=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
+        if ui_file is not None:
+            loadUi(ui_file, self)
 
 
 class AbstractLoopApp(AbstractApp):
@@ -513,6 +515,7 @@ class Window_ui(QtWidgets.QWidget):
         # event.accept()  # let the window close
         super().closeEvent(event)
 
+
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
@@ -532,11 +535,11 @@ class Window_trayService_ui(QtWidgets.QWidget):
     sig_closing = pyqtSignal()
     sig_error = pyqtSignal(str)
 
-    def __init__(self, ui_file=None, **kwargs):
+    def __init__(self, ui_file=None, Name=None, **kwargs):
         self.logger = logging.getLogger(__name__)
         super().__init__(**kwargs)
-        if ui_file is not None:
-            loadUi(ui_file, self)
+        # if ui_file is not None:
+        #     loadUi(ui_file, self)
 
         icon = QtGui.QIcon('TU-Signet.png')
         self.pyqt_sysTray = SystemTrayIcon(icon, self)
@@ -544,10 +547,16 @@ class Window_trayService_ui(QtWidgets.QWidget):
         self.setWindowIcon(QtGui.QIcon(icon))
 
         self.pyqt_sysTray.activated.connect(self.restore_window)
-        
+        if Name is not None:
+            self.setToolTip(Name)
+            self.setToolTipDuration(-1)
+            self.setWindowTitle(Name)
+
         # for demonstration purpose:
     #     dummy = self.pyqt_trayMenu.addAction('nothing')
     #     dummy.triggered.connect(self.nothing)
+        # self.pyqt_sysTray.show()
+        # self.initialise_minimized()
 
     # def nothing(self):
     #     print('wweeeee')

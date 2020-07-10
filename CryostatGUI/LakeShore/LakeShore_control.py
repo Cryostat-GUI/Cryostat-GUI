@@ -7,24 +7,27 @@ Classes:
 """
 # from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtWidgets
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
 # from importlib import reload
 import json
+import sys
 
 # import LakeShore
-from LakeShore.LakeShore350 import LakeShore350
+# from LakeShore.LakeShore350 import LakeShore350
 
 
 # from util import AbstractLoopThread
 from util import ExceptionHandling
 from util import AbstractLoopClient
+from util import Window_trayService_ui
 
 from datetime import datetime
 # import logging
 
 
-class LakeShore350_Control(AbstractLoopClient):
+class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
     """Updater class for the LakeShore350 Temperature controller
 
         For each Lakeshore350 function there is a wrapping method,
@@ -70,13 +73,15 @@ class LakeShore350_Control(AbstractLoopClient):
         self.__name__ = 'LakeShore350_control ' + InstrumentAddress
         # global LakeShore
         # LS = reload(LakeShore.LakeShore350)
-        try:
-            self.LakeShore350 = LakeShore350(
-                InstrumentAddress=InstrumentAddress, comLock=comLock)
-        except VisaIOError as e:
-            self.sig_assertion.emit('running in control: {}'.format(e))
-            return
-            # need to quit the THREAD!!
+        # try:
+
+        # self.LakeShore350 = LakeShore350(
+        #     InstrumentAddress=InstrumentAddress, comLock=comLock)
+
+        # except VisaIOError as e:
+        #     self.sig_assertion.emit('running in control: {}'.format(e))
+        #     return
+        # need to quit the THREAD!!
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0
@@ -102,6 +107,53 @@ class LakeShore350_Control(AbstractLoopClient):
 
 #        self.setControlLoopZone()
 #        self.startHeater()
+
+        # setting LakeShore values by GUI LakeShore window
+        self.spinSetTemp_K.valueChanged.connect(self.gettoset_Temp_K)
+        self.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
+
+        self.spinSetRampRate_Kpmin.valueChanged.connect(
+            self.gettoset_Ramp_Rate_K)
+        self.spinSetRampRate_Kpmin.editingFinished.connect(self.setRamp_Rate_K)
+
+        # turns off heater output
+        self.pushButtonHeaterOut.clicked.connect(
+            lambda: self.setHeater_Range(0))
+
+        # allows to choose from different inputs to connect to output 1
+        # control loop. default is input 1.
+
+        self.comboSetInput_Sensor.activated['int'].connect(
+            lambda value: self.setInput(value + 1))
+        # self.spinSetInput_Sensor.editingFinished.(lambda
+        # value: self.threads['control_LakeShore350'][0].setInput())
+
+        self.checkRamp_Status.toggled['bool'].connect(self.setStatusRamp)
+
+        #""" NEW GUI controls P, I and D values for Control Loop PID Values Command
+        # """
+        self.spinSetLoopP_Param.valueChanged.connect(self.gettoset_LoopP_Param)
+        self.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
+
+        self.spinSetLoopI_Param.valueChanged.connect(self.gettoset_LoopI_Param)
+        self.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+
+        self.spinSetLoopD_Param.valueChanged.connect(self.gettoset_LoopD_Param)
+        self.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+
+        """ NEW GUI Heater Range and Ouput Zone
+        """
+    # self.comboSetHeater_Range.activated['int'].connect(self.setHeater_Range(value))
+    # self.spinSetHeater_Range.valueChanged.connect(self.gettoset_Heater_Range(value))#self.spinSetHeater_Range.Finished.connect(self.setHeater_Range())
+    # self.spinSetUpper_Bound.valueChanged.connect(self.gettoset_Upper_Bound(value))#
+    # self.spinSetZoneP_Param.valueChanged.connect(self.gettoset_ZoneP_Param(value))#
+    # self.spinSetZoneI_Param.valueChanged.connect(self.gettoset_ZoneI_Param(value))#
+    # self.spinSetZoneD_Param.valueChanged.connect(self.gettoset_ZoneD_Param(value))#
+    # self.spinSetZoneMout.valueChanged.connect(self.gettoset_ZoneMout(value))#
+    # self.spinSetZone_Range.valueChanged.connect(self.gettoset_Zone_Range(value))#
+    # self.spinSetZone_Rate.valueChanged.connect(self.gettoset_Zone_Rate(value))
+
+        self.spin_threadinterval.valueChanged.connect(lambda value: self.setInterval(value))
 
         # self.interval = 0
 
@@ -157,7 +209,8 @@ class LakeShore350_Control(AbstractLoopClient):
         self.sensors['realtime'] = datetime.now()
 
         # self.sig_Infodata.emit(deepcopy(self.sensors))
-        self.comms_upstream.send_multipart([self.comms_name, json.dumps(self.sensors)])
+        self.comms_upstream.send_multipart(
+            [self.comms_name, json.dumps(self.sensors)])
 
     @ExceptionHandling
     def configSensor(self):
@@ -341,3 +394,12 @@ class LakeShore350_Control(AbstractLoopClient):
 
 #    def gettoset_Heater_Range(self,value):
 #       self.Heater_Range_value = value
+
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    form = LakeShore350_Control(ui_file='LakeShore_main.ui', Name='LakeShore350')
+    form.show()
+    # print('date: ', dt.datetime.now(),
+    #       '\nstartup time: ', time.time() - a)
+    sys.exit(app.exec_())

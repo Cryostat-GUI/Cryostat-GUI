@@ -1180,67 +1180,67 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 # self.func_LakeShore350_setKpminLength(5)
 
-                # setting LakeShore values by GUI LakeShore window
-                self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
-                self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setTemp_K())
+                # # setting LakeShore values by GUI LakeShore window
+                # self.LakeShore350_window.spinSetTemp_K.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_Temp_K(value))
+                # self.LakeShore350_window.spinSetTemp_K.editingFinished.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setTemp_K())
 
-                self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
-                self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
+                # self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_Ramp_Rate_K(value))
+                # self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
-                # turns off heater output
-                self.LakeShore350_window.pushButtonHeateraOut.clicked.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setHeater_Range(0))
+                # # turns off heater output
+                # self.LakeShore350_window.pushButtonHeateraOut.clicked.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setHeater_Range(0))
 
-                # allows to choose from different inputs to connect to output 1
-                # control loop. default is input 1.
+                # # allows to choose from different inputs to connect to output 1
+                # # control loop. default is input 1.
 
-                self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(
-                    lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
-                # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda
-                # value: self.threads['control_LakeShore350'][0].setInput())
+                # self.LakeShore350_window.comboSetInput_Sensor.activated['int'].connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].setInput(value + 1))
+                # # self.LakeShore350_window.spinSetInput_Sensor.editingFinished.(lambda
+                # # value: self.threads['control_LakeShore350'][0].setInput())
 
-                self.LakeShore350_window.checkRamp_Status.toggled['bool'].connect(
-                    lambda value: self.threads['control_LakeShore350'][0].setStatusRamp(value))
+                # self.LakeShore350_window.checkRamp_Status.toggled['bool'].connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].setStatusRamp(value))
 
-                """ NEW GUI controls P, I and D values for Control Loop PID Values Command
+                # """ NEW GUI controls P, I and D values for Control Loop PID Values Command
+                # # """
+                # self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
+                # self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
+
+                # self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
+                # self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
+
+                # self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
+                # self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(
+                #     lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
+
+                # """ NEW GUI Heater Range and Ouput Zone
                 # """
-                self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
-                self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
 
-                self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
-                self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
+                # # self.LakeShore350_window.comboSetHeater_Range.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setHeater_Range(value))
 
-                self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
-                self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
+                # #self.LakeShore350_window.spinSetHeater_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_Range(value))
+                # #self.LakeShore350_window.spinSetHeater_Range.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setHeater_Range())
 
-                """ NEW GUI Heater Range and Ouput Zone
-                """
+                # # self.LakeShore350_window.spinSetUpper_Bound.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Upper_Bound(value))
+                # # self.LakeShore350_window.spinSetZoneP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneP_Param(value))
+                # # self.LakeShore350_window.spinSetZoneI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneI_Param(value))
+                # # self.LakeShore350_window.spinSetZoneD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneD_Param(value))
+                # # self.LakeShore350_window.spinSetZoneMout.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneMout(value))
+                # # self.LakeShore350_window.spinSetZone_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Range(value))
+                # # self.LakeShore350_window.spinSetZone_Rate.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Rate(value))
 
-                # self.LakeShore350_window.comboSetHeater_Range.activated['int'].connect(lambda value: self.threads['control_LakeShore350'][0].setHeater_Range(value))
-
-                #self.LakeShore350_window.spinSetHeater_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Heater_Range(value))
-                #self.LakeShore350_window.spinSetHeater_Range.Finished.connect(lambda: self.threads['control_LakeShore350'][0].setHeater_Range())
-
-                # self.LakeShore350_window.spinSetUpper_Bound.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Upper_Bound(value))
-                # self.LakeShore350_window.spinSetZoneP_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneP_Param(value))
-                # self.LakeShore350_window.spinSetZoneI_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneI_Param(value))
-                # self.LakeShore350_window.spinSetZoneD_Param.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneD_Param(value))
-                # self.LakeShore350_window.spinSetZoneMout.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_ZoneMout(value))
-                # self.LakeShore350_window.spinSetZone_Range.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Range(value))
-                # self.LakeShore350_window.spinSetZone_Rate.valueChanged.connect(lambda value: self.threads['control_LakeShore350'][0].gettoset_Zone_Rate(value))
-
-                self.LakeShore350_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
+                # self.LakeShore350_window.spin_threadinterval.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].setInterval(value))
 
                 self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
                     True)
