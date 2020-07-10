@@ -357,7 +357,7 @@ class AbstractLoopApp(AbstractApp):
         self.lock = Lock()
 
         QTimer.singleShot(0, self.work)
-        
+
 
     @pyqtSlot()  # int
     def work(self):
@@ -554,6 +554,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
             self.setToolTip(Name)
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
+            # TODO: implement this correctly
 
         # for demonstration purpose:
     #     dummy = self.pyqt_trayMenu.addAction('nothing')

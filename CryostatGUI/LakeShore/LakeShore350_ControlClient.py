@@ -7,7 +7,7 @@ Classes:
 """
 # from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtCore import QTimer 
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 from pyvisa.errors import VisaIOError
 from copy import deepcopy
@@ -15,9 +15,7 @@ from copy import deepcopy
 import json
 import sys
 
-# import LakeShore
 # from LakeShore.LakeShore350 import LakeShore350
-
 
 # from util import AbstractLoopThread
 from util import ExceptionHandling
@@ -156,7 +154,8 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
     # self.spinSetZone_Range.valueChanged.connect(self.gettoset_Zone_Range(value))#
     # self.spinSetZone_Rate.valueChanged.connect(self.gettoset_Zone_Rate(value))
 
-        self.spin_threadinterval.valueChanged.connect(lambda value: self.setInterval(value))
+        self.spin_threadinterval.valueChanged.connect(
+            lambda value: self.setInterval(value))
 
         # self.interval = 0
 
@@ -222,7 +221,7 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
             self.setTemp_K(command['setTemp_K'])
         if 'configTempLimit' in command:
             self.configTempLimit(command['configTempLimit'])
-
+        # TODO: implement more commands
 
     @ExceptionHandling
     def configSensor(self):
@@ -250,13 +249,13 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
         """sets temperature limit
         """
         if confdict is None:
-            confdict = {key:400 for key in ['A', 'B', 'C', 'D']}
+            confdict = {key: 400 for key in ['A', 'B', 'C', 'D']}
         for i in ['A', 'B', 'C', 'D']:
             self.LakeShore350.TemperatureLimitCommand(i, 400.)
 
     @pyqtSlot()
     @ExceptionHandling
-    def setTemp_K(self temp=None):
+    def setTemp_K(self, temp=None):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
         if temp is not None:
@@ -414,7 +413,8 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = LakeShore350_Control(ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
+    form = LakeShore350_Control(
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
