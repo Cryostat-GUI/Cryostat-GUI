@@ -9,6 +9,12 @@ Author(s):
     bklebel (Benjamin Klebel)
     Wojtek
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# to be removed once this is packaged!
+
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
 # from copy import deepcopy
@@ -105,8 +111,8 @@ class SR830_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
-        self.comms_upstream.send_multipart(
-            [self.comms_name, enc(json.dumps(self.data))])
+        # self.comms_upstream.send_multipart(
+        #     [self.comms_name, enc(json.dumps(self.data))])
 
         # self.sig_Infodata.emit(deepcopy(data))
 

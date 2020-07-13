@@ -55,6 +55,7 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
 from zmqcomms import zmqClient
+from zmqcomms import enc
 
 
 logger = logging.getLogger('CryostatGUI.utility')
@@ -365,6 +366,7 @@ class AbstractLoopApp(AbstractApp):
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
+                self.send_data_upstream()
         except BlockedError:
             pass
         except AssertionError as assertion:
@@ -387,6 +389,10 @@ class AbstractLoopClient(AbstractLoopApp, zmqClient):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def send_data_upstream(self):
+        self.comms_upstream.send_multipart(
+            [self.comms_name, enc(json.dumps(self.data))])
 
 
 class AbstractThread(QObject):

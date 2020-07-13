@@ -4,6 +4,11 @@ Classes:
     LakeShore350_ControlClient: a class for interfacing with a LakeShore350 temperature controller
             inherits from AbstractLoopClient
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# to be removed once this is packaged!
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
 import json
@@ -96,8 +101,8 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
         # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
-        self.comms_upstream.send_multipart(
-            [self.comms_name, enc(json.dumps(self.data))])
+        
+        # data is being sent by the zmqClient class automatically
 
     @ExceptionHandling
     def act_on_command(self, command):
