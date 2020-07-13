@@ -172,7 +172,7 @@ def ExceptionSignal(thread, func, e_type, err):
         e_type,
         err.args[0])
 
-    thread.sig_assertion.emit(string)
+    # thread.sig_assertion.emit(string)
     return string
 
 
@@ -358,12 +358,11 @@ class AbstractLoopApp(AbstractApp):
 
         QTimer.singleShot(0, self.work)
 
-
     @pyqtSlot()  # int
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
-            self.zmq_handle()
+            self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
         except BlockedError:
@@ -375,10 +374,6 @@ class AbstractLoopApp(AbstractApp):
 
     def running(self):
         """class method to be overriden for periodic tasks"""
-        raise NotImplementedError
-
-    def zmq_handle(self):
-        """inherited later from zmqClient"""
         raise NotImplementedError
 
     @pyqtSlot(float)
@@ -545,29 +540,18 @@ class Window_trayService_ui(QtWidgets.QWidget):
     def __init__(self, ui_file=None, Name=None, **kwargs):
         self.logger = logging.getLogger(__name__)
         super().__init__(**kwargs)
-        # if ui_file is not None:
-        #     loadUi(ui_file, self)
 
-        icon = QtGui.QIcon('TU-Signet.png')
+        icon = QtGui.QIcon('./../TU-Signet.png')
         self.pyqt_sysTray = SystemTrayIcon(icon, self)
-        # self.pyqt_sysTray.setIcon(QtGui.QIcon(icon))
         self.setWindowIcon(QtGui.QIcon(icon))
 
         self.pyqt_sysTray.activated.connect(self.restore_window)
         if Name is not None:
-            self.setToolTip(u'{}'.format(Name))
+            self.pyqt_sysTray.setToolTip(u'{}'.format(Name))
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
-            # TODO: implement this correctly
 
-        # for demonstration purpose:
-    #     dummy = self.pyqt_trayMenu.addAction('nothing')
-    #     dummy.triggered.connect(self.nothing)
-        # self.pyqt_sysTray.show()
-        # self.initialise_minimized()
-
-    # def nothing(self):
-    #     print('wweeeee')
+        QTimer.singleShot(0, self.initialise_minimized)
 
     def initialise_minimized(self):
         self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)

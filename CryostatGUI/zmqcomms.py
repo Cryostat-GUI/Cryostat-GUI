@@ -92,7 +92,7 @@ class zmqBare(object):
 class zmqClient(zmqBare):
     """docstring for zmqDev"""
 
-    def __init__(self, context=None, identity=None, ip_maincontrol='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+    def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_storage='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
@@ -108,7 +108,7 @@ class zmqClient(zmqBare):
         # zmq.SUBSCRIBE, b'')
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
-        self.comms_upstream.connect(f'tcp://{ip_maincontrol}:{port_upstream}')
+        self.comms_upstream.connect(f'tcp://{ip_storage}:{port_upstream}')
 
         self.poller = zmq.Poller()
         self.poller.register(self.comms_tcp, zmq.POLLIN)
@@ -142,10 +142,13 @@ class zmqClient(zmqBare):
                 while True:
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
                     command_dict = dictload(dec(msg[1]))
-                    if 'lock' in command_dict:
-                        self.lock.acquire()
-                    elif 'unlock' in command_dict:
-                        self.lock.release()
+                    try:
+                        if 'lock' in command_dict:
+                            self.lock.acquire()
+                        elif 'unlock' in command_dict:
+                            self.lock.release()
+                    except AttributeError as e:
+                        logger.exception(e)
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
@@ -215,7 +218,7 @@ class zmqMainControl(zmqBare):
 class zmqDataStore(zmqBare):
     """docstring for zmqDev"""
 
-    def __init__(self, context=None, _ident='dataStore', ip_maincontrol='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+    def __init__(self, context=None, _ident='dataStore', ip_maincontrol='*', ip_storage='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
@@ -224,7 +227,7 @@ class zmqDataStore(zmqBare):
         self.comms_tcp.connect(f'tcp://{ip_maincontrol}:{port_reqp}')
 
         self.comms_upstream = self._zctx.socket(zmq.SUB)
-        self.comms_upstream.bind(f'tcp://{ip_maincontrol}:{port_upstream}')
+        self.comms_upstream.bind(f'tcp://{ip_storage}:{port_upstream}')
         self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b'')
 
         self.poller = zmq.Poller()

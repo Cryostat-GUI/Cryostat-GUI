@@ -199,8 +199,8 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = LakeShore350_ControlClient(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
+    form = Template_ControlClient(
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350', InstrumentAddress='')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
