@@ -8,6 +8,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
 import json
 import sys
+import os
 
 from util import ExceptionHandling
 from util import AbstractLoopClient
@@ -16,7 +17,7 @@ from util import Window_trayService_ui
 from zmqcomms import dec, enc
 
 from datetime import datetime
-# import logging
+import logging
 
 
 class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
@@ -59,22 +60,13 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
     def __init__(self, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
-        # print(self.logger, self.logger.name)
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_control ' + InstrumentAddress
-        # global LakeShore
-        # LS = reload(LakeShore.LakeShore350)
-        # try:
 
         # self.LakeShore350 = LakeShore350(
         #     InstrumentAddress=InstrumentAddress, comLock=comLock)
 
-        # except VisaIOError as e:
-        #     self.sig_assertion.emit('running in control: {}'.format(e))
-        #     return
-        # need to quit the THREAD!!
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0
@@ -102,7 +94,8 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 #        self.startHeater()
 
         # setting LakeShore values by GUI LakeShore window
-        self.spinSetTemp_K.valueChanged.connect(lambda value: self.gettoset_Temp_K(value))
+        self.spinSetTemp_K.valueChanged.connect(
+            lambda value: self.gettoset_Temp_K(value))
         self.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
         self.spinSetRampRate_Kpmin.valueChanged.connect(
@@ -125,13 +118,16 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
         #""" NEW GUI controls P, I and D values for Control Loop PID Values Command
         # """
-        self.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
+        self.spinSetLoopP_Param.valueChanged.connect(
+            lambda value: self.gettoset_LoopP_Param(value))
         self.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
-        self.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
+        self.spinSetLoopI_Param.valueChanged.connect(
+            lambda value: self.gettoset_LoopI_Param(value))
         self.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
-        self.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
+        self.spinSetLoopD_Param.valueChanged.connect(
+            lambda value: self.gettoset_LoopD_Param(value))
         self.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
         """ NEW GUI Heater Range and Ouput Zone
@@ -217,7 +213,7 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
     @ExceptionHandling
     def configSensor(self):
-        """configures sensor inputs to Cerox
+        """configures sensor inputs to Cernox
         """
         for i in ['A', 'B', 'C', 'D']:
             self.LakeShore350.InputTypeParameterCommand(i, 3, 1, 0, 1, 1, 0)
@@ -247,11 +243,11 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setTemp_K(self, temp=None):
+    def setTemp_K(self, Temp_K=None):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
         """
-        if temp is not None:
-            self.Temp_K_value = temp
+        if Temp_K is not None:
+            self.Temp_K_value = Temp_K
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
         self.LakeShore350.ControlSetpointRampParameterCommand(
             1, self.Ramp_status_internal, self.Ramp_Rate_value)
@@ -404,10 +400,24 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
 
 if __name__ == '__main__':
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
+    # # errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
+    # # directory = os.path.dirname(errorfile)
+    # # os.makedirs(directory, exist_ok=True)
+
+    # handler = logging.StreamHandler(sys.stdout)
+    # handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter(
+    #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = LakeShore350_ControlClient(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress='')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
+
