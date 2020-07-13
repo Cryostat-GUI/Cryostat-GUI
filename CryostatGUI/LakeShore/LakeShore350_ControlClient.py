@@ -1,23 +1,14 @@
 """Module containing a class to run a LakeShore 350 Cryogenic Temperature Controller in a pyqt5 application
 
 Classes:
-    LakeShore350_Updater: a class for interfacing with a LakeShore350 temperature controller
-            inherits from AbstractLoopThread
-                there, the looping behaviour of this thread is defined
+    LakeShore350_ControlClient: a class for interfacing with a LakeShore350 temperature controller
+            inherits from AbstractLoopClient
 """
-# from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
-from pyvisa.errors import VisaIOError
-from copy import deepcopy
-# from importlib import reload
 import json
 import sys
 
-# from LakeShore.LakeShore350 import LakeShore350
-
-# from util import AbstractLoopThread
 from util import ExceptionHandling
 from util import AbstractLoopClient
 from util import Window_trayService_ui
@@ -28,21 +19,22 @@ from datetime import datetime
 # import logging
 
 
-class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
+class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
     """Updater class for the LakeShore350 Temperature controller
 
         For each Lakeshore350 function there is a wrapping method,
-        which we can call by a signal, from the main thread. This wrapper sends
+        which we can call by a signal/by zmq comms. This wrapper sends
         the corresponding value to the device.
 
         There is a second method for all wrappers, which accepts
         the corresponding value, and stores it, so it can be sent upon acknowledgment
 
         The information from the device is collected in regular intervals (method "running"),
-        and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class.
+        and subsequently published on the data upstream. It is packed in a dict,
+        the keys of which are displayed in the "data" dict in this class.
     """
 
+    # exposable data dictionary
     data = dict(
         Heater_Output_percentage=None,
         Heater_Output_mW=None,
@@ -110,7 +102,7 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
 #        self.startHeater()
 
         # setting LakeShore values by GUI LakeShore window
-        self.spinSetTemp_K.valueChanged.connect(self.gettoset_Temp_K)
+        self.spinSetTemp_K.valueChanged.connect(lambda value: self.gettoset_Temp_K(value))
         self.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
         self.spinSetRampRate_Kpmin.valueChanged.connect(
@@ -133,13 +125,13 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
 
         #""" NEW GUI controls P, I and D values for Control Loop PID Values Command
         # """
-        self.spinSetLoopP_Param.valueChanged.connect(self.gettoset_LoopP_Param)
+        self.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
         self.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
-        self.spinSetLoopI_Param.valueChanged.connect(self.gettoset_LoopI_Param)
+        self.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
         self.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
-        self.spinSetLoopD_Param.valueChanged.connect(self.gettoset_LoopD_Param)
+        self.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
         self.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
         """ NEW GUI Heater Range and Ouput Zone
@@ -413,7 +405,7 @@ class LakeShore350_Control(AbstractLoopClient, Window_trayService_ui):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = LakeShore350_Control(
+    form = LakeShore350_ControlClient(
         ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350')
     form.show()
     # print('date: ', dt.datetime.now(),
