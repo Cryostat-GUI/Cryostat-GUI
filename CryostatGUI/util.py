@@ -555,7 +555,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
 
         self.pyqt_sysTray.activated.connect(self.restore_window)
         if Name is not None:
-            self.setToolTip(Name)
+            self.setToolTip(u'{}'.format(Name))
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
             # TODO: implement this correctly
