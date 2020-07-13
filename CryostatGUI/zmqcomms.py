@@ -142,6 +142,10 @@ class zmqClient(zmqBare):
                 while True:
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
                     command_dict = dictload(dec(msg[1]))
+                    if 'lock' in command_dict:
+                        self.lock.acquire()
+                    elif 'unlock' in command_dict:
+                        self.lock.release()
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:

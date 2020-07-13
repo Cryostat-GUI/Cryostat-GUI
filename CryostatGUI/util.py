@@ -377,6 +377,10 @@ class AbstractLoopApp(AbstractApp):
         """class method to be overriden for periodic tasks"""
         raise NotImplementedError
 
+    def zmq_handle(self):
+        """inherited later from zmqClient"""
+        raise NotImplementedError
+
     @pyqtSlot(float)
     def setInterval(self, interval):
         """set the interval between running events in seconds"""
