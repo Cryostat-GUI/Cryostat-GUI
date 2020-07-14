@@ -9,6 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
+from LakeShore.LakeShore350 import LakeShore350
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets
@@ -64,12 +65,14 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
     def __init__(self, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
+        self.interval = 5
+        self.t = datetime.now()
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_control ' + InstrumentAddress
 
-        # self.LakeShore350 = LakeShore350(
-        #     InstrumentAddress=InstrumentAddress, comLock=comLock)
+        self.LakeShore350 = LakeShore350(
+            InstrumentAddress=InstrumentAddress, comLock=comLock)
 
         self.Temp_K_value = 3
 #       self.Heater_mW_value = 0
@@ -166,12 +169,15 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
         and emit signal, sending the data
         """
         # print('run')
+        # a = self.t
+        self.t1 = datetime.now()
+        print(self.t1 - self.t)
+        self.t = self.t1
         # -------------------------------------------------------------------------------------------------------------------------
         self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.data['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
             0]
 
-        self.data['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
         temp_list = self.LakeShore350.KelvinReadingQuery(0)
         self.data['Sensor_1_K'] = temp_list[0]
         self.data['Sensor_2_K'] = temp_list[1]
@@ -180,26 +186,28 @@ class LakeShore350_ControlClient(AbstractLoopClient, Window_trayService_ui):
         ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
         self.data['Ramp_Rate'] = ramp_rate if self.Temp_K_value > self.data[
             'Temp_K'] else - ramp_rate
-        temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-        self.data['Loop_P_Param'] = temp_list2[0]
-        self.data['Loop_I_Param'] = temp_list2[1]
-        self.data['Loop_D_Param'] = temp_list2[2]
-
-        self.data['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
-        self.data['Heater_Range_times_10'] = self.data[
-            'Heater_Range'] * 10
-        self.data[
-            'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
-        self.data['Heater_Output_mW'] = self.data['Heater_Output_percentage'] / \
-            100 * self._max_power * 1e3 * \
-            10**(-(5 - self.data['Heater_Range']))
 
         temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
         self.data['Sensor_1_Ohm'] = temp_list3[0]
         self.data['Sensor_2_Ohm'] = temp_list3[1]
         self.data['Sensor_3_Ohm'] = temp_list3[2]
         self.data['Sensor_4_Ohm'] = temp_list3[3]
+
+        self.data['Heater_Range'] = self.LakeShore350.HeaterRangeQuery(1)
+        self.data[
+            'Heater_Output_percentage'] = self.LakeShore350.HeaterOutputQuery(1)
+        self.data['Heater_Output_mW'] = self.data['Heater_Output_percentage'] / \
+            100 * self._max_power * 1e3 * \
+            10**(-(5 - self.data['Heater_Range']))
+
+        self.data['Heater_Range_times_10'] = self.data[
+            'Heater_Range'] * 10
+        temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+        self.data['Loop_P_Param'] = temp_list2[0]
+        self.data['Loop_I_Param'] = temp_list2[1]
+        self.data['Loop_D_Param'] = temp_list2[2]
         self.data['OutputMode'] = self.LakeShore350.OutputModeQuery(1)[1]
+        self.data['Input_Sensor'] = self.LakeShore350.OutputModeQuery(1)[1]
 
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
@@ -419,9 +427,8 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     form = LakeShore350_ControlClient(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress='')
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress='TCPIP::192.168.2.105::7777::SOCKET')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
-
