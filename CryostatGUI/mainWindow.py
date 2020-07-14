@@ -285,7 +285,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # TODO: handle received data
                 raise genericAnswer(f'I do not know how to reply to that: {mes_dict}')
             else:
-                # the genericAnswer Exception is caught in zmqquery_handle() 
+                # the genericAnswer Exception is caught in zmqquery_handle()
                 raise genericAnswer(f'I do not know how to reply to that: {message}')
 
     def setup_logging_base(self):
@@ -1193,8 +1193,9 @@ class mainWindow(QtWidgets.QMainWindow):
                     lambda: self.threads['control_LakeShore350'][0].setRamp_Rate_K())
 
                 # turns off heater output
-                self.LakeShore350_window.pushButtonHeateraOut.clicked.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setHeater_Range(0))
+                # self.LakeShore350_window.pushButtonHeaterOut.clicked.connect(
+                # lambda:
+                # self.threads['control_LakeShore350'][0].setHeater_Range(0))
 
                 # allows to choose from different inputs to connect to output 1
                 # control loop. default is input 1.
@@ -1209,20 +1210,23 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 """ NEW GUI controls P, I and D values for Control Loop PID Values Command
                 # """
-                self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
-                self.LakeShore350_window.spinSetLoopP_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopP_Param())
+                # self.LakeShore350_window.spinSetLoopP_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopP_Param(value))
+                # self.LakeShore350_window.spinSetLoopP_Param.editingFinished.connect(
+                # lambda:
+                # self.threads['control_LakeShore350'][0].setLoopP_Param())
 
-                self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
-                self.LakeShore350_window.spinSetLoopI_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopI_Param())
+                # self.LakeShore350_window.spinSetLoopI_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopI_Param(value))
+                # self.LakeShore350_window.spinSetLoopI_Param.editingFinished.connect(
+                # lambda:
+                # self.threads['control_LakeShore350'][0].setLoopI_Param())
 
-                self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(
-                    lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
-                self.LakeShore350_window.spinSetLoopD_Param.Finished.connect(
-                    lambda: self.threads['control_LakeShore350'][0].setLoopD_Param())
+                # self.LakeShore350_window.spinSetLoopD_Param.valueChanged.connect(
+                #     lambda value: self.threads['control_LakeShore350'][0].gettoset_LoopD_Param(value))
+                # self.LakeShore350_window.spinSetLoopD_Param.editingFinished.connect(
+                # lambda:
+                # self.threads['control_LakeShore350'][0].setLoopD_Param())
 
                 """ NEW GUI Heater Range and Ouput Zone
                 """
@@ -1513,7 +1517,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
                     # check if delta between internal and present temperature is greater than 1 Kelvin
                     # if so then perform an ACAL and emit a signal
-                    delta = abs(self.data[dataname]['Internal_K'] - self.data[dataname]['Present_K'])
+                    delta = abs(self.data[dataname][
+                                'Internal_K'] - self.data[dataname]['Present_K'])
                     if delta > 1:
                         self.sig_acal_needed.emit()
                         kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
@@ -1638,7 +1643,7 @@ class mainWindow(QtWidgets.QMainWindow):
             # since the command failed in the communication with the device,
             # the last value is retained
             if 'GUI_number1' in kwargs:
-            # alternative: if 'Keithley2182' in dataname:
+                # alternative: if 'Keithley2182' in dataname:
                 try:
                     # calculate and display resistance and voltage
                     if not str(kwargs['GUI_Box'].currentText()) == '--':
@@ -1649,7 +1654,8 @@ class mainWindow(QtWidgets.QMainWindow):
                     if 'Resistance_Ohm' in self.data[dataname]:
                         kwargs['GUI_Display'].display(
                             self.data[dataname]['Resistance_Ohm'])
-                    # display internal and present temperature inside the voltmeter
+                    # display internal and present temperature inside the
+                    # voltmeter
                     kwargs['GUI_lcd_IntTemp'].display(
                         self.data[dataname]['Internal_K'])
                     kwargs['GUI_lcd_PreTemp'].display(
