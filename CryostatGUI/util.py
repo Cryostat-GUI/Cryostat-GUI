@@ -43,26 +43,19 @@ from datetime import timedelta as td
 from visa import VisaIOError
 from threading import Lock
 
-from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtWidgets
 
+from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
-from zmqcomms import zmqClient
-from zmqcomms import enc
-
-
 logger = logging.getLogger('CryostatGUI.utility')
-
-
-class BlockedError(Exception):
-    pass
 
 
 def convert_time_date(ts):
@@ -98,6 +91,19 @@ def convert_time_realtime_reverse(tstr):
     var = dt.strptime(tstr[8:], '%Y-%m-%d  %H:%M:%S.%f')
     return var
     pass
+
+# def loopcontrol_threads(threads, loopcondition):
+#     """
+#         temporarily turn off the loop function of
+#         an AbstractLoopThread class instance
+#     """
+#     for thread in threads:
+#         # with suppress(AttributeError):  # eventhandlingThread somewhere....
+#         #     while bool(thread[0].loop) is bool(loopcondition):
+#         #         time.sleep(0.1)  # wait
+#         #     thread[0].loop = loopcondition
+#         if loopcondition:
+#             thread[0].lock.release()
 
 
 def shaping(entry):
@@ -173,7 +179,7 @@ def ExceptionSignal(thread, func, e_type, err):
         e_type,
         err.args[0])
 
-    # thread.sig_assertion.emit(string)
+    thread.sig_assertion.emit(string)
     return string
 
 
@@ -188,38 +194,38 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, 'Index', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            logger.exception(s)
 
         except NotImplementedError as e:
-            s = ExceptionSignal(args[0], func, 'NotImplemented', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
-            # e.args = [str(e)]
+            logger.exception(s)
+            e.args = [str(e)]
+            ExceptionSignal(args[0], func, 'NotImplemented', e)
 
         except VisaIOError as e:
             if isinstance(e, type(args[0].timeouterror)) and \
@@ -228,11 +234,12 @@ def ExceptionHandling(func):
             else:
                 s = ExceptionSignal(args[0], func, 'VisaIO', e)
                 # thread.logger.exception(s)
-                args[0].logger.exception(s)
+                logger.exception(s)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
-            args[0].logger.exception(e)
+            # thread.logger.exception(e)
+            logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
@@ -295,19 +302,17 @@ class loops_off:
             thread.lock.release()
 
 
-class noblockLock(object):
-    """docstring for noblockLock"""
+# class controls_software_disabled:
+#     """Context manager for disabling all controls in GUI"""
 
-    def __init__(self, lock):
-        super().__init__()
-        self._lock = lock
+#     def __init__(self, lock):
+#         self._lock = lock
 
-    def __enter__(self, *args, **kwargs):
-        if not self._lock.acquire(blocking=False):
-            raise BlockedError
+#     def __enter__(self, *args, **kwargs):
+#         self._lock.acquire()
 
-    def __exit__(self, *args, **kwargs):
-        self._lock.release()
+#     def __exit__(self, *args, **kwargs):
+#         self._lock.release()
 
 
 class controls_hardware_disabled:
@@ -330,69 +335,18 @@ class controls_hardware_disabled:
         self._lock.release()
 
 
-class AbstractApp(QtWidgets.QMainWindow):
-    """docstring for AbstractApp"""
+# class locking:
+#     """Context manager for handling a simple lock"""
 
-    sig_assertion = pyqtSignal(str)
-    sig_visaerror = pyqtSignal(str)
-    sig_visatimeout = pyqtSignal()
-    timeouterror = VisaIOError(-1073807339)
-    sig_Infodata = pyqtSignal(dict)
+#     def __init__(self, lock):
+#         self.lock = lock
+#         # print(lock)
 
-    def __init__(self, ui_file=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger(__name__)
-        if ui_file is not None:
-            loadUi(ui_file, self)
+#     def __enter__(self, *args, **kwargs):
+#         self.lock.acquire()
 
-
-class AbstractLoopApp(AbstractApp):
-    """Abstract application class to be used with instruments 
-
-    this needs to be used in conjunction with a zmqClass!
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.interval = 0.5  # second
-        self.lock = Lock()
-
-        QTimer.singleShot(0, self.work)
-
-    @pyqtSlot()  # int
-    def work(self):
-        """class method which is working all the time while the thread is running. """
-        try:
-            self.zmq_handle()  # inherited later from zmqClient
-            with noblockLock(self.lock):
-                self.running()
-                self.send_data_upstream()
-        except BlockedError:
-            pass
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)
-
-    def running(self):
-        """class method to be overriden for periodic tasks"""
-        raise NotImplementedError
-
-    @pyqtSlot(float)
-    def setInterval(self, interval):
-        """set the interval between running events in seconds"""
-        self.interval = interval
-
-
-class AbstractLoopClient(AbstractLoopApp, zmqClient):
-    """docstring for AbstractLoopClient"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def send_data_upstream(self):
-        self.comms_upstream.send_multipart(
-            [self.comms_name, enc(json.dumps(self.data))])
+#     def __exit__(self, *args, **kwargs):
+#         self.lock.release()
 
 
 class AbstractThread(QObject):
@@ -524,79 +478,93 @@ class Window_ui(QtWidgets.QWidget):
         super().closeEvent(event)
 
 
-class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
+# class Window_plotting(QtWidgets.QDialog, Window_ui):
+#     """Small window containing a plot, which updates itself regularly"""
+#     sig_closing = pyqtSignal()
 
-    def __init__(self, icon, parent=None):
-        super(SystemTrayIcon, self).__init__(icon, parent)
-        parent.pyqt_trayMenu = QtWidgets.QMenu(parent)
-        exitAction = parent.pyqt_trayMenu.addAction("Exit")
-        exitAction.triggered.connect(parent.close)
-        self.setContextMenu(parent.pyqt_trayMenu)
+#     def __init__(self, data, label_x, label_y, legend_labels, number, title='your advertisment could be here!', **kwargs):
+#         """storing data, building the window layout, starting timer to update"""
+#         super().__init__(**kwargs)
+#         self.data = data
+#         self.label_x = label_x
+#         self.label_y = label_y
+#         self.title = title
+#         self.legend = legend_labels
+#         self.number = number
+#         if 'lock' in kwargs:
+#             self.lock = kwargs['lock']
+#         else:
+#             self.lock = dummy()
 
+#         self.interval = 2
 
-class Window_trayService_ui(QtWidgets.QWidget):
-    """Class for a small window, the UI of which is loaded from the .ui file
+#         # a figure instance to plot on
+#         self.figure = Figure()
 
-    emits a signal when being closed
-    """
+#         # this is the Canvas Widget that displays the `figure`
+#         # it takes the `figure` instance as a parameter to __init__
+#         self.canvas = FigureCanvas(self.figure)
 
-    sig_closing = pyqtSignal()
-    sig_error = pyqtSignal(str)
+#         # this is the Navigation widget
+#         # it takes the Canvas widget and a parent
+#         self.toolbar = NavigationToolbar(self.canvas, self)
 
-    def __init__(self, ui_file=None, Name=None, **kwargs):
-        self.logger = logging.getLogger(__name__)
-        super().__init__(**kwargs)
+#         # Just some button connected to `plot` method
+#         # self.button = QtWidgets.QPushButton('Plot')
+#         # self.button.clicked.connect(self.plot)
 
-        icon = QtGui.QIcon('./../TU-Signet.png')
-        self.pyqt_sysTray = SystemTrayIcon(icon, self)
-        self.setWindowIcon(QtGui.QIcon(icon))
+#         # set the layout
+#         layout = QtWidgets.QVBoxLayout()
+#         layout.addWidget(self.toolbar)
+#         layout.addWidget(self.canvas)
+#         # layout.addWidget(self.button)
+#         self.setLayout(layout)
+#         self.lines = []
+#         self.plot_base()
 
-        self.pyqt_sysTray.activated.connect(self.restore_window)
-        if Name is not None:
-            self.pyqt_sysTray.setToolTip(u'{}'.format(Name))
-            self.setToolTipDuration(-1)
-            self.setWindowTitle(Name)
+#         self.timer = QTimer()
+#         self.timer.timeout.connect(self.plot)
+#         self.timer.start(self.interval * 1e3)
 
-        QTimer.singleShot(0, self.initialise_minimized)
+#     def plot_base(self):
+#         """create the first plot"""
 
-    def initialise_minimized(self):
-        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)
-        self.pyqt_sysTray.show()
-        self.hide()
+#         self.ax = self.figure.add_subplot(111)
+#         self.ax.set_title(self.title)
+#         self.ax.set_xlabel(self.label_x)
+#         self.ax.set_ylabel(self.label_y)
 
-    def event(self, event):
-        if (event.type() == QtCore.QEvent.WindowStateChange and
-                self.isMinimized()):
-            # take out of taskbar
-            self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)
-            self.pyqt_sysTray.show()
-            return True
-        else:
-            return super().event(event)
+#         # discards the old graph
+#         if not isinstance(self.data, list):
+#             self.data = [self.data]
+#         self.ax.clear()
+#         # print(self.data)
+#         with self.lock:
+#             for entry, label in zip(self.data, self.legend):
+#                 ent0, ent1 = shaping(entry)
+#                 self.lines.append(self.ax.plot(
+#                     ent0, ent1, '*-', label=label)[0])
+#         self.ax.legend()
 
-    def closeEvent(self, event):
-        reply = QtWidgets.QMessageBox.question(
-            self,
-            'Message', "Are you sure to quit this application?\n\n" +
-            "'Yes'    will kill me (if I am a service, I might restart immediately)\n" +
-            "'No'     will minimize me to the Tray\n" +
-            "'Cancel' will do....nothing",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel,
-            QtWidgets.QMessageBox.Cancel)
+#     def plot(self):
+#         ''' update the plotted data in-place '''
+#         try:
+#             with self.lock:
+#                 for ct, entry in enumerate(self.data):
+#                     ent0, ent1 = shaping(entry)
+#                     self.lines[ct].set_xdata(ent0)
+#                     self.lines[ct].set_ydata(ent1)
+#             self.ax.relim()
+#             self.ax.autoscale_view()
+#             self.canvas.draw()
+#         except ValueError as e_val:
+#             print('ValueError: ', e_val.args[0])
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            event.accept()
-        elif reply == QtWidgets.QMessageBox.Cancel:
-            event.ignore()
-        else:
-            self.pyqt_sysTray.show()
-            self.hide()
-            event.ignore()
-
-    def restore_window(self, reason):
-        if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
-            self.pyqt_sysTray.hide()
-            self.showNormal()
+#     def closeEvent(self, event):
+#         """stop the timer for updating the plot, super to parent class method"""
+#         self.timer.stop()
+#         super().closeEvent(event)
+#     #     del self
 
 
 class Window_plotting_m(Window_ui):
@@ -970,8 +938,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit('plotting: do not choose "-" '
                                         'please, there is nothing behind it!')
-                    logger.warning(
-                        'do not choose "-" please, there is nothing behind it!')
+                    logger.warning('do not choose "-" please, there is nothing behind it!')
                     return
 
         GUI_value.clear()
@@ -1010,8 +977,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit(
                         'Plotting: There was to be an empty plot - I ignored it....')
-                    logger.warning(
-                        'There was to be an empty plot - I ignored it....')
+                    logger.warning('There was to be an empty plot - I ignored it....')
                     continue
                 y = []
                 # print(x)
@@ -1026,8 +992,7 @@ class Window_plotting_specification(Window_ui):
                             labels_l.append('{}: {}'.format(
                                 plot_entry[ax]['instrument'], plot_entry[ax]['value']))
                         except KeyError:
-                            logger.warning(
-                                'some key was specified which is not present in the data!')
+                            logger.warning('some key was specified which is not present in the data!')
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
 
