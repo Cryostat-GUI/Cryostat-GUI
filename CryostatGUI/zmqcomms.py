@@ -2,6 +2,7 @@ import zmq
 import logging
 from time import sleep as timesleep
 from json import loads as dictload
+from json import dumps as dictdump
 # from threading import Thread
 
 logger = logging.getLogger('CryostatGUI.zmqComm')
@@ -158,6 +159,10 @@ class zmqClient(zmqBare):
 
     def act_on_command(self, command: dict) -> None:
         raise NotImplementedError
+
+    def send_data_upstream(self):
+        self.comms_upstream.send_multipart(
+            [self.comms_name, enc(dictdump(self.data))])
 
 
 class zmqMainControl(zmqBare):
