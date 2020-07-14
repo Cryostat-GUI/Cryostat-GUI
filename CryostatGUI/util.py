@@ -29,6 +29,7 @@ import matplotlib.gridspec as gridspec
 
 import functools
 # import inspect
+import sys
 import time
 import numpy as np
 import json
@@ -55,7 +56,9 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
 from zmqcomms import zmqClient
-from zmqcomms import enc
+# from zmqcomms import enc
+
+from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
 
 logger = logging.getLogger('CryostatGUI.utility')
@@ -384,6 +387,114 @@ class AbstractLoopApp(AbstractApp):
         self.interval = interval
 
 
+class AbstractMainApp(AbstractApp):
+    """docstring for AbstractMainApp"""
+    data = dict()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.softwarecontrol_timer = QTimer()
+        self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
+        self.softwarecontrol_timer.start(100)
+
+    def setup_logging_base(self):
+        self.logger_all = logging.getLogger()
+        self.logger_personal = logging.getLogger('CryostatGUI.main')
+
+        self.Log_DBhandler = SQLiteHandler(
+            db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
+        self.Log_DBhandler.setLevel(logging.DEBUG)
+
+        self.logger_personal.setLevel(logging.DEBUG)
+        self.logger_all.setLevel(logging.ERROR)
+        # self.logger_personal.addHandler(self.Log_DBhandler)
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.ERROR)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger_personal.addHandler(handler)
+        self.logger_all.addHandler(handler)
+
+    def setup_logging(self):
+        """set up the logger, handler, for now in DEBUG
+        TODO: connect logging levels with GUI preferences"""
+
+        self.logger_all.setLevel(logging.INFO)
+
+        self.logger_all.addHandler(self.Log_DBhandler)
+
+    # def load_settings(self):
+    #     """load all settings store in the QSettings
+    #     set corresponding values in the 'Global Settings' window"""
+    #     settings = QSettings("TUW", "CryostatGUI")
+    #     try:
+    #         self.window_settings.temp_ITC_useAutoPID = bool(
+    #             settings.value('ITC_useAutoPID', int))
+    #         self.window_settings.temp_ITC_PIDFile = settings.value(
+    #             'ITC_PIDFile', str)
+    #     except KeyError as e:
+    #         QTimer.singleShot(20 * 1e3, self.load_settings)
+    #         self.show_error_general(f'could not find a key: {e}')
+    #         self.logger_personal.warning(f'key {e} was not found in the settings')
+    #     del settings
+
+    #     self.window_settings.checkUseAuto.setChecked(
+    #         self.window_settings.temp_ITC_useAutoPID)
+    #     if isinstance(self.window_settings.temp_ITC_PIDFile, str):
+    #         text = self.window_settings.temp_ITC_PIDFile
+    #     else:
+    #         text = ''
+    #     self.window_settings.lineConfFile.setText(text)
+
+    def softwarecontrol_toggle_locking(self, value):
+        """acquire/release the controls Lock
+        this is used to control the disabling/enabling of GUI elements,
+        in case of a running sequence/measurement"""
+        if value:
+            self.controls_Lock.acquire()
+        else:
+            self.controls_Lock.release()
+
+    def softwarecontrol_check(self):
+        """disable all respective GUI elements in case
+            the controls_lock is locked
+            thus prevent interference of the user
+                with a running sequence/measurement
+        """
+        # try:
+        if self.controls_Lock.locked():
+            for c in self.controls:
+                c.setEnabled(False)
+        else:
+            for c in self.controls:
+                c.setEnabled(True)
+
+    def running_thread_control(self, worker, threadname, **kwargs):
+        """
+            run a specified worker class in a thread
+                this should be a device controlling thread
+            add a corresponding entry in the data dictionary
+            add the thread and worker-class instances to the threads dictionary
+
+            return: the worker-class instance
+        """
+        worker, thread = running_thread(worker)
+
+        with self.threads['Lock']:
+            # this needs to be locked when a new thread is added, as otherwise
+            # the thread locking context manager would try to unlock the new thread
+            # before it was ever locked, resulting in a crash
+            #
+            # threads need to be saved somewhere, since otherwise garbage collection
+            # will throw them away, they die
+            self.threads[threadname] = (worker, thread)
+
+        return worker
+
+
 class AbstractLoopClient(AbstractLoopApp, zmqClient):
     """docstring for AbstractLoopClient"""
 
@@ -414,7 +525,7 @@ class AbstractThread(QObject):
         raise NotImplementedError
 
 
-class AbstractLoopThread(AbstractThread):
+class AbstractLoopThread_old(AbstractThread):
     """Abstract thread class to be used with instruments """
 
     def __init__(self, **kwargs):
@@ -454,6 +565,48 @@ class AbstractLoopThread(AbstractThread):
     # def looping(self, loop):
     #     """start/stop the loop execution, by setting the bool self._loop"""
     #     self._loop = loop
+
+
+class AbstractLoopThread(AbstractThread):
+    """Abstract thread class to be used with instruments """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.interval = 0.5  # second
+        # self.__isRunning = True
+        self.loop = True
+        self.lock = Lock()
+
+    @pyqtSlot()  # int
+    def work(self):
+        """class method which is working all the time while the thread is running. """
+        try:
+            self.zmq_handle()  # inherited later from zmqClient
+            with noblockLock(self.lock):
+                self.running()
+                self.send_data_upstream()
+        except BlockedError:
+            pass
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.work)
+
+    def running(self):
+        """class method to be overriden """
+        raise NotImplementedError
+
+    @pyqtSlot(float)
+    def setInterval(self, interval):
+        """set the interval between running events in seconds"""
+        self.interval = interval
+
+
+class AbstractLoopThreadClient(AbstractLoopThread, zmqClient):
+    """docstring for AbstractLoopThreadClient"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class AbstractEventhandlingThread(AbstractThread):

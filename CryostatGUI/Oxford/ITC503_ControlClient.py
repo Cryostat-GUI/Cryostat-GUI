@@ -675,6 +675,12 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
         self.set_gas_output = value
 
 
+# class 
+    # sig_ITC_useAutoPID = pyqtSignal(bool)
+    # sig_ITC_newFilePID = pyqtSignal(str)
+    # sig_ITC_setTemperature = pyqtSignal(dict)
+    # sig_ITC_stopSweep = pyqtSignal()
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = ITC503_ControlClient(
