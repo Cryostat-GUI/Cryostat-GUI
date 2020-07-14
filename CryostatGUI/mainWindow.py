@@ -100,7 +100,8 @@ from zmqcomms import genericAnswer
 ITC_Instrumentadress = 'ASRL6::INSTR'
 ILM_Instrumentadress = 'ASRL5::INSTR'
 IPS_Instrumentadress = 'ASRL4::INSTR'
-LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
+# LakeShore_InstrumentAddress = 'GPIB0::1::INSTR'
+LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
 Keithley2182_1_InstrumentAddress = 'GPIB0::2::INSTR'
 Keithley2182_2_InstrumentAddress = 'GPIB0::3::INSTR'
 Keithley2182_3_InstrumentAddress = 'GPIB0::4::INSTR'
@@ -284,7 +285,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # TODO: handle received data
                 raise genericAnswer(f'I do not know how to reply to that: {mes_dict}')
             else:
-                # the genericAnswer Exception is caughth in zmqquery_handle()
+                # the genericAnswer Exception is caught in zmqquery_handle() 
                 raise genericAnswer(f'I do not know how to reply to that: {message}')
 
     def setup_logging_base(self):
