@@ -390,10 +390,6 @@ class AbstractLoopClient(AbstractLoopApp, zmqClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def send_data_upstream(self):
-        self.comms_upstream.send_multipart(
-            [self.comms_name, enc(json.dumps(self.data))])
-
 
 class AbstractThread(QObject):
     """Abstract thread class to be used with instruments """

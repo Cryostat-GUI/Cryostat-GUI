@@ -2,6 +2,7 @@ import zmq
 import logging
 from time import sleep as timesleep
 from json import loads as dictload
+from json import dumps as dictdump
 # from threading import Thread
 
 logger = logging.getLogger('CryostatGUI.zmqComm')
@@ -54,8 +55,9 @@ def zmqquery(socket, query):
                 message = socket.recv(flags=zmq.NOBLOCK)
                 raise customEx
             except zmq.Again:
-                timesleep(0.2)
-                print('no answer')
+                time.sleep(0.2)
+                logger.debug('no answer')
+
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
         return -1
@@ -75,8 +77,9 @@ def zmqquery_dict(socket, query):
                 message = socket.recv_json(flags=zmq.NOBLOCK)
                 raise customEx
             except zmq.Again:
-                timesleep(0.2)
-                print('no answer')
+                time.sleep(0.2)
+                logger.debug('no answer')
+
     except zmq.ZMQError as e:
         logger.exception('There was an error in the zmq communication!', e)
         return -1
@@ -156,6 +159,10 @@ class zmqClient(zmqBare):
 
     def act_on_command(self, command: dict) -> None:
         raise NotImplementedError
+
+    def send_data_upstream(self):
+        self.comms_upstream.send_multipart(
+            [self.comms_name, enc(dictdump(self.data))])
 
 
 class zmqMainControl(zmqBare):

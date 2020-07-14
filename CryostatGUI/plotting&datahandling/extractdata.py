@@ -1,8 +1,9 @@
 
 from data_functions import conf
+import shutil
 
 filebase = './../Logs/'
-data = filebase + 'cooldown_20200422_5.db'
+data = filebase + 'cooldown_20200422_19.db'
 
 
 if __name__ == '__main__':
@@ -12,4 +13,6 @@ if __name__ == '__main__':
     # print(df.iloc[:, 1:4:2])
     dfexp = df.iloc[:, 1:4:2]
     # print(data[10:-3])
-    dfexp.to_csv(data[10:-3] + '.dat', index=False)
+    newfile = data[10:-3] + '.dat'
+    dfexp.to_csv(newfile, index=False)
+    shutil.copyfile(newfile, 'C:/Users/Lab-user/Dropbox/SPLITCOIL_data/Eugen_27_M2/' + newfile)
