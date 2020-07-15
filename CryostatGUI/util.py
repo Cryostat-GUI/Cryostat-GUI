@@ -343,6 +343,7 @@ class AbstractApp(QtWidgets.QMainWindow):
     sig_Infodata = pyqtSignal(dict)
 
     def __init__(self, ui_file=None, *args, **kwargs):
+        print('abstractApp')
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
         if ui_file is not None:
@@ -392,15 +393,19 @@ class AbstractMainApp(AbstractApp):
     data = dict()
 
     def __init__(self, **kwargs):
+        print('mainapp')
         super().__init__(**kwargs)
 
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(100)
+        
+        self.setup_logging_base()
+        self.setup_logging()
 
     def setup_logging_base(self):
         self.logger_all = logging.getLogger()
-        self.logger_personal = logging.getLogger('CryostatGUI.main')
+        self.logger_personal = logging.getLogger('CryostatGUI.')
 
         self.Log_DBhandler = SQLiteHandler(
             db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
@@ -499,6 +504,7 @@ class AbstractLoopClient(AbstractLoopApp, zmqClient):
     """docstring for AbstractLoopClient"""
 
     def __init__(self, *args, **kwargs):
+        print('loopclient')
         super().__init__(*args, **kwargs)
 
 
@@ -694,6 +700,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
 
     def __init__(self, ui_file=None, Name=None, **kwargs):
         self.logger = logging.getLogger(__name__)
+        print('trayservice')
         super().__init__(**kwargs)
 
         icon = QtGui.QIcon('./../TU-Signet.png')
@@ -705,6 +712,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
             self.pyqt_sysTray.setToolTip(u'{}'.format(Name))
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
+            self.Name = Name
 
         QTimer.singleShot(0, self.initialise_minimized)
 

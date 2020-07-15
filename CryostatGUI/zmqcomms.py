@@ -96,6 +96,7 @@ class zmqClient(zmqBare):
     """docstring for zmqDev"""
 
     def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_storage='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+        print('zmqClient')
         super().__init__(*args, **kwargs)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
