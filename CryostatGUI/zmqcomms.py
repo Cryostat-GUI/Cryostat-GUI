@@ -140,7 +140,7 @@ class zmqClient(zmqBare):
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
                     if msg.decode('utf-8')[-1] == '?':
                         # answer = retrieve_answer(dec(msg))
-                        answer = enc(self.data)
+                        answer = enc(dictdump(self.data))
                         self.comms_tcp.send(answer)
 
             except zmq.Again:
@@ -230,7 +230,7 @@ class zmqMainControl(zmqBare):
 class zmqDataStore(zmqBare):
     """docstring for zmqDev"""
 
-    def __init__(self, context=None, _ident='dataStore', ip_maincontrol='*', ip_storage='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
+    def __init__(self, context=None, _ident='dataStore', ip_maincontrol='localhost', ip_storage='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
@@ -253,8 +253,8 @@ class zmqDataStore(zmqBare):
                 while True:
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
                     if msg.decode('utf-8')[-1] == '?':
-                        pass
-                        # self.comms_tcp.send()
+                        answer = self.get_answer(msg)
+                        self.comms_tcp.send(enc(answer))
                     # do something - most likely hand out data to an asking
                     # process
             except zmq.Again:
@@ -264,6 +264,13 @@ class zmqDataStore(zmqBare):
                 while True:
                     msg = self.comms_upstream.recv_multipart(zmq.NOBLOCK)
                     # print(msg)
+                    self.store_data(msg)
                     # store data!
             except zmq.Again:
                 pass
+
+    def store_data(self, data):
+        raise NotImplementedError
+
+    def get_answer(self, msg):
+        raise NotImplementedError
