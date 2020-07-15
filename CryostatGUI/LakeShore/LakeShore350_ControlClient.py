@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
-from LakeShore.LakeShore350 import LakeShore350
+from LakeShore.LakeShore350 import LakeShore350_ethernet as LakeShore350
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
@@ -26,7 +26,7 @@ from datetime import datetime
 # import logging
 
 # import time
-# 
+#
 # a = time.time()
 
 from PyQt5.QtCore import QTimer
@@ -80,7 +80,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     def __init__(self, mainthread, comLock=None, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
-        self.interval = 5
+        self.interval = 0.5
         self.t = datetime.now()
 
         # here the class instance of the LakeShore should be handed
@@ -171,6 +171,8 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
         mainthread.spin_threadinterval.valueChanged.connect(
             lambda value: self.setInterval(value))
+        # print('thread done with init')
+
 
     @ExceptionHandling
     def initiating_PID(self):
@@ -187,7 +189,6 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         and emit signal, sending the data
         """
         # print('run')
-        # a = self.t
         # self.t1 = datetime.now()
         # print(self.t1 - self.t)
         # self.t = self.t1
@@ -429,8 +430,6 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 #       self.Heater_Range_value = value
 
 
-LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
-
 # errorfile = 'Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '.error'
 
 # directory = os.path.dirname(errorfile)
@@ -446,24 +445,30 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
     sig_assertion = pyqtSignal(str)
 
     def __init__(self, **kwargs):
+        self.kwargs = deepcopy(kwargs)
+        del kwargs['identity']
+        del kwargs['InstrumentAddress']
+        self._identity = self.kwargs['identity']
+        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        # print('GUI pre')
         super().__init__(**kwargs)
+        # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
         self.__name__ = 'MainWindow'
         self.threads = dict(Lock=Lock())
         # self.threads = dict()
-        self.kwargs = kwargs
 
-        QTimer.singleShot(0, lambda: self.run_Hardware(kwargs))
+        QTimer.singleShot(0, self.run_Hardware)
 
     @pyqtSlot()
-    def run_Hardware(self, kwargs):
+    def run_Hardware(self):
         """start/stop the LakeShore350 thread"""
 
         try:
             getInfodata = self.running_thread_control(LakeShore350_ControlClient(
-                InstrumentAddress=LakeShore_InstrumentAddress, mainthread=self, **kwargs), 'Hardware', )
+                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
@@ -473,7 +478,6 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 
             # getInfodata.sig_visatimeout.connect(
             #     lambda: self.show_error_general('LakeShore350: timeout'))
-
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
@@ -535,37 +539,37 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         # since the command failed in the communication with the device,
         # the last value is retained
 
-        self.LakeShore350_window.progressHeaterOutput_percentage.setValue(
+        self.progressHeaterOutput_percentage.setValue(
             self.data['Heater_Output_percentage'])
-        self.LakeShore350_window.lcdHeaterOutput_mW.display(
+        self.lcdHeaterOutput_mW.display(
             self.data['Heater_Output_mW'])
-        self.LakeShore350_window.lcdSetTemp_K.display(
+        self.lcdSetTemp_K.display(
             self.data['Temp_K'])
-        # self.LakeShore350_window.lcdRampeRate_Status.display(self.data['RampRate_Status'])
-        self.LakeShore350_window.lcdSetRampRate_Kpmin.display(
+        # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
+        self.lcdSetRampRate_Kpmin.display(
             self.data['Ramp_Rate'])
 
-        self.LakeShore350_window.comboSetInput_Sensor.setCurrentIndex(
+        self.comboSetInput_Sensor.setCurrentIndex(
             int(self.data['Input_Sensor']) - 1)
-        self.LakeShore350_window.lcdSensor1_K.display(
+        self.lcdSensor1_K.display(
             self.data['Sensor_1_K'])
-        self.LakeShore350_window.lcdSensor2_K.display(
+        self.lcdSensor2_K.display(
             self.data['Sensor_2_K'])
-        self.LakeShore350_window.lcdSensor3_K.display(
+        self.lcdSensor3_K.display(
             self.data['Sensor_3_K'])
-        self.LakeShore350_window.lcdSensor4_K.display(
+        self.lcdSensor4_K.display(
             self.data['Sensor_4_K'])
 
         """NEW GUI to display P,I and D Parameters
         """
-        self.LakeShore350_window.lcdLoopP_Param.display(
+        self.lcdLoopP_Param.display(
             self.data['Loop_P_Param'])
-        self.LakeShore350_window.lcdLoopI_Param.display(
+        self.lcdLoopI_Param.display(
             self.data['Loop_I_Param'])
-        self.LakeShore350_window.lcdLoopD_Param.display(
+        self.lcdLoopD_Param.display(
             self.data['Loop_D_Param'])
 
-        # self.LakeShore350_window.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
+        # self.lcdHeater_Range.display(self.date['LakeShore350']['Heater_Range'])
 
 
 if __name__ == '__main__':
@@ -582,9 +586,10 @@ if __name__ == '__main__':
     # handler.setFormatter(formatter)
     # logger.addHandler(handler)
 
+    LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
     app = QtWidgets.QApplication(sys.argv)
     form = LakeShoreGUI(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress='TCPIP::192.168.2.105::7777::SOCKET')
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress=LakeShore_InstrumentAddress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

@@ -58,7 +58,7 @@ from PyQt5.QtWidgets import QSizePolicy
 from zmqcomms import zmqClient
 # from zmqcomms import enc
 
-from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
+# from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
 
 logger = logging.getLogger('CryostatGUI.utility')
@@ -176,7 +176,7 @@ def ExceptionSignal(thread, func, e_type, err):
         e_type,
         err.args[0])
 
-    # thread.sig_assertion.emit(string)
+    thread.sig_assertion.emit(string)
     return string
 
 
@@ -343,11 +343,44 @@ class AbstractApp(QtWidgets.QMainWindow):
     sig_Infodata = pyqtSignal(dict)
 
     def __init__(self, ui_file=None, *args, **kwargs):
-        print('abstractApp')
+        # print('abstractApp pre')
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger(__name__)
+        # print('abstractApp post')
+        # self.logger = logging.getLogger(__name__)
         if ui_file is not None:
             loadUi(ui_file, self)
+
+        self.setup_logging_base()
+        self.setup_logging()
+
+    def setup_logging_base(self):
+        self.logger_all = logging.getLogger()
+        self.logger_personal = logging.getLogger(
+            'CryostatGUI.{}'.format(self._Name))
+
+        # self.Log_DBhandler = SQLiteHandler(
+        #     db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
+        # self.Log_DBhandler.setLevel(logging.DEBUG)
+
+        self.logger_personal.setLevel(logging.DEBUG)
+        self.logger_all.setLevel(logging.ERROR)
+        # self.logger_personal.addHandler(self.Log_DBhandler)
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.ERROR)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger_personal.addHandler(handler)
+        self.logger_all.addHandler(handler)
+
+    def setup_logging(self):
+        """set up the logger, handler, for now in DEBUG
+        TODO: connect logging levels with GUI preferences"""
+
+        self.logger_all.setLevel(logging.INFO)
+
+        # self.logger_all.addHandler(self.Log_DBhandler)
 
 
 class AbstractLoopApp(AbstractApp):
@@ -393,43 +426,15 @@ class AbstractMainApp(AbstractApp):
     data = dict()
 
     def __init__(self, **kwargs):
-        print('mainapp')
+        # print('mainapp pre')
         super().__init__(**kwargs)
+        # print('mainapp post')
 
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
-        self.softwarecontrol_timer.start(100)
-        
-        self.setup_logging_base()
-        self.setup_logging()
+        # self.softwarecontrol_timer.start(100)
 
-    def setup_logging_base(self):
-        self.logger_all = logging.getLogger()
-        self.logger_personal = logging.getLogger('CryostatGUI.')
-
-        self.Log_DBhandler = SQLiteHandler(
-            db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
-        self.Log_DBhandler.setLevel(logging.DEBUG)
-
-        self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.ERROR)
-        # self.logger_personal.addHandler(self.Log_DBhandler)
-
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.ERROR)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger_personal.addHandler(handler)
-        self.logger_all.addHandler(handler)
-
-    def setup_logging(self):
-        """set up the logger, handler, for now in DEBUG
-        TODO: connect logging levels with GUI preferences"""
-
-        self.logger_all.setLevel(logging.INFO)
-
-        self.logger_all.addHandler(self.Log_DBhandler)
+        self.controls_Lock = Lock()
 
     # def load_settings(self):
     #     """load all settings store in the QSettings
@@ -593,8 +598,10 @@ class AbstractLoopThread(AbstractThread):
                 self.send_data_upstream()
         except BlockedError:
             pass
+            # print('blocked')
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            # print('assertion', assertion.args[0])
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)
 
@@ -700,8 +707,9 @@ class Window_trayService_ui(QtWidgets.QWidget):
 
     def __init__(self, ui_file=None, Name=None, **kwargs):
         self.logger = logging.getLogger(__name__)
-        print('trayservice')
+        # print('trayservice pre')
         super().__init__(**kwargs)
+        # print('trayservice post')
 
         icon = QtGui.QIcon('./../TU-Signet.png')
         self.pyqt_sysTray = SystemTrayIcon(icon, self)
@@ -712,7 +720,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
             self.pyqt_sysTray.setToolTip(u'{}'.format(Name))
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
-            self.Name = Name
+            self._Name = Name
 
         QTimer.singleShot(0, self.initialise_minimized)
 

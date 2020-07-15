@@ -2,7 +2,7 @@ import zmq
 import logging
 from time import sleep as timesleep
 from json import loads as dictload
-from json import dumps as dictdump
+from json import dumps
 # from threading import Thread
 
 logger = logging.getLogger('CryostatGUI.zmqComm')
@@ -14,6 +14,10 @@ def enc(msg):
 
 def dec(msg):
     return msg.decode('utf-8')
+
+
+def dictdump(d):
+    return dumps(d, indent=4, sort_keys=True, default=str)
 
 
 class genericAnswer(Exception):
@@ -96,7 +100,7 @@ class zmqClient(zmqBare):
     """docstring for zmqDev"""
 
     def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_storage='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
-        print('zmqClient')
+        # print('zmqClient')
         super().__init__(*args, **kwargs)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
