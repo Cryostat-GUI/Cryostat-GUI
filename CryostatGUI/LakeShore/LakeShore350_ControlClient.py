@@ -439,7 +439,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
 
 class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
-    """This is the main GUI Window, where other windows will be spawned from"""
+    """This is the LakeShore GUI Window"""
 
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
