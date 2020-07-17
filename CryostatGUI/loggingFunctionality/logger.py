@@ -25,11 +25,16 @@ from prometheus_client import Gauge
 
 
 from util import AbstractLoopThread
+from util import AbstractLoopThreadDataStore
 from util import AbstractEventhandlingThread
 from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
 from util import convert_time_date
+from util import AbstractMainApp
+from util import Window_trayService_ui
+from util import ExceptionHandling
+
 
 
 from sqlite3 import OperationalError
@@ -697,6 +702,22 @@ class live_Logger(AbstractLoopThread):
             - update the configuration with one being sent.
         """
         self.interval = conf['general']['interval_live']
+
+
+class LoggingGUI(AbstractMainApp, Window_trayService_ui):
+    """docstring for LoggingGUI"""
+
+    sig_logging = pyqtSignal(dict)
+    sig_logging_newconf = pyqtSignal(dict)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # start thread 1: main_logger
+        # start thread 2: newLiveLogger with zmq capability
+
+
+
+
 
 
 class Logger_measurement_configuration(Window_ui):
