@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
-
+import pandas as pd
 import time
 import pickle
 import os
@@ -37,6 +37,17 @@ from sqlite3 import OperationalError
 
 import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
+
+
+def slope_from_timestampX(tmp_):
+    """casting datetime into seconds:
+        dt = pandas series of datetime objects
+        seconds = dt.astype('int64') // 1e9
+
+    """
+    slope = pd.Series(np.gradient(tmp_.values, tmp_.index.astype(
+        'int64') // 1e9), tmp_.index, name='slope')
+    return slope
 
 
 def testing_NaN(variable):
