@@ -13,28 +13,32 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
-import json
-import sys
+# import json
+# import sys
 from threading import Lock
 from threading import Thread
 import time
 import numpy as np
+from copy import deepcopy
 
 
 from util import ExceptionHandling
-from util import AbstractLoopClient
+from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
 from util import readPID_fromFile
+from util import AbstractMainApp
 
-from zmqcomms import dec, enc
+# from zmqcomms import dec, enc
 
 from datetime import datetime
 from Oxford.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
 
-class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
+class ITC503_ControlClient(AbstractLoopThreadClient):
     """Control class to update all instrument data of the Intelligent Temperature Controller (ITC) 503.
 
     For each ITC503 function (except collecting data), there is a wrapping method,
@@ -64,12 +68,12 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, mainthread, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'ITC_Updater ' + InstrumentAddress
+        self.__name__ = 'ITC_control ' + InstrumentAddress
         # try:
         # print(self.logger, self.logger.name)
 
@@ -102,11 +106,10 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
         self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
         self.useAutoPID = True
-        # self.mainthreadSignals = mainthreadSignals
-        # self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
-        # self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
-        # self.mainthreadSignals['setTemp'].connect(self.setTemperature)
-        # self.mainthreadSignals['stopSweep'].connect(self.stopSweep)
+        mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
+        mainthread.sig_newFilePID.connect(self.setPIDFile)
+        mainthread.sig_sendConfTemp.connect(self.setTemperature)
+        mainthread.sig_stopSweep.connect(self.stopSweep)
         self.data_last = dict()
 
         self.lock_newthread = Lock()
@@ -114,125 +117,79 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
-        # GUI: passing GUI interactions to the corresponding slots
-        self.data['setTemperature'] = self.ITC.getValue(0)
-        with self.lock:
-            self.checksweep(stop=False)
-                # self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
-                with getInfodata.lock:
-                    sweepstatus = getInfodata.checksweep(stop=False)
-                self.ITC_values['Sweep_status_software'] = sweepstatus
-                self.ITC_window.checkSweep.setChecked(sweepstatus)
 
-                getInfodata.sig_Infodata.connect(self.store_data_itc)
-                # getInfodata.sig_visaerror.connect(self.printing)
-                getInfodata.sig_visaerror.connect(self.show_error_general)
-                # getInfodata.sig_assertion.connect(self.printing)
-                getInfodata.sig_assertion.connect(self.show_error_general)
-                getInfodata.sig_visatimeout.connect(
-                    lambda: self.show_error_general('ITC: timeout'))
+        # def change_gas(self):
+        #     """to be worked in a separate worker thread (separate
+        #         time.sleep() from GUI)
+        #         change the opening percentage of the needle valve in a
+        #         repeatable fashion (go to zero, go to new value)
+        #         disable the GUI element during the operation
 
-                # setting ITC values by GUI ITC window
-                self.ITC_window.spinsetTemp.valueChanged.connect(
-                    self.ITC_fun_setTemp_valcha)
-                # self.ITC_window.spinsetTemp.editingFinished.connect(
-                #     self.ITC_fun_setTemp_edfin)
+        #         should be changed, to use signals to change GUI,
+        #         and possibly timers instead of time.sleep()
+        #         (QTimer not usefil in the second case)
+        #     """
+        #     if self.ITC_window.checkGas_gothroughzero.isChecked():
+        #         gas_new = self.threads['control_ITC'][0].set_gas_output
+        #         with self.dataLock:
+        #             gas_old = int(self.data['ITC']['gas_flow_output'])
+        #         if gas_new == 0:
+        #             time_wait = 60 / 1e2 * gas_old + 5
+        #             self.threads['control_ITC'][0].setGasOutput()
 
-                self.ITC_window.checkSweep.toggled['bool'].connect(
-                    self.ITC_fun_checkSweep_toggled)
+        #             self.ITC_window.spinsetGasOutput.setEnabled(False)
+        #             time.sleep(time_wait)
+        #             self.ITC_window.spinsetGasOutput.setEnabled(True)
+        #         else:
+        #             time1 = 60 / 1e2 * gas_old + 5
+        #             time2 = 60 / 1e2 * gas_new + 5
+        #             self.threads['control_ITC'][
+        #                 0].gettoset_GasOutput(0)
+        #             self.threads['control_ITC'][0].setGasOutput()
+        #             self.ITC_window.spinsetGasOutput.setEnabled(False)
+        #             time.sleep(time1)
+        #             self.threads['control_ITC'][
+        #                 0].gettoset_GasOutput(gas_new)
+        #             self.threads['control_ITC'][0].setGasOutput()
+        #             time.sleep(time2)
+        #             self.ITC_window.spinsetGasOutput.setEnabled(True)
+        #     else:
+        #         self.threads['control_ITC'][0].setGasOutput()
 
-                self.ITC_window.dspinSetRamp.valueChanged.connect(
-                    self.ITC_fun_setRamp_valcha)
-                # self.ITC_window.dspinSetRamp.editingFinished.connect(
-                #     self.ITC_fun_setRamp_edfin)
+        mainthread.spinsetGasOutput.valueChanged.connect(self.gettoset_GasOutput)
+        mainthread.spinsetGasOutput.editingFinished.connect(self.setGasOutput)
 
-                self.ITC_window.commandSendConfTemp.clicked.connect(
-                    self.ITC_fun_sendConfTemp)
+        mainthread.spinsetHeaterPercent.valueChanged.connect(
+            self.gettoset_HeaterOutput)
+        mainthread.spinsetHeaterPercent.editingFinished.connect(
+            self.setHeaterOutput)
 
-                def change_gas(self):
-                    """to be worked in a separate worker thread (separate
-                        time.sleep() from GUI)
-                        change the opening percentage of the needle valve in a
-                        repeatable fashion (go to zero, go to new value)
-                        disable the GUI element during the operation
+        mainthread.spinsetProportionalID.valueChanged.connect(
+            self.gettoset_Proportional)
+        mainthread.spinsetProportionalID.editingFinished.connect(
+            self.setProportional)
 
-                        should be changed, to use signals to change GUI,
-                        and possibly timers instead of time.sleep()
-                        (QTimer not usefil in the second case)
-                    """
-                    if self.ITC_window.checkGas_gothroughzero.isChecked():
-                        gas_new = self.threads['control_ITC'][0].set_gas_output
-                        with self.dataLock:
-                            gas_old = int(self.data['ITC']['gas_flow_output'])
-                        if gas_new == 0:
-                            time_wait = 60 / 1e2 * gas_old + 5
-                            self.threads['control_ITC'][0].setGasOutput()
+        mainthread.spinsetPIntegrationD.valueChanged.connect(
+            self.gettoset_Integral)
+        mainthread.spinsetPIntegrationD.editingFinished.connect(
+            self.setIntegral)
 
-                            self.ITC_window.spinsetGasOutput.setEnabled(False)
-                            time.sleep(time_wait)
-                            self.ITC_window.spinsetGasOutput.setEnabled(True)
-                        else:
-                            time1 = 60 / 1e2 * gas_old + 5
-                            time2 = 60 / 1e2 * gas_new + 5
-                            self.threads['control_ITC'][
-                                0].gettoset_GasOutput(0)
-                            self.threads['control_ITC'][0].setGasOutput()
-                            self.ITC_window.spinsetGasOutput.setEnabled(False)
-                            time.sleep(time1)
-                            self.threads['control_ITC'][
-                                0].gettoset_GasOutput(gas_new)
-                            self.threads['control_ITC'][0].setGasOutput()
-                            time.sleep(time2)
-                            self.ITC_window.spinsetGasOutput.setEnabled(True)
-                    else:
-                        self.threads['control_ITC'][0].setGasOutput()
+        mainthread.spinsetPIDerivative.valueChanged.connect(
+            self.gettoset_Derivative)
+        mainthread.spinsetPIDerivative.editingFinished.connect(
+            self.setDerivative)
 
-                self.ITC_window.spinsetGasOutput.valueChanged.connect(
-                    lambda value: getInfodata.gettoset_GasOutput(value))
-                self.ITC_window.spinsetGasOutput.editingFinished.connect(
-                    lambda: self.running_thread_tiny(Workerclass(change_gas, self)))
+        mainthread.combosetHeatersens.activated['int'].connect(
+            lambda value: self.setHeaterSensor(value + 1))
 
-                self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
-                    lambda value: getInfodata.gettoset_HeaterOutput(value))
-                self.ITC_window.spinsetHeaterPercent.editingFinished.connect(
-                    lambda: getInfodata.setHeaterOutput())
+        mainthread.combosetAutocontrol.activated[
+            'int'].connect(self.setAutoControl)
 
-                self.ITC_window.spinsetProportionalID.valueChanged.connect(
-                    lambda value: getInfodata.gettoset_Proportional(value))
-                self.ITC_window.spinsetProportionalID.editingFinished.connect(
-                    lambda: getInfodata.setProportional())
+        mainthread.spin_threadinterval.valueChanged.connect(self.setInterval)
 
-                self.ITC_window.spinsetPIntegrationD.valueChanged.connect(
-                    lambda value: getInfodata.gettoset_Integral(value))
-                self.ITC_window.spinsetPIntegrationD.editingFinished.connect(
-                    lambda: getInfodata.setIntegral())
-
-                self.ITC_window.spinsetPIDerivative.valueChanged.connect(
-                    lambda value: getInfodata.gettoset_Derivative(value))
-                self.ITC_window.spinsetPIDerivative.editingFinished.connect(
-                    lambda: getInfodata.setDerivative())
-
-                self.ITC_window.combosetHeatersens.activated['int'].connect(
-                    lambda value: getInfodata.setHeaterSensor(value + 1))
-
-                self.ITC_window.combosetAutocontrol.activated['int'].connect(
-                    lambda value: getInfodata.setAutoControl(value))
-
-                self.ITC_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: getInfodata.setInterval(value))
-
-                # thread.started.connect(getInfodata.work)
-                # thread.start()
-                self.window_SystemsOnline.checkaction_run_ITC.setChecked(True)
-                self.logging_running_ITC = True
-
-                self.sigs['ITC']['useAutocheck'].emit(
-                    self.window_settings.temp_ITC_useAutoPID)
-                self.sigs['ITC']['newFilePID'].emit(
-                    self.window_settings.temp_ITC_PIDFile)
         # -------------------------------------------------------------------------------------------------------------------------
 
-        self.spin_threadinterval.valueChanged.connect(
+        mainthread.spin_threadinterval.valueChanged.connect(
             lambda value: self.setInterval(value))
 
     # @control_checks
@@ -288,7 +245,7 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
             self.set_PID(temperature=self.data['Sensor_1_K'])
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
-
+        self.sig_Infodata.emit(deepcopy(self.data))
 
     @ExceptionHandling
     def act_on_command(self, command):
@@ -675,7 +632,175 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
         self.set_gas_output = value
 
 
-# class 
+class ITCGUI(AbstractMainApp, Window_trayService_ui):
+
+    """docstring for ITCGUI"""
+    sig_sendConfTemp = pyqtSignal(dict)
+    sig_useAutocheck = pyqtSignal(bool)
+    sig_newFilePID = pyqtSignal(str)
+    sig_stopSweep = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        self.kwargs = deepcopy(kwargs)
+        del kwargs['identity']
+        del kwargs['InstrumentAddress']
+        self._identity = self.kwargs['identity']
+        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        super().__init__(**kwargs)
+
+        self.__name__ = 'LakeShore_Window'
+        self.threads = dict(Lock=Lock())
+        # self.threads = dict()
+        self.ITC_values = dict()
+
+        QTimer.singleShot(0, self.run_Hardware)
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def ITC_fun_setTemp_valcha(self, value):
+        # self.threads['control_ITC'][0].gettoset_Temperature(value)
+        self.ITC_values['setTemperature'] = value
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def ITC_fun_setRamp_valcha(self, value):
+        self.ITC_values['SweepRate'] = value
+        # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+
+    @pyqtSlot(bool)
+    @ExceptionHandling
+    def ITC_fun_checkSweep_toggled(self, boolean):
+        self.ITC_values['Sweep_status_software'] = boolean
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def ITC_fun_sendConfTemp(self):
+        self.ITC_fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
+                               isSweepStartCurrent=True,
+                               setTemp=self.ITC_values['setTemperature'],
+                               end=self.ITC_values['setTemperature'],
+                               SweepRate=self.ITC_values['SweepRate'])
+
+    # @pyqtSlot(dict)
+    # @ExceptionHandling
+    # def ITC_fun_routeSignalTemps(self, d: dict) -> None:
+    #     self.ITC_fun_startTemp(isSweep=d['Sweep_status_software'],
+    #                            isSweepStartCurrent=d['isSweepStartCurrent'],
+    #                            setTemp=d['setTemperature'],
+    #                            end=d['setTemperature'],
+    #                            SweepRate=d['SweepRate'])
+
+    @pyqtSlot(dict)
+    def ITC_fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
+        self.sig_sendConfTemp.emit(dict(isSweep=isSweep,
+                                        isSweepStartCurrent=isSweepStartCurrent,
+                                        setTemp=setTemp,
+                                        start=start,
+                                        end=end,
+                                        SweepRate=SweepRate))
+
+    @pyqtSlot(bool)
+    def run_Hardware(self):
+        """method to start/stop the thread which controls the Oxford ITC"""
+
+        try:
+            self.data = dict()
+
+            getInfodata = self.running_thread_control(ITC503_ControlClient(
+                InstrumentAddress=self._Instrumentadress, mainthread=self, identity=self._identity), 'Hardware')
+
+            self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
+            with getInfodata.lock:
+                sweepstatus = getInfodata.checksweep(stop=False)
+            self.ITC_values['Sweep_status_software'] = sweepstatus
+            self.checkSweep.setChecked(sweepstatus)
+
+            getInfodata.sig_Infodata.connect(self.updateGUI)
+            # getInfodata.sig_visaerror.connect(self.printing)
+            # getInfodata.sig_visaerror.connect(self.show_error_general)
+            # # getInfodata.sig_assertion.connect(self.printing)
+            # getInfodata.sig_assertion.connect(self.show_error_general)
+            # getInfodata.sig_visatimeout.connect(
+            #     lambda: self.show_error_general('ITC: timeout'))
+
+            # setting ITC values by GUI
+            self.spinsetTemp.valueChanged.connect(self.ITC_fun_setTemp_valcha)
+            self.checkSweep.toggled['bool'].connect(self.ITC_fun_checkSweep_toggled)
+            self.dspinSetRamp.valueChanged.connect(self.ITC_fun_setRamp_valcha)
+            self.commandSendConfTemp.clicked.connect(self.ITC_fun_sendConfTemp)
+            
+            # self.sig_useAutocheck.emit(self.window_settings.temp_ITC_useAutoPID)
+            # self.sig_newFilePID.emit(self.window_settings.temp_ITC_PIDFile)
+        except (VisaIOError, NameError) as e:
+            self.logger_personal.exception(e)
+
+    @pyqtSlot(dict)
+    def updateGUI(self, data):
+        """
+            Calculate the rate of change of Temperature on the sensors [K/min]
+            Store ITC data in self.data['ITC'], update ITC_window
+        """
+        # with self.dataLock:
+        # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
+        # self.time_itc.append(time.time())
+        self.data.update(data)
+
+        # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
+        # since the command failed in the communication with the device,
+        # the last value is retained
+
+        for key in self.data:
+            if self.data[key] is None:
+                self.data[key] = np.nan
+        # if not self.data['Sensor_1_K'] is None:
+        self.lcdTemp_sens1_K.display(
+            self.data['Sensor_1_K'])
+        # if not self.data['Sensor_2_K'] is None:
+        self.lcdTemp_sens2_K.display(
+            self.data['Sensor_2_K'])
+        # if not self.data['Sensor_3_K'] is None:
+        self.lcdTemp_sens3_K.display(
+            self.data['Sensor_3_K'])
+
+        # if not self.data['set_temperature'] is None:
+        self.lcdTemp_set.display(
+            self.data['set_temperature'])
+        # if not self.data['temperature_error'] is None:
+        self.lcdTemp_err.display(
+            self.data['temperature_error'])
+        # if not self.data['heater_output_as_percent'] is None:
+        try:
+            self.progressHeaterPercent.setValue(
+                int(self.data['heater_output_as_percent']))
+            # if not self.data['gas_flow_output'] is None:
+            self.progressNeedleValve.setValue(
+                int(self.data['gas_flow_output']))
+        except ValueError:
+            pass
+        # if not self.data['heater_output_as_voltage'] is None:
+        self.lcdHeaterVoltage.display(
+            self.data['heater_output_as_voltage'])
+        # if not self.data['gas_flow_output'] is None:
+        self.lcdNeedleValve_percent.display(
+            self.data['gas_flow_output'])
+        # if not self.data['proportional_band'] is None:
+        self.lcdProportionalID.display(
+            self.data['proportional_band'])
+        # if not self.data['integral_action_time'] is None:
+        self.lcdPIntegrationD.display(
+            self.data['integral_action_time'])
+        # if not self.data['derivative_action_time'] is None:
+        self.lcdPIDerivative.display(
+            self.data['derivative_action_time'])
+
+        self.lcdTemp_sens1_calcerr_K.display(
+            self.data['Sensor_1_calerr_K'])
+
+        self.combosetAutocontrol.setCurrentIndex(
+            self.data['autocontrol'])
+
+
+# class
     # sig_ITC_useAutoPID = pyqtSignal(bool)
     # sig_ITC_newFilePID = pyqtSignal(str)
     # sig_ITC_setTemperature = pyqtSignal(dict)
@@ -683,8 +808,9 @@ class ITC503_ControlClient(AbstractLoopClient, Window_trayService_ui):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = ITC503_ControlClient(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350', InstrumentAddress='')
+    ITC_Instrumentadress = 'ASRL6::INSTR'
+    form = ITC5GUI(
+        ui_file='itc503_main.ui', Name='ITC503', identity=b'ITC503', InstrumentAddress=ITC_Instrumentadress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
