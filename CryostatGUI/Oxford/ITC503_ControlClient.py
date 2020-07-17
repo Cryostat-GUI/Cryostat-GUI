@@ -648,9 +648,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         super().__init__(**kwargs)
 
-        self.__name__ = 'LakeShore_Window'
-        self.threads = dict(Lock=Lock())
-        # self.threads = dict()
+        self.__name__ = 'ITC_Window'
         self.ITC_values = dict()
 
         QTimer.singleShot(0, self.run_Hardware)

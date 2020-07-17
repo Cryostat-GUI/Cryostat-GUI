@@ -456,9 +456,8 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'MainWindow'
-        self.threads = dict(Lock=Lock())
-        # self.threads = dict()
+        self.__name__ = 'LakeShore_Window'
+        self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
 
