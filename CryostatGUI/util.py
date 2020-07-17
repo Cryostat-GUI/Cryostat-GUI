@@ -435,7 +435,7 @@ class AbstractMainApp(AbstractApp):
         self.softwarecontrol_timer.start(100)
 
         self.controls_Lock = Lock()
-        self.threadslock = Lock()
+        self.threads = dict(Lock=Lock())
 
     # def load_settings(self):
     #     """load all settings store in the QSettings
@@ -494,7 +494,7 @@ class AbstractMainApp(AbstractApp):
         """
         worker, thread = running_thread(worker)
 
-        with self.threadslock:
+        with self.threads['Lock']:
             # this needs to be locked when a new thread is added, as otherwise
             # the thread locking context manager would try to unlock the new thread
             # before it was ever locked, resulting in a crash
