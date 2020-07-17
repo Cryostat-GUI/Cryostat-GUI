@@ -104,7 +104,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.setControl()
         self.interval = 0.05
 
-        self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
+        self.setPIDFile('.\\..\\configurations\\PID_conf\\P1C1.conf')
         self.useAutoPID = True
         mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
         mainthread.sig_newFilePID.connect(self.setPIDFile)
@@ -581,7 +581,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         """
         self.ITC.setGasOutput(self.set_gas_output)
 
-    @pyqtSlot()
+    @pyqtSlot(int)
     @ExceptionHandling
     def setAutoControl(self, value):
         """set AutoControl of the instrument
@@ -607,27 +607,27 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     #     self.set_temperature = value
     #     # print('got a new temp:', value)
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Proportional(self, value):
         """receive and store the value to set the proportional (PID)"""
         self.set_prop = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Integral(self, value):
         """receive and store the value to set the integral (PID)"""
         self.set_integral = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Derivative(self, value):
         """receive and store the value to set the derivative (PID)"""
         self.set_derivative = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_HeaterOutput(self, value):
         """receive and store the value to set the heater_output"""
         self.set_heater_output = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_GasOutput(self, value):
         """receive and store the value to set the gas_output"""
         self.set_gas_output = value
@@ -650,7 +650,8 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         super().__init__(**kwargs)
 
         self.__name__ = 'ITC_Window'
-        self.ITC_values = dict()
+        self.ITC_values = dict(setTemperature=4, SweepRate=2)
+        self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
 
@@ -698,7 +699,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
                                         end=end,
                                         SweepRate=SweepRate))
 
-    @pyqtSlot(bool)
+    @pyqtSlot()
     def run_Hardware(self):
         """method to start/stop the thread which controls the Oxford ITC"""
 
@@ -706,7 +707,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             self.data = dict()
 
             getInfodata = self.running_thread_control(ITC503_ControlClient(
-                InstrumentAddress=self._Instrumentadress, mainthread=self, identity=self._identity), 'Hardware')
+                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware')
 
             self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
             with getInfodata.lock:
