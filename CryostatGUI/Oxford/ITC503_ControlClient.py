@@ -156,7 +156,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         #     else:
         #         self.threads['control_ITC'][0].setGasOutput()
 
-        mainthread.spinsetGasOutput.valueChanged.connect(self.gettoset_GasOutput)
+        mainthread.spinsetGasOutput.valueChanged.connect(
+            self.gettoset_GasOutput)
         mainthread.spinsetGasOutput.editingFinished.connect(self.setGasOutput)
 
         mainthread.spinsetHeaterPercent.valueChanged.connect(
@@ -723,10 +724,11 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
             # setting ITC values by GUI
             self.spinsetTemp.valueChanged.connect(self.ITC_fun_setTemp_valcha)
-            self.checkSweep.toggled['bool'].connect(self.ITC_fun_checkSweep_toggled)
+            self.checkSweep.toggled['bool'].connect(
+                self.ITC_fun_checkSweep_toggled)
             self.dspinSetRamp.valueChanged.connect(self.ITC_fun_setRamp_valcha)
             self.commandSendConfTemp.clicked.connect(self.ITC_fun_sendConfTemp)
-            
+
             # self.sig_useAutocheck.emit(self.window_settings.temp_ITC_useAutoPID)
             # self.sig_newFilePID.emit(self.window_settings.temp_ITC_PIDFile)
         except (VisaIOError, NameError) as e:
@@ -798,17 +800,11 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             self.data['autocontrol'])
 
 
-# class
-    # sig_ITC_useAutoPID = pyqtSignal(bool)
-    # sig_ITC_newFilePID = pyqtSignal(str)
-    # sig_ITC_setTemperature = pyqtSignal(dict)
-    # sig_ITC_stopSweep = pyqtSignal()
-
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     ITC_Instrumentadress = 'ASRL6::INSTR'
-    form = ITC5GUI(
-        ui_file='itc503_main.ui', Name='ITC503', identity=b'ITC503', InstrumentAddress=ITC_Instrumentadress)
+    form = ITCGUI(
+        ui_file='itc503_main.ui', Name='ITC 503', identity=b'ITC503', InstrumentAddress=ITC_Instrumentadress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
