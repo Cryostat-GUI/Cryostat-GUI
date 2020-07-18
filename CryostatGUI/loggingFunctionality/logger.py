@@ -744,6 +744,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
             lambda value: self.setValue('logfile_location', value))
 
         self.pushApply.clicked.connect(self.applyConf)
+        QTimer.singleShot(0, self.restore_window)
 
         # ----------------------------------------------------------------------
 
@@ -752,7 +753,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         self.sig_logging_newconf.emit(self.conf)
         with open('./../configurations/log_conf.pickle', 'wb') as handle:
             pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        self.close()
+        # self.close()
 
     def setValue(self, value, bools):
         self.conf[value] = bools
