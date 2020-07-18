@@ -274,3 +274,7 @@ class zmqDataStore(zmqBare):
 
     def get_answer(self, msg):
         raise NotImplementedError
+
+    def send_data_upstream(self, data):
+        """dummy method so this class can easily be exchanginly used with zmqClient"""
+        pass

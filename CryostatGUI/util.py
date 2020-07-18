@@ -56,6 +56,7 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
 from zmqcomms import zmqClient
+from zmqcomms import zmqDataStore
 # from zmqcomms import enc
 
 # from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
@@ -537,28 +538,23 @@ class AbstractThread(QObject):
         raise NotImplementedError
 
 
-class AbstractLoopThread_old(AbstractThread):
+class AbstractLoopThread(AbstractThread):
     """Abstract thread class to be used with instruments """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.interval = 0.5  # second
-        # self.__isRunning = True
-        self.loop = True
         self.lock = Lock()
 
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
     def work(self):
         """class method which is working all the time while the thread is running. """
-        # while self.__isRunning:
         try:
-
-            while not self.loop:
-                time.sleep(0.05)
-            with self.lock:
+            with noblockLock(self.lock):
                 self.running()
-
+        except BlockedError:
+            pass
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
@@ -573,21 +569,12 @@ class AbstractLoopThread_old(AbstractThread):
         """set the interval between running events in seconds"""
         self.interval = interval
 
-    # @pyqtSlot()
-    # def looping(self, loop):
-    #     """start/stop the loop execution, by setting the bool self._loop"""
-    #     self._loop = loop
 
-
-class AbstractLoopThread(AbstractThread):
+class AbstractLoopZmqThread(AbstractLoopThread):
     """Abstract thread class to be used with instruments """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.interval = 0.5  # second
-        # self.__isRunning = True
-        self.loop = True
-        self.lock = Lock()
 
     @pyqtSlot()  # int
     def work(self):
@@ -606,18 +593,16 @@ class AbstractLoopThread(AbstractThread):
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)
 
-    def running(self):
-        """class method to be overriden """
-        raise NotImplementedError
 
-    @pyqtSlot(float)
-    def setInterval(self, interval):
-        """set the interval between running events in seconds"""
-        self.interval = interval
-
-
-class AbstractLoopThreadClient(AbstractLoopThread, zmqClient):
+class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient):
     """docstring for AbstractLoopThreadClient"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
+    """docstring for AbstractLoopThreadDataStore"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

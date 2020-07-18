@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
-
+import pandas as pd
 import time
 import pickle
 import os
@@ -25,11 +25,16 @@ from prometheus_client import Gauge
 
 
 from util import AbstractLoopThread
+from util import AbstractLoopThreadDataStore
 from util import AbstractEventhandlingThread
 from util import Window_ui
 from util import convert_time
 from util import convert_time_searchable
 from util import convert_time_date
+from util import AbstractMainApp
+from util import Window_trayService_ui
+from util import ExceptionHandling
+
 
 
 from sqlite3 import OperationalError
@@ -37,6 +42,17 @@ from sqlite3 import OperationalError
 
 import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
+
+
+def slope_from_timestampX(tmp_):
+    """casting datetime into seconds:
+        dt = pandas series of datetime objects
+        seconds = dt.astype('int64') // 1e9
+
+    """
+    slope = pd.Series(np.gradient(tmp_.values, tmp_.index.astype(
+        'int64') // 1e9), tmp_.index, name='slope')
+    return slope
 
 
 def testing_NaN(variable):
@@ -686,6 +702,22 @@ class live_Logger(AbstractLoopThread):
             - update the configuration with one being sent.
         """
         self.interval = conf['general']['interval_live']
+
+
+class LoggingGUI(AbstractMainApp, Window_trayService_ui):
+    """docstring for LoggingGUI"""
+
+    sig_logging = pyqtSignal(dict)
+    sig_logging_newconf = pyqtSignal(dict)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # start thread 1: main_logger
+        # start thread 2: newLiveLogger with zmq capability
+
+
+
+
 
 
 class Logger_measurement_configuration(Window_ui):
