@@ -502,7 +502,9 @@ class live_Logger_bare(object):
         self.pre_init()
         # self.initialisation() # this is done by starting this new thread
         # anyways!
-
+        mainthread.sig_running_new_thread.connect(self.pre_init)
+        mainthread.sig_running_new_thread.connect(self.initialisation)
+        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     def running(self):
         """
@@ -674,12 +676,8 @@ class live_Logger_bare(object):
 class live_Logger(live_Logger_bare, AbstractLoopThread):
     """docstring for live_Logger"""
 
-    def __init__(self, mainthread=None, **kwargs):
-        super().__init__(mainthread=mainthread, **kwargs)
-
-        mainthread.sig_running_new_thread.connect(self.pre_init)
-        mainthread.sig_running_new_thread.connect(self.initialisation)
-        mainthread.sig_logging_newconf.connect(self.update_conf)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @pyqtSlot()  # int
     def work(self):
@@ -722,7 +720,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
         del kwargs['identity']
-        self._identity = self.kwargs['identity']        
+        self._identity = self.kwargs['identity']
         super().__init__(ui_file='.\\..\\loggingFunctionality\\Logging_main.ui', **kwargs)
         self.softwarecontrol_timer.stop()
 
@@ -748,7 +746,8 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
             lambda value: self.setValue('logfile_location', value))
 
         self.pushApply.clicked.connect(self.applyConf)
-        QTimer.singleShot(0, lambda: self.restore_window(QtWidgets.QSystemTrayIcon.DoubleClick))
+        QTimer.singleShot(0, lambda: self.restore_window(
+            QtWidgets.QSystemTrayIcon.DoubleClick))
 
         # ----------------------------------------------------------------------
 
