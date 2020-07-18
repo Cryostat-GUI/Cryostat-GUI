@@ -745,7 +745,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
             lambda value: self.setValue('logfile_location', value))
 
         self.pushApply.clicked.connect(self.applyConf)
-        QTimer.singleShot(0, self.restore_window)
+        QTimer.singleShot(0, lambda: self.restore_window(QtWidgets.QSystemTrayIcon.DoubleClick))
 
         # ----------------------------------------------------------------------
 
