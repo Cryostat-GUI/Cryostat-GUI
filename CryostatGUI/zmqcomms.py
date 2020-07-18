@@ -5,7 +5,7 @@ from json import loads as dictload
 from json import dumps
 # from threading import Thread
 
-from util import ExceptionHandling
+# from util import ExceptionHandling
 
 logger = logging.getLogger('CryostatGUI.zmqComm')
 
@@ -133,7 +133,7 @@ class zmqClient(zmqBare):
     #     except KeyboardInterrupt:
     #         pass
 
-    @ExceptionHandling
+    # @ExceptionHandling
     def zmq_handle(self):
         # print('zmq handling')
         evts = dict(self.poller.poll(zmq.DONTWAIT))

@@ -720,8 +720,9 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
         del kwargs['identity']
-        self._identity = self.kwargs['identity']
-        super().__init__(ui_file='.\\loggingFunctionality\\Logging_main.ui', **kwargs)
+        self._identity = self.kwargs['identity']        
+        super().__init__(ui_file='.\\..\\loggingFunctionality\\Logging_main.ui', **kwargs)
+
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
 
@@ -766,7 +767,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         '''
         configurations = os.listdir(r'.\\..\\configurations')
         if 'log_conf.pickle' in configurations:
-            with open('configurations/log_conf.pickle', 'rb') as handle:
+            with open('./../configurations/log_conf.pickle', 'rb') as handle:
                 self.conf = pickle.load(handle)
                 # if 'general' in self.conf:
                 if 'interval' not in self.conf:
