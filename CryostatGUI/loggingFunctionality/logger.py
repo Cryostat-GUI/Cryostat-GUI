@@ -472,7 +472,7 @@ class main_Logger(AbstractLoopThread):
 class live_Logger_bare(object):
     """docstring for live_Logger"""
 
-    def __init__(self, mainthread, **kwargs):
+    def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
         self.mainthread = mainthread
         self.interval = 1
@@ -502,9 +502,7 @@ class live_Logger_bare(object):
         self.pre_init()
         # self.initialisation() # this is done by starting this new thread
         # anyways!
-        mainthread.sig_running_new_thread.connect(self.pre_init)
-        mainthread.sig_running_new_thread.connect(self.initialisation)
-        mainthread.sig_logging_newconf.connect(self.update_conf)
+
 
     def running(self):
         """
@@ -624,7 +622,7 @@ class live_Logger_bare(object):
                 for instrument in self.data:
                     print(self.Gauges)
                     dic = self.data[instrument]
-                    # dic.update(timedict)
+                    dic.update(timedict)
                     if instrument not in self.Gauges.keys():
                         self.Gauges[instrument] = dict()
                     self.data_live[instrument].update(timedict)
@@ -673,11 +671,15 @@ class live_Logger_bare(object):
         self.interval = conf['general']['interval_live']
 
 
-class live_Logger(AbstractLoopThread, live_Logger_bare):
+class live_Logger(live_Logger_bare, AbstractLoopThread):
     """docstring for live_Logger"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mainthread=None, **kwargs):
+        super().__init__(mainthread=mainthread, **kwargs)
+
+        mainthread.sig_running_new_thread.connect(self.pre_init)
+        mainthread.sig_running_new_thread.connect(self.initialisation)
+        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     @pyqtSlot()  # int
     def work(self):
