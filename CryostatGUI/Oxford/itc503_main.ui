@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="0" colspan="2">
+    <item row="0" column="0">
      <widget class="QTextBrowser" name="textBrowser">
       <property name="maximumSize">
        <size>
@@ -38,7 +38,7 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="2" column="0" colspan="2">
+    <item row="1" column="0">
      <widget class="QToolBox" name="toolBox">
       <property name="minimumSize">
        <size>
@@ -506,8 +506,8 @@ diff to Setpoint</string>
        <attribute name="label">
         <string>noncritical Settings (PID)</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
            <string>manual PID</string>
@@ -576,7 +576,7 @@ diff to Setpoint</string>
           </layout>
          </widget>
         </item>
-        <item>
+        <item row="0" column="1">
          <widget class="QGroupBox" name="groupBox_3">
           <property name="title">
            <string>auto PID</string>
@@ -599,7 +599,7 @@ diff to Setpoint</string>
            <item row="0" column="1">
             <widget class="QPushButton" name="pushConfLoad">
              <property name="text">
-              <string>Save</string>
+              <string>Send Configuration</string>
              </property>
             </widget>
            </item>
@@ -607,6 +607,52 @@ diff to Setpoint</string>
             <widget class="QPushButton" name="pushConfBrowse">
              <property name="text">
               <string>Browse</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QFrame" name="frame">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Configuration loaded:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Configuration in use:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QTextBrowser" name="textConfShow">
+             <property name="maximumSize">
+              <size>
+               <width>590000</width>
+               <height>600</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QTextBrowser" name="textConfShow_current">
+             <property name="maximumSize">
+              <size>
+               <width>590000</width>
+               <height>600</height>
+              </size>
              </property>
             </widget>
            </item>

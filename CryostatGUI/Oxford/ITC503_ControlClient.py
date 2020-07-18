@@ -15,6 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QSettings
 from PyQt5 import QtWidgets
 # import json
 # import sys
@@ -652,34 +653,47 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self.__name__ = 'ITC_Window'
         self.ITC_values = dict(setTemperature=4, SweepRate=2)
         self.controls = [self.groupSettings]
+        self._useAutoPID = True
+        self._PIDFile = '.\\..\\configurations\\PID_conf\\P1C1.conf'
 
+        self.checkUseAuto.toggled[
+            'bool'].connect(self.fun_useAutoPID)
+        # self.lineConfFile.textEdited.connect(
+        #     self.ITC_PIDFile_store)
+        self.pushConfLoad.clicked.connect(
+            self.ITC_PIDFile_send)
+        self.pushConfBrowse.clicked.connect(self.window_FileDialogOpen)
+        # self.lineConfFile.returnPressed.connect(
+        #     self.fun_PIDFile_send)
+
+        QTimer.singleShot(0, self.load_settings)
         QTimer.singleShot(0, self.run_Hardware)
 
     @pyqtSlot(float)
     @ExceptionHandling
-    def ITC_fun_setTemp_valcha(self, value):
+    def fun_setTemp_valcha(self, value):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values['setTemperature'] = value
 
     @pyqtSlot(float)
     @ExceptionHandling
-    def ITC_fun_setRamp_valcha(self, value):
+    def fun_setRamp_valcha(self, value):
         self.ITC_values['SweepRate'] = value
         # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot(bool)
     @ExceptionHandling
-    def ITC_fun_checkSweep_toggled(self, boolean):
+    def fun_checkSweep_toggled(self, boolean):
         self.ITC_values['Sweep_status_software'] = boolean
 
     @pyqtSlot()
     @ExceptionHandling
-    def ITC_fun_sendConfTemp(self):
-        self.ITC_fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
-                               isSweepStartCurrent=True,
-                               setTemp=self.ITC_values['setTemperature'],
-                               end=self.ITC_values['setTemperature'],
-                               SweepRate=self.ITC_values['SweepRate'])
+    def fun_sendConfTemp(self):
+        self.fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
+                           isSweepStartCurrent=True,
+                           setTemp=self.ITC_values['setTemperature'],
+                           end=self.ITC_values['setTemperature'],
+                           SweepRate=self.ITC_values['SweepRate'])
 
     # @pyqtSlot(dict)
     # @ExceptionHandling
@@ -691,7 +705,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     #                            SweepRate=d['SweepRate'])
 
     @pyqtSlot(dict)
-    def ITC_fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
+    def fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
         self.sig_sendConfTemp.emit(dict(isSweep=isSweep,
                                         isSweepStartCurrent=isSweepStartCurrent,
                                         setTemp=setTemp,
@@ -704,8 +718,6 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         """method to start/stop the thread which controls the Oxford ITC"""
 
         try:
-            self.data = dict()
-
             getInfodata = self.running_thread_control(ITC503_ControlClient(
                 InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware')
 
@@ -724,11 +736,11 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             #     lambda: self.show_error_general('ITC: timeout'))
 
             # setting ITC values by GUI
-            self.spinsetTemp.valueChanged.connect(self.ITC_fun_setTemp_valcha)
+            self.spinsetTemp.valueChanged.connect(self.fun_setTemp_valcha)
             self.checkSweep.toggled['bool'].connect(
-                self.ITC_fun_checkSweep_toggled)
-            self.dspinSetRamp.valueChanged.connect(self.ITC_fun_setRamp_valcha)
-            self.commandSendConfTemp.clicked.connect(self.ITC_fun_sendConfTemp)
+                self.fun_checkSweep_toggled)
+            self.dspinSetRamp.valueChanged.connect(self.fun_setRamp_valcha)
+            self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
 
             # self.sig_useAutocheck.emit(self.window_settings.temp_ITC_useAutoPID)
             # self.sig_newFilePID.emit(self.window_settings.temp_ITC_PIDFile)
@@ -799,6 +811,77 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
         self.combosetAutocontrol.setCurrentIndex(
             self.data['autocontrol'])
+
+    def load_settings(self):
+        """load all settings store in the QSettings
+        set corresponding values in the 'Global Settings' window"""
+        settings = QSettings("TUW", "CryostatGUI")
+        try:
+            self._useAutoPID = bool(
+                settings.value('ITC_useAutoPID', int))
+            self._PIDFile = settings.value(
+                'ITC_PIDFile', str)
+        except KeyError as e:
+            QTimer.singleShot(20 * 1e3, self.load_settings)
+            # self.show_error_general(f'could not find a key: {e}')
+            self.logger_personal.warning(f'key {e} was not found in the settings')
+        del settings
+
+        self.checkUseAuto.setChecked(
+            self._useAutoPID)
+        if isinstance(self._PIDFile, str):
+            text = self._PIDFile
+        else:
+            text = ''
+        self.lineConfFile.setText(text)
+
+    def fun_useAutoPID(self, boolean):
+        """set the variable for the softwareAutoPID
+        emit signal to notify Thread
+        store it in settings"""
+        self._useAutoPID = boolean
+        self.sig_useAutocheck.emit(boolean)
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_useAutoPID', int(boolean))
+        del settings
+
+    @ExceptionHandling
+    def fun_PIDFile_send(self):
+        """reaction to signal: ITC PID file: send and store permanently"""
+        if isinstance(self._PIDFile, str):
+            text = self._PIDFile
+        else:
+            text = ''
+        self.sig_newFilePID.emit(text)
+
+        settings = QSettings("TUW", "CryostatGUI")
+        settings.setValue('ITC_PIDFile', self._PIDFile)
+        del settings
+
+        try:
+            with open(self._PIDFile) as f:
+                self.textConfShow_current.setText(f.read())
+        # except OSError as e:
+        #     self.logger_personal.exception(e)
+        except TypeError as e:
+            self.logger_personal.error(f' missing Filename! (TypeError: {e})')
+
+    @ExceptionHandling
+    def window_FileDialogOpen(self):
+        fname, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Choose PID configuration file',
+            'c:\\', ".conf(*.conf)")
+        self.lineFilelocation.setText(fname)
+        self._PIDFile = fname
+        # self.setValue('general', 'logfile_location', fname)
+
+        try:
+            with open(fname) as f:
+                self.textConfShow.setText(f.read())
+        # except OSError as e:
+        #     self.logger_personal.exception(e)
+        except TypeError as e:
+            self.logger_personal.error(f'missing Filename! (TypeError: {e})')
 
 
 if __name__ == '__main__':
