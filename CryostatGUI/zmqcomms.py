@@ -264,12 +264,12 @@ class zmqDataStore(zmqBare):
                 while True:
                     msg = self.comms_upstream.recv_multipart(zmq.NOBLOCK)
                     # print(msg)
-                    self.store_data(msg)
+                    self.store_data(dec(msg[0]), dictload(dec(msg[1])))
                     # store data!
             except zmq.Again:
                 pass
 
-    def store_data(self, data):
+    def store_data(self, id, data):
         raise NotImplementedError
 
     def get_answer(self, msg):
