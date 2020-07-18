@@ -1817,12 +1817,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.stopping_thread('logger')
             self.logging_running_logger = False
 
-    @pyqtSlot()
-    def logging_send_all(self):
-        newdata = deepcopy(self.data)
-        newdata.update(deepcopy(self.data_live))
-        # print(newdata)
-        self.sig_logging.emit(newdata)
+    # @pyqtSlot()
+    # def logging_send_all(self):
+    #     newdata = deepcopy(self.data)
+    #     newdata.update(deepcopy(self.data_live))
+    #     # print(newdata)
+    #     self.sig_logging.emit(newdata)
 
     @pyqtSlot(bool)
     def show_logging_configuration(self, boolean):

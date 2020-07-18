@@ -29,15 +29,15 @@ import numpy as np
 
 from pymeasure.instruments.srs import SR830
 
-from util import AbstractLoopClient
+from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
 from util import ExceptionHandling
 from util import dummy
 
-from zmqcomms import enc, dec
+# from zmqcomms import enc, dec
 
 
-class SR830_ControlClient(AbstractLoopClient, Window_trayService_ui):
+class SR830_ControlClient(AbstractLoopThreadClient):
     """Updater class to update all instrument data of the SR830
 
     """

@@ -36,7 +36,6 @@ from util import Window_trayService_ui
 from util import ExceptionHandling
 
 
-
 from sqlite3 import OperationalError
 
 
@@ -470,7 +469,7 @@ class main_Logger(AbstractLoopThread):
         # data.update(timedict)
 
 
-class live_Logger(AbstractLoopThread):
+class live_Logger_bare(object):
     """docstring for live_Logger"""
 
     def __init__(self, mainthread, **kwargs):
@@ -506,36 +505,6 @@ class live_Logger(AbstractLoopThread):
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
-
-    @pyqtSlot()  # int
-    def work(self):
-        """
-            class method which (here) starts the run,
-            as soon as the initialisation was done.
-        """
-        try:
-            while not self.initialised:
-                time.sleep(0.02)
-            self.running()
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.worker)
-
-    @pyqtSlot()  # int
-    def worker(self):
-        """
-            class method which is working all the time,
-            while the thread is running, keeping the event loop busy
-        """
-        try:
-            while not self.initialised:
-                time.sleep(0.02)
-            self.running()
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.worker)
 
     def running(self):
         """
@@ -655,7 +624,7 @@ class live_Logger(AbstractLoopThread):
                 for instrument in self.data:
                     print(self.Gauges)
                     dic = self.data[instrument]
-                    dic.update(timedict)
+                    # dic.update(timedict)
                     if instrument not in self.Gauges.keys():
                         self.Gauges[instrument] = dict()
                     self.data_live[instrument].update(timedict)
@@ -704,6 +673,43 @@ class live_Logger(AbstractLoopThread):
         self.interval = conf['general']['interval_live']
 
 
+class live_Logger(AbstractLoopThread, live_Logger_bare):
+    """docstring for live_Logger"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @pyqtSlot()  # int
+    def work(self):
+        """
+            class method which (here) starts the run,
+            as soon as the initialisation was done.
+        """
+        try:
+            while not self.initialised:
+                time.sleep(0.02)
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.worker)
+
+    @pyqtSlot()  # int
+    def worker(self):
+        """
+            class method which is working all the time,
+            while the thread is running, keeping the event loop busy
+        """
+        try:
+            while not self.initialised:
+                time.sleep(0.02)
+            self.running()
+        except AssertionError as assertion:
+            self.sig_assertion.emit(assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.worker)
+
+
 class LoggingGUI(AbstractMainApp, Window_trayService_ui):
     """docstring for LoggingGUI"""
 
@@ -715,9 +721,11 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
 
-
-
-
+        logger = self.running_thread_control(
+            main_Logger(self), 'logger')
+        # logger.sig_log.connect(self.logging_send_all)
+        logger.sig_log.connect(
+            lambda: self.sig_logging.emit(deepcopy(self.data)))
 
 
 class Logger_measurement_configuration(Window_ui):
