@@ -103,7 +103,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.sweep_first = False
 
         self.setControl()
-        self.interval = 0.05
+        self.interval = 1
 
         self.setPIDFile('.\\..\\configurations\\PID_conf\\P1C1.conf')
         self.useAutoPID = True
@@ -257,8 +257,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        # if 'setTemp_K' in command:
-        #     self.setTemp_K(command['setTemp_K'])
+        if 'setTemp_K' in command:
+            self.setTemperature(command['setTemp_K'])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
