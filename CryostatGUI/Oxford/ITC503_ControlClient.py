@@ -661,7 +661,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         # self.lineConfFile.textEdited.connect(
         #     self.ITC_PIDFile_store)
         self.pushConfLoad.clicked.connect(
-            self.ITC_PIDFile_send)
+            self.fun_PIDFile_send)
         self.pushConfBrowse.clicked.connect(self.window_FileDialogOpen)
         # self.lineConfFile.returnPressed.connect(
         #     self.fun_PIDFile_send)
@@ -834,6 +834,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         else:
             text = ''
         self.lineConfFile.setText(text)
+        self.fun_PIDFile_read()
 
     def fun_useAutoPID(self, boolean):
         """set the variable for the softwareAutoPID
@@ -846,7 +847,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         del settings
 
     @ExceptionHandling
-    def fun_PIDFile_send(self):
+    def fun_PIDFile_send(self, dummy):
         """reaction to signal: ITC PID file: send and store permanently"""
         if isinstance(self._PIDFile, str):
             text = self._PIDFile
@@ -857,7 +858,10 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         settings = QSettings("TUW", "CryostatGUI")
         settings.setValue('ITC_PIDFile', self._PIDFile)
         del settings
+        self.fun_PIDFile_read()
 
+    @ExceptionHandling
+    def fun_PIDFile_read(self):
         try:
             with open(self._PIDFile) as f:
                 self.textConfShow_current.setText(f.read())
@@ -867,11 +871,12 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             self.logger_personal.error(f' missing Filename! (TypeError: {e})')
 
     @ExceptionHandling
-    def window_FileDialogOpen(self):
+    def window_FileDialogOpen(self, test):
+        # print(test)
         fname, __ = QtWidgets.QFileDialog.getOpenFileName(
             self, 'Choose PID configuration file',
             'c:\\', ".conf(*.conf)")
-        self.lineFilelocation.setText(fname)
+        self.lineConfFile.setText(fname)
         self._PIDFile = fname
         # self.setValue('general', 'logfile_location', fname)
 
