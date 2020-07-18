@@ -23,17 +23,12 @@ from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
 
 from datetime import datetime
-# import logging
-
-# import time
-#
-# a = time.time()
 
 from PyQt5.QtCore import QTimer
 # from PyQt5.QtWidgets import QtAlignRight
 
 # import datetime as dt
-from threading import Lock
+# from threading import Lock
 from copy import deepcopy
 
 # from logging.handlers import RotatingFileHandler

@@ -1,6 +1,6 @@
-# import sys
-# import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -715,9 +715,10 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
 
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
+    # sig_send_conf = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(ui_file='.\\loggingFunctionality\\Logging_main.ui', **kwargs)
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
 
@@ -726,6 +727,70 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # logger.sig_log.connect(self.logging_send_all)
         logger.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
+
+        # ------------- Logging configuration initialisation ------------------
+        self.read_configuration()
+
+        self.general_spinSetInterval.valueChanged.connect(
+            lambda value: self.setValue('interval', value))
+        self.general_spinSetInterval_Live.valueChanged.connect(
+            lambda value: self.setValue('interval_live', value))
+
+        self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
+        self.lineFilelocation.textEdited.connect(
+            lambda value: self.setValue('logfile_location', value))
+
+        self.pushApply.clicked.connect(self.applyConf)
+
+        # ----------------------------------------------------------------------
+
+    def applyConf(self):
+        """save the configuration dict to a file, close the window afterwards"""
+        self.sig_logging_newconf.emit(self.conf)
+        with open('./../configurations/log_conf.pickle', 'wb') as handle:
+            pickle.dump(self.conf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        self.close()
+
+    def setValue(self, value, bools):
+        self.conf[value] = bools
+
+    def read_configuration(self):
+        '''
+            search for configuration file,
+            load it if found,
+            initialise new dict if not found
+        '''
+        configurations = os.listdir(r'.\\..\\configurations')
+        if 'log_conf.pickle' in configurations:
+            with open('configurations/log_conf.pickle', 'rb') as handle:
+                self.conf = pickle.load(handle)
+                # if 'general' in self.conf:
+                if 'interval' not in self.conf:
+                    self.conf['interval'] = 5
+                self.general_spinSetInterval.setValue(
+                    self.conf['interval'])
+                if 'interval_live' not in self.conf:
+                    self.conf['interval_live'] = 1
+                self.general_spinSetInterval_Live.setValue(
+                    self.conf['interval_live'])
+                if 'logfile_location' not in self.conf:
+                    string = 'C:/Users/Lab-user/Documents/GitHub/Cryostat-GUI/CryostatGUI/Logs/Log{}.db'
+                    self.conf[
+                        'logfile_location'] = string.format(
+                            convert_time_date(time.time()))
+                self.lineFilelocation.setText(
+                    self.conf['logfile_location'])
+        else:
+            self.conf = dict(logfile_location='',
+                             interval=2,
+                             interval_live=1)
+
+    def window_FileDialogSave(self):
+        dbname, __ = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Choose Database File Location',
+            'c:\\', "Database Files - SQLite3 (*.db)")
+        self.lineFilelocation.setText(dbname)
+        self.setValue('logfile_location', dbname)
 
 
 class Logger_measurement_configuration(Window_ui):
@@ -963,6 +1028,13 @@ class measurement_Logger(AbstractEventhandlingThread):
 
 
 if __name__ == '__main__':
-    dbname = 'He_first_cooldown.db'
-    conn = sqlite3.connect(dbname)
-    mycursor = conn.cursor()
+    # dbname = 'He_first_cooldown.db'
+    # conn = sqlite3.connect(dbname)
+    # mycursor = conn.cursor()
+    app = QtWidgets.QApplication(sys.argv)
+    form = LoggingGUI(
+        Name='Logger', identity=b'log')
+    form.show()
+    # print('date: ', dt.datetime.now(),
+    #       '\nstartup time: ', time.time() - a)
+    sys.exit(app.exec_())

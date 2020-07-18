@@ -375,6 +375,8 @@ class AbstractApp(QtWidgets.QMainWindow):
         self.logger_personal.addHandler(handler)
         self.logger_all.addHandler(handler)
 
+        self.logger = self.logger_personal
+
     def setup_logging(self):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
