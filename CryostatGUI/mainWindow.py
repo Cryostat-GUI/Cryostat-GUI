@@ -1840,7 +1840,7 @@ class mainWindow(QtWidgets.QMainWindow):
             # try:
 
             getInfodata = self.running_thread_control(
-                live_Logger(self), None, 'control_Logging_live')
+                live_Logger(mainthread=self), None, 'control_Logging_live')
             getInfodata.sig_assertion.connect(self.show_error_general)
 
             self.actionLogging_LIVE.setChecked(True)
