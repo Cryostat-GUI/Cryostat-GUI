@@ -531,8 +531,8 @@ class AbstractThread(QObject):
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
         self.logger = logging.getLogger(__name__)
-        self.sig_assertion.connect(lambda value: self.logger.exception(value))
-        self.sig_visatimeout.connect(lambda value: self.logger.exception(value))
+        self.sig_assertion.connect(lambda value: logger.exception(value))
+        self.sig_visatimeout.connect(lambda value: logger.exception(value))
 
     @pyqtSlot()
     def work(self):

@@ -477,6 +477,8 @@ class main_Logger_adaptable(main_Logger):
     def __init__(self,  **kwargs):
         super().__init__(**kwargs)
 
+        self.interval = 1
+
     @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
@@ -510,12 +512,28 @@ class main_Logger_adaptable(main_Logger):
             self.operror = True
             self.local_list.append(data)
             self.sig_assertion.emit(e.args[0])
+            logger.exception(e)
         except sqlite3.Error as er:
             if not self.operror:
                 self.local_list.append(data)
             self.sig_assertion.emit(er.args[0])
+            logger.exception(er)
             print(er)
         # data.update(timedict)
+
+    def update_conf(self, conf):
+        """
+            - update the configuration with one being sent.
+            - set the configuration done bool to True,
+                so that self.running will actually log
+            - set self.conf_done_layer2 to False,
+                so that the configuring thread will be quit.
+
+        """
+        self.conf = conf
+        self.interval = self.conf['interval']
+        self.configuration_done = True
+        self.conf_done_layer2 = False
 
 
 class live_Logger_bare(object):
