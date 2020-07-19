@@ -353,6 +353,8 @@ class AbstractApp(QtWidgets.QMainWindow):
 
         self.setup_logging_base()
         self.setup_logging()
+        self.sig_assertion.connect(lambda value: self.logger_personal.exception(value))
+        self.sig_visatimeout.connect(lambda value: self.logger_personal.exception(value))
 
     def setup_logging_base(self):
         self.logger_all = logging.getLogger()
@@ -364,11 +366,11 @@ class AbstractApp(QtWidgets.QMainWindow):
         # self.Log_DBhandler.setLevel(logging.DEBUG)
 
         self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.ERROR)
+        self.logger_all.setLevel(logging.DEBUG)
         # self.logger_personal.addHandler(self.Log_DBhandler)
 
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.ERROR)
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
@@ -381,7 +383,7 @@ class AbstractApp(QtWidgets.QMainWindow):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
 
-        self.logger_all.setLevel(logging.INFO)
+        self.logger_all.setLevel(logging.DEBUG)
 
         # self.logger_all.addHandler(self.Log_DBhandler)
 
@@ -513,7 +515,7 @@ class AbstractLoopClient(AbstractLoopApp, zmqClient):
     """docstring for AbstractLoopClient"""
 
     def __init__(self, *args, **kwargs):
-        print('loopclient')
+        # print('loopclient')
         super().__init__(*args, **kwargs)
 
 

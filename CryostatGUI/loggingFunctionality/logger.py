@@ -503,9 +503,6 @@ class live_Logger_bare(object):
         self.pre_init()
         # self.initialisation() # this is done by starting this new thread
         # anyways!
-        mainthread.sig_running_new_thread.connect(self.pre_init)
-        mainthread.sig_running_new_thread.connect(self.initialisation)
-        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     def running(self):
         """
@@ -563,8 +560,10 @@ class live_Logger_bare(object):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         except KeyError as key:
             self.sig_assertion.emit("live logger: " + key.args[0])
+            logger.exception(key)
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -677,8 +676,12 @@ class live_Logger_bare(object):
 class live_Logger(live_Logger_bare, AbstractLoopThread):
     """docstring for live_Logger"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mainthread=None, **kwargs):
+        super().__init__(mainthread=mainthread, **kwargs)
+
+        mainthread.sig_running_new_thread.connect(self.pre_init)
+        mainthread.sig_running_new_thread.connect(self.initialisation)
+        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     @pyqtSlot()  # int
     def work(self):
@@ -716,41 +719,15 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    # @pyqtSlot()  # int
-    # def work(self):
-    #     """
-    #         class method which (here) starts the run,
-    #         as soon as the initialisation was done.
-    #     """
-    #     try:
-    #         while not self.initialised:
-    #             time.sleep(0.02)
-    #         self.running()
-    #     except AssertionError as assertion:
-    #         self.sig_assertion.emit(assertion.args[0])
-    #     finally:
-    #         QTimer.singleShot(self.interval * 1e3, self.worker)
-
-    # @pyqtSlot()  # int
-    # def worker(self):
-    #     """
-    #         class method which is working all the time,
-    #         while the thread is running, keeping the event loop busy
-    #     """
-    #     try:
-    #         while not self.initialised:
-    #             time.sleep(0.02)
-    #         self.running()
-    #     except AssertionError as assertion:
-    #         self.sig_assertion.emit(assertion.args[0])
-    #     finally:
-    #         QTimer.singleShot(self.interval * 1e3, self.worker)
+        del self.initialised
 
     def running(self):
-        while not self.initialised:
+        try:
+            self.initialised
+            super().running()
+        except AttributeError:
             time.sleep(0.02)
-        super().running()
+            self.initialisation()
         # TODO: NOT FINISHED !!!
 
     def store_data(self, ID, data):
@@ -762,6 +739,19 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                 present = False
         if not present:
             self.initialisation()
+
+    def get_answer(self, qdict):
+        adict = dict()
+        live = qdict['live']
+        if live:
+            data = self.data_live[qdict['instr']][qdict['value']]
+        else:
+            data = self.data[qdict['instr']][qdict['value']]
+        uptodate = (self.data[qdict['instr']][
+                    'realtime'] - datetime.now()).total_seconds < 10
+        adict['data'] = data
+        adict['uptodate'] = uptodate
+        return adict
 
 
 class LoggingGUI(AbstractMainApp, Window_trayService_ui):
