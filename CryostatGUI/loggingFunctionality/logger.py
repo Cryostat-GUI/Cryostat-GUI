@@ -483,6 +483,7 @@ class main_Logger_adaptable(main_Logger):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
+        logger.debug('storing data in sqlite!')
         self.operror = False
         if self.not_yet_initialised:
             return
@@ -829,10 +830,10 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
 
-        logger = self.running_thread_control(
+        logger_main = self.running_thread_control(
             main_Logger_adaptable(self), 'logger')
         # logger.sig_log.connect(self.logging_send_all)
-        logger.sig_log.connect(
+        logger_main.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
 
         # ------------- main Logging configuration initialisation -------------
@@ -856,7 +857,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # ------------- live Logging configuration initialisation -------------
         self.dataLock = Lock()
         self.dataLock_live = Lock()
-        logger = self.running_thread_control(
+        logger_live = self.running_thread_control(
             live_zmqDataStoreLogger(mainthread=self), 'zmq_liveLogger')
         # ----------------------------------------------------------------------
 

@@ -593,8 +593,8 @@ class AbstractLoopZmqThread(AbstractLoopThread):
         except BlockedError:
             pass
             # print('blocked')
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
+        # except AssertionError as assertion:
+        #     self.sig_assertion.emit(assertion.args[0])
             # print('assertion', assertion.args[0])
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)
