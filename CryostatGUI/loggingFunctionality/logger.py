@@ -15,6 +15,7 @@ import sqlite3
 import numpy as np
 from numpy.polynomial.polynomial import polyfit as nppolyfit
 from copy import deepcopy
+from threading import Lock
 import math
 
 from datetime import datetime
@@ -670,7 +671,7 @@ class live_Logger_bare(object):
         """
             - update the configuration with one being sent.
         """
-        self.interval = conf['general']['interval_live']
+        self.interval = conf['interval_live']
 
 
 class live_Logger(live_Logger_bare, AbstractLoopThread):
@@ -710,12 +711,68 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
 
+class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
+    """docstring for live_Logger"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    # @pyqtSlot()  # int
+    # def work(self):
+    #     """
+    #         class method which (here) starts the run,
+    #         as soon as the initialisation was done.
+    #     """
+    #     try:
+    #         while not self.initialised:
+    #             time.sleep(0.02)
+    #         self.running()
+    #     except AssertionError as assertion:
+    #         self.sig_assertion.emit(assertion.args[0])
+    #     finally:
+    #         QTimer.singleShot(self.interval * 1e3, self.worker)
+
+    # @pyqtSlot()  # int
+    # def worker(self):
+    #     """
+    #         class method which is working all the time,
+    #         while the thread is running, keeping the event loop busy
+    #     """
+    #     try:
+    #         while not self.initialised:
+    #             time.sleep(0.02)
+    #         self.running()
+    #     except AssertionError as assertion:
+    #         self.sig_assertion.emit(assertion.args[0])
+    #     finally:
+    #         QTimer.singleShot(self.interval * 1e3, self.worker)
+
+    def running(self):
+        while not self.initialised:
+            time.sleep(0.02)
+        super().running()
+        # TODO: NOT FINISHED !!!
+
+    def store_data(self, ID, data):
+        with self.dataLock:
+            self.data[ID] = data
+        present = True
+        with self.dataLock_live:
+            if ID not in self.data_live:
+                present = False
+        if not present:
+            self.initialisation()
+
+
 class LoggingGUI(AbstractMainApp, Window_trayService_ui):
     """docstring for LoggingGUI"""
 
     sig_logging = pyqtSignal(dict)
     sig_logging_newconf = pyqtSignal(dict)
     # sig_send_conf = pyqtSignal(dict)
+
+    data = dict()
+    data_live = dict()
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
@@ -733,7 +790,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         logger.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
 
-        # ------------- Logging configuration initialisation ------------------
+        # ------------- main Logging configuration initialisation -------------
         self.read_configuration()
 
         self.general_spinSetInterval.valueChanged.connect(
@@ -748,6 +805,12 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         self.pushApply.clicked.connect(self.applyConf)
         QTimer.singleShot(0, lambda: self.restore_window(
             QtWidgets.QSystemTrayIcon.DoubleClick))
+
+        # ----------------------------------------------------------------------
+
+        # ------------- live Logging configuration initialisation -------------
+        self.dataLock = Lock()
+        self.dataLock_live = Lock()
 
         # ----------------------------------------------------------------------
 

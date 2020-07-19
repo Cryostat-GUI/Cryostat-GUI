@@ -272,7 +272,7 @@ class zmqDataStore(zmqBare):
             except zmq.Again:
                 pass
 
-    def store_data(self, id, data):
+    def store_data(self, ID, data):
         raise NotImplementedError
 
     def get_answer(self, msg):
