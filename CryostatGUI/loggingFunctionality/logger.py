@@ -470,6 +470,53 @@ class main_Logger(AbstractLoopThread):
         # data.update(timedict)
 
 
+class main_Logger_adaptable(main_Logger):
+    """This is a the logging worker thread
+    """
+
+    def __init__(self,  **kwargs):
+        super().__init__(**kwargs)
+
+    @pyqtSlot(dict)
+    def store_data(self, data):
+        """storing logging data
+            what data should be logged is set in self.conf
+            or will be set there eventually at any rate
+        """
+        self.operror = False
+        if self.not_yet_initialised:
+            return
+
+        names = data.keys()
+
+        self.connected = self.connectdb(
+            self.conf['general']['logfile_location'])
+        if not self.connected:
+            self.sig_assertion.emit('no connection, storing locally')
+            self.local_list.append(data)
+            return
+
+        try:
+            with self.conn:
+                self.mycursor = self.conn.cursor()
+                if len(self.local_list) > 0:
+                    for entry in self.local_list:
+                        self.storing_to_database(entry, names)
+                    self.local_list = []
+
+                self.storing_to_database(data, names)
+        except OperationalError as e:
+            self.operror = True
+            self.local_list.append(data)
+            self.sig_assertion.emit(e.args[0])
+        except sqlite3.Error as er:
+            if not self.operror:
+                self.local_list.append(data)
+            self.sig_assertion.emit(er.args[0])
+            print(er)
+        # data.update(timedict)
+
+
 class live_Logger_bare(object):
     """docstring for live_Logger"""
 
@@ -783,7 +830,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # start thread 2: newLiveLogger with zmq capability
 
         logger = self.running_thread_control(
-            main_Logger(self), 'logger')
+            main_Logger_adaptable(self), 'logger')
         # logger.sig_log.connect(self.logging_send_all)
         logger.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
