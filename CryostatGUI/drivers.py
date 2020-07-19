@@ -26,6 +26,7 @@ import time
 import visa
 from pyvisa.errors import VisaIOError
 from visa import constants as vconst
+import functools
 
 # create a logger object for this module
 logger = logging.getLogger(__name__)
@@ -54,11 +55,61 @@ if not (ni or keysight):
     logger.exception('I could not find any VISA library! \n\n')
 
 
+def HandleVisaException(func):
+
+    @functools.wraps(func)
+    def wrapper_HandleVisaException(*args, **kwargs):
+        # if inspect.isclass(type(args[0])):
+        # thread = args[0]
+        try:
+            return func(*args, **kwargs)
+        # except AssertionError as e:
+        #     logger.exception(e)
+
+        # except TypeError as e:
+        #     logger.exception(e)
+
+        # except KeyError as e:
+        #     logger.exception(e)
+
+        # except IndexError as e:
+        #     logger.exception(e)
+
+        # except ValueError as e:
+        #     logger.exception(e)
+
+        # except AttributeError as e:
+        #     logger.exception(e)
+
+        # except NotImplementedError as e:
+        #     logger.exception(e)
+
+        # except OSError as e:
+        #     logger.exception(e)
+        except VisaIOError as e:
+            if isinstance(e, type(args[0].timeouterror)) and \
+                    e.args == args[0].timeouterror.args:
+                args[0].sig_visatimeout.emit()
+            elif isinstance(e, type(args[0].connError)) and \
+                    e.args == args[0].connError.args:
+                logger.exception(e)
+                args[0].res_close()
+                args[0].res_open()
+                logger.info('Exception of lost connection resolved! (I hope)')
+            else:
+                logger.exception(e)
+
+    return wrapper_HandleVisaException
+
+
 class AbstractVISADriver(object):
     """Abstract VISA Device Driver
 
     visalib: 'ni' or 'ks' (national instruments/keysight)
     """
+
+    connError = VisaIOError(-1073807194)
+    timeouterror = VisaIOError(-1073807339)
 
     def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
@@ -66,20 +117,27 @@ class AbstractVISADriver(object):
         self._comLock = threading.Lock()
         self.delay = 0
         self.delay_force = 0
+        self._instrumentaddress = InstrumentAddress
 
         if visalib.strip() == 'ni' and not ni:
             raise NameError('The VISA library was not found!')
         if visalib.strip() == 'ks' and not keysight:
             raise NameError('The Keysight VISA library was not found!')
 
-        resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
-         ) == 'ks' else NI_RESOURCE_MANAGER
+        self._resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
+        ) == 'ks' else NI_RESOURCE_MANAGER
         #        resource_manager = NI_RESOURCE_MANAGER
-        self._visa_resource = resource_manager.open_resource(InstrumentAddress)
+        # self._visa_resource = self._resource_manager.open_resource(InstrumentAddress)
+        self.res_open()
 
     def res_close(self):
         self._visa_resource.close()
 
+    def res_open(self):
+        self._visa_resource = self._resource_manager.open_resource(
+            self._instrumentaddress)
+
+    @HandleVisaException
     def write(self, command, f=False):
         """
             low-level communication wrapper for visa.write with Communication Lock,
@@ -93,6 +151,7 @@ class AbstractVISADriver(object):
             self._visa_resource.write(command)
             time.sleep(self.delay_force)
 
+    @HandleVisaException
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
 
@@ -104,6 +163,7 @@ class AbstractVISADriver(object):
             time.sleep(self.delay)
         return answer
 
+    @HandleVisaException
     def read(self):
         with self._comLock:
             answer = self._visa_resource.read()
@@ -114,7 +174,6 @@ class AbstractVISADriver(object):
 class AbstractSerialDeviceDriver(AbstractVISADriver):
     """Abstract Device driver class
     """
-    timeouterror = VisaIOError(-1073807339)
 
     def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -144,7 +203,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
         # self._visa_resource.timeout = 500
 
 
-class AbstractGPIBDeviceDriver(AbstractVISADriver):
+class AbstractModernVISADriver(AbstractVISADriver):
     """docstring for Instrument_GPIB"""
 
     def __init__(self, comLock=None, *args, **kwargs):
@@ -172,32 +231,18 @@ class AbstractGPIBDeviceDriver(AbstractVISADriver):
         super().write(command)
 
 
-class AbstractEthernetDeviceDriver(AbstractVISADriver):
+class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, comLock=None, read_termination='\n', write_termination='\n', *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if comLock is not None:
-            self._comLock = comLock
+
+
+class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
+    """docstring for Instrument_GPIB"""
+
+    def __init__(self, read_termination='\n', write_termination='\n', *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self._visa_resource.read_termination = read_termination
         self._visa_resource.write_termination = write_termination
-
-    def query(self, command):
-        """Sends commands as strings to the device and receives strings from the device
-
-        :param command: string generated by a given function, whom will be sent to the device
-        :type command: str
-
-        :return: answer from the device
-        """
-        return super().query(command).strip().split(',')
-
-    def go(self, command):
-        """Sends commands as strings to the device
-
-        :param command: string generated by a given function, whom will be sent to the device
-        :type command: str
-
-        """
-        super().write(command)
