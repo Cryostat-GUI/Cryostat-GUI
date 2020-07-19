@@ -801,7 +801,8 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # ------------- live Logging configuration initialisation -------------
         self.dataLock = Lock()
         self.dataLock_live = Lock()
-
+        logger = self.running_thread_control(
+            live_zmqDataStoreLogger(mainthread=self), 'zmq_liveLogger')
         # ----------------------------------------------------------------------
 
     def applyConf(self):
