@@ -831,7 +831,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # start thread 2: newLiveLogger with zmq capability
 
         logger_main = self.running_thread_control(
-            main_Logger_adaptable(self), 'logger')
+            main_Logger_adaptable(mainthread=self), 'logger')
         # logger.sig_log.connect(self.logging_send_all)
         logger_main.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
