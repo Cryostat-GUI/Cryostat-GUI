@@ -266,6 +266,7 @@ class main_Logger(AbstractLoopThread):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
 
     def update_conf(self, conf):
         """
@@ -289,6 +290,7 @@ class main_Logger(AbstractLoopThread):
         except sqlite3.connect.Error as err:
             self.sig_assertion.emit(
                 'Logger: Couldn\'t establish connection: {}'.format(err))
+            logger.exception(err)
             return False
 
     def createtable(self, tablename, dictname):
@@ -767,6 +769,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -782,6 +785,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -1157,6 +1161,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+                logger.exception(err)
         else:
             try:
                 with open(data['datafile'], 'w') as f:
@@ -1164,6 +1169,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+                logger.exception(err)
 
         # try:
         #     with open(data['datafile'][:-3]+'csv', 'a') as f:
