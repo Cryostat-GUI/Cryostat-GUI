@@ -893,7 +893,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     ITC_Instrumentadress = 'ASRL6::INSTR'
     form = ITCGUI(
-        ui_file='itc503_main.ui', Name='ITC 503', identity=b'ITC503', InstrumentAddress=ITC_Instrumentadress)
+        ui_file='itc503_main.ui', Name='ITC 503', identity=b'ITC', InstrumentAddress=ITC_Instrumentadress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
