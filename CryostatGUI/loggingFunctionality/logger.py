@@ -407,7 +407,9 @@ class main_Logger(AbstractLoopThread):
 
     def storing_to_database(self, data, names):
         """store data to the database"""
+        logger.debug(f'storing {data} in database')
         for name in names:
+            logger.debug(f'store {name}')
             try:
                 # self.correcting_database_types(name, data)
 
@@ -418,8 +420,10 @@ class main_Logger(AbstractLoopThread):
 
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
+                logger.exception(assertion)
             except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
+                logger.exception(key)
 
     @pyqtSlot(dict)
     def store_data(self, data):
@@ -493,9 +497,10 @@ class main_Logger_adaptable(main_Logger):
         names = data.keys()
 
         self.connected = self.connectdb(
-            self.conf['general']['logfile_location'])
+            self.conf['logfile_location'])
         if not self.connected:
             self.sig_assertion.emit('no connection, storing locally')
+            logger.debug('no connection to database, storing locally')
             self.local_list.append(data)
             return
 
@@ -519,6 +524,7 @@ class main_Logger_adaptable(main_Logger):
             self.sig_assertion.emit(er.args[0])
             logger.exception(er)
             print(er)
+        logger.debug('done storing data in sqlite!')
         # data.update(timedict)
 
     def update_conf(self, conf):
