@@ -811,6 +811,10 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         # TODO: NOT FINISHED !!!
 
     def store_data(self, ID, data):
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data[ID] = data
         present = True
