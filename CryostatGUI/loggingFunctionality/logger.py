@@ -721,6 +721,14 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         super().__init__(**kwargs)
         del self.initialised
 
+    def zmq_handle(self):
+        try:
+            self.initialised
+            super().zmq_handle()
+        except AttributeError:
+            # time.sleep(0.02)
+            self.initialisation()
+
     def running(self):
         try:
             self.initialised
