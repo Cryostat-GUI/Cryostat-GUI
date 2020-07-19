@@ -89,7 +89,11 @@ def HandleVisaException(func):
         except VisaIOError as e:
             if isinstance(e, type(args[0].timeouterror)) and \
                     e.args == args[0].timeouterror.args:
-                args[0].sig_visatimeout.emit()
+                try:
+                    args[0].sig_visatimeout.emit()
+                except AttributeError:
+                    pass
+                logger.exception(e)
             elif isinstance(e, type(args[0].connError)) and \
                     e.args == args[0].connError.args:
                 logger.exception(e)
