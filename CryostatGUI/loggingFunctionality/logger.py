@@ -42,6 +42,13 @@ from sqlite3 import OperationalError
 
 import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def slope_from_timestampX(tmp_):
@@ -829,16 +836,18 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             self.initialisation()
 
     def get_answer(self, qdict):
+        logger.debug(f'getting answer for {qdict}')
         adict = dict()
         live = qdict['live']
         if live:
             data = self.data_live[qdict['instr']][qdict['value']]
         else:
             data = self.data[qdict['instr']][qdict['value']]
-        uptodate = (self.data[qdict['instr']][
-                    'realtime'] - datetime.now()).total_seconds < 10
+        uptodate = (datetime.strptime(self.data[qdict['instr']][
+                    'realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds() < 10
         adict['data'] = data
         adict['uptodate'] = uptodate
+        logger.debug(f'answer: {adict}')
         return adict
 
 

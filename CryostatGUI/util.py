@@ -352,7 +352,7 @@ class AbstractApp(QtWidgets.QMainWindow):
             loadUi(ui_file, self)
 
         self.setup_logging_base()
-        self.setup_logging()
+        # self.setup_logging()
         self.sig_assertion.connect(lambda value: self.logger_personal.exception(value))
         self.sig_visatimeout.connect(lambda value: self.logger_personal.exception(value))
 
@@ -366,7 +366,7 @@ class AbstractApp(QtWidgets.QMainWindow):
         # self.Log_DBhandler.setLevel(logging.DEBUG)
 
         self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.DEBUG)
+        self.logger_all.setLevel(logging.INFO)
         # self.logger_personal.addHandler(self.Log_DBhandler)
 
         handler = logging.StreamHandler(sys.stderr)
