@@ -831,12 +831,15 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
     def get_answer(self, qdict):
         adict = dict()
         live = qdict['live']
-        if live:
-            data = self.data_live[qdict['instr']][qdict['value']]
-        else:
-            data = self.data[qdict['instr']][qdict['value']]
-        uptodate = (self.data[qdict['instr']][
-                    'realtime'] - datetime.now()).total_seconds < 10
+        try:
+            if live:
+                data = self.data_live[qdict['instr']][qdict['value']]
+            else:
+                data = self.data[qdict['instr']][qdict['value']]
+            uptodate = (self.data[qdict['instr']][
+                        'realtime'] - datetime.now()).total_seconds < 10
+        except KeyError as e:
+            return dict(ERROR=e, ERROR_message=e.args[0], info='the data you requested is seemingly not present in the data')
         adict['data'] = data
         adict['uptodate'] = uptodate
         return adict

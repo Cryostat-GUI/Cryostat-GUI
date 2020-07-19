@@ -240,7 +240,6 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             'set_temperature'] - self.data['temperature_error']
         self.data_last['status'] = self.read_status()
         self.data_last['sweep'] = self.checksweep(stop=False)
-        self.data['realtime'] = datetime.now()
         self.data['autocontrol'] = int(self.data_last['status']['auto_int'])
 
         if self.useAutoPID:
