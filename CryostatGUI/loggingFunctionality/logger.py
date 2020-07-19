@@ -551,6 +551,7 @@ class live_Logger_bare(object):
         self.pre_init()
         # self.initialisation() # this is done by starting this new thread
         # anyways!
+        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     def running(self):
         """
@@ -584,12 +585,12 @@ class live_Logger_bare(object):
                                 if not err.args[0].startswith("float() argument must be a string or a number"):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0])
+                                    logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
                             except ValueError as err:
                                 if not err.args[0].startswith('could not convert string to float'):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0])
+                                    logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -670,7 +671,7 @@ class live_Logger_bare(object):
                 self.mainthread.data_live = deepcopy(self.data)
                 self.data_live = self.mainthread.data_live
                 for instrument in self.data:
-                    print(self.Gauges)
+                    # print(self.Gauges)
                     dic = self.data[instrument]
                     dic.update(timedict)
                     if instrument not in self.Gauges.keys():
@@ -729,7 +730,6 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
 
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
-        mainthread.sig_logging_newconf.connect(self.update_conf)
 
     @pyqtSlot()  # int
     def work(self):
