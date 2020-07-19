@@ -847,7 +847,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             uptodate = (datetime.strptime(self.data[qdict['instr']][
                         'realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds() < 10
         except KeyError as e:
-            return dict(ERROR=e, ERROR_message=e.args[0], info='the data you requested is seemingly not present in the data')
+            return dict(ERROR='KeyError', ERROR_message=e.args[0], info='the data you requested is seemingly not present in the data')
         adict['data'] = data
         adict['uptodate'] = uptodate
         logger.debug(f'answer: {adict}')
