@@ -192,50 +192,59 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, 'Index', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except NotImplementedError as e:
             s = ExceptionSignal(args[0], func, 'NotImplemented', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
             # e.args = [str(e)]
 
         except VisaIOError as e:
-            if isinstance(e, type(args[0].timeouterror)) and \
-                    e.args == args[0].timeouterror.args:
-                args[0].sig_visatimeout.emit()
-            else:
-                s = ExceptionSignal(args[0], func, 'VisaIO', e)
-                # thread.logger.exception(s)
-                args[0].logger.exception(s)
+            # if isinstance(e, type(args[0].timeouterror)) and \
+            #         e.args == args[0].timeouterror.args:
+            #     args[0].sig_visatimeout.emit()
+            # else:
+            s = ExceptionSignal(args[0], func, 'VisaIO', e)
+            # thread.logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
+            args[0].logger.error(s)
             args[0].logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)

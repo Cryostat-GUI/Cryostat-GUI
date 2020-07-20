@@ -42,13 +42,7 @@ from sqlite3 import OperationalError
 
 import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler(sys.stderr)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+
 
 
 def slope_from_timestampX(tmp_):
@@ -618,12 +612,14 @@ class live_Logger_bare(object):
                                 if not err.args[0].startswith("float() argument must be a string or a number"):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    pass
                             except ValueError as err:
                                 if not err.args[0].startswith('could not convert string to float'):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    pass
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -656,28 +652,30 @@ class live_Logger_bare(object):
 
             return: None
         """
-        if calc == 'slope':
-            fit = self.calculations[calc](times, self.data_live[instr][varkey])
-            for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
-                self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
-                    fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
-        elif calc == 'slope_of_mean':
-            times_spec = deepcopy(times)
-            while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
-                times_spec.pop(0)
-            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
-                times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
-        else:
-            try:
+        try:
+
+            if calc == 'slope':
+                fit = self.calculations[calc](times, self.data_live[instr][varkey])
+                for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
+                    self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
+                        fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
+            elif calc == 'slope_of_mean':
+                times_spec = deepcopy(times)
+                while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
+                    times_spec.pop(0)
+                fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
+                    times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+            else:
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
                     self.calculations[calc](times, self.data_live[instr][varkey]))
 
-            except TypeError:
-                # raise AssertionError(e_type.args[0])
-                # print('TYPE CALC')
-                pass
-            except ValueError as e_val:
-                raise AssertionError(e_val.args[0])
+        except TypeError as e:
+            # raise AssertionError(e_type.args[0])
+            # print('TYPE CALC')
+            logger.exception(e)
+        except ValueError as e_val:
+            raise AssertionError(e_val.args[0])
+            logger.exception(e)
 
     def pre_init(self):
         self.initialised = False
@@ -1196,6 +1194,15 @@ if __name__ == '__main__':
     # dbname = 'He_first_cooldown.db'
     # conn = sqlite3.connect(dbname)
     # mycursor = conn.cursor()
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = LoggingGUI(
         Name='Logger', identity=b'log')
