@@ -581,6 +581,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.run_finished = False
 
     @pyqtSlot()  # int
     def work(self):
