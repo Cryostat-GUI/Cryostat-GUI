@@ -213,6 +213,7 @@ class zmqClient(zmqBare):
             [self.comms_name, enc(dictdump(self.data))])
 
     def running(self):
+        self.data = dict()
         super().running()
 
 class zmqMainControl(zmqBare):
