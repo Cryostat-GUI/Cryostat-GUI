@@ -212,6 +212,8 @@ class zmqClient(zmqBare):
         self.comms_upstream.send_multipart(
             [self.comms_name, enc(dictdump(self.data))])
 
+    def running(self):
+        super().running()
 
 class zmqMainControl(zmqBare):
     """docstring for zmqDev"""
