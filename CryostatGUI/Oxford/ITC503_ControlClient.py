@@ -203,7 +203,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         """
         # print('run')
         # -------------------------------------------------------------------------------------------------------------------------
-
+        self.run_finished = False
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
 
@@ -247,6 +247,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
+        self.run_finished = True
 
     @ExceptionHandling
     def act_on_command(self, command):

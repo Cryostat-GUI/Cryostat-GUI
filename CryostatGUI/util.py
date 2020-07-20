@@ -589,7 +589,8 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
-                self.send_data_upstream()
+                if self.run_finished:
+                    self.send_data_upstream()
         except BlockedError:
             pass
             # print('blocked')

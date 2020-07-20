@@ -187,6 +187,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # self.t1 = datetime.now()
         # print(self.t1 - self.t)
         # self.t = self.t1
+        self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
         self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.data['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
@@ -226,6 +227,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
+        self.run_finished = True
         # self.comms_upstream.send_multipart(
         #     [self.comms_name, enc(json.dumps(self.data))])
 
