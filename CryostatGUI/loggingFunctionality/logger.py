@@ -841,15 +841,17 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         live = qdict['live']
         try:
             if live:
-                data = self.data_live[qdict['instr']][qdict['value']]
+                data = self.data_live[qdict['instr']][qdict['value']][-1]
             else:
                 data = self.data[qdict['instr']][qdict['value']]
-            uptodate = (datetime.strptime(self.data[qdict['instr']][
-                        'realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds() < 10
+            timediff = (datetime.strptime(self.data[qdict['instr']][
+                        'realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+            uptodate = abs(timediff) < 3
         except KeyError as e:
             return dict(ERROR='KeyError', ERROR_message=e.args[0], info='the data you requested is seemingly not present in the data')
         adict['data'] = data
         adict['uptodate'] = uptodate
+        adict['timediff'] = timediff
         logger.debug(f'answer: {adict}')
         return adict
 
