@@ -28,31 +28,60 @@ from pyvisa.errors import VisaIOError
 from visa import constants as vconst
 import functools
 
+import sys
+
 # create a logger object for this module
 logger = logging.getLogger(__name__)
 
-keysight = False
-ni = False
-try:
-    # the pyvisa manager we'll use to connect to the GPIB resources
-    NI_RESOURCE_MANAGER = visa.ResourceManager()
-#        'C:\\Windows\\System32\\visa32.dll')
-    ni = True
-except OSError:
-    logger.exception(
-        "\n\tCould not find the NI VISA library. Is the National Instruments VISA driver installed?\n\n")
-try:
-    KEYSIGHT_RESOURCE_MANAGER = visa.ResourceManager(
-        'C:\\Windows\\System32\\agvisa32.dll')
-    keysight = True
-except OSError:
-    logger.exception(
-        "\n\tCould not find the keysight VISA library. Is it installed?\n\n")
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
-# print(NI_RESOURCE_MANAGER)
 
-if not (ni or keysight):
-    logger.exception('I could not find any VISA library! \n\n')
+# keysight = False
+# ni = False
+
+
+def get_rm(visalib='ks'):
+    try:
+        # the pyvisa manager we'll use to connect to the GPIB resources
+        NI_RESOURCE_MANAGER = visa.ResourceManager()
+    #        'C:\\Windows\\System32\\visa32.dll')
+        ni = True
+        # print('     made resource manager')
+    except OSError:
+        logger.exception(
+            "\n\tCould not find the NI VISA library. Is the National Instruments VISA driver installed?\n\n")
+    # try:
+    #     KEYSIGHT_RESOURCE_MANAGER = visa.ResourceManager(
+    #         'C:\\Windows\\System32\\agvisa32.dll')
+    #     keysight = True
+    # except OSError:
+    #     logger.exception(
+    #         "\n\tCould not find the keysight VISA library. Is it installed?\n\n")
+
+    # if not (ni or keysight):
+    #     logger.exception('I could not find any VISA library! \n\n')
+    #     return None
+    # if visalib == 'ni':
+    #     rm = NI_RESOURCE_MANAGER
+    #     KEYSIGHT_RESOURCE_MANAGER.close()
+    #     KEYSIGHT_RESOURCE_MANAGER.visalib._registry.clear()
+    #     del KEYSIGHT_RESOURCE_MANAGER.visalib
+    #     del KEYSIGHT_RESOURCE_MANAGER
+    # else:
+    #     rm = KEYSIGHT_RESOURCE_MANAGER
+    #     NI_RESOURCE_MANAGER.close()
+    #     NI_RESOURCE_MANAGER.visalib._registry.clear()
+    #     del NI_RESOURCE_MANAGER.visalib
+    #     del NI_RESOURCE_MANAGER
+    return NI_RESOURCE_MANAGER
+    # return rm
 
 
 def HandleVisaException(func):
@@ -94,14 +123,36 @@ def HandleVisaException(func):
                 except AttributeError:
                     pass
                 logger.exception(e)
+                time.sleep(0.01)
+                return wrapper_HandleVisaException(*args, **kwargs)
             elif isinstance(e, type(args[0].connError)) and \
                     e.args == args[0].connError.args:
                 logger.exception(e)
+                logger.error('Connection lost, trying to reconnect')
+                notyetthereagain = True
                 args[0].res_close()
-                args[0].res_open()
+                while notyetthereagain:
+                    try:
+                        time.sleep(1)
+                        try:
+                            args[0].res_close()
+                        except AttributeError:
+                            pass
+                        args[0].res_open()
+                        q = args[0]._visa_resource.query('*IDN?')
+                        notyetthereagain = False
+                    except VisaIOError as e:
+                        logger.debug('trying to reactivate the connection!')
+                        logger.exception(e)
                 logger.info('Exception of lost connection resolved! (I hope)')
             else:
                 logger.exception(e)
+            try:
+                q
+                return wrapper_HandleVisaException(*args, **kwargs)
+            except NameError:
+                return -1
+                pass
 
     return wrapper_HandleVisaException
 
@@ -122,24 +173,58 @@ class AbstractVISADriver(object):
         self.delay = 0
         self.delay_force = 0
         self._instrumentaddress = InstrumentAddress
+        self.visalib_kw = visalib
 
-        if visalib.strip() == 'ni' and not ni:
-            raise NameError('The VISA library was not found!')
-        if visalib.strip() == 'ks' and not keysight:
-            raise NameError('The Keysight VISA library was not found!')
+        # if visalib.strip() == 'ni' and not ni:
+        #     raise NameError('The VISA library was not found!')
+        # if visalib.strip() == 'ks' and not keysight:
+        #     raise NameError('The Keysight VISA library was not found!')
 
-        self._resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
-        ) == 'ks' else NI_RESOURCE_MANAGER
+        # self._resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
+        # ) == 'ks' else NI_RESOURCE_MANAGER
+        # self._resource_manager = get_rm(visalib=self.visalib_kw)
         #        resource_manager = NI_RESOURCE_MANAGER
         # self._visa_resource = self._resource_manager.open_resource(InstrumentAddress)
         self.res_open()
 
     def res_close(self):
         self._visa_resource.close()
+        self._resource_manager.close()
+        self._resource_manager.visalib._registry.clear()
+        del self._resource_manager.visalib
+        del self._resource_manager
+        del self._visa_resource
 
     def res_open(self):
-        self._visa_resource = self._resource_manager.open_resource(
-            self._instrumentaddress)
+        self._resource_manager = get_rm(visalib=self.visalib_kw)
+        try:
+            self._visa_resource = self._resource_manager.open_resource(
+                self._instrumentaddress)
+        except VisaIOError:
+            self._visa_resource = self._resource_manager.open_resource(
+                self._instrumentaddress)
+        self.initialise_device_specifics(**self._device_specifics)
+
+        # time.sleep(2)
+        # self._visa_resource.query('*IDN?')
+
+    def initialise_device_specifics(self, **kwargs):
+        # self._visa_resource.query_delay = 0.
+        if 'timeout' in kwargs:
+            self._visa_resource.timeout = kwargs['timeout']
+        if 'read_termination' in kwargs:
+            self._visa_resource.read_termination = kwargs['read_termination']
+        if 'write_termination' in kwargs:
+            self._visa_resource.write_termination = kwargs['write_termination']
+        if 'baud_rate' in kwargs:
+            self._visa_resource.baud_rate = kwargs['baud_rate']
+        if 'data_bits' in kwargs:
+            self._visa_resource.data_bits = kwargs['data_bits']
+        if 'stop_bits' in kwargs:
+            self._visa_resource.stop_bits = kwargs[
+                'stop_bits']  # vconst.StopBits.two
+        if 'parity' in kwargs:
+            self._visa_resource.parity = kwargs['parity']  # vconst.Parity.none
 
     @HandleVisaException
     def write(self, command, f=False):
@@ -179,17 +264,21 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
     """Abstract Device driver class
     """
 
-    def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, InstrumentAddress=None, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, *args, **kwargs):
+        self._device_specifics = dict(timeout=timeout,
+                                      read_termination=read_termination,
+                                      write_termination=write_termination,
+                                      baud_rate=baud_rate,
+                                      data_bits=data_bits,
+                                      stop_bits=vconst.StopBits.two,
+                                      parity=vconst.Parity.none)
+        super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
 
+        # self.initialise_device_specifics(**self._device_specifics)
+
+    def initialise_device_specifics(self, **kwargs):
         # self._visa_resource.query_delay = 0.
-        self._visa_resource.timeout = timeout
-        self._visa_resource.read_termination = read_termination
-        self._visa_resource.write_termination = write_termination
-        self._visa_resource.baud_rate = baud_rate
-        self._visa_resource.data_bits = data_bits
-        self._visa_resource.stop_bits = vconst.StopBits.two
-        self._visa_resource.parity = vconst.Parity.none
+        super().initialise_device_specifics(**kwargs)
 
         self.delay = 0.1
         self.delay_force = 0.1
@@ -223,7 +312,11 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
         :return: answer from the device
         """
-        return super().query(command).strip().split(',')
+        q = super().query(command)
+        try:
+            return q.strip().split(',')
+        except AttributeError:
+            return [q] * 50
 
     def go(self, command):
         """Sends commands as strings to the device
@@ -236,7 +329,7 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
 
 class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
-    """docstring for Instrument_GPIB"""
+    """docstring for Instrument_GPxIB"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -245,8 +338,40 @@ class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
 class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, read_termination='\n', write_termination='\n', *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, InstrumentAddress, read_termination='\r\n', write_termination='\n', *args, **kwargs):
+        self._device_specifics = dict(
+            read_termination=read_termination,
+            write_termination=write_termination)
+        super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
 
-        self._visa_resource.read_termination = read_termination
-        self._visa_resource.write_termination = write_termination
+
+if __name__ == '__main__':
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
+    # handler = logging.StreamHandler(sys.stderr)
+    # handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter(
+    #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)
+
+    # print('     opening device')
+    # a = AbstractSerialDeviceDriver('ASRL5::INSTR')
+    # print('     opened device')
+
+    print('     opening device')
+    a = AbstractEthernetDeviceDriver('TCPIP::192.168.2.105::7777::SOCKET')
+    print('     opened device')
+
+    print(a.query('*IDN?'))
+    # print('     closing device')
+    # a.res_close()
+    # print('     device closed')
+    # a.res_open()
+    # print('     device reopened')
+    # try:
+    #     print(a.query('IDN?'))
+    # except VisaIOError:
+    #     a.clear_buffers()
+    # # time.sleep(4)
+    # print(a.query('IDN?'))

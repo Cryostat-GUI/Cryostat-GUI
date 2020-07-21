@@ -44,6 +44,7 @@ import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
 
 
+
 def slope_from_timestampX(tmp_):
     """casting datetime into seconds:
         dt = pandas series of datetime objects
@@ -266,6 +267,7 @@ class main_Logger(AbstractLoopThread):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
 
     def update_conf(self, conf):
         """
@@ -289,6 +291,7 @@ class main_Logger(AbstractLoopThread):
         except sqlite3.connect.Error as err:
             self.sig_assertion.emit(
                 'Logger: Couldn\'t establish connection: {}'.format(err))
+            logger.exception(err)
             return False
 
     def createtable(self, tablename, dictname):
@@ -407,7 +410,9 @@ class main_Logger(AbstractLoopThread):
 
     def storing_to_database(self, data, names):
         """store data to the database"""
+        logger.debug(f'storing {data} in database')
         for name in names:
+            logger.debug(f'store {name}')
             try:
                 # self.correcting_database_types(name, data)
 
@@ -418,8 +423,10 @@ class main_Logger(AbstractLoopThread):
 
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
+                logger.exception(assertion)
             except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
+                logger.exception(key)
 
     @pyqtSlot(dict)
     def store_data(self, data):
@@ -470,6 +477,74 @@ class main_Logger(AbstractLoopThread):
         # data.update(timedict)
 
 
+class main_Logger_adaptable(main_Logger):
+    """This is a the logging worker thread
+    """
+
+    def __init__(self,  **kwargs):
+        super().__init__(**kwargs)
+
+        self.interval = 1
+
+    @pyqtSlot(dict)
+    def store_data(self, data):
+        """storing logging data
+            what data should be logged is set in self.conf
+            or will be set there eventually at any rate
+        """
+        logger.debug('storing data in sqlite!')
+        self.operror = False
+        if self.not_yet_initialised:
+            return
+
+        names = data.keys()
+
+        self.connected = self.connectdb(
+            self.conf['logfile_location'])
+        if not self.connected:
+            self.sig_assertion.emit('no connection, storing locally')
+            logger.debug('no connection to database, storing locally')
+            self.local_list.append(data)
+            return
+
+        try:
+            with self.conn:
+                self.mycursor = self.conn.cursor()
+                if len(self.local_list) > 0:
+                    for entry in self.local_list:
+                        self.storing_to_database(entry, names)
+                    self.local_list = []
+
+                self.storing_to_database(data, names)
+        except OperationalError as e:
+            self.operror = True
+            self.local_list.append(data)
+            self.sig_assertion.emit(e.args[0])
+            logger.exception(e)
+        except sqlite3.Error as er:
+            if not self.operror:
+                self.local_list.append(data)
+            self.sig_assertion.emit(er.args[0])
+            logger.exception(er)
+            print(er)
+        logger.debug('done storing data in sqlite!')
+        # data.update(timedict)
+
+    def update_conf(self, conf):
+        """
+            - update the configuration with one being sent.
+            - set the configuration done bool to True,
+                so that self.running will actually log
+            - set self.conf_done_layer2 to False,
+                so that the configuring thread will be quit.
+
+        """
+        self.conf = conf
+        self.interval = self.conf['interval']
+        self.configuration_done = True
+        self.conf_done_layer2 = False
+
+
 class live_Logger_bare(object):
     """docstring for live_Logger"""
 
@@ -503,8 +578,6 @@ class live_Logger_bare(object):
         self.pre_init()
         # self.initialisation() # this is done by starting this new thread
         # anyways!
-        mainthread.sig_running_new_thread.connect(self.pre_init)
-        mainthread.sig_running_new_thread.connect(self.initialisation)
         mainthread.sig_logging_newconf.connect(self.update_conf)
 
     def running(self):
@@ -539,12 +612,14 @@ class live_Logger_bare(object):
                                 if not err.args[0].startswith("float() argument must be a string or a number"):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0])
+                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    pass
                             except ValueError as err:
                                 if not err.args[0].startswith('could not convert string to float'):
                                     logger.exception(err.args[0])
                                 else:
-                                    logger.debug(err.args[0])
+                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                    pass
                         if self.time_init:
                             times = [float(x) for x in self.data_live[
                                 instr]['logging_timeseconds']]
@@ -563,8 +638,10 @@ class live_Logger_bare(object):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         except KeyError as key:
             self.sig_assertion.emit("live logger: " + key.args[0])
+            logger.exception(key)
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -575,28 +652,30 @@ class live_Logger_bare(object):
 
             return: None
         """
-        if calc == 'slope':
-            fit = self.calculations[calc](times, self.data_live[instr][varkey])
-            for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
-                self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
-                    fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
-        elif calc == 'slope_of_mean':
-            times_spec = deepcopy(times)
-            while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
-                times_spec.pop(0)
-            fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
-                times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
-        else:
-            try:
+        try:
+
+            if calc == 'slope':
+                fit = self.calculations[calc](times, self.data_live[instr][varkey])
+                for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
+                    self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
+                        fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
+            elif calc == 'slope_of_mean':
+                times_spec = deepcopy(times)
+                while len(times_spec) > len(self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]):
+                    times_spec.pop(0)
+                fit = self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(self.calculations[calc](
+                    times_spec, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')]))
+            else:
                 self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=calc)].append(
                     self.calculations[calc](times, self.data_live[instr][varkey]))
 
-            except TypeError:
-                # raise AssertionError(e_type.args[0])
-                # print('TYPE CALC')
-                pass
-            except ValueError as e_val:
-                raise AssertionError(e_val.args[0])
+        except TypeError as e:
+            # raise AssertionError(e_type.args[0])
+            # print('TYPE CALC')
+            logger.exception(e)
+        except ValueError as e_val:
+            raise AssertionError(e_val.args[0])
+            logger.exception(e)
 
     def pre_init(self):
         self.initialised = False
@@ -623,7 +702,7 @@ class live_Logger_bare(object):
                 self.mainthread.data_live = deepcopy(self.data)
                 self.data_live = self.mainthread.data_live
                 for instrument in self.data:
-                    print(self.Gauges)
+                    # print(self.Gauges)
                     dic = self.data[instrument]
                     dic.update(timedict)
                     if instrument not in self.Gauges.keys():
@@ -677,8 +756,11 @@ class live_Logger_bare(object):
 class live_Logger(live_Logger_bare, AbstractLoopThread):
     """docstring for live_Logger"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mainthread=None, **kwargs):
+        super().__init__(mainthread=mainthread, **kwargs)
+
+        mainthread.sig_running_new_thread.connect(self.pre_init)
+        mainthread.sig_running_new_thread.connect(self.initialisation)
 
     @pyqtSlot()  # int
     def work(self):
@@ -692,6 +774,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -707,6 +790,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
+            logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -716,44 +800,30 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        del self.initialised
 
-    # @pyqtSlot()  # int
-    # def work(self):
-    #     """
-    #         class method which (here) starts the run,
-    #         as soon as the initialisation was done.
-    #     """
-    #     try:
-    #         while not self.initialised:
-    #             time.sleep(0.02)
-    #         self.running()
-    #     except AssertionError as assertion:
-    #         self.sig_assertion.emit(assertion.args[0])
-    #     finally:
-    #         QTimer.singleShot(self.interval * 1e3, self.worker)
-
-    # @pyqtSlot()  # int
-    # def worker(self):
-    #     """
-    #         class method which is working all the time,
-    #         while the thread is running, keeping the event loop busy
-    #     """
-    #     try:
-    #         while not self.initialised:
-    #             time.sleep(0.02)
-    #         self.running()
-    #     except AssertionError as assertion:
-    #         self.sig_assertion.emit(assertion.args[0])
-    #     finally:
-    #         QTimer.singleShot(self.interval * 1e3, self.worker)
+    def zmq_handle(self):
+        try:
+            self.initialised
+            super().zmq_handle()
+        except AttributeError:
+            # time.sleep(0.02)
+            self.initialisation()
 
     def running(self):
-        while not self.initialised:
+        try:
+            self.initialised
+            super().running()
+        except AttributeError:
             time.sleep(0.02)
-        super().running()
+            self.initialisation()
         # TODO: NOT FINISHED !!!
 
     def store_data(self, ID, data):
+        timedict = {'timeseconds': time.time(),
+                    'ReadableTime': convert_time(time.time()),
+                    'SearchableTime': convert_time_searchable(time.time())}
+        data.update(timedict)
         with self.dataLock:
             self.data[ID] = data
         present = True
@@ -762,6 +832,26 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                 present = False
         if not present:
             self.initialisation()
+
+    def get_answer(self, qdict):
+        logger.debug(f'getting answer for {qdict}')
+        adict = dict()
+        live = qdict['live']
+        try:
+            if live:
+                data = self.data_live[qdict['instr']][qdict['value']][-1]
+            else:
+                data = self.data[qdict['instr']][qdict['value']]
+            timediff = (datetime.strptime(self.data[qdict['instr']][
+                        'realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+            uptodate = abs(timediff) < 3
+        except KeyError as e:
+            return dict(ERROR='KeyError', ERROR_message=e.args[0], info='the data you requested is seemingly not present in the data')
+        adict['data'] = data
+        adict['uptodate'] = uptodate
+        adict['timediff'] = timediff
+        logger.debug(f'answer: {adict}')
+        return adict
 
 
 class LoggingGUI(AbstractMainApp, Window_trayService_ui):
@@ -784,10 +874,10 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
 
-        logger = self.running_thread_control(
-            main_Logger(self), 'logger')
+        logger_main = self.running_thread_control(
+            main_Logger_adaptable(mainthread=self), 'logger')
         # logger.sig_log.connect(self.logging_send_all)
-        logger.sig_log.connect(
+        logger_main.sig_log.connect(
             lambda: self.sig_logging.emit(deepcopy(self.data)))
 
         # ------------- main Logging configuration initialisation -------------
@@ -811,7 +901,8 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # ------------- live Logging configuration initialisation -------------
         self.dataLock = Lock()
         self.dataLock_live = Lock()
-
+        logger_live = self.running_thread_control(
+            live_zmqDataStoreLogger(mainthread=self), 'zmq_liveLogger')
         # ----------------------------------------------------------------------
 
     def applyConf(self):
@@ -1082,6 +1173,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+                logger.exception(err)
         else:
             try:
                 with open(data['datafile'], 'w') as f:
@@ -1089,6 +1181,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
+                logger.exception(err)
 
         # try:
         #     with open(data['datafile'][:-3]+'csv', 'a') as f:
@@ -1101,6 +1194,15 @@ if __name__ == '__main__':
     # dbname = 'He_first_cooldown.db'
     # conn = sqlite3.connect(dbname)
     # mycursor = conn.cursor()
+
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = LoggingGUI(
         Name='Logger', identity=b'log')

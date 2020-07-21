@@ -8,7 +8,7 @@ from pyvisa.errors import VisaIOError
 rm = [visa.ResourceManager(), visa.ResourceManager(
     r'C:\Windows\System32\agvisa32.dll')]
 res = [rm[0].list_resources(), rm[1].list_resources()]
-
+print(res)
 devices = []
 
 for ct, manager in enumerate(res):

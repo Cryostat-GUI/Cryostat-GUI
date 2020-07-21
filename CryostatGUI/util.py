@@ -192,50 +192,59 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, 'Index', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except NotImplementedError as e:
             s = ExceptionSignal(args[0], func, 'NotImplemented', e)
             # thread.logger.exception(s)
-            args[0].logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
             # e.args = [str(e)]
 
         except VisaIOError as e:
-            if isinstance(e, type(args[0].timeouterror)) and \
-                    e.args == args[0].timeouterror.args:
-                args[0].sig_visatimeout.emit()
-            else:
-                s = ExceptionSignal(args[0], func, 'VisaIO', e)
-                # thread.logger.exception(s)
-                args[0].logger.exception(s)
+            # if isinstance(e, type(args[0].timeouterror)) and \
+            #         e.args == args[0].timeouterror.args:
+            #     args[0].sig_visatimeout.emit()
+            # else:
+            s = ExceptionSignal(args[0], func, 'VisaIO', e)
+            # thread.logger.exception(s)
+            args[0].logger.error(s)
+            args[0].logger.exception(e)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
+            args[0].logger.error(s)
             args[0].logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)
@@ -352,7 +361,9 @@ class AbstractApp(QtWidgets.QMainWindow):
             loadUi(ui_file, self)
 
         self.setup_logging_base()
-        self.setup_logging()
+        # self.setup_logging()
+        self.sig_assertion.connect(lambda value: self.logger_personal.exception(value))
+        self.sig_visatimeout.connect(lambda value: self.logger_personal.exception(value))
 
     def setup_logging_base(self):
         self.logger_all = logging.getLogger()
@@ -364,11 +375,11 @@ class AbstractApp(QtWidgets.QMainWindow):
         # self.Log_DBhandler.setLevel(logging.DEBUG)
 
         self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.ERROR)
+        self.logger_all.setLevel(logging.INFO)
         # self.logger_personal.addHandler(self.Log_DBhandler)
 
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.ERROR)
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
@@ -381,7 +392,7 @@ class AbstractApp(QtWidgets.QMainWindow):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
 
-        self.logger_all.setLevel(logging.INFO)
+        self.logger_all.setLevel(logging.DEBUG)
 
         # self.logger_all.addHandler(self.Log_DBhandler)
 
@@ -513,7 +524,7 @@ class AbstractLoopClient(AbstractLoopApp, zmqClient):
     """docstring for AbstractLoopClient"""
 
     def __init__(self, *args, **kwargs):
-        print('loopclient')
+        # print('loopclient')
         super().__init__(*args, **kwargs)
 
 
@@ -529,6 +540,8 @@ class AbstractThread(QObject):
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
         self.logger = logging.getLogger(__name__)
+        self.sig_assertion.connect(lambda value: logger.exception(value))
+        self.sig_visatimeout.connect(lambda value: logger.exception(value))
 
     @pyqtSlot()
     def work(self):
@@ -577,6 +590,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.run_finished = False
 
     @pyqtSlot()  # int
     def work(self):
@@ -585,12 +599,13 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
-                self.send_data_upstream()
+                if self.run_finished:
+                    self.send_data_upstream()
         except BlockedError:
             pass
             # print('blocked')
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
+        # except AssertionError as assertion:
+        #     self.sig_assertion.emit(assertion.args[0])
             # print('assertion', assertion.args[0])
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)

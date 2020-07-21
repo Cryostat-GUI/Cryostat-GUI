@@ -203,7 +203,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         """
         # print('run')
         # -------------------------------------------------------------------------------------------------------------------------
-
+        self.run_finished = False
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
 
@@ -240,7 +240,6 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             'set_temperature'] - self.data['temperature_error']
         self.data_last['status'] = self.read_status()
         self.data_last['sweep'] = self.checksweep(stop=False)
-        self.data['realtime'] = datetime.now()
         self.data['autocontrol'] = int(self.data_last['status']['auto_int'])
 
         if self.useAutoPID:
@@ -248,6 +247,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
+        self.run_finished = True
 
     @ExceptionHandling
     def act_on_command(self, command):
@@ -893,7 +893,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     ITC_Instrumentadress = 'ASRL6::INSTR'
     form = ITCGUI(
-        ui_file='itc503_main.ui', Name='ITC 503', identity=b'ITC503', InstrumentAddress=ITC_Instrumentadress)
+        ui_file='itc503_main.ui', Name='ITC 503', identity=b'ITC', InstrumentAddress=ITC_Instrumentadress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

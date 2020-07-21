@@ -187,6 +187,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # self.t1 = datetime.now()
         # print(self.t1 - self.t)
         # self.t = self.t1
+        self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
         self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.data['Ramp_Rate_Status'] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[
@@ -226,6 +227,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
+        self.run_finished = True
         # self.comms_upstream.send_multipart(
         #     [self.comms_name, enc(json.dumps(self.data))])
 
@@ -583,7 +585,7 @@ if __name__ == '__main__':
     LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
     app = QtWidgets.QApplication(sys.argv)
     form = LakeShoreGUI(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350_1', InstrumentAddress=LakeShore_InstrumentAddress)
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LakeShore350', InstrumentAddress=LakeShore_InstrumentAddress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
