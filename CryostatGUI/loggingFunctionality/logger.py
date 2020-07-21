@@ -720,7 +720,7 @@ class live_Logger_bare(object):
                             # print('sth went wrong', instrument, variablekey)
                             logger.info(
                                 'sth went wrong with registering prometheus Gauges')
-                        if all([x not in variablekey for x in self.noCalc]):
+                        if all((x not in variablekey for x in self.noCalc)):
                             for calc in self.calculations:
                                 self.data_live[instrument][
                                     '{key}_calc_{c}'.format(key=variablekey, c=calc)] = []
