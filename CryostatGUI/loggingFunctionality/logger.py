@@ -565,7 +565,7 @@ class live_Logger(AbstractLoopThread):
                 for instr in self.data_live:
                     for varkey in self.data_live[instr]:
                         for calc in self.calculations:
-                            if all([x not in varkey for x in self.noCalc]):
+                            if all((x not in varkey for x in self.noCalc)):
                                 if self.time_init:
                                     self.calculations_perform(
                                         instr, varkey, calc, times)
