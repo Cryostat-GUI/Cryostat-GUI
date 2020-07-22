@@ -171,11 +171,12 @@ def running_thread(worker, info=None, **kwargs):
 
 def ExceptionSignal(thread, func, e_type, err):
     """Emit assertion-signal with relevant information"""
-    string = '{}: {}: {}: {}'.format(
+    string = '{}: {}: {}: {} :: {}'.format(
         thread.__name__,
         func.__name__,
         e_type,
-        err.args[0])
+        err.args[0],
+        err.__traceback__)
 
     thread.sig_assertion.emit(string)
     return string

@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 
 from drivers import AbstractSerialDeviceDriver
+from pyvisa.errors import VisaIOError
 
 
 class ips120(AbstractSerialDeviceDriver):
@@ -86,10 +87,21 @@ class ips120(AbstractSerialDeviceDriver):
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
 
-        if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')
-        if value[0] != 'R':
-            raise AssertionError('IPS: getValue: bad reply: {}'.format(value))
+        try:
+            if value[0] != 'R':
+                try:
+                    self.read()
+                except VisaIOError as e_visa:
+                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                        pass
+                return self.getValue(variable)
+        except TypeError:
+            try:
+                self.read()
+            except VisaIOError as e_visa:
+                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                    pass
+            return self.getValue(variable)
         return float(value.strip('R+'))
 
     def getStatus(self):

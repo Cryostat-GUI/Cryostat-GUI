@@ -65,19 +65,15 @@ class ilm211(AbstractSerialDeviceDriver):
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
 
-        if value == "" or None:
-            # raise AssertionError('ILM: getValue: bad reply: empty string')
-            # print('ILM: Assertion: empty')
-            try:
-                self.read()
-            except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
-                    pass
-            return self.getValue(variable)
-            # return None
-        if value[0] != 'R':
-            # raise AssertionError('ILM: getValue: bad reply: {}'.format(value))
-            # print('ILM: Assertion: {}'.format(value))
+        try:
+            if value[0] != 'R':
+                try:
+                    self.read()
+                except VisaIOError as e_visa:
+                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                        pass
+                return self.getValue(variable)
+        except TypeError:
             try:
                 self.read()
             except VisaIOError as e_visa:

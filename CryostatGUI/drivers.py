@@ -141,10 +141,28 @@ def HandleVisaException(func):
                         args[0].res_open()
                         q = args[0]._visa_resource.query('*IDN?')
                         notyetthereagain = False
-                    except VisaIOError as e:
+                    except VisaIOError:
                         logger.debug('trying to reactivate the connection!')
-                        logger.exception(e)
                 logger.info('Exception of lost connection resolved! (I hope)')
+            elif isinstance(e, type(args[0].visaIOError)) and \
+                    e.args == args[0].visaIOError.args:
+                logger.exception(e)
+                logger.error('Visa I/O Error, trying to reconnect')
+                notyetthereagain = True
+                args[0].res_close()
+                while notyetthereagain:
+                    try:
+                        time.sleep(1)
+                        try:
+                            args[0].res_close()
+                        except AttributeError:
+                            pass
+                        args[0].res_open()
+                        q = args[0]._visa_resource.query('*IDN?')
+                        notyetthereagain = False
+                    except VisaIOError:
+                        logger.debug('trying to reactivate the connection!')
+                logger.info('Exception of I/O error resolved! (I hope)')
             else:
                 logger.exception(e)
             try:
@@ -152,7 +170,6 @@ def HandleVisaException(func):
                 return wrapper_HandleVisaException(*args, **kwargs)
             except NameError:
                 return -1
-                pass
 
     return wrapper_HandleVisaException
 
@@ -165,6 +182,7 @@ class AbstractVISADriver(object):
 
     connError = VisaIOError(-1073807194)
     timeouterror = VisaIOError(-1073807339)
+    visaIOError = VisaIOError(-1073807298)
 
     def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)

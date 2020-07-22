@@ -105,30 +105,29 @@ class itc503(AbstractSerialDeviceDriver):
         value = self.query('R{}'.format(variable))
         # value = self._visa_resource.read()
 
-        if value == "" or None:
-            # raise AssertionError('ITC: getValue: bad reply: empty string')
-            # print('ITC: Assertion: empty')
+        # if value == "" or None:
+        #     try:
+        #         self.read()
+        #     except VisaIOError as e_visa:
+        #         if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+        #             pass
+        #     return self.getValue(variable)
+        try:
+            if value[0] != 'R':
+                try:
+                    self.read()
+                except VisaIOError as e_visa:
+                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                        pass
+                return self.getValue(variable)
+        except TypeError:
             try:
                 self.read()
             except VisaIOError as e_visa:
                 if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                     pass
             return self.getValue(variable)
-            # return None
-        if value[0] != 'R':
-            # raise AssertionError('ITC: getValue: bad reply: {}'.format(value))
-            # print('ITC: Assertion: {}'.format(value))
-            try:
-                self.read()
-            except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
-                    pass
-            return self.getValue(variable)
-            # return None
-        # if value[0] == 'T':
-        #     print('ITC: Assertion: T')
-        #     self.read()
-        #     value = self.getValue(variable)
+
         return float(value.strip('R+'))
 
     def setProportional(self, prop=0):
