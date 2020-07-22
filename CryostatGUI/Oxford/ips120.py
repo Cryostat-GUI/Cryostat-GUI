@@ -119,14 +119,7 @@ class ips120(AbstractSerialDeviceDriver):
         Returns:
             field(float): current magnetic field in Tesla
         """
-        value = self.query('R7')
-        # self._visa_resource.wait_for_srq()
-        # value_str = self._visa_resource.read()
-        if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')
-        if value[0] != 'R':
-            raise AssertionError('IPS: readField: Bad reply: {}'.format(value))
-        return float(value.strip('R+'))
+        return self.getValue(7)
 
     def readFieldSetpoint(self):
         """Read the current set point for the magnetic field in Tesla
@@ -134,16 +127,7 @@ class ips120(AbstractSerialDeviceDriver):
         Returns:
             setpoint(float): current set point for the magnetic field in Tesla
         """
-        value = self.query('R8')
-        # self._visa_resource.wait_for_srq()
-        # value_str = self._visa_resource.read()
-        if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')
-        if value[0] != 'R':
-            raise AssertionError(
-                'IPS: readFieldSetpoint: Bad reply: {}'.format(value))
-
-        return float(value.strip('R+'))
+        return self.getValue(8)
 
     def readFieldSweepRate(self):
         """Read the current magnetic field sweep rate in Tesla/min
@@ -151,16 +135,7 @@ class ips120(AbstractSerialDeviceDriver):
         Returns:
             sweep_rate(float): current magnetic field sweep rate in Tesla/min
         """
-        value = self.query('R9')
-        # self._visa_resource.wait_for_srq()
-        # value_str = self._visa_resource.read()
-        if value == "" or None:
-            raise AssertionError('IPS: getValue: bad reply: empty string')
-        if value[0] != 'R':
-            raise AssertionError(
-                'IPS: readFieldSweepRate: Bad reply: {}'.format(value))
-
-        return float(value.strip('R+'))
+        return self.getValue(9)
 
     def setActivity(self, state=1):
         """Set the field activation method
