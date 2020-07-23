@@ -216,6 +216,7 @@ class zmqClient(zmqBare):
         self.data = dict()
         super().running()
 
+
 class zmqMainControl(zmqBare):
     """docstring for zmqDev"""
 
@@ -328,7 +329,8 @@ class zmqDataStore(zmqBare):
                             questiondict = dictload(dec(msg)[1:])
                             answer = dictdump(self.get_answer(questiondict))
                         except decoder.JSONDecodeError as e:
-                            answer = dictdump(dict(ERROR='ERROR', ERROR_message=e.args[0], info='something went wrong when decoding your json'))
+                            answer = dictdump(dict(ERROR='ERROR', ERROR_message=e.args[
+                                              0], info='something went wrong when decoding your json'))
                         self.comms_data.send_multipart([address, enc(answer)])
                     # do something - most likely hand out data to an asking
                     # process

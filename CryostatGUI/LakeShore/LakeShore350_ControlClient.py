@@ -13,6 +13,7 @@ from LakeShore.LakeShore350 import LakeShore350_ethernet as LakeShore350
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 # import json
 
@@ -24,7 +25,7 @@ from util import Window_trayService_ui
 
 from datetime import datetime
 
-from PyQt5.QtCore import QTimer
+
 # from PyQt5.QtWidgets import QtAlignRight
 
 # import datetime as dt
