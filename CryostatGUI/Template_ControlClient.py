@@ -10,21 +10,24 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 import json
 import sys
+from copy import deepcopy
 
 from util import ExceptionHandling
-from util import AbstractLoopClient
+from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
-
-from zmqcomms import dec, enc
+from util import AbstractMainApp
 
 from datetime import datetime
+from pyvisa.errors import VisaIOError
 # import logging
 
 
-class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
+class Template_ControlClient(AbstractLoopThreadClient):
     """Updater class for the LakeShore350 Temperature controller
 
         For each Lakeshore350 function there is a wrapping method,
@@ -43,7 +46,7 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
     data = dict(
         Temp_K=None,)
 
-    def __init__(self, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
@@ -70,14 +73,14 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
         # GUI: passing GUI interactions to the corresponding slots
         # Examples:
 
-        # self.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
-        # self.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
+        # mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
+        # mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
-        # self.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-        # self.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+        # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
+        # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
-        # self.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-        # self.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+        # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
+        # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
         # -------------------------------------------------------------------------------------------------------------------------
 
@@ -93,6 +96,7 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
         and emit signal, sending the data
         """
         # print('run')
+        self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
 
         # data collection for to be exposed on the data upstream
@@ -101,7 +105,8 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
         # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
-        
+        self.sig_Infodata.emit(deepcopy(self.data))
+        self.run_finished = True
         # data is being sent by the zmqClient class automatically
 
     @ExceptionHandling
@@ -202,10 +207,91 @@ class Template_ControlClient(AbstractLoopClient, Window_trayService_ui):
     #     self.LoopD_value = value
 
 
+
+class DeviceGUI(AbstractMainApp, Window_trayService_ui):
+    """This is the LakeShore GUI Window"""
+
+    sig_arbitrary = pyqtSignal()
+    sig_assertion = pyqtSignal(str)
+
+    def __init__(self, **kwargs):
+        self.kwargs = deepcopy(kwargs)
+        del kwargs['identity']
+        del kwargs['InstrumentAddress']
+        self._identity = self.kwargs['identity']
+        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        # print('GUI pre')
+        super().__init__(**kwargs)
+        # print('GUI post')
+        # loadUi('.\\configurations\\Cryostat GUI.ui', self)
+        # self.setupUi(self)
+
+        self.__name__ = 'LakeShore_Window'
+        self.controls = [self.groupSettings]
+
+        QTimer.singleShot(0, self.run_Hardware)
+
+    @pyqtSlot()
+    def run_Hardware(self):
+        """start/stop the LakeShore350 thread"""
+
+        try:
+            getInfodata = self.running_thread_control(Template_ControlClient(
+                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
+
+            getInfodata.sig_Infodata.connect(self.updateGUI)
+
+        except (VisaIOError, NameError) as e:
+            # self.show_error_general('running: {}'.format(e))
+            self.logger_personal.exception(e)
+
+    @pyqtSlot(dict)
+    def updateGUI(self, data):
+        """
+            Store Device data in self.data, update values in GUI
+        """
+        self.data.update(data)
+        # data['date'] = convert_time(time.time())
+        # self.store_data(data=data, device='LakeShore350')
+
+        # with self.dataLock:
+        # this needs to draw from the self.data so that in case one of the keys did not show up,
+        # since the command failed in the communication with the device,
+        # the last value is retained
+
+
+        # -----------------------------------------------------------------------------------------------------------
+        # update the GUI
+        # Examples:
+
+        # self.progressHeaterOutput_percentage.setValue(
+        #     self.data['Heater_Output_percentage'])
+        # self.lcdHeaterOutput_mW.display(
+        #     self.data['Heater_Output_mW'])
+        # self.lcdSetTemp_K.display(
+        #     self.data['Temp_K'])
+        # # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
+        # self.lcdSetRampRate_Kpmin.display(
+        #     self.data['Ramp_Rate'])
+
+        # self.comboSetInput_Sensor.setCurrentIndex(
+        #     int(self.data['Input_Sensor']) - 1)
+        # self.lcdSensor1_K.display(
+        #     self.data['Sensor_1_K'])
+        # self.lcdSensor2_K.display(
+        #     self.data['Sensor_2_K'])
+        # self.lcdSensor3_K.display(
+        #     self.data['Sensor_3_K'])
+        # self.lcdSensor4_K.display(
+        #     self.data['Sensor_4_K'])
+        # -----------------------------------------------------------------------------------------------------------
+
+
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    form = Template_ControlClient(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LS350', InstrumentAddress='')
+    form = DeviceGUI(
+        ui_file='Template_main.ui', Name='Template', identity=b'templ', InstrumentAddress='')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
