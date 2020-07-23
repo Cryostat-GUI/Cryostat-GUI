@@ -13,7 +13,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
-import json
 import sys
 from copy import deepcopy
 
@@ -30,7 +29,7 @@ from pyvisa.errors import VisaIOError
 class Template_ControlClient(AbstractLoopThreadClient):
     """Updater class for the LakeShore350 Temperature controller
 
-        For each Lakeshore350 function there is a wrapping method,
+        For each Device function there is a wrapping method,
         which we can call by a signal/by zmq comms. This wrapper sends
         the corresponding value to the device.
 
@@ -84,7 +83,7 @@ class Template_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
 
-        self.spin_threadinterval.valueChanged.connect(
+        mainthread.spin_threadinterval.valueChanged.connect(
             lambda value: self.setInterval(value))
 
 
