@@ -86,6 +86,7 @@ def get_rm(visalib='ks'):
 
 def HandleVisaException(func):
 
+    timeoutcounter = 0
     @functools.wraps(func)
     def wrapper_HandleVisaException(*args, **kwargs):
         # if inspect.isclass(type(args[0])):
@@ -124,7 +125,13 @@ def HandleVisaException(func):
                     pass
                 logger.exception(e)
                 time.sleep(0.01)
-                return wrapper_HandleVisaException(*args, **kwargs)
+                # this is not fully tested ---- In ---------------------------
+                if timeoutcounter < 5:
+                    timeoutcounter += 1
+                    return wrapper_HandleVisaException(*args, **kwargs)
+                else:
+                    return -1
+                # this is not fully tested ---- Out --------------------------
             elif isinstance(e, type(args[0].connError)) and \
                     e.args == args[0].connError.args:
                 logger.exception(e)
