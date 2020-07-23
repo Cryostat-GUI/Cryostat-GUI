@@ -301,11 +301,12 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
         self.delay = 0.1
         self.delay_force = 0.1
 
+    @HandleVisaException
     def clear_buffers(self):
         # self._visa_resource.timeout = 5
         try:
-            # with self._comLock:
-            self.read()
+            with self._comLock:
+                self._visa_resource.read()
         except VisaIOError as e_visa:
             if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
                 pass
