@@ -248,6 +248,14 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
 
+
+        self.combosetProbingRate_chan1.activated['int'].connect(
+            lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
+# self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
+
+        self.spin_threadinterval.valueChanged.connect(
+            lambda value: self.threads['control_ILM'][0].setInterval(value))
+
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self.logger_personal.exception(e)
@@ -258,6 +266,8 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
             Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
+
+
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
 
@@ -270,27 +280,15 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
         # Examples:
+        chan1 = 100 if self.data['channel_1_level'] > 100 else self.data['channel_1_level']
+        chan2 = 100 if self.data['channel_2_level'] > 100 else self.data['channel_2_level']
+        self.progressLevelHe.setValue(chan1)
+        self.progressLevelN2.setValue(chan2)
 
-        # self.progressHeaterOutput_percentage.setValue(
-        #     self.data['Heater_Output_percentage'])
-        # self.lcdHeaterOutput_mW.display(
-        #     self.data['Heater_Output_mW'])
-        # self.lcdSetTemp_K.display(
-        #     self.data['Temp_K'])
-        # # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
-        # self.lcdSetRampRate_Kpmin.display(
-        #     self.data['Ramp_Rate'])
-
-        # self.comboSetInput_Sensor.setCurrentIndex(
-        #     int(self.data['Input_Sensor']) - 1)
-        # self.lcdSensor1_K.display(
-        #     self.data['Sensor_1_K'])
-        # self.lcdSensor2_K.display(
-        #     self.data['Sensor_2_K'])
-        # self.lcdSensor3_K.display(
-        #     self.data['Sensor_3_K'])
-        # self.lcdSensor4_K.display(
-        #     self.data['Sensor_4_K'])
+        self.lcdLevelHe.display(
+            self.data['channel_1_level'])
+        self.lcdLevelN2.display(
+            self.data['channel_2_level'])
         # -----------------------------------------------------------------------------------------------------------
 
 
