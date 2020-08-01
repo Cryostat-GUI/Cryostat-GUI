@@ -598,33 +598,36 @@ class live_Logger_bare(object):
                                         )
                         dic = deepcopy(self.data[instr])
                         dic.update(timedict)
+                        timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+                        uptodate = abs(timediff) < 10
+                        if uptodate:
 
-                        # print(times[0])
-                        for varkey in dic:
-                            # print(instr, varkey)
-                            self.data_live[instr][
-                                varkey].append(dic[varkey])
-                            # print(instr, varkey)
-                            # print(self.Gauges)
-                            try:
-                                self.Gauges[instr][varkey].set(dic[varkey])
-                            except TypeError as err:
-                                if not err.args[0].startswith("float() argument must be a string or a number"):
-                                    logger.exception(err.args[0])
-                                else:
-                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
-                                    pass
-                            except ValueError as err:
-                                if not err.args[0].startswith('could not convert string to float'):
-                                    logger.exception(err.args[0])
-                                else:
-                                    # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
-                                    pass
-                        if self.time_init:
-                            times = [float(x) for x in self.data_live[
-                                instr]['logging_timeseconds']]
-                        else:
-                            times = [0]
+                            # print(times[0])
+                            for varkey in dic:
+                                # print(instr, varkey)
+                                self.data_live[instr][
+                                    varkey].append(dic[varkey])
+                                # print(instr, varkey)
+                                # print(self.Gauges)
+                                try:
+                                    self.Gauges[instr][varkey].set(dic[varkey])
+                                except TypeError as err:
+                                    if not err.args[0].startswith("float() argument must be a string or a number"):
+                                        logger.exception(err.args[0])
+                                    else:
+                                        # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                        pass
+                                except ValueError as err:
+                                    if not err.args[0].startswith('could not convert string to float'):
+                                        logger.exception(err.args[0])
+                                    else:
+                                        # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                        pass
+                            if self.time_init:
+                                times = [float(x) for x in self.data_live[
+                                    instr]['logging_timeseconds']]
+                            else:
+                                times = [0]
                 for instr in self.data_live:
                     for varkey in self.data_live[instr]:
                         for calc in self.calculations:
