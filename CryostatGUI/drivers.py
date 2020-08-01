@@ -87,7 +87,7 @@ def get_rm(visalib='ks'):
 def HandleVisaException(func):
 
     @functools.wraps(func)
-    def wrapper_HandleVisaException(timeoutcounter=0, *args, **kwargs):
+    def wrapper_HandleVisaException(*args, timeoutcounter=0, **kwargs):
         # if inspect.isclass(type(args[0])):
         # thread = args[0]
         try:
