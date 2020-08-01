@@ -74,22 +74,14 @@ class ILM_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
-        # Examples:
 
-        # mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
-        # mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
-
-        # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-        # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
-
-        # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-        # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+        mainthread.combosetProbingRate_chan1.activated['int'].connect(
+            lambda value: self.setProbingSpeed(value, 1))
 
         # -------------------------------------------------------------------------------------------------------------------------
 
         mainthread.spin_threadinterval.valueChanged.connect(
             lambda value: self.setInterval(value))
-
 
     # @control_checks
     @ExceptionHandling
@@ -108,7 +100,6 @@ class ILM_ControlClient(AbstractLoopThreadClient):
 
         for key in self.sensors:
             self.data[key] = self.ILM.getValue(self.sensors[key]) * 0.1
-
 
         self.data['realtime'] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
@@ -133,86 +124,43 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
     #  hardware communication functions
-    # Examples:
+    @pyqtSlot()
+    @ExceptionHandling
+    def setControl(self):
+        """set Control status of the instrument"""
+        self.ILM.setControl(self.control_state)
 
-    # @ExceptionHandling
-    # def initiating_PID(self):
-    #     temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-    #     self.LoopP_value = temp_list0[0]
-    #     self.LoopI_value = temp_list0[1]
-    #     self.LoopD_value = temp_list0[2]
+    @pyqtSlot(int)
+    @ExceptionHandling
+    def setProbingSpeed(self, speed, channel=1):
+        """set probing speed for a specific channel
 
-    # @ExceptionHandling
-    # def configTempLimit(self, confdict=None):
-    #     """sets temperature limit
-    #     """
-    #     if confdict is None:
-    #         confdict = {key: 400 for key in ['A', 'B', 'C', 'D']}
-    #     for i in ['A', 'B', 'C', 'D']:
-    #         self.LakeShore350.TemperatureLimitCommand(i, 400.)
+            for fast probing, speed = 1
+            for slow probing, speed = 0
+            this comes from the order in the comboBox in the GUI
+        """
+        if speed == 1:
+            self.ILM.setFast(channel)
+        elif speed == 0:
+            self.ILM.setSlow(channel)
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setTemp_K(self, temp=None):
-    #     """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
-    #     """
-    #     if temp is not None:
-    #         self.Temp_K_value = temp
-    #     self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
-    #     self.LakeShore350.ControlSetpointRampParameterCommand(
-    #         1, self.Ramp_status_internal, self.Ramp_Rate_value)
+    @pyqtSlot(int)
+    def gettoset_Control(self, value):
+        """receive and store the value to set the Control status"""
+        self.control_state = value
 
-    # @ExceptionHandling
-    # def read_Temperatures(self):
-    #     sensors = dict()
-    #     sensor_names = ['Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
-    #     temp_list = self.LakeShore350.KelvinReadingQuery(0)
-
-    #     for idx, sens in enumerate(sensor_names):
-    #         sensors[sens] = temp_list[idx]
-    #     return sensors
-
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopP_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.data[
-    #                                                   'Loop_I_Param'], self.data['Loop_D_Param'])
-
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopI_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    #         1, self.data['Loop_P_Param'], self.LoopI_value, self.data['Loop_D_Param'])
-
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopD_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    #         1, self.data['Loop_P_Param'], self.data['Loop_I_Param'], self.LoopD_value)
-
-
-    # -------------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------------------------------
-    # GUI value acceptance functions
-    # Examples:
-
-
-    # @pyqtSlot()
-    # def gettoset_Temp_K(self, value):
-    #     self.Temp_K_value = value
-
-    # @pyqtSlot()
-    # def gettoset_LoopP_Param(self, value):
-    #     self.LoopP_value = value
-
-    # @pyqtSlot()
-    # def gettoset_LoopI_Param(self, value):
-    #     self.LoopI_value = value
-
-    # @pyqtSlot()
-    # def gettoset_LoopD_Param(self, value):
-    #     self.LoopD_value = value
-
+    @pyqtSlot()
+    @ExceptionHandling
+    def measure_once(self):
+        """measure the helium level once:
+        put the probing speed to 'fast'
+            this will immediately trigger the device to measure it once
+        put the probing speed to 'slow' again
+        measure the helium level and return it
+        """
+        self.ILM.setFast(1)
+        self.ILM.setSlow(1)
+        return self.ILM.getValue(1) * 0.1
 
 
 class DeviceGUI(AbstractMainApp, Window_trayService_ui):
@@ -248,14 +196,6 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
 
-
-        self.combosetProbingRate_chan1.activated['int'].connect(
-            lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 1))
-# self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
-
-        self.spin_threadinterval.valueChanged.connect(
-            lambda value: self.threads['control_ILM'][0].setInterval(value))
-
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self.logger_personal.exception(e)
@@ -267,7 +207,6 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         """
         self.data.update(data)
 
-
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
 
@@ -276,12 +215,12 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # since the command failed in the communication with the device,
         # the last value is retained
 
-
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
-        # Examples:
-        chan1 = 100 if self.data['channel_1_level'] > 100 else self.data['channel_1_level']
-        chan2 = 100 if self.data['channel_2_level'] > 100 else self.data['channel_2_level']
+        chan1 = 100 if self.data[
+            'channel_1_level'] > 100 else self.data['channel_1_level']
+        chan2 = 100 if self.data[
+            'channel_2_level'] > 100 else self.data['channel_2_level']
         self.progressLevelHe.setValue(chan1)
         self.progressLevelN2.setValue(chan2)
 
@@ -290,7 +229,6 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         self.lcdLevelN2.display(
             self.data['channel_2_level'])
         # -----------------------------------------------------------------------------------------------------------
-
 
 
 if __name__ == '__main__':
