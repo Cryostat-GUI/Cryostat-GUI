@@ -44,7 +44,6 @@ import logging
 logger = logging.getLogger('CryostatGUI.loggingFunctionality')
 
 
-
 def slope_from_timestampX(tmp_):
     """casting datetime into seconds:
         dt = pandas series of datetime objects
@@ -599,16 +598,19 @@ class live_Logger_bare(object):
                         dic = deepcopy(self.data[instr])
                         dic.update(timedict)
                         try:
-                            timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+                            timediff = (datetime.strptime(
+                                dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
                         except ValueError as err:
                             logger.error(f'problem parsing time in {dic}')
                             if 'does not match format' in err.args[0]:
                                 try:
-                                    timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S') - datetime.now()).total_seconds()
+                                    timediff = (datetime.strptime(
+                                        dic['realtime'], '%Y-%m-%d %H:%M:%S') - datetime.now()).total_seconds()
                                 except ValueError as e:
                                     raise e
                             else:
                                 logger.exception(err)
+                                timediff = 0
                         uptodate = abs(timediff) < 10
 
                         # print(times[0])
@@ -625,13 +627,15 @@ class live_Logger_bare(object):
                                     if not err.args[0].startswith("float() argument must be a string or a number"):
                                         logger.exception(err.args[0])
                                     else:
-                                        # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                        # logger.debug(err.args[0] + f'instr:
+                                        # {instr}, varkey: {varkey}')
                                         pass
                                 except ValueError as err:
                                     if not err.args[0].startswith('could not convert string to float'):
                                         logger.exception(err.args[0])
                                     else:
-                                        # logger.debug(err.args[0] + f'instr: {instr}, varkey: {varkey}')
+                                        # logger.debug(err.args[0] + f'instr:
+                                        # {instr}, varkey: {varkey}')
                                         pass
                             else:
                                 self.Gauges[instr][varkey].set(0)
@@ -671,7 +675,8 @@ class live_Logger_bare(object):
         try:
 
             if calc == 'slope':
-                fit = self.calculations[calc](times, self.data_live[instr][varkey])
+                fit = self.calculations[calc](
+                    times, self.data_live[instr][varkey])
                 for name, calc_slope in zip(self.slopes.keys(), self.slopes.values()):
                     self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c=name)].append(calc_slope(
                         fit, self.data_live[instr]['{key}_calc_{c}'.format(key=varkey, c='ar_mean')][-1]))
