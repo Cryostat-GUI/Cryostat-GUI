@@ -191,7 +191,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the LakeShore350 thread"""
 
         try:
-            getInfodata = self.running_thread_control(Template_ControlClient(
+            getInfodata = self.running_thread_control(ILM_ControlClient(
                 InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
@@ -234,7 +234,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
-        ui_file='ILM_main.ui', Name='Template', identity=b'templ', InstrumentAddress='')
+        ui_file='ILM_main.ui', Name='ILM', identity=b'ILM', InstrumentAddress='ASRL5::INSTR')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
