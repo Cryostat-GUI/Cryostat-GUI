@@ -224,6 +224,9 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         self.progressLevelHe.setValue(chan1)
         self.progressLevelN2.setValue(chan2)
 
+        tooltip = u'ILM\nHe: {:.1f}\nN2: {:.1f}'.format(chan1, chan2)
+        self.pyqt_sysTray.setToolTip(tooltip)
+
         self.lcdLevelHe.display(
             self.data['channel_1_level'])
         self.lcdLevelN2.display(
@@ -234,7 +237,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
-        ui_file='ILM_main.ui', Name='ILM', identity=b'ILM', InstrumentAddress='ASRL5::INSTR')
+        ui_file='ILM_main.ui', Name='ILM 211', identity=b'ILM', InstrumentAddress='ASRL5::INSTR')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
