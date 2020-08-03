@@ -598,7 +598,17 @@ class live_Logger_bare(object):
                                         )
                         dic = deepcopy(self.data[instr])
                         dic.update(timedict)
-                        timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+                        try:
+                            timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
+                        except ValueError as err:
+                            logger.error(f'problem parsing time in {dic}')
+                            if 'does not match format' in err.args[0]:
+                                try:
+                                    timediff = (datetime.strptime(dic['realtime'], '%Y-%m-%d %H:%M:%S') - datetime.now()).total_seconds()
+                                except ValueError as e:
+                                    raise e
+                            else:
+                                logger.exception(err)
                         uptodate = abs(timediff) < 10
 
                         # print(times[0])
