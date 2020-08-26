@@ -175,7 +175,7 @@ class IPS_Updater(AbstractLoopThread):
                     status_mode1=self.statusdict['modestatus1'][status[10]],
                     status_mode2=self.statusdict['modestatus2'][status[11]],
                     status_polarity1=self.statusdict['polarity1'][status[13]],
-                    status_polarity3=self.statusdict['polarity2'][status[14]])
+                    status_polarity2=self.statusdict['polarity2'][status[14]])
 
     @pyqtSlot(int)
     @ExceptionHandling

@@ -363,8 +363,10 @@ class AbstractApp(QtWidgets.QMainWindow):
 
         self.setup_logging_base()
         # self.setup_logging()
-        self.sig_assertion.connect(lambda value: self.logger_personal.exception(value))
-        self.sig_visatimeout.connect(lambda value: self.logger_personal.exception(value))
+        self.sig_assertion.connect(
+            lambda value: self.logger_personal.exception(value))
+        self.sig_visatimeout.connect(
+            lambda value: self.logger_personal.exception(value))
 
     def setup_logging_base(self):
         self.logger_all = logging.getLogger()
@@ -398,42 +400,51 @@ class AbstractApp(QtWidgets.QMainWindow):
         # self.logger_all.addHandler(self.Log_DBhandler)
 
 
-class AbstractLoopApp(AbstractApp):
-    """Abstract application class to be used with instruments 
+# class AbstractLoopApp(AbstractApp):
+#     """Abstract application class to be used with instruments
 
-    this needs to be used in conjunction with a zmqClass!
-    """
+#     this needs to be used in conjunction with a zmqClass!
+#     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.interval = 0.5  # second
-        self.lock = Lock()
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.interval = 0.5  # second
+#         self.lock = Lock()
 
-        QTimer.singleShot(0, self.work)
+#         QTimer.singleShot(0, self.work)
 
-    @pyqtSlot()  # int
-    def work(self):
-        """class method which is working all the time while the thread is running. """
-        try:
-            self.zmq_handle()  # inherited later from zmqClient
-            with noblockLock(self.lock):
-                self.running()
-                self.send_data_upstream()
-        except BlockedError:
-            pass
-        except AssertionError as assertion:
-            self.sig_assertion.emit(assertion.args[0])
-        finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)
+#     @pyqtSlot()  # int
+#     def work(self):
+#         """class method which is working all the time while the thread is running. """
+#         try:
+#             self.zmq_handle()  # inherited later from zmqClient
+#             with noblockLock(self.lock):
+#                 self.running()
+#                 if self.run_finished:
+#                     self.send_data_upstream()
+#         except BlockedError:
+#             pass
+#         except AssertionError as assertion:
+#             self.sig_assertion.emit(assertion.args[0])
+#         finally:
+#             QTimer.singleShot(self.interval * 1e3, self.work)
 
-    def running(self):
-        """class method to be overriden for periodic tasks"""
-        raise NotImplementedError
+#     def running(self):
+#         """class method to be overriden for periodic tasks"""
+#         raise NotImplementedError
 
-    @pyqtSlot(float)
-    def setInterval(self, interval):
-        """set the interval between running events in seconds"""
-        self.interval = interval
+#     @pyqtSlot(float)
+#     def setInterval(self, interval):
+#         """set the interval between running events in seconds"""
+#         self.interval = interval
+
+
+# class AbstractLoopClient(AbstractLoopApp, zmqClient):
+#     """docstring for AbstractLoopClient"""
+
+#     def __init__(self, *args, **kwargs):
+#         # print('loopclient')
+#         super().__init__(*args, **kwargs)
 
 
 class AbstractMainApp(AbstractApp):
@@ -519,14 +530,6 @@ class AbstractMainApp(AbstractApp):
             self.threads[threadname] = (worker, thread)
 
         return worker
-
-
-class AbstractLoopClient(AbstractLoopApp, zmqClient):
-    """docstring for AbstractLoopClient"""
-
-    def __init__(self, *args, **kwargs):
-        # print('loopclient')
-        super().__init__(*args, **kwargs)
 
 
 class AbstractThread(QObject):
