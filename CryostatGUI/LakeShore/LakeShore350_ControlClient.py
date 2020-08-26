@@ -2,7 +2,9 @@
 
 Classes:
     LakeShore350_ControlClient: a class for interfacing with a LakeShore350 temperature controller
-            inherits from AbstractLoopClient
+            inherits from AbstractLoopThreadClient
+    
+    LakeShoreGUI : class to run the ControlClient interface and display its measured values
 """
 import sys
 import os
