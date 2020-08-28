@@ -202,8 +202,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         and emit signal, sending the data
         """
         # print('run')
-        # -------------------------------------------------------------------------------------------------------------------------
         self.run_finished = False
+        # -------------------------------------------------------------------------------------------------------------------------
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
 
@@ -222,7 +222,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
-                self.logger.exception(e_ass)
+                self._logger.exception(e_ass)
                 self.data[key] = None
             except VisaIOError as e_visa:
                 if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
@@ -231,7 +231,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                     self.data[key] = None
                 else:
                     # raise e_visa
-                    self.logger.exception(e_visa)
+                    self._logger.exception(e_visa)
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, self.data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!

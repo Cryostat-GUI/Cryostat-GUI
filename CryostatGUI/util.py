@@ -193,44 +193,44 @@ def ExceptionHandling(func):
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, 'Assertion', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, 'Type', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, 'Key', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, 'Index', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, 'Value', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, 'Attribute', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except NotImplementedError as e:
             s = ExceptionSignal(args[0], func, 'NotImplemented', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
             # e.args = [str(e)]
 
         except VisaIOError as e:
@@ -240,13 +240,13 @@ def ExceptionHandling(func):
             # else:
             s = ExceptionSignal(args[0], func, 'VisaIO', e)
             # thread.logger.exception(s)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, 'OSError', e)
-            args[0].logger.error(s)
-            args[0].logger.exception(e)
+            args[0]._logger.error(s)
+            args[0]._logger.exception(e)
         # else:
         #     logger.warning('There is a bug!! ' + func.__name__)
     return wrapper_ExceptionHandling
@@ -371,7 +371,7 @@ class AbstractApp(QtWidgets.QMainWindow):
     def setup_logging_base(self):
         self.logger_all = logging.getLogger()
         self.logger_personal = logging.getLogger(
-            'CryostatGUI.{}'.format(self._Name))
+            'CryostatGUI:' + __name__ + ':' + self.__class__.__name__)
 
         # self.Log_DBhandler = SQLiteHandler(
         #     db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
@@ -389,7 +389,7 @@ class AbstractApp(QtWidgets.QMainWindow):
         self.logger_personal.addHandler(handler)
         self.logger_all.addHandler(handler)
 
-        self.logger = self.logger_personal
+        self._logger = self.logger_personal
 
     def setup_logging(self):
         """set up the logger, handler, for now in DEBUG
