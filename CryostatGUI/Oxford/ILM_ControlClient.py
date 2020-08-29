@@ -108,15 +108,17 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # data is being sent by the zmqClient class automatically
 
     @ExceptionHandling
-    def act_on_command(self, command):
+    def act_on_command(self, command: dict):
         """execute commands sent on downstream"""
         pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        # if 'setTemp_K' in command:
-        #     self.setTemp_K(command['setTemp_K'])
+        if 'setInterval' in command:
+            self.setInterval(command['setInterval'])
+        if 'setProbingSpeed' in command:
+            self.setProbingSpeed(command['setProbingSpeed'], 1)
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
