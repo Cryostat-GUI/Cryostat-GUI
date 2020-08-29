@@ -1226,7 +1226,7 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     form = LoggingGUI(
-        Name='Logger', identity=b'log')
+        Name='Logger', identity='log')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

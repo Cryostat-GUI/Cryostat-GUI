@@ -239,7 +239,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
-        ui_file='ILM_main.ui', Name='ILM 211', identity=b'ILM', InstrumentAddress='ASRL5::INSTR')
+        ui_file='ILM_main.ui', Name='ILM 211', identity='ILM', InstrumentAddress='ASRL5::INSTR')
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

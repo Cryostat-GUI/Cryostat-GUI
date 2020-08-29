@@ -144,17 +144,19 @@ class zmqClient(zmqBare):
     def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_data='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         # print('zmqClient')
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            'CryostatGUI:' + __name__ + ':' + self.__class__.__name__)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
-        self.comms_tcp.identity = u'{}'.format(
+        self.comms_tcp.identity = '{}'.format(
             identity).encode('ascii')  # id
         self.comms_tcp.connect(f'tcp://{ip_maincontrol}:{port_reqp}')
 
         self.comms_downstream = self._zctx.socket(zmq.SUB)
         self.comms_downstream.connect(f'tcp://{ip_maincontrol}:{port_downstream}')
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, u'{}'.format(self.comms_name).encode('ascii'))
+            zmq.SUBSCRIBE, '{}'.format(self.comms_name).encode('ascii'))
         # zmq.SUBSCRIBE, b'')
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -193,6 +195,8 @@ class zmqClient(zmqBare):
                 while True:
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
                     command_dict = dictload(dec(msg[1]))
+                    self._logger.info('received command from downstream: %s', command_dict)
+
                     try:
                         if 'lock' in command_dict:
                             self.lock.acquire()
@@ -210,7 +214,7 @@ class zmqClient(zmqBare):
 
     def send_data_upstream(self):
         self.comms_upstream.send_multipart(
-            [self.comms_name, enc(dictdump(self.data))])
+            [self.comms_name.encode('ascii'), enc(dictdump(self.data))])
 
     def running(self):
         self.data = dict()
@@ -228,7 +232,7 @@ class zmqMainControl(zmqBare):
         self.comms_tcp.identity = b'mainControl'  # id
         self.comms_tcp.bind(f'tcp://{ip_maincontrol}:{port_reqp}')
 
-        self.comms_data = self._zctx.socket(zmq.Dealer)
+        self.comms_data = self._zctx.socket(zmq.DEALER)
         self.comms_data.identity = b'mainControl'  # id
         self.comms_data.connect(f'tcp://{ip_data}:{port_data}')
 

@@ -588,7 +588,7 @@ if __name__ == '__main__':
     LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
     app = QtWidgets.QApplication(sys.argv)
     form = LakeShoreGUI(
-        ui_file='LakeShore_main.ui', Name='LakeShore350', identity=b'LakeShore350', InstrumentAddress=LakeShore_InstrumentAddress)
+        ui_file='LakeShore_main.ui', Name='LakeShore350', identity='LakeShore350', InstrumentAddress=LakeShore_InstrumentAddress)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
