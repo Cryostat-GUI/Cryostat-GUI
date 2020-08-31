@@ -2046,18 +2046,11 @@ class LakeShore350_bare(object):
                 "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
             )
 
-<< << << < HEAD:
-    CryostatGUI / LakeShore / LakeShore350.py
-    answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
-    try:
-        return [float(x) for x in answer]
-    except TypeError:
-        return float(answer)
-== == == =
-    answer = self.query("SRDG? " + "{0:1}".format(input_value))
-    return [float(x) for x in answer]
->>>>>> > master:
-    LakeShore / LakeShore350.py
+        answer = self.query("SRDG? " + "{0:1}".format(input_value))
+        try:
+            return [float(x) for x in answer]
+        except TypeError:
+            return float(answer)
 
     def ThermocoupleJunctionTemperatureQuery(self):
         """Temperature is in kelvin. This query returns the temperature of the ceramic thermo-
@@ -2340,10 +2333,7 @@ class LakeShore350_bare(object):
         if 10 < zone < 1:
             raise AssertionError(
                 "Zone parameter must be an integer in between 1 - 10.")
-
-<< << << < HEAD:
-    CryostatGUI / LakeShore / LakeShore350.py
-    return self.query('ZONE? ' + '{0:1d},{1:2d}'.format(output, zone))
+        return self.query("ZONE? " + "{0:1d},{1:2d}".format(output, zone))
 
 
 class LakeShore350(AbstractGPIBDeviceDriver, LakeShore350_bare):
@@ -2358,7 +2348,3 @@ class LakeShore350_ethernet(AbstractEthernetDeviceDriver, LakeShore350_bare):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-== == == =
-    return self.query("ZONE? " + "{0:1d},{1:2d}".format(output, zone))
->>>>>> > master:
-    LakeShore / LakeShore350.py

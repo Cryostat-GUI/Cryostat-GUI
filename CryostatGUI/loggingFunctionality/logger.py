@@ -1,11 +1,6 @@
-<< << << < HEAD:
-    CryostatGUI / loggingFunctionality / logger.py
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-== == == =
->>>>>> > master:
-    logger.py
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
@@ -754,14 +749,13 @@ class live_Logger_bare(object):
                 self.data_live[instr][
                     "{key}_calc_{c}".format(key=varkey, c=calc)
                 ].append(self.calculations[calc](times, self.data_live[instr][varkey]))
-
-        except TypeError as e:
-            # raise AssertionError(e_type.args[0])
-            # print('TYPE CALC')
-            logger.exception(e)
-        except ValueError as e_val:
-            raise AssertionError(e_val.args[0])
-            logger.exception(e)
+            except TypeError as e:
+                # raise AssertionError(e_type.args[0])
+                # print('TYPE CALC')
+                logger.exception(e)
+            except ValueError as e_val:
+                raise AssertionError(e_val.args[0])
+                logger.exception(e)
 
     def pre_init(self):
         self.initialised = False
@@ -1294,8 +1288,6 @@ class measurement_Logger(AbstractEventhandlingThread):
         #     pass
 
 
-<< << << < HEAD:
-    CryostatGUI / loggingFunctionality / logger.py
 if __name__ == '__main__':
     # dbname = 'He_first_cooldown.db'
     # conn = sqlite3.connect(dbname)
@@ -1316,10 +1308,3 @@ if __name__ == '__main__':
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
     sys.exit(app.exec_())
-== == == =
-if __name__ == "__main__":
-    dbname = "He_first_cooldown.db"
-    conn = sqlite3.connect(dbname)
-    mycursor = conn.cursor()
->>>>>> > master:
-    logger.py

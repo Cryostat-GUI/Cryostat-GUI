@@ -1443,7 +1443,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # -------- Nanovoltmeters
 
         confdict2182_1 = dict(
-            clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+            clas=Keithley2182_Updater,
             instradress=Keithley2182_1_InstrumentAddress,
             dataname="Keithley2182_1",
             threadname="control_Keithley2182_1",
@@ -1458,7 +1458,7 @@ class mainWindow(QtWidgets.QMainWindow):
         )
 
         confdict2182_2 = dict(
-            clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+            clas=Keithley2182_Updater,
             instradress=Keithley2182_2_InstrumentAddress,
             dataname="Keithley2182_2",
             threadname="control_Keithley2182_2",
@@ -1473,7 +1473,7 @@ class mainWindow(QtWidgets.QMainWindow):
         )
 
         confdict2182_3 = dict(
-            clas=Keithley.Keithley2182_Control.Keithley2182_Updater,
+            clas=Keithley2182_Updater,
             instradress=Keithley2182_3_InstrumentAddress,
             dataname="Keithley2182_3",
             threadname="control_Keithley2182_3",
@@ -1489,7 +1489,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # -------- Current Sources
         confdict6221_1 = dict(
-            clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
+            clas=Keithley6221_Updater,
             instradress=Keithley6221_1_InstrumentAddress,
             dataname="Keithley6221_1",
             threadname="control_Keithley6221_1",
@@ -1499,7 +1499,7 @@ class mainWindow(QtWidgets.QMainWindow):
         )
 
         confdict6221_2 = dict(
-            clas=Keithley.Keithley6221_Control.Keithley6221_Updater,
+            clas=Keithley6221_Updater,
             instradress=Keithley6221_2_InstrumentAddress,
             dataname="Keithley6221_2",
             threadname="control_Keithley6221_2",
@@ -2159,6 +2159,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()
-    print("date: ", datetime.datetime.now(), "\nstartup time: ", time.time() - a)
+    print("date: ", dt.datetime.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())
