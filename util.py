@@ -56,17 +56,17 @@ from PyQt5.QtWidgets import QSizePolicy
 
 def convert_time_date(ts):
     """converts timestamps from time.time() into date string"""
-    return datetime.fromtimestamp(ts).strftime('%d%m%Y')
+    return datetime.fromtimestamp(ts).strftime("%d%m%Y")
 
 
 def convert_time(ts):
     """converts timestamps from time.time() into reasonable string format"""
-    return datetime.fromtimestamp(ts).strftime('%Y-%m-%d::%H:%M:%S')
+    return datetime.fromtimestamp(ts).strftime("%Y-%m-%d::%H:%M:%S")
 
 
 def convert_time_searchable(ts):
     """converts timestamps from time.time() into reasonably searchable string format"""
-    return datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+    return datetime.fromtimestamp(ts).strftime("%Y%m%d%H%M%S")
 
 
 # def loopcontrol_threads(threads, loopcondition):
@@ -82,6 +82,7 @@ def convert_time_searchable(ts):
 #         if loopcondition:
 #             thread[0].lock.release()
 
+
 def shaping(entry):
     """adjust the shape of data-arrays given to matplotlib,
         to prevent mismatches
@@ -91,11 +92,11 @@ def shaping(entry):
     ent1 = deepcopy(np.array(entry[1]))
     if ent0.shape > ent1.shape:
         # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-        ent0 = ent0[:len(ent1)]
+        ent0 = ent0[: len(ent1)]
         # print('corrected: ', ent0.shape, ent1.shape)
     elif ent0.shape < ent1.shape:
         # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-        ent1 = ent1[:len(ent0)]
+        ent1 = ent1[: len(ent0)]
         # print('corrected: ', ent0.shape, ent1.shape)
 
     # ent0, ent1 = zip(entry)
@@ -115,11 +116,11 @@ def shaping_m(entry):
 
         if ent[i].shape > ent[i - 1].shape:
             # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-            ent[i - 1] = ent[i - 1][:len(ent[i])]
+            ent[i - 1] = ent[i - 1][: len(ent[i])]
             # print('corrected: ', ent0.shape, ent1.shape)
         elif ent[i].shape < ent[i - 1].shape:
             # print('bad shape: ', ent0.shape, ent1.shape, self.legend[ct])
-            ent[i] = ent[i][:len(ent[i - 1])]
+            ent[i] = ent[i][: len(ent[i - 1])]
             # print('corrected: ', ent0.shape, ent1.shape)
 
     return tuple(ent)
@@ -149,11 +150,9 @@ def running_thread(worker, info=None, **kwargs):
 
 def ExceptionSignal(thread, func, e_type, err):
     """Emit assertion-signal with relevant information"""
-    thread.sig_assertion.emit('{}: {}: {}: {}'.format(
-        thread.__name__,
-        func.__name__,
-        e_type,
-        err.args[0]))
+    thread.sig_assertion.emit(
+        "{}: {}: {}: {}".format(thread.__name__, func.__name__, e_type, err.args[0])
+    )
 
 
 def ExceptionHandling(func):
@@ -163,34 +162,37 @@ def ExceptionHandling(func):
             try:
                 return func(*args, **kwargs)
             except AssertionError as e_ass:
-                ExceptionSignal(args[0], func, 'Assertion', e_ass)
+                ExceptionSignal(args[0], func, "Assertion", e_ass)
 
             except TypeError as e_type:
-                ExceptionSignal(args[0], func, 'Type', e_type)
+                ExceptionSignal(args[0], func, "Type", e_type)
 
             except KeyError as e_key:
-                ExceptionSignal(args[0], func, 'Key', e_key)
+                ExceptionSignal(args[0], func, "Key", e_key)
 
             except ValueError as e_val:
-                ExceptionSignal(args[0], func, 'Value', e_val)
+                ExceptionSignal(args[0], func, "Value", e_val)
 
             except AttributeError as e_attr:
-                ExceptionSignal(args[0], func, 'Attribute', e_attr)
+                ExceptionSignal(args[0], func, "Attribute", e_attr)
 
             except NotImplementedError as e_implement:
-                ExceptionSignal(args[0], func, 'NotImplemented', e_implement)
+                ExceptionSignal(args[0], func, "NotImplemented", e_implement)
 
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(args[0].timeouterror)) and \
-                        e_visa.args == args[0].timeouterror.args:
+                if (
+                    isinstance(e_visa, type(args[0].timeouterror))
+                    and e_visa.args == args[0].timeouterror.args
+                ):
                     args[0].sig_visatimeout.emit()
                 else:
-                    ExceptionSignal(args[0], func, 'VisaIO', e_visa)
+                    ExceptionSignal(args[0], func, "VisaIO", e_visa)
 
             except OSError as e:
-                ExceptionSignal(args[0], func, 'OSError', e)
+                ExceptionSignal(args[0], func, "OSError", e)
         else:
-            print('There is a bug!! ' + func.__name__)
+            print("There is a bug!! " + func.__name__)
+
     return wrapper_ExceptionHandling
 
 
@@ -203,6 +205,7 @@ def noKeyError(func):
 
         except KeyError as e_key:
             pass
+
     return wrapper_noKeyError
 
 
@@ -210,8 +213,7 @@ def readPID_fromFile(filename):
     """read PID values from file"""
     arr = np.loadtxt(filename)
     list_T = arr[:, 0]
-    listPID = [dict(p=arr[x, 1], i=arr[x, 2], d=arr[x, 3])
-               for x in range(arr.shape[0])]
+    listPID = [dict(p=arr[x, 1], i=arr[x, 2], d=arr[x, 3]) for x in range(arr.shape[0])]
     return list_T, listPID
 
 
@@ -232,10 +234,12 @@ class loops_off:
     """Context manager for disabling all AbstractLoopThread loops"""
 
     def __init__(self, threads):
-        self._threads = [threads[thread][0] for thread in threads.keys()
-                         if not isinstance(threads[thread], type(Lock())) and
-                         'control' not in thread]
-        self.lock = threads['Lock']
+        self._threads = [
+            threads[thread][0]
+            for thread in threads.keys()
+            if not isinstance(threads[thread], type(Lock())) and "control" not in thread
+        ]
+        self.lock = threads["Lock"]
 
     def __enter__(self, *args, **kwargs):
         self.lock.acquire()
@@ -410,12 +414,12 @@ class Window_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, **kwargs):
-        if 'lock' in kwargs:
-            del kwargs['lock']
+        if "lock" in kwargs:
+            del kwargs["lock"]
         super().__init__(**kwargs)
         if ui_file is not None:
             loadUi(ui_file, self)
-        self.setWindowIcon(QtGui.QIcon('TU-Signet.png'))
+        self.setWindowIcon(QtGui.QIcon("TU-Signet.png"))
 
     def closeEvent(self, event):
         """emit signal that the window is going to be closed and hand event to parent class method"""
@@ -515,9 +519,23 @@ class Window_ui(QtWidgets.QWidget):
 
 class Window_plotting_m(Window_ui):
     """Small window containing a plot, which updates itself regularly"""
+
     sig_closing = pyqtSignal()
 
-    def __init__(self, data, labels_x, labels_y, legend_labels, number, title='your advertisment could be here!', multiple=False, updateinterval=2, linestyle='*-', navtoolbar=False, **kwargs):
+    def __init__(
+        self,
+        data,
+        labels_x,
+        labels_y,
+        legend_labels,
+        number,
+        title="your advertisment could be here!",
+        multiple=False,
+        updateinterval=2,
+        linestyle="*-",
+        navtoolbar=False,
+        **kwargs,
+    ):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
         self.data = data
@@ -528,8 +546,8 @@ class Window_plotting_m(Window_ui):
         self.linestyle = linestyle
 
         self.number = number
-        if 'lock' in kwargs:
-            self.lock = kwargs['lock']
+        if "lock" in kwargs:
+            self.lock = kwargs["lock"]
         else:
             self.lock = dummy()
 
@@ -542,9 +560,9 @@ class Window_plotting_m(Window_ui):
         # it takes the `figure` instance as a parameter to __init__
         self.canvas = FigureCanvas(self.fig)
 
-        FigureCanvas.setSizePolicy(self.canvas,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(
+            self.canvas, QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
         FigureCanvas.updateGeometry(self.canvas)
 
         # this is the Navigation widget
@@ -586,15 +604,14 @@ class Window_plotting_m(Window_ui):
         with self.lock:
             for entry, label in zip(self.data, self.legend):
                 ent0, ent1 = shaping(entry)
-                self.lines.append(self.ax.plot(
-                    ent0, ent1, '*-', label=label)[0])
+                self.lines.append(self.ax.plot(ent0, ent1, "*-", label=label)[0])
         self.ax.legend()
 
     def plot_base_multiple(self):
         """create the first plot"""
         n = len(self.data)
         if n != len(self.legend):
-            raise AssertionError('number of plots and legends mismatches!')
+            raise AssertionError("number of plots and legends mismatches!")
 
         # self.axes = self.fig.subplots(nrows=n, ncols=1)
         # if not isinstance(self.axes, type(np.zeros(1))):
@@ -607,7 +624,9 @@ class Window_plotting_m(Window_ui):
             self.axes.append(self.fig.add_subplot(self.subplotgrid[i]))
 
         with self.lock:
-            for ct, entry in enumerate(zip(self.data, self.legend, self.labels_x, self.labels_y)):
+            for ct, entry in enumerate(
+                zip(self.data, self.legend, self.labels_x, self.labels_y)
+            ):
                 data = entry[0]
                 if not isinstance(data, list):
                     data = [data]
@@ -621,8 +640,9 @@ class Window_plotting_m(Window_ui):
                 for curve, label in zip(data, legend):
                     c1, c2 = shaping(curve)
                     # print(c)
-                    self.lines[-1].append(self.axes[ct].plot(
-                        c1, c2, self.linestyle, label=label)[0])
+                    self.lines[-1].append(
+                        self.axes[ct].plot(c1, c2, self.linestyle, label=label)[0]
+                    )
                 self.axes[ct].legend()
         # plt.tight_layout(w_pad=10, pad=5)
         self.subplotgrid.tight_layout(self.fig)
@@ -639,7 +659,7 @@ class Window_plotting_m(Window_ui):
         # self.ax.legend()
 
     def plot(self):
-        ''' update the plotted data in-place '''
+        """ update the plotted data in-place """
         try:
             with self.lock:
                 for axindex, entry_data in enumerate(self.data):
@@ -651,37 +671,45 @@ class Window_plotting_m(Window_ui):
                     self.axes[axindex].autoscale_view()
             self.canvas.draw_idle()
         except ValueError as e_val:
-            print('ValueError: ', e_val.args[0])
+            print("ValueError: ", e_val.args[0])
         # FigureCanvas.updateGeometry(self.canvas)
 
     def closeEvent(self, event):
         """stop the timer for updating the plot, super to parent class method"""
         self.timer.stop()
         super().closeEvent(event)
+
     #     del self
 
 
 class Window_plotting_specification(Window_ui):
     """docstring for Window_plotting_specification"""
+
     sig_plotnow = pyqtSignal()
     sig_success = pyqtSignal()
 
-    def __init__(self, mainthread, ui_file='.\\configurations\\Data_display_selection_live_multiple.ui', **kwargs):
+    def __init__(
+        self,
+        mainthread,
+        ui_file=".\\configurations\\Data_display_selection_live_multiple.ui",
+        **kwargs,
+    ):
         super().__init__(ui_file, **kwargs)
 
-        self.ui_file_plotselection = '.\\configurations\\Data_display_selection_presetempty.ui'
-        self.presets_path = './configurations/plotting_presets/'
+        self.ui_file_plotselection = (
+            ".\\configurations\\Data_display_selection_presetempty.ui"
+        )
+        self.presets_path = "./configurations/plotting_presets/"
 
         self.selection = []
         self.mainthread = mainthread
 
-        self.axesnames = ['X', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5']
+        self.axesnames = ["X", "Y1", "Y2", "Y3", "Y4", "Y5"]
 
         if not hasattr(mainthread, "data_live"):
-            self.sig_error.emit('no live data to plot!')
+            self.sig_error.emit("no live data to plot!")
 
-            self.sig_error.emit(
-                'If you want to see live data, start the live logger!')
+            self.sig_error.emit("If you want to see live data, start the live logger!")
             self.close()
             return
         self.show()
@@ -692,13 +720,13 @@ class Window_plotting_specification(Window_ui):
 
         self.lineEdit_savingpreset.textEdited.connect(self.store_filenamevalue)
         self.lineEdit_savingpreset.returnPressed.connect(self.saving)
-        self.combo_loadingpreset.activated[
-            'QString'].connect(self.restoring_preset)
+        self.combo_loadingpreset.activated["QString"].connect(self.restoring_preset)
 
         self.parse_presets()
 
-        self.combo_loadingpreset.currentIndexChanged[
-            'QString'].connect(self.restoring_preset)
+        self.combo_loadingpreset.currentIndexChanged["QString"].connect(
+            self.restoring_preset
+        )
 
         self.buttonBox.clicked.connect(self.displaying)
 
@@ -706,25 +734,30 @@ class Window_plotting_specification(Window_ui):
         self.buttonCancel.clicked.connect(self.close)
 
     def store_filenamevalue(self, value):
-        '''store a filename for future use when saving a preset'''
+        """store a filename for future use when saving a preset"""
         self.filenamevalue = value
 
     def saving(self):
-        '''save the current configuration (self.selection) as a preset'''
-        with open('.\\configurations\\plotting_presets\\{}.json'.format(self.filenamevalue), 'w') as output:
+        """save the current configuration (self.selection) as a preset"""
+        with open(
+            ".\\configurations\\plotting_presets\\{}.json".format(self.filenamevalue),
+            "w",
+        ) as output:
             output.write(json.dumps(self.selection))
 
     def restoring_preset(self, filename):
-        '''restore a preset from a json file'''
-        if filename == '-':
+        """restore a preset from a json file"""
+        if filename == "-":
             return
-        filename = os.path.join(self.presets_path, str(filename) + '.json')
+        filename = os.path.join(self.presets_path, str(filename) + ".json")
         print(filename)
         try:
             with open(filename) as f:
                 self.selection_int = json.load(f)
         except FileNotFoundError:
-            self.sig_error.emit(f'Plotting: The preset file you wanted ({filename}) was not found!')
+            self.sig_error.emit(
+                f"Plotting: The preset file you wanted ({filename}) was not found!"
+            )
             return
         # print(len(self.selection_int))
         self.tablist = []
@@ -736,19 +769,33 @@ class Window_plotting_specification(Window_ui):
             # print('added a tab')
             tabw = self.tablist[-1]
 
-            instrumentGUI = [tabw.comboInstr_X, tabw.comboInstr_Y1, tabw.comboInstr_Y2,
-                             tabw.comboInstr_Y3, tabw.comboInstr_Y4, tabw.comboInstr_Y5]
-            valueGUI = [tabw.comboValue_X, tabw.comboValue_Y1, tabw.comboValue_Y2,
-                        tabw.comboValue_Y3, tabw.comboValue_Y4, tabw.comboInstr_Y5]
+            instrumentGUI = [
+                tabw.comboInstr_X,
+                tabw.comboInstr_Y1,
+                tabw.comboInstr_Y2,
+                tabw.comboInstr_Y3,
+                tabw.comboInstr_Y4,
+                tabw.comboInstr_Y5,
+            ]
+            valueGUI = [
+                tabw.comboValue_X,
+                tabw.comboValue_Y1,
+                tabw.comboValue_Y2,
+                tabw.comboValue_Y3,
+                tabw.comboValue_Y4,
+                tabw.comboInstr_Y5,
+            ]
 
             for inst, value, axname in zip(instrumentGUI, valueGUI, self.axesnames):
                 try:
                     index1 = inst.findText(
-                        plot_entry[axname]['instrument'], QtCore.Qt.MatchFixedString)
+                        plot_entry[axname]["instrument"], QtCore.Qt.MatchFixedString
+                    )
                     if index1 >= 0:
                         inst.setCurrentIndex(index1)
                     index2 = value.findText(
-                        plot_entry[axname]['value'], QtCore.Qt.MatchFixedString)
+                        plot_entry[axname]["value"], QtCore.Qt.MatchFixedString
+                    )
 
                     if index2 >= 0:
                         value.setCurrentIndex(index2)
@@ -762,25 +809,28 @@ class Window_plotting_specification(Window_ui):
     #     print('called with ', val)
 
     def parse_presets(self):
-        '''read in all previously saved presets, add it to the combobox'''
+        """read in all previously saved presets, add it to the combobox"""
         os.makedirs(self.presets_path, exist_ok=True)
-        files = [os.path.splitext(f)[0] for f in os.listdir(
-            self.presets_path) if f.endswith('.json') and
-            os.path.isfile(os.path.join(self.presets_path, f))]
-        self.combo_loadingpreset.addItem('-')
+        files = [
+            os.path.splitext(f)[0]
+            for f in os.listdir(self.presets_path)
+            if f.endswith(".json")
+            and os.path.isfile(os.path.join(self.presets_path, f))
+        ]
+        self.combo_loadingpreset.addItem("-")
         self.combo_loadingpreset.addItems(files)
 
     def adding_selectiontab(self):
-        '''add a Tab for additional plot selections
+        """add a Tab for additional plot selections
 
         Create a widget, load the selection Ui, add it to the WTabWidget,
         prepare everything for the GUI elements to work
-        '''
+        """
         tabw = QtWidgets.QWidget()
         loadUi(self.ui_file_plotselection, tabw)
         tabw.index = len(self.tablist)
         self.tablist.append(tabw)
-        self.tabW_selection.addTab(tabw, 'Plot {}'.format(tabw.index))
+        self.tabW_selection.addTab(tabw, "Plot {}".format(tabw.index))
 
         # self.data['axes'].append(dict())
         # self.data['data'].append(dict())
@@ -789,7 +839,8 @@ class Window_plotting_specification(Window_ui):
         # self.data['legend_labels'].append('dummy')
 
         self.selection.append(
-            dict(X=dict(), Y1=dict(), Y2=dict(), Y3=dict(), Y4=dict(), Y5=dict()))
+            dict(X=dict(), Y1=dict(), Y2=dict(), Y3=dict(), Y4=dict(), Y5=dict())
+        )
 
         with self.mainthread.dataLock_live:
             # all the dictionary keys
@@ -811,54 +862,66 @@ class Window_plotting_specification(Window_ui):
         tabw.comboInstr_Y4.addItems(instruments)
         tabw.comboInstr_Y5.addItems(instruments)
         # actions in case instruments are chosen in comboboxes
-        xconf = dict(GUI_value=tabw.comboValue_X,
-                     GUI_instr=tabw.comboInstr_X,
-                     livevsdb="LIVE",
-                     axis='X',
-                     tab=tabw,
-                     )
-        y1conf = dict(GUI_value=tabw.comboValue_Y1,
-                      GUI_instr=tabw.comboInstr_Y1,
-                      livevsdb="LIVE",
-                      axis='Y1',
-                      tab=tabw,
-                      )
-        y2conf = dict(GUI_value=tabw.comboValue_Y2,
-                      GUI_instr=tabw.comboInstr_Y2,
-                      livevsdb="LIVE",
-                      axis='Y2',
-                      tab=tabw,
-                      )
-        y3conf = dict(GUI_value=tabw.comboValue_Y3,
-                      GUI_instr=tabw.comboInstr_Y3,
-                      livevsdb="LIVE",
-                      axis='Y3',
-                      tab=tabw,
-                      )
-        y4conf = dict(GUI_value=tabw.comboValue_Y4,
-                      GUI_instr=tabw.comboInstr_Y4,
-                      livevsdb="LIVE",
-                      axis='Y4',
-                      tab=tabw,
-                      )
-        y5conf = dict(GUI_value=tabw.comboValue_Y5,
-                      GUI_instr=tabw.comboInstr_Y5,
-                      livevsdb="LIVE",
-                      axis='Y5',
-                      tab=tabw,
-                      )
-        tabw.comboInstr_X.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**xconf))
-        tabw.comboInstr_Y1.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**y1conf))
-        tabw.comboInstr_Y2.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**y2conf))
-        tabw.comboInstr_Y3.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**y3conf))
-        tabw.comboInstr_Y4.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**y4conf))
-        tabw.comboInstr_Y5.currentIndexChanged['int'].connect(
-            lambda x: self.plot_sel_instr(**y5conf))
+        xconf = dict(
+            GUI_value=tabw.comboValue_X,
+            GUI_instr=tabw.comboInstr_X,
+            livevsdb="LIVE",
+            axis="X",
+            tab=tabw,
+        )
+        y1conf = dict(
+            GUI_value=tabw.comboValue_Y1,
+            GUI_instr=tabw.comboInstr_Y1,
+            livevsdb="LIVE",
+            axis="Y1",
+            tab=tabw,
+        )
+        y2conf = dict(
+            GUI_value=tabw.comboValue_Y2,
+            GUI_instr=tabw.comboInstr_Y2,
+            livevsdb="LIVE",
+            axis="Y2",
+            tab=tabw,
+        )
+        y3conf = dict(
+            GUI_value=tabw.comboValue_Y3,
+            GUI_instr=tabw.comboInstr_Y3,
+            livevsdb="LIVE",
+            axis="Y3",
+            tab=tabw,
+        )
+        y4conf = dict(
+            GUI_value=tabw.comboValue_Y4,
+            GUI_instr=tabw.comboInstr_Y4,
+            livevsdb="LIVE",
+            axis="Y4",
+            tab=tabw,
+        )
+        y5conf = dict(
+            GUI_value=tabw.comboValue_Y5,
+            GUI_instr=tabw.comboInstr_Y5,
+            livevsdb="LIVE",
+            axis="Y5",
+            tab=tabw,
+        )
+        tabw.comboInstr_X.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**xconf)
+        )
+        tabw.comboInstr_Y1.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**y1conf)
+        )
+        tabw.comboInstr_Y2.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**y2conf)
+        )
+        tabw.comboInstr_Y3.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**y3conf)
+        )
+        tabw.comboInstr_Y4.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**y4conf)
+        )
+        tabw.comboInstr_Y5.currentIndexChanged["int"].connect(
+            lambda x: self.plot_sel_instr(**y5conf)
+        )
 
     def plot_sel_instr(self, livevsdb, GUI_instr, GUI_value, axis, tab):
         """
@@ -875,28 +938,33 @@ class Window_plotting_specification(Window_ui):
         if livevsdb == "LIVE":
             with self.mainthread.dataLock_live:
                 try:
-                    value_names = list(
-                        self.mainthread.data_live[instrument_name])
+                    value_names = list(self.mainthread.data_live[instrument_name])
                 except KeyError:
-                    self.sig_error.emit('plotting: do not choose "-" '
-                                        'please, there is nothing behind it!')
+                    self.sig_error.emit(
+                        'plotting: do not choose "-" '
+                        "please, there is nothing behind it!"
+                    )
                     return
 
         GUI_value.clear()
         GUI_value.addItems(("-",))
         GUI_value.addItems(value_names)
-        GUI_value.activated.connect(lambda: self.plot_sel_val(GUI_instr=GUI_instr,
-                                                              GUI_value=GUI_value,
-                                                              livevsdb="LIVE",
-                                                              axis=axis,
-                                                              tab=tab))
+        GUI_value.activated.connect(
+            lambda: self.plot_sel_val(
+                GUI_instr=GUI_instr,
+                GUI_value=GUI_value,
+                livevsdb="LIVE",
+                axis=axis,
+                tab=tab,
+            )
+        )
 
     def plot_sel_val(self, GUI_instr, GUI_value, livevsdb, axis, tab):
         """get instrument and value of the chosen axis, and store it"""
         value_name = GUI_value.currentText()
         instrument_name = GUI_instr.currentText()
-        self.selection[tab.index][axis]['instrument'] = instrument_name
-        self.selection[tab.index][axis]['value'] = value_name
+        self.selection[tab.index][axis]["instrument"] = instrument_name
+        self.selection[tab.index][axis]["value"] = value_name
 
         # self.data['axes'][tab.index][axis] = '{}: {}'.format(
         #     instrument_name, value_name)
@@ -913,23 +981,31 @@ class Window_plotting_specification(Window_ui):
             # print('lenplotentry', len(plot_entry))
             with self.mainthread.dataLock_live:
                 try:
-                    x = self.mainthread.data_live[plot_entry['X'][
-                        'instrument']][plot_entry['X']['value']]
+                    x = self.mainthread.data_live[plot_entry["X"]["instrument"]][
+                        plot_entry["X"]["value"]
+                    ]
                 except KeyError:
                     self.sig_error.emit(
-                        'Plotting: There was to be an empty plot - I ignored it....')
+                        "Plotting: There was to be an empty plot - I ignored it...."
+                    )
                     continue
                 y = []
                 # print(x)
                 labels_l = []
-                for ax in [name for name in self.axesnames if name != 'X']:
+                for ax in [name for name in self.axesnames if name != "X"]:
                     # print(plot_entry[ax])
-                    if ('instrument' and 'value') in plot_entry[ax]:
+                    if ("instrument" and "value") in plot_entry[ax]:
                         # print('found something!')
-                        y.append(self.mainthread.data_live[plot_entry[ax][
-                                 'instrument']][plot_entry[ax]['value']])
-                        labels_l.append('{}: {}'.format(
-                            plot_entry[ax]['instrument'], plot_entry[ax]['value']))
+                        y.append(
+                            self.mainthread.data_live[plot_entry[ax]["instrument"]][
+                                plot_entry[ax]["value"]
+                            ]
+                        )
+                        labels_l.append(
+                            "{}: {}".format(
+                                plot_entry[ax]["instrument"], plot_entry[ax]["value"]
+                            )
+                        )
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
 
@@ -943,13 +1019,14 @@ class Window_plotting_specification(Window_ui):
             #         'see), try again!')
             #     return
 
-                # try:
-                #     label_y = '{}: {}'.format(self.selection[tabindex]['Y1']['instrument'], self.selection[tabindex]['Y1']['value'])
-                # except KeyError:
-            labels_y.append('')
+            # try:
+            #     label_y = '{}: {}'.format(self.selection[tabindex]['Y1']['instrument'], self.selection[tabindex]['Y1']['value'])
+            # except KeyError:
+            labels_y.append("")
 
-            labels_x.append('{}: {}'.format(
-                plot_entry['X']['instrument'], plot_entry['X']['value']))
+            labels_x.append(
+                "{}: {}".format(plot_entry["X"]["instrument"], plot_entry["X"]["value"])
+            )
             labels_legend.append(labels_l)
 
             data.append([[x, yn] for yn in y])
@@ -958,16 +1035,19 @@ class Window_plotting_specification(Window_ui):
 
         self.mainthread.plotting_window_count += 1
         number = deepcopy(self.mainthread.plotting_window_count)
-        window = Window_plotting_m(data=data,
-                                   labels_x=labels_x,
-                                   labels_y=labels_y,
-                                   legend_labels=labels_legend,
-                                   lock=self.mainthread.dataLock_live,
-                                   number=number,
-                                   multiple=True)
+        window = Window_plotting_m(
+            data=data,
+            labels_x=labels_x,
+            labels_y=labels_y,
+            legend_labels=labels_legend,
+            lock=self.mainthread.dataLock_live,
+            number=number,
+            multiple=True,
+        )
         # print(type(window))
-        window.sig_closing.connect(lambda:
-                                   self.mainthread.plotting_deleting_window(window, number))
+        window.sig_closing.connect(
+            lambda: self.mainthread.plotting_deleting_window(window, number)
+        )
         self.mainthread.windows_plotting.append(window)
         window.show()
         self.sig_success.emit()

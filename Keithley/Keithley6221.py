@@ -24,13 +24,13 @@ logger.addHandler(logging.StreamHandler())
 #     logger.exception(
 #         "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
 
-#from __future__ import absolute_import
-#from __future__ import division
+# from __future__ import absolute_import
+# from __future__ import division
 
-#import quantities as pq
+# import quantities as pq
 
-#from Keithley.lib import PowerSupply
-#from Keithley.lib import SCPIInstrument
+# from Keithley.lib import PowerSupply
+# from Keithley.lib import SCPIInstrument
 
 # CLASSES #####################################################################
 
@@ -59,34 +59,35 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         """
         Set the output current to zero and disable the output.
         """
-        self.go('SOUR:CLE:IMM')
+        self.go("SOUR:CLE:IMM")
 
     def enable(self):
-        self.go('OUTPUT:STATE ON')
+        self.go("OUTPUT:STATE ON")
 
     def disable(self):
-        self.go('OUTPUT:STATE OFF')
+        self.go("OUTPUT:STATE OFF")
 
     def getstatus(self):
-        return self.query('OUTPUT:STATE?')
+        return self.query("OUTPUT:STATE?")
 
     def disable_frontpanel(self, text):
         self.go('DISPlay:TEXT:STATe on; DISPlay:TEXT "measuring..."')
         self.go(f'DISPlay:WINDow2TEXT:STATe on; DISPlay:WINDow2:TEXT "{text}"')
-        self.go('DISPlay:ENABle off')
+        self.go("DISPlay:ENABle off")
 
     def enable_frontpanel(self):
-        self.go('DISPlay:ENABle on')
-        self.go('DISPlay:TEXT:STATe off')
-        self.go(f'DISPlay:WINDow2TEXT:STATe off')
+        self.go("DISPlay:ENABle on")
+        self.go("DISPlay:TEXT:STATe off")
+        self.go(f"DISPlay:WINDow2TEXT:STATe off")
 
     def setCurrent(self, current_value):
         """Sets Current
         """
         if -0.105 > current_value > 0.105:
             raise AssertionError(
-                "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
-        self.go('CURR {0:e}'.format(current_value))
+                "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
+            )
+        self.go("CURR {0:e}".format(current_value))
 
     def configSourceFunctions(self, bias_current=1e-4, compliance=1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
@@ -95,27 +96,27 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         compliance limit can be set from 0.1V to 105V in 10mV steps. The output will
         not exceed the programmed compliance level.
         """
-        self.go('*RST')
-        self.go('SOUR:CURR ' + '{0:e}'.format(bias_current))
-        self.go('SOUR:CURR:COMP ' + '{0:f}'.format(compliance))
+        self.go("*RST")
+        self.go("SOUR:CURR " + "{0:e}".format(bias_current))
+        self.go("SOUR:CURR:COMP " + "{0:f}".format(compliance))
 
     def setupSweep(self, start_current, stop_current, step_current, delay):
         """Sets up the Sweep
         """
-        self.go('OUR:SWE:SPAC LIN')
-        self.go('OUR:CURR:STAR ' + '{0:e}'.format(start_current))
-        self.go('OUR:CURR:STOP ' + '{0:e}'.format(stop_current))
-        self.go('OUR:CURR:STEP ' + '{0:e}'.format(step_current))
-        self.go('OUR:DEL ' + '{0:d}'.format(delay))
-        self.go('OUR:SWE:RANG BEST')
-        self.go('OUR:SWE:COUN 1')
-        self.go('OUR:SWE:CAB OFF')
+        self.go("OUR:SWE:SPAC LIN")
+        self.go("OUR:CURR:STAR " + "{0:e}".format(start_current))
+        self.go("OUR:CURR:STOP " + "{0:e}".format(stop_current))
+        self.go("OUR:CURR:STEP " + "{0:e}".format(step_current))
+        self.go("OUR:DEL " + "{0:d}".format(delay))
+        self.go("OUR:SWE:RANG BEST")
+        self.go("OUR:SWE:COUN 1")
+        self.go("OUR:SWE:CAB OFF")
 
     def startSweep(self):
         """Starts the Sweep
         """
-        self.go('SOUR:SWE:ARM')
-        self.go('INIT')
+        self.go("SOUR:SWE:ARM")
+        self.go("INIT")
 
     def more(self):
         """

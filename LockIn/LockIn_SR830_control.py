@@ -11,6 +11,7 @@ Author(s):
 """
 from PyQt5.QtCore import pyqtSlot
 from copy import deepcopy
+
 # from importlib import reload
 # import time
 
@@ -28,12 +29,12 @@ class SR830_Updater(AbstractLoopThread):
 
     """
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, InstrumentAddress="", **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
 
         self.lockin = SR830(InstrumentAddress)
-        self.__name__ = 'SR830_Updater ' + InstrumentAddress
+        self.__name__ = "SR830_Updater " + InstrumentAddress
 
         # self.interval = 0.05
         self.ShuntResistance_Ohm = 0
@@ -45,20 +46,21 @@ class SR830_Updater(AbstractLoopThread):
         """
 
         data = dict()
-        data['Frequency_Hz'] = self.lockin.frequency
+        data["Frequency_Hz"] = self.lockin.frequency
 
-        data['Voltage_V'] = self.lockin.sine_voltage
-        data['X_V'] = self.lockin.x
-        data['Y_V'] = self.lockin.y
-        data['R_V'] = self.lockin.magnitude
-        data['Theta_Deg'] = self.lockin.theta
+        data["Voltage_V"] = self.lockin.sine_voltage
+        data["X_V"] = self.lockin.x
+        data["Y_V"] = self.lockin.y
+        data["R_V"] = self.lockin.magnitude
+        data["Theta_Deg"] = self.lockin.theta
 
         # in mili ampers, 50 ohm is the internal resistance of the lockin
-        SampleCurrent_A = data['Voltage_V'] / \
-            (self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50)
-        data['SampleCurrent_mA'] = SampleCurrent_A * 1e3
+        SampleCurrent_A = data["Voltage_V"] / (
+            self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50
+        )
+        data["SampleCurrent_mA"] = SampleCurrent_A * 1e3
 
-        data['SampleResistance_Ohm'] = data['X_V'] / SampleCurrent_A
+        data["SampleResistance_Ohm"] = data["X_V"] / SampleCurrent_A
 
         self.sig_Infodata.emit(deepcopy(data))
 

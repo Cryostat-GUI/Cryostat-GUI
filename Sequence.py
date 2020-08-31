@@ -35,17 +35,20 @@ from util import convert_time_searchable
 
 class BreakCondition(Exception):
     """docstring for BreakCondition"""
+
     pass
 
 
-def measure_resistance_singlechannel(threads,
-                                     excitation_current_A,
-                                     threadname_RES,
-                                     threadname_CURR,
-                                     threadname_Temp='control_LakeShore350',
-                                     temperature_sensor='Sensor_1_K',
-                                     n_measurements=1,
-                                     **kwargs):
+def measure_resistance_singlechannel(
+    threads,
+    excitation_current_A,
+    threadname_RES,
+    threadname_CURR,
+    threadname_Temp="control_LakeShore350",
+    temperature_sensor="Sensor_1_K",
+    n_measurements=1,
+    **kwargs
+):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -73,50 +76,54 @@ def measure_resistance_singlechannel(threads,
 
     with loops_off(threads):
         threads[threadname_CURR][0].enable()
-        temps.append(threads[threadname_Temp][
-                     0].read_Temperatures()[temperature_sensor])
+        temps.append(
+            threads[threadname_Temp][0].read_Temperatures()[temperature_sensor]
+        )
 
         for idx in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
                 threads[threadname_CURR][0].gettoset_Current_A(
-                    excitation_current_A * currentfactor)
+                    excitation_current_A * currentfactor
+                )
                 threads[threadname_CURR][0].setCurrent_A()
                 # wait for the current to be changed:
                 time.sleep(current_reversal_time)
-                voltage = threads[threadname_RES][
-                    0].read_Voltage() * currentfactor
+                voltage = threads[threadname_RES][0].read_Voltage() * currentfactor
                 # pure V/I, I hope that is fine.
-                resistances.append(
-                    voltage / (excitation_current_A * currentfactor))
+                resistances.append(voltage / (excitation_current_A * currentfactor))
 
-        temps.append(threads[threadname_Temp][
-                     0].read_Temperatures()[temperature_sensor])
+        temps.append(
+            threads[threadname_Temp][0].read_Temperatures()[temperature_sensor]
+        )
 
-    data['T_mean_K'] = np.mean(temps)
-    data['T_std_K'] = np.std(temps)
+    data["T_mean_K"] = np.mean(temps)
+    data["T_std_K"] = np.std(temps)
 
-    data['R_mean_Ohm'] = np.mean(resistances)
-    data['R_std_Ohm'] = np.std(resistances)
-    data['datafile'] = kwargs['datafile']
-    timedict = {'timeseconds': time.time(),
-                'ReadableTime': convert_time(time.time()),
-                'SearchableTime': convert_time_searchable(time.time())}
+    data["R_mean_Ohm"] = np.mean(resistances)
+    data["R_std_Ohm"] = np.std(resistances)
+    data["datafile"] = kwargs["datafile"]
+    timedict = {
+        "timeseconds": time.time(),
+        "ReadableTime": convert_time(time.time()),
+        "SearchableTime": convert_time_searchable(time.time()),
+    }
     data.update(timedict)
     return data
 
 
-def measure_resistance_multichannel(threads,
-                                    excitation_currents_A,
-                                    threadnames_RES,
-                                    threadnames_CURR,
-                                    iv_characteristic,
-                                    threadname_Temp='control_LakeShore350',
-                                    # temperature_sensor='Sensor_1_K',
-                                    # n_measurements=1,
-                                    current_reversal_time=0.08,
-
-                                    **kwargs):
+def measure_resistance_multichannel(
+    threads,
+    excitation_currents_A,
+    threadnames_RES,
+    threadnames_CURR,
+    iv_characteristic,
+    threadname_Temp="control_LakeShore350",
+    # temperature_sensor='Sensor_1_K',
+    # n_measurements=1,
+    current_reversal_time=0.08,
+    **kwargs
+):
     """conduct one 'full' measurement of resistance:
         arguments: dict conf
             threads = dict of threads running of the mainWindow class
@@ -139,16 +146,16 @@ def measure_resistance_multichannel(threads,
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
-    lengths = [len(threadnames_CURR),
-               len(threadnames_RES),
-               len(excitation_currents_A)]
+    lengths = [len(threadnames_CURR), len(threadnames_RES), len(excitation_currents_A)]
     for c in comb(lengths, 2):
         if c[0] != c[1]:
             raise AssertionError(
-                'number of excitation currents, current sources and voltmeters does not coincide!')
+                "number of excitation currents, current sources and voltmeters does not coincide!"
+            )
     data = dict()
-    resistances = {key: dict(coeff=0, residuals=0, nonohmic=0)
-                   for key in threadnames_RES}
+    resistances = {
+        key: dict(coeff=0, residuals=0, nonohmic=0) for key in threadnames_RES
+    }
     voltages = {key: [] for key in threadnames_RES}
     currents = {key: [] for key in threadnames_CURR}
 
@@ -157,14 +164,16 @@ def measure_resistance_multichannel(threads,
         temp1 = threads[threadname_Temp][0].read_Temperatures()
         temps = {key: [val] for key, val in zip(temp1.keys(), temp1.values())}
 
-        for ct, (name_curr, exc_curr, name_volt) in enumerate(zip(threadnames_CURR, excitation_currents_A, threadnames_RES)):
+        for ct, (name_curr, exc_curr, name_volt) in enumerate(
+            zip(threadnames_CURR, excitation_currents_A, threadnames_RES)
+        ):
             threshold_residuals = 1e4
             # threshold_coefficients = 1e4
 
             threads[name_curr][0].enable()
 
             for current_base in iv_characteristic:
-                for currentfactor in [-1,  1]:
+                for currentfactor in [-1, 1]:
                     current = exc_curr * currentfactor * current_base
                     # print(current)
                     currents[name_curr].append(current)
@@ -174,16 +183,17 @@ def measure_resistance_multichannel(threads,
                     time.sleep(current_reversal_time)
                     voltage = threads[name_volt][0].read_Voltage()
                     voltages[name_volt].append(voltage)
-            c, stats = polyfit(currents[name_curr], voltages[
-                               name_volt], deg=1, full=True)
-            resistances[name_volt]['coeff'] = c[1]
-            resistances[name_volt]['residuals'] = stats[0][0]
+            c, stats = polyfit(
+                currents[name_curr], voltages[name_volt], deg=1, full=True
+            )
+            resistances[name_volt]["coeff"] = c[1]
+            resistances[name_volt]["residuals"] = stats[0][0]
             # c_wrong = polyfit(currents[name_curr], voltages[
             #                   name_volt], deg=4)
             # print(stats[0], c_wrong)
 
             if stats[0] > threshold_residuals:
-                resistances[name_volt]['nonohmic'] = 1
+                resistances[name_volt]["nonohmic"] = 1
             # if np.any(np.array([x > threshold_coefficients for x in stats[2:]])):
             #     resistances[name_volt]['nonohmic'] = 1
 
@@ -193,28 +203,32 @@ def measure_resistance_multichannel(threads,
         for key in temps:
             temps[key].append(temp2[key])
 
-    data['T_mean_K'] = {key + '_mean': np.mean(temps[key]) for key in temps}
-    data['T_std_K'] = {
-        key + '_std': np.std(temps[key], ddof=1) for key in temps}
+    data["T_mean_K"] = {key + "_mean": np.mean(temps[key]) for key in temps}
+    data["T_std_K"] = {key + "_std": np.std(temps[key], ddof=1) for key in temps}
 
-    data['resistances'] = {key.strip('control_'): value
-                           for key, value in zip(
-        resistances.keys(), resistances.values())}
-    data['voltages'] = {key.strip('control_'): value
-                        for key, value in zip(
-        voltages.keys(), voltages.values())}
-    data['currents'] = {key.strip('control_'): value
-                        for key, value in zip(
-        currents.keys(), currents.values())}
+    data["resistances"] = {
+        key.strip("control_"): value
+        for key, value in zip(resistances.keys(), resistances.values())
+    }
+    data["voltages"] = {
+        key.strip("control_"): value
+        for key, value in zip(voltages.keys(), voltages.values())
+    }
+    data["currents"] = {
+        key.strip("control_"): value
+        for key, value in zip(currents.keys(), currents.values())
+    }
 
     df = pd.DataFrame.from_dict(data)
-    data['datafile'] = kwargs['datafile']
-    timedict = {'timeseconds': time.time(),
-                'ReadableTime': convert_time(time.time()),
-                'SearchableTime': convert_time_searchable(time.time())}
+    data["datafile"] = kwargs["datafile"]
+    timedict = {
+        "timeseconds": time.time(),
+        "ReadableTime": convert_time(time.time()),
+        "SearchableTime": convert_time_searchable(time.time()),
+    }
     data.update(timedict)
 
-    data['df'] = df
+    data["df"] = df
     # print(data)
     # for x in data: print(x)
     # df = pd.DataFrame.from_dict(data)
@@ -375,14 +389,17 @@ class OneShot_Thread(AbstractEventhandlingThread):
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(
-            lambda: self.measure_oneshot(self.conf))
-        self.conf = dict(store_signal=self.mainthread.sig_log_measurement,
-                         threads=self.mainthread.threads,
-                         threadname_Temp='control_LakeShore350',
-                         threadname_RES=None,
-                         threadname_CURR=None,
-                         excitation_current_A=None)  # needs to be set - thus communicated!
-        self.__name__ = 'OneShot_Thread'
+            lambda: self.measure_oneshot(self.conf)
+        )
+        self.conf = dict(
+            store_signal=self.mainthread.sig_log_measurement,
+            threads=self.mainthread.threads,
+            threadname_Temp="control_LakeShore350",
+            threadname_RES=None,
+            threadname_CURR=None,
+            excitation_current_A=None,
+        )  # needs to be set - thus communicated!
+        self.__name__ = "OneShot_Thread"
 
     def update_conf(self, key, value):
         self.conf[key] = value
@@ -393,12 +410,12 @@ class OneShot_Thread(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         try:
             with locking(self.mainthread.controls_Lock):
-                conf['store_signal'].emit(
-                    deepcopy(measure_resistance_singlechannel(**conf)))
-                print('measuring', convert_time(time.time()))
+                conf["store_signal"].emit(
+                    deepcopy(measure_resistance_singlechannel(**conf))
+                )
+                print("measuring", convert_time(time.time()))
         finally:
-            QTimer.singleShot(
-                30 * 1e3, lambda: self.measure_oneshot(self.conf))
+            QTimer.singleShot(30 * 1e3, lambda: self.measure_oneshot(self.conf))
 
 
 class OneShot_Thread_multichannel(AbstractEventhandlingThread):
@@ -414,39 +431,41 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         # self.mainthread.sig_measure_oneshot_start.connect(self.series_start)
         # self.mainthread.sig_measure_oneshot_stop.connect(self.series_stop)
         self.iv_specs = [0.5, 1, 2]  # start/stop/nsteps
-        self.iv_curve = list(reversed(np.linspace(
-            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])))
+        self.iv_curve = list(
+            reversed(np.linspace(self.iv_specs[0], self.iv_specs[1], self.iv_specs[2]))
+        )
         # print('iv default:', self.iv_curve)
 
         self.current_revtime = 0.08  # default waiting value
 
-        self.conf = dict(threads=self.mainthread.threads,
-                         threadname_Temp='control_LakeShore350',
-                         threadnames_RES=[
-                             'control_Keithley2182_1', 'control_Keithley2182_2'],
-                         threadnames_CURR=[
-                             'control_Keithley6221_1', 'control_Keithley6221_2'],
-                         # [A] needs to be set - thus communicated!
-                         excitation_currents_A=[0.0005, 0.0005],
-                         iv_characteristic=self.iv_curve,
-                         current_reversal_time=self.current_revtime,
-                         interval=10)
+        self.conf = dict(
+            threads=self.mainthread.threads,
+            threadname_Temp="control_LakeShore350",
+            threadnames_RES=["control_Keithley2182_1", "control_Keithley2182_2"],
+            threadnames_CURR=["control_Keithley6221_1", "control_Keithley6221_2"],
+            # [A] needs to be set - thus communicated!
+            excitation_currents_A=[0.0005, 0.0005],
+            iv_characteristic=self.iv_curve,
+            current_reversal_time=self.current_revtime,
+            interval=10,
+        )
         # self.timer = QTimer()
         # self.timer.timeout.connect(self.measure_oneshot_once)
-        self.__name__ = 'OneShot_Thread_multichannel'
+        self.__name__ = "OneShot_Thread_multichannel"
 
     def update_conf(self, key, value):
         self.conf[key] = value
 
     def update_exc(self, channel, value):
         """update the excitation current for a specific channel"""
-        self.conf['excitation_currents_A'][channel - 1] = value
+        self.conf["excitation_currents_A"][channel - 1] = value
 
     def update_iv(self, spec, value):
         self.iv_specs[spec] = value
         self.iv_curve = np.linspace(
-            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2])
-        self.update_conf('iv_characteristic', self.iv_curve)
+            self.iv_specs[0], self.iv_specs[1], self.iv_specs[2]
+        )
+        self.update_conf("iv_characteristic", self.iv_curve)
 
     # @pyqtSlot()
     # def series_start(self):
@@ -464,7 +483,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         """invoke a single measurement and send it to saving the data"""
         with locking(self.mainthread.controls_Lock):
             data = measure_resistance_multichannel(**self.conf)
-            data['type'] = 'multichannel'
+            data["type"] = "multichannel"
         self.sig_storing.emit(deepcopy(data))
 
     @pyqtSlot()
@@ -479,4 +498,5 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
         #     print(e_arr)
         finally:
             QTimer.singleShot(
-                self.conf['interval'] * 1e3, lambda: self.measure_oneshot())
+                self.conf["interval"] * 1e3, lambda: self.measure_oneshot()
+            )
