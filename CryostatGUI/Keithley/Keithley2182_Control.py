@@ -1,5 +1,3 @@
-
-
 from PyQt5.QtCore import pyqtSlot
 
 from Keithley.Keithley2182 import Keithley2182
@@ -50,8 +48,10 @@ class Keithley2182_Updater(AbstractLoopThread):
     def running(self):
         """Measure Voltage, send the data"""
         self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
-        self.sensors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
-        self.sensors['Present_K'] = self.Keithley2182.measurePresentTemperature()
+        self.sensors[
+            'Internal_K'] = self.Keithley2182.measureInternalTemperature()
+        self.sensors[
+            'Present_K'] = self.Keithley2182.measurePresentTemperature()
 
         self.sensors['realtime'] = datetime.now()
 
@@ -76,7 +76,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     def speed_up(self):
         """increase measurement speed
         """
-        self.Keithley2182.setRate('FAS')
+        self.Keithley2182.setRate("FAS")
 
     @pyqtSlot()
     @ExceptionHandling
