@@ -29,7 +29,6 @@ from pyvisa.errors import VisaIOError
 # import LockIn
 
 from pymeasure.instruments.srs import SR830
-from pymeasure.instruments.srs import SR860
 
 from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
@@ -44,7 +43,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
     """
     data = dict()
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', Lockin=None, **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
@@ -54,7 +53,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
-        self.lockin = SR830(InstrumentAddress)
+        self.lockin = Lockin(InstrumentAddress, read_termination='\n')
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -116,6 +115,10 @@ class SR830_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
+        # self.comms_upstream.send_multipart(
+        #     [self.comms_name, enc(json.dumps(self.data))])
+
+        # self.sig_Infodata.emit(deepcopy(data))
 
     @ExceptionHandling
     def act_on_command(self, command):
@@ -175,13 +178,15 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, Lockin=None, **kwargs):
         self.kwargs = deepcopy(kwargs)
         del kwargs['identity']
         del kwargs['InstrumentAddress']
         self._identity = self.kwargs['identity']
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        self._Lockin = Lockin
         # print('GUI pre')
+        print(kwargs)
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
@@ -197,7 +202,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the Lockin thread"""
         try:
             getInfodata = self.running_thread_control(SR830_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity, ), 'Hardware')
+                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity, Lockin=self._Lockin), 'Hardware')
             # getInfodata = self.running_thread_control(SR530_ControlClient(
             # InstrumentAddress=self._InstrumentAddress, mainthread=self,
             # identity=self._identity), 'Hardware', )
@@ -211,9 +216,8 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
             # getInfodata.sig_visatimeout.connect(
             # lambda: self.show_error_general('SR830: timeout'))
         except (VisaIOError, NameError) as e:
-            self.window_SystemsOnline.checkaction_run_SR830.setChecked(
-                False)
-            self.show_error_general(e)
+            # self.show_error_general('running: {}'.format(e))
+            self.logger_personal.exception(e)
 
     @pyqtSlot(dict)
     def updateGUI(self, data):
@@ -252,7 +256,7 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     form = SR830GUI(
-        ui_file='LockIn_main.ui', Name='Lockin SR830', identity='SR830_1', InstrumentAddress=Sr830_InstrumentAddress)
+        ui_file='LockIn_main.ui', Name='Lockin SR830', identity='SR830_1', InstrumentAddress=Sr830_InstrumentAddress, Lockin=SR830)
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)
