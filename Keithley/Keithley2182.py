@@ -33,7 +33,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setRate(num=3)
-        self.go(':INIT:CONT OFF')
+        self.go(":INIT:CONT OFF")
 
     def go(self, command):
         return super().go(command)
@@ -46,23 +46,23 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         :return: voltage in V
         :return type: float
         """
-       # self.go("SENS:CHAN 1")
-       # self.go("SENS:FUNC 'VOLT:DC'")
-       # return self.query("SENS:DATA:FRES?")[0]
+        # self.go("SENS:CHAN 1")
+        # self.go("SENS:FUNC 'VOLT:DC'")
+        # return self.query("SENS:DATA:FRES?")[0]
         # self.go(':TRIGger:COUNt 1')
         # print('test')
-        answer = self.query(':READ?')[0]
-        if answer[0:2] == '--':
+        answer = self.query(":READ?")[0]
+        if answer[0:2] == "--":
             answer = answer[1:]
         return float(answer)
 
     def DisplayOn(self):
-        self.go(':DISPlay:ENABle ON')
+        self.go(":DISPlay:ENABle ON")
 
     def DisplayOff(self):
-        self.go(':DISPlay:ENABle OFF')
+        self.go(":DISPlay:ENABle OFF")
 
-    def setRate(self, value='MED', num=None):
+    def setRate(self, value="MED", num=None):
         """
         Change the measuring rate
 
@@ -78,19 +78,21 @@ class Keithley2182(AbstractGPIBDeviceDriver):
                        [200μsec to 1 sec (50Hz)]
             """
         if num is None:
-            if value == 'FAS':
-                self.go(':SENSe:VOLTage:DC:NPLC 0.1')
-            if value == 'MED':
-                self.go(':SENSe:VOLTage:DC:NPLC 1')
-            if value == 'SLO':
-                self.go(':SENSe:VOLTage:DC:NPLC 5')
+            if value == "FAS":
+                self.go(":SENSe:VOLTage:DC:NPLC 0.1")
+            if value == "MED":
+                self.go(":SENSe:VOLTage:DC:NPLC 1")
+            if value == "SLO":
+                self.go(":SENSe:VOLTage:DC:NPLC 5")
         else:
             if 0.01 > num > 50:
-                raise AssertionError('Keithley2182:setRate: The measuring rate'
-                                     ' needs to be between 0.01 and 50 NPLCycles'
-                                     ' - that is 200microseconds to 1 second '
-                                     '(at a 50Hz powerline - europe)')
-            self.go(':SENSe:VOLTage:DC:NPLC {}'.format(num))
+                raise AssertionError(
+                    "Keithley2182:setRate: The measuring rate"
+                    " needs to be between 0.01 and 50 NPLCycles"
+                    " - that is 200microseconds to 1 second "
+                    "(at a 50Hz powerline - europe)"
+                )
+            self.go(":SENSe:VOLTage:DC:NPLC {}".format(num))
 
     def FrontAutozeroOn(self):
         """
@@ -100,12 +102,12 @@ class Keithley2182(AbstractGPIBDeviceDriver):
             This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
             amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
         """
-        self.go(':SYST:FAZ ON')
+        self.go(":SYST:FAZ ON")
 
     def FrontAutozeroOff(self):
         """See FrontAutoZeroOn
         """
-        self.go(':SYST:FAZ OFF')
+        self.go(":SYST:FAZ OFF")
 
     def AutozeroOn(self):
         """
@@ -119,12 +121,12 @@ class Keithley2182(AbstractGPIBDeviceDriver):
             if the ambient temperature has changed by several degrees. A faster update of reference points
             can be forced by setting a faster integration rate.
         """
-        self.go(':SYST:AZER ON')
+        self.go(":SYST:AZER ON")
 
     def AutozeroOff(self):
         """See AutoZeroOn
         """
-        self.go(':SYST:AZER OFF')
+        self.go(":SYST:AZER OFF")
 
     def AutorangeOn(self):
         """
@@ -134,11 +136,11 @@ class Keithley2182(AbstractGPIBDeviceDriver):
             is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
             Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
         """
-        self.go(':SENS:VOLT:RANG:AUTO ON')
+        self.go(":SENS:VOLT:RANG:AUTO ON")
 
     def AutorangeOff(self):
         """See AutorangeOn"""
-        self.go(':SENS:VOLT:RANG:AUTO OFF')
+        self.go(":SENS:VOLT:RANG:AUTO OFF")
 
     def more_ACAL(self):
         """Commands Description Default

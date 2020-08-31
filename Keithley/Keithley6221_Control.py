@@ -1,6 +1,6 @@
-
 # from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+
 # from PyQt5.uic import loadUi
 
 from Keithley.Keithley6221 import Keithley6221
@@ -35,17 +35,18 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         #        Stop_Current = None
     )
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
 
         self.Keithley6221 = Keithley6221(InstrumentAddress=InstrumentAddress)
-        self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
+        self.__name__ = "Keithley6221_Updater " + InstrumentAddress
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
-#        self.Start_Current_value = 0
-#        self.Step_Current_value = 0
-#        self.Stop_Current_value = 0
+
+    #        self.Start_Current_value = 0
+    #        self.Step_Current_value = 0
+    #        self.Stop_Current_value = 0
 
     def getCurrent_A(self):
         return self.Current_A_value
@@ -73,7 +74,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         return int(self.Keithley6221.getstatus()[0])
 
     @ExceptionHandling
-    def toggle_frontpanel(self, bools, text='In sequence...'):
+    def toggle_frontpanel(self, bools, text="In sequence..."):
         if bools:
             self.Keithley6221.enable_frontpanel(text)
         else:
@@ -89,7 +90,8 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     @ExceptionHandling
     def setSweep(self):
         self.Keithley6221.SetupSweet(
-            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
+            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value
+        )
 
     @pyqtSlot()
     @ExceptionHandling

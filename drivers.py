@@ -38,19 +38,22 @@ try:
     ni = True
 except OSError:
     logger.exception(
-        "\n\tCould not find the NI VISA library. Is the National Instruments VISA driver installed?\n\n")
+        "\n\tCould not find the NI VISA library. Is the National Instruments VISA driver installed?\n\n"
+    )
 try:
     KEYSIGHT_RESOURCE_MANAGER = visa.ResourceManager(
-        'C:\\Windows\\System32\\agvisa32.dll')
+        "C:\\Windows\\System32\\agvisa32.dll"
+    )
     keysight = True
 except OSError:
     logger.exception(
-        "\n\tCould not find the keysight VISA library. Is it installed?\n\n")
+        "\n\tCould not find the keysight VISA library. Is it installed?\n\n"
+    )
 
 # print(NI_RESOURCE_MANAGER)
 
 if not (ni or keysight):
-    logger.exception('I could not find any VISA library! \n\n')
+    logger.exception("I could not find any VISA library! \n\n")
 
 
 class AbstractVISADriver(object):
@@ -59,20 +62,23 @@ class AbstractVISADriver(object):
     visalib: 'ni' or 'ks' (national instruments/keysight)
     """
 
-    def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
+    def __init__(self, InstrumentAddress, visalib="ni", **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
 
         self._comLock = threading.Lock()
         self.delay = 0
         self.delay_force = 0
 
-        if visalib.strip() == 'ni' and not ni:
-            raise NameError('The VISA library was not found!')
-        if visalib.strip() == 'ks' and not keysight:
-            raise NameError('The Keysight VISA library was not found!')
+        if visalib.strip() == "ni" and not ni:
+            raise NameError("The VISA library was not found!")
+        if visalib.strip() == "ks" and not keysight:
+            raise NameError("The Keysight VISA library was not found!")
 
-        resource_manager = KEYSIGHT_RESOURCE_MANAGER if visalib.strip(
-        ) == 'ks' else NI_RESOURCE_MANAGER
+        resource_manager = (
+            KEYSIGHT_RESOURCE_MANAGER
+            if visalib.strip() == "ks"
+            else NI_RESOURCE_MANAGER
+        )
         self._visa_resource = resource_manager.open_resource(InstrumentAddress)
 
     def res_close(self):
@@ -112,9 +118,18 @@ class AbstractVISADriver(object):
 class AbstractSerialDeviceDriver(AbstractVISADriver):
     """Abstract Device driver class
     """
+
     timeouterror = VisaIOError(-1073807339)
 
-    def __init__(self, timeout=500, read_termination='\r', write_termination='\r', baud_rate=9600, data_bits=8, **kwargs):
+    def __init__(
+        self,
+        timeout=500,
+        read_termination="\r",
+        write_termination="\r",
+        baud_rate=9600,
+        data_bits=8,
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         # self._visa_resource.query_delay = 0.
@@ -135,7 +150,10 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
             # with self._comLock:
             self.read()
         except VisaIOError as e_visa:
-            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+            if (
+                isinstance(e_visa, type(self.timeouterror))
+                and e_visa.args == self.timeouterror.args
+            ):
                 pass
             else:
                 raise e_visa
@@ -156,7 +174,7 @@ class AbstractGPIBDeviceDriver(AbstractVISADriver):
 
         :return: answer from the device
         """
-        return super().query(command).strip().split(',')
+        return super().query(command).strip().split(",")
 
     def go(self, command):
         """Sends commands as strings to the device

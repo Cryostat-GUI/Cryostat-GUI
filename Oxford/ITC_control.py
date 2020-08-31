@@ -15,6 +15,7 @@ from pyvisa.errors import VisaIOError
 from copy import deepcopy
 from importlib import reload
 import numpy as np
+
 # import time
 
 from util import AbstractLoopThread
@@ -48,15 +49,16 @@ class ITC_Updater(AbstractLoopThread):
         gas_flow_output=7,
         proportional_band=8,
         integral_action_time=9,
-        derivative_action_time=10)
+        derivative_action_time=10,
+    )
 
-    def __init__(self, mainthreadSignals, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthreadSignals, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         global Oxford
         itc503 = reload(Oxford.itc503).itc503
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
-        self.__name__ = 'ITC_Updater ' + InstrumentAddress
+        self.__name__ = "ITC_Updater " + InstrumentAddress
 
         self.control_state = 3
         self.set_temperature = 0
@@ -78,10 +80,10 @@ class ITC_Updater(AbstractLoopThread):
         self.interval = 0.05
         # self.__isRunning = True
 
-        self.setPIDFile('configurations\\PID_conf\\P1C1.conf')
+        self.setPIDFile("configurations\\PID_conf\\P1C1.conf")
         self.mainthreadSignals = mainthreadSignals
-        self.mainthreadSignals['useAutocheck'].connect(self.setCheckAutoPID)
-        self.mainthreadSignals['newFilePID'].connect(self.setPIDFile)
+        self.mainthreadSignals["useAutocheck"].connect(self.setCheckAutoPID)
+        self.mainthreadSignals["newFilePID"].connect(self.setPIDFile)
         self.useAutoPID = True
 
     # @control_checks
@@ -101,10 +103,8 @@ class ITC_Updater(AbstractLoopThread):
         # so I can then transmit one single dict
         # starttime = time.time()
         # data['status'] = self.read_status()
-        data['temperature_error'] = self.ITC.getValue(
-            self.sensors['temperature_error'])
-        data['set_temperature'] = self.ITC.getValue(
-            self.sensors['set_temperature'])
+        data["temperature_error"] = self.ITC.getValue(self.sensors["temperature_error"])
+        data["set_temperature"] = self.ITC.getValue(self.sensors["set_temperature"])
 
         for key in self.sensors.keys():
             try:
@@ -116,7 +116,10 @@ class ITC_Updater(AbstractLoopThread):
                 self.sig_assertion.emit(e_ass.args[0])
                 data[key] = None
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                if (
+                    isinstance(e_visa, type(self.timeouterror))
+                    and e_visa.args == self.timeouterror.args
+                ):
                     self.sig_visatimeout.emit()
                     self.ITC.clear_buffers()
                     data[key] = None
@@ -125,11 +128,10 @@ class ITC_Updater(AbstractLoopThread):
                     self.sig_visaerror.emit(e_visa.args[0])
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
-        data['Sensor_1_calerr_K'] = data[
-            'set_temperature'] - data['temperature_error']
+        data["Sensor_1_calerr_K"] = data["set_temperature"] - data["temperature_error"]
 
         if self.useAutoPID:
-            self.set_PID(temperature=data['Sensor_1_K'])
+            self.set_PID(temperature=data["Sensor_1_K"])
 
         self.sig_Infodata.emit(deepcopy(data))
 
@@ -179,9 +181,9 @@ class ITC_Updater(AbstractLoopThread):
         except IndexError:
             PID_id = -1
         PID_conf = self.PID_configuration[1][PID_id]
-        self.set_prop = PID_conf['p']
-        self.set_integral = PID_conf['i']
-        self.set_derivative = PID_conf['d']
+        self.set_prop = PID_conf["p"]
+        self.set_integral = PID_conf["i"]
+        self.set_derivative = PID_conf["d"]
         self.setProportional()
         self.setIntegral()
         self.setDerivative()
@@ -205,7 +207,8 @@ class ITC_Updater(AbstractLoopThread):
                 sweep_time = 0.1
             if sweep_time > 20e3:
                 raise AssertionError(
-                    'A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!')
+                    "A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!"
+                )
             if sweep_time > 23.5 * 60:
                 # not only one step suffices, as the maximum time for one step
                 # is 24 hours (using 23.5 for safety)
@@ -215,12 +218,13 @@ class ITC_Updater(AbstractLoopThread):
                 # calculate remaining time in minutes
                 remaining_min = sweep_time - n_sweeps * 23 * 60
                 # make list with full sweep times
-                sweep_times = [
-                    23 * 60 for n in range(n_sweeps)]
+                sweep_times = [23 * 60 for n in range(n_sweeps)]
 
                 # make list with full sweep temps
-                sweep_temps = [setpoint_now + delta_Temperature * 23 * 60 /
-                               sweep_time * (n + 1) for n in range(n_sweeps)]
+                sweep_temps = [
+                    setpoint_now + delta_Temperature * 23 * 60 / sweep_time * (n + 1)
+                    for n in range(n_sweeps)
+                ]
                 if not np.isclose(0, remaining_min):
                     # append remaining times and temps in case the user
                     # did not hit a mark
@@ -231,25 +235,31 @@ class ITC_Updater(AbstractLoopThread):
                 sweep_times = [sweep_time]
                 sweep_temps = [setpoint_temp]
 
-        sp = {str(z): dict(set_point=setpoint_temp,
-                           hold_time=0,
-                           sweep_time=0) for z in range(1, 17)}
-        sp.update({str(1): dict(set_point=setpoint_now,
-                                hold_time=0,
-                                sweep_time=0),
-                   # str(2): dict(set_point=setpoint_temp,
-                   #              hold_time=0,
-                   #              sweep_time=sweep_time),
-                   # str(15): dict(set_point=setpoint_temp,
-                   #               hold_time=0,
-                   #               sweep_time=0),
-                   str(16): dict(set_point=setpoint_temp,
-                                 hold_time=0,
-                                 sweep_time=0.1)})
+        sp = {
+            str(z): dict(set_point=setpoint_temp, hold_time=0, sweep_time=0)
+            for z in range(1, 17)
+        }
+        sp.update(
+            {
+                str(1): dict(set_point=setpoint_now, hold_time=0, sweep_time=0),
+                # str(2): dict(set_point=setpoint_temp,
+                #              hold_time=0,
+                #              sweep_time=sweep_time),
+                # str(15): dict(set_point=setpoint_temp,
+                #               hold_time=0,
+                #               sweep_time=0),
+                str(16): dict(set_point=setpoint_temp, hold_time=0, sweep_time=0.1),
+            }
+        )
         # fill up the steps
-        sp.update({str(z + 2): dict(set_point=sweep_temps[z],
-                                    hold_time=0,
-                                    sweep_time=sweep_times[z]) for z in range(n_sweeps + 1)})
+        sp.update(
+            {
+                str(z + 2): dict(
+                    set_point=sweep_temps[z], hold_time=0, sweep_time=sweep_times[z]
+                )
+                for z in range(n_sweeps + 1)
+            }
+        )
 
         self.sweep_parameters = sp
         # print('setting sweep to', self.sweep_parameters)
@@ -272,7 +282,7 @@ class ITC_Updater(AbstractLoopThread):
                 self.ITC.setTemperature(self.set_temperature)
         # print('sweepstatus: I unlocked the device')
         # if bools:
-            # print('set the sweep status: ', bools)
+        # print('set the sweep status: ', bools)
         #     print('sweepstatus: set the temperature')
         #     self.setTemperature()
 
@@ -288,18 +298,18 @@ class ITC_Updater(AbstractLoopThread):
         status = self.read_status(run=False)
         # print(status)
         try:
-            int(status['sweep'])
-            status['sweep'] = bool(int(status['sweep']))
+            int(status["sweep"])
+            status["sweep"] = bool(int(status["sweep"]))
         except ValueError:
-            status['sweep'] = True
+            status["sweep"] = True
         # print('sweep status: ', status['sweep'])
-        if status['sweep'] or self.sweep_first:
+        if status["sweep"] or self.sweep_first:
             # print('setTemp: sweep running, stopping sweep')
             self.ITC.SweepStop()
             self.sweep_first = False
         # else:
-            # print('I did not see a running sweep!',
-            # self.device_status['sweep'])
+        # print('I did not see a running sweep!',
+        # self.device_status['sweep'])
         # print('sweep was/is running: ', self.device_status['sweep'])
 
     @pyqtSlot()

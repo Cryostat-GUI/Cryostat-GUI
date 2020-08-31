@@ -35,20 +35,18 @@ class ILM_Updater(AbstractLoopThread):
     the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(
-        channel_1_level=1,
-        channel_2_level=2)
+    sensors = dict(channel_1_level=1, channel_2_level=2)
     # channel_3_level=,
     # channel_1_wire_current=6,
     # channel_2_wire_current=7,
     # needle_valve_position=10)
 
-    def __init__(self, InstrumentAddress='', **kwargs):
+    def __init__(self, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         global Oxford
         ilm211 = reload(Oxford.ilm211).ilm211
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
-        self.__name__ = 'ILM_Updater ' + InstrumentAddress
+        self.__name__ = "ILM_Updater " + InstrumentAddress
         self.control_state = 3
         # self.interval = 60*30# every half hour one measurement lHe is not
         # measured more often by the device anyways
@@ -81,7 +79,10 @@ class ILM_Updater(AbstractLoopThread):
             except AssertionError as e_ass:
                 self.sig_assertion.emit(e_ass.args[0])
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                if (
+                    isinstance(e_visa, type(self.timeouterror))
+                    and e_visa.args == self.timeouterror.args
+                ):
                     self.sig_visatimeout.emit()
                     self.ILM.clear_buffers()
                 else:
