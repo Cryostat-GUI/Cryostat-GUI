@@ -1,0 +1,15 @@
+version = 1
+
+test_patterns = ["*.py"]
+
+exclude_patterns = [
+    "*.dat",
+    "*.db"
+]
+
+[[analyzers]]
+name = "python"
+enabled = true
+
+  [analyzers.meta]
+  runtime_version = "3.x.x"
