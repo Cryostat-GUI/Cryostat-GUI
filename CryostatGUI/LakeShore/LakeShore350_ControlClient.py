@@ -76,7 +76,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         Sensor_4_Ohm=None,
         OutputMode=None)
 
-    def __init__(self, mainthread, comLock=None, InstrumentAddress='', **kwargs):
+    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', **kwargs):
         super().__init__(**kwargs)
         self.interval = 0.5
         self.t = datetime.now()
@@ -113,63 +113,64 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # self.setControlLoopZone()
         # self.startHeater()
 
-        # setting LakeShore values by GUI LakeShore window
-        mainthread.spinSetTemp_K.valueChanged.connect(
-            lambda value: self.gettoset_Temp_K(value))
-        mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
+        if mainthread is not None:
+            # setting LakeShore values by GUI LakeShore window
+            mainthread.spinSetTemp_K.valueChanged.connect(
+                lambda value: self.gettoset_Temp_K(value))
+            mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
-        mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
-            self.gettoset_Ramp_Rate_K)
-        mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
-            self.setRamp_Rate_K)
+            mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
+                self.gettoset_Ramp_Rate_K)
+            mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
+                self.setRamp_Rate_K)
 
-        # turns off heater output
-        mainthread.pushButtonHeaterOut.clicked.connect(
-            lambda: self.setHeater_Range(0))
+            # turns off heater output
+            mainthread.pushButtonHeaterOut.clicked.connect(
+                lambda: self.setHeater_Range(0))
 
-        # allows to choose from different inputs to connect to output 1
-        # control loop. default is input 1.
+            # allows to choose from different inputs to connect to output 1
+            # control loop. default is input 1.
 
-        mainthread.comboSetInput_Sensor.activated['int'].connect(
-            lambda value: self.setInput(value + 1))
-        # mainthread.spinSetInput_Sensor.editingFinished.(lambda
-        # value: self.threads['control_LakeShore350'][0].setInput())
+            mainthread.comboSetInput_Sensor.activated['int'].connect(
+                lambda value: self.setInput(value + 1))
+            # mainthread.spinSetInput_Sensor.editingFinished.(lambda
+            # value: self.threads['control_LakeShore350'][0].setInput())
 
-        mainthread.checkRamp_Status.toggled[
-            'bool'].connect(self.setStatusRamp)
+            mainthread.checkRamp_Status.toggled[
+                'bool'].connect(self.setStatusRamp)
 
-        #""" NEW GUI controls P, I and D values for Control Loop PID Values Command
-        # """
-        mainthread.spinSetLoopP_Param.valueChanged.connect(
-            lambda value: self.gettoset_LoopP_Param(value))
-        mainthread.spinSetLoopP_Param.editingFinished.connect(
-            self.setLoopP_Param)
+            #""" NEW GUI controls P, I and D values for Control Loop PID Values Command
+            # """
+            mainthread.spinSetLoopP_Param.valueChanged.connect(
+                lambda value: self.gettoset_LoopP_Param(value))
+            mainthread.spinSetLoopP_Param.editingFinished.connect(
+                self.setLoopP_Param)
 
-        mainthread.spinSetLoopI_Param.valueChanged.connect(
-            lambda value: self.gettoset_LoopI_Param(value))
-        mainthread.spinSetLoopI_Param.editingFinished.connect(
-            self.setLoopI_Param)
+            mainthread.spinSetLoopI_Param.valueChanged.connect(
+                lambda value: self.gettoset_LoopI_Param(value))
+            mainthread.spinSetLoopI_Param.editingFinished.connect(
+                self.setLoopI_Param)
 
-        mainthread.spinSetLoopD_Param.valueChanged.connect(
-            lambda value: self.gettoset_LoopD_Param(value))
-        mainthread.spinSetLoopD_Param.editingFinished.connect(
-            self.setLoopD_Param)
+            mainthread.spinSetLoopD_Param.valueChanged.connect(
+                lambda value: self.gettoset_LoopD_Param(value))
+            mainthread.spinSetLoopD_Param.editingFinished.connect(
+                self.setLoopD_Param)
 
-        """ NEW GUI Heater Range and Ouput Zone
-        """
-        # mainthread.comboSetHeater_Range.activated['int'].connect(self.setHeater_Range(value))
-        # mainthread.spinSetHeater_Range.valueChanged.connect(self.gettoset_Heater_Range(value))#mainthread.spinSetHeater_Range.Finished.connect(self.setHeater_Range())
-        # mainthread.spinSetUpper_Bound.valueChanged.connect(self.gettoset_Upper_Bound(value))#
-        # mainthread.spinSetZoneP_Param.valueChanged.connect(self.gettoset_ZoneP_Param(value))#
-        # mainthread.spinSetZoneI_Param.valueChanged.connect(self.gettoset_ZoneI_Param(value))#
-        # mainthread.spinSetZoneD_Param.valueChanged.connect(self.gettoset_ZoneD_Param(value))#
-        # mainthread.spinSetZoneMout.valueChanged.connect(self.gettoset_ZoneMout(value))#
-        # mainthread.spinSetZone_Range.valueChanged.connect(self.gettoset_Zone_Range(value))#
-        # mainthread.spinSetZone_Rate.valueChanged.connect(self.gettoset_Zone_Rate(value))
+            """ NEW GUI Heater Range and Ouput Zone
+            """
+            # mainthread.comboSetHeater_Range.activated['int'].connect(self.setHeater_Range(value))
+            # mainthread.spinSetHeater_Range.valueChanged.connect(self.gettoset_Heater_Range(value))#mainthread.spinSetHeater_Range.Finished.connect(self.setHeater_Range())
+            # mainthread.spinSetUpper_Bound.valueChanged.connect(self.gettoset_Upper_Bound(value))#
+            # mainthread.spinSetZoneP_Param.valueChanged.connect(self.gettoset_ZoneP_Param(value))#
+            # mainthread.spinSetZoneI_Param.valueChanged.connect(self.gettoset_ZoneI_Param(value))#
+            # mainthread.spinSetZoneD_Param.valueChanged.connect(self.gettoset_ZoneD_Param(value))#
+            # mainthread.spinSetZoneMout.valueChanged.connect(self.gettoset_ZoneMout(value))#
+            # mainthread.spinSetZone_Range.valueChanged.connect(self.gettoset_Zone_Range(value))#
+            # mainthread.spinSetZone_Rate.valueChanged.connect(self.gettoset_Zone_Rate(value))
 
-        mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value))
-        # print('thread done with init')
+            mainthread.spin_threadinterval.valueChanged.connect(
+                lambda value: self.setInterval(value))
+            # print('thread done with init')
 
 
     @ExceptionHandling

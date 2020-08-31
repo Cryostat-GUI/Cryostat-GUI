@@ -74,14 +74,14 @@ class ILM_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
+        if mainthread is not None:
+            mainthread.combosetProbingRate_chan1.activated['int'].connect(
+                lambda value: self.setProbingSpeed(value, 1))
 
-        mainthread.combosetProbingRate_chan1.activated['int'].connect(
-            lambda value: self.setProbingSpeed(value, 1))
+            # -------------------------------------------------------------------------------------------------------------------------
 
-        # -------------------------------------------------------------------------------------------------------------------------
-
-        mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value))
+            mainthread.spin_threadinterval.valueChanged.connect(
+                lambda value: self.setInterval(value))
 
     # @control_checks
     @ExceptionHandling

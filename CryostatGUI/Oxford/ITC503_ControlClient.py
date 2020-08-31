@@ -69,7 +69,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         integral_action_time=9,
         derivative_action_time=10)
 
-    def __init__(self, mainthread, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
@@ -107,10 +107,11 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         self.setPIDFile('.\\..\\configurations\\PID_conf\\P1C1.conf')
         self.useAutoPID = True
-        mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
-        mainthread.sig_newFilePID.connect(self.setPIDFile)
-        mainthread.sig_sendConfTemp.connect(self.setTemperature)
-        mainthread.sig_stopSweep.connect(self.stopSweep)
+        if mainthread is not None:
+            mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
+            mainthread.sig_newFilePID.connect(self.setPIDFile)
+            mainthread.sig_sendConfTemp.connect(self.setTemperature)
+            mainthread.sig_stopSweep.connect(self.stopSweep)
         self.data_last = dict()
 
         self.lock_newthread = Lock()

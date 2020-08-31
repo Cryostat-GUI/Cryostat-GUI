@@ -236,7 +236,7 @@ class main_Logger(AbstractLoopThread):
     sig_configuring = pyqtSignal(bool)
     sig_log = pyqtSignal()
 
-    def __init__(self, mainthread, **kwargs):
+    def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
         self.mainthread = mainthread
 
