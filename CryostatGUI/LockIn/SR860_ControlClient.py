@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from pymeasure.instruments.srs import SR860
 
 if __name__ == '__main__':
-    # Sr830_InstrumentAddress = 'GPIB::9::INSTR'  
+    # Sr860_InstrumentAddress = 'GPIB::4::INSTR'
     # Sr860_InstrumentAddress = 'TCPIP::192.168.2.104::1865::SOCKET'
     Sr860_InstrumentAddress = 'TCPIP::192.168.2.104::INSTR'
 
