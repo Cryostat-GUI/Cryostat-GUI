@@ -1,6 +1,6 @@
-
 # from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSlot
+
 # from PyQt5.uic import loadUi
 
 from Keithley.Keithley6221 import Keithley6221
@@ -47,12 +47,14 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         self.Keithley6221 = Keithley6221(
             InstrumentAddress=InstrumentAddress, comLock=comLock)
         self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
+
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
-#        self.Start_Current_value = 0
-#        self.Step_Current_value = 0
-#        self.Stop_Current_value = 0
+
+    #        self.Start_Current_value = 0
+    #        self.Step_Current_value = 0
+    #        self.Stop_Current_value = 0
 
     def running(self):
         """only needed for debugging
@@ -127,7 +129,8 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def setSweep(self):
         """set a current sweep"""
         self.Keithley6221.SetupSweet(
-            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value)
+            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value
+        )
 
     @pyqtSlot()
     @ExceptionHandling

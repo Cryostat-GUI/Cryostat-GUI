@@ -45,12 +45,12 @@ class IPS_Updater(AbstractLoopThread):
         measured_magnet_current=2,
         # unused=3,
         CURRENT_output=4,  # CURRENT output current (duplicate of R0)
-        CURRENT_set_point=5,            # CURRENT Target [A]
-        CURRENT_sweep_rate=6,           # CURRENT        [A/min]
-        FIELD_output=7,                 # FIELD   Output_Field
-        FIELD_set_point=8,              # FIELD   Target [T]
-        FIELD_sweep_rate=9,             # FIELD          [T/min]
-        lead_resistance=10,             # RESISTANCE     [milli_Ohm]
+        CURRENT_set_point=5,  # CURRENT Target [A]
+        CURRENT_sweep_rate=6,  # CURRENT        [A/min]
+        FIELD_output=7,  # FIELD   Output_Field
+        FIELD_set_point=8,  # FIELD   Target [T]
+        FIELD_sweep_rate=9,  # FIELD          [T/min]
+        lead_resistance=10,  # RESISTANCE     [milli_Ohm]
         # channel_1_Freq4=11,
         # channel_2_Freq4=12,
         # channel_3_Freq4=13,
@@ -62,57 +62,78 @@ class IPS_Updater(AbstractLoopThread):
         trip_field=19,
         # IDAC=20,  # demand_current_as_a_hexadecimal_number
         safe_current_limit_most_negative=21,
-        safe_current_limit_most_positive=22)
+        safe_current_limit_most_positive=22,
+    )
 
-    statusdict = dict(magnetstatus={'0': 'normal',
-                                    '1': 'quenched',
-                                    '2': 'over heated',
-                                    '4': 'warming up'},
-                      currentstatus={'0': 'normal',
-                                     '1': 'on positive voltage limit',
-                                     '2': 'on negative voltage limit',
-                                     '4': 'outside negative current limit',
-                                     '8': 'outside positive current limit'},
-                      activitystatus={'0': 'Hold',
-                                      '1': 'To set point',
-                                      '2': 'To zero',
-                                      '4': 'Clamped'},
-                      loc_remstatus={'0': 'local & locked',
-                                     '1': 'remote & locked',
-                                     '2': 'local & unlocked',
-                                     '3': 'remote & unlocked',
-                                     '4': 'AUTO RUN DOWN',
-                                     '5': 'AUTO RUN DOWN',
-                                     '6': 'AUTO RUN DOWN',
-                                     '7': 'AUTO RUN DOWN'},
-                      switchHeaterstat={'0': 'Off (closed) magnet at zero',
-                                        '1': 'On (open)',
-                                        '2': 'Off (closed) magnet at field',
-                                        '8': 'no switch fitted'},
-                      modestatus1={'0': 'display: Amps,  mode: immediate, sweepmode: Fast',
-                                   '1': 'display: Tesla, mode: immediate, sweepmode: Fast',
-                                   '2': 'display: Amps,  mode: sweep,     sweepmode: Fast',
-                                   '3': 'display: Tesla, mode: sweep,     sweepmode: Fast',
-                                   '4': 'display: Amps,  mode: immediate, sweepmode: Train',
-                                   '5': 'display: Tesla, mode: immediate, sweepmode: Train',
-                                   '6': 'display: Amps,  mode: sweep,     sweepmode: Train',
-                                   '7': 'display: Tesla, mode: sweep,     sweepmode: Train'},
-                      modestatus2={'0': 'at rest (output constant)',
-                                   '1': 'sweeping (output changing)',
-                                   '2': 'rate limiting (output changing)',
-                                   '3': 'sweeping & rate limiting (output changing)'},
-                      polarity1={'0': 'desired: Forward, magnet: Forward, commanded: Forward',
-                                 '1': 'desired: Forward, magnet: Forward, commanded: Reverse',
-                                 '2': 'desired: Forward, magnet: Reverse, commanded: Forward',
-                                 '3': 'desired: Forward, magnet: Reverse, commanded: Reverse',
-                                 '4': 'desired: Reverse, magnet: Forward, commanded: Forward',
-                                 '5': 'desired: Reverse, magnet: Forward, commanded: Reverse',
-                                 '6': 'desired: Reverse, magnet: Reverse, commanded: Forward',
-                                 '7': 'desired: Reverse, magnet: Reverse, commanded: Reverse'},
-                      polarity2={'0': 'output clamped (transition)',
-                                 '1': 'forward (verification)',
-                                 '2': 'reverse (verification)',
-                                 '4': 'output clamped (requested)'})
+    statusdict = dict(
+        magnetstatus={
+            "0": "normal",
+            "1": "quenched",
+            "2": "over heated",
+            "4": "warming up",
+        },
+        currentstatus={
+            "0": "normal",
+            "1": "on positive voltage limit",
+            "2": "on negative voltage limit",
+            "4": "outside negative current limit",
+            "8": "outside positive current limit",
+        },
+        activitystatus={
+            "0": "Hold",
+            "1": "To set point",
+            "2": "To zero",
+            "4": "Clamped",
+        },
+        loc_remstatus={
+            "0": "local & locked",
+            "1": "remote & locked",
+            "2": "local & unlocked",
+            "3": "remote & unlocked",
+            "4": "AUTO RUN DOWN",
+            "5": "AUTO RUN DOWN",
+            "6": "AUTO RUN DOWN",
+            "7": "AUTO RUN DOWN",
+        },
+        switchHeaterstat={
+            "0": "Off (closed) magnet at zero",
+            "1": "On (open)",
+            "2": "Off (closed) magnet at field",
+            "8": "no switch fitted",
+        },
+        modestatus1={
+            "0": "display: Amps,  mode: immediate, sweepmode: Fast",
+            "1": "display: Tesla, mode: immediate, sweepmode: Fast",
+            "2": "display: Amps,  mode: sweep,     sweepmode: Fast",
+            "3": "display: Tesla, mode: sweep,     sweepmode: Fast",
+            "4": "display: Amps,  mode: immediate, sweepmode: Train",
+            "5": "display: Tesla, mode: immediate, sweepmode: Train",
+            "6": "display: Amps,  mode: sweep,     sweepmode: Train",
+            "7": "display: Tesla, mode: sweep,     sweepmode: Train",
+        },
+        modestatus2={
+            "0": "at rest (output constant)",
+            "1": "sweeping (output changing)",
+            "2": "rate limiting (output changing)",
+            "3": "sweeping & rate limiting (output changing)",
+        },
+        polarity1={
+            "0": "desired: Forward, magnet: Forward, commanded: Forward",
+            "1": "desired: Forward, magnet: Forward, commanded: Reverse",
+            "2": "desired: Forward, magnet: Reverse, commanded: Forward",
+            "3": "desired: Forward, magnet: Reverse, commanded: Reverse",
+            "4": "desired: Reverse, magnet: Forward, commanded: Forward",
+            "5": "desired: Reverse, magnet: Forward, commanded: Reverse",
+            "6": "desired: Reverse, magnet: Reverse, commanded: Forward",
+            "7": "desired: Reverse, magnet: Reverse, commanded: Reverse",
+        },
+        polarity2={
+            "0": "output clamped (transition)",
+            "1": "forward (verification)",
+            "2": "reverse (verification)",
+            "4": "output clamped (requested)",
+        },
+    )
 
     def __init__(self, InstrumentAddress, log=None, **kwargs):
         super().__init__(**kwargs)
@@ -121,7 +142,7 @@ class IPS_Updater(AbstractLoopThread):
         # global Oxford
         # ips120 = reload(Oxford.ips120).ips120
         self.PS = ips120(InstrumentAddress=InstrumentAddress)
-        self.__name__ = 'IPS_Updater ' + InstrumentAddress
+        self.__name__ = "IPS_Updater " + InstrumentAddress
         self.field_setpoint = 0
         self.first = True
 
@@ -146,7 +167,10 @@ class IPS_Updater(AbstractLoopThread):
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:
-            if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+            if (
+                isinstance(e_visa, type(self.timeouterror))
+                and e_visa.args == self.timeouterror.args
+            ):
                 self.sig_visatimeout.emit()
                 # self.readField(nosend=True)
                 self.PS.clear_buffers()
@@ -165,17 +189,17 @@ class IPS_Updater(AbstractLoopThread):
     def getStatus(self):
         """read the status of the instrument, return it partially parsed"""
         status = self.PS.getStatus()
-        return dict(status_magnet=self.statusdict['magnetstatus'][status[1]],
-                    status_current=self.statusdict['currentstatus'][status[2]],
-                    status_activity=self.statusdict[
-                        'activitystatus'][status[4]],
-                    status_locrem=self.statusdict['loc_remstatus'][status[6]],
-                    status_switchheater=self.statusdict[
-                        'switchHeaterstat'][status[8]],
-                    status_mode1=self.statusdict['modestatus1'][status[10]],
-                    status_mode2=self.statusdict['modestatus2'][status[11]],
-                    status_polarity1=self.statusdict['polarity1'][status[13]],
-                    status_polarity2=self.statusdict['polarity2'][status[14]])
+        return dict(
+            status_magnet=self.statusdict["magnetstatus"][status[1]],
+            status_current=self.statusdict["currentstatus"][status[2]],
+            status_activity=self.statusdict["activitystatus"][status[4]],
+            status_locrem=self.statusdict["loc_remstatus"][status[6]],
+            status_switchheater=self.statusdict["switchHeaterstat"][status[8]],
+            status_mode1=self.statusdict["modestatus1"][status[10]],
+            status_mode2=self.statusdict["modestatus2"][status[11]],
+            status_polarity1=self.statusdict["polarity1"][status[13]],
+            status_polarity3=self.statusdict["polarity2"][status[14]],
+        )
 
     @pyqtSlot(int)
     @ExceptionHandling
@@ -186,7 +210,7 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def readField(self, nosend=False):
-        '''read the Field'''
+        """read the Field"""
         try:
             return self.PS.readField()
         except AssertionError as e_ass:
@@ -196,31 +220,31 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def readFieldSetpoint(self):
-        '''read the Field Setpoint'''
+        """read the Field Setpoint"""
         return self.PS.readFieldSetpoint()
 
     @pyqtSlot()
     @ExceptionHandling
     def readFieldSweepRate(self):
-        '''read the Field SweepRate'''
+        """read the Field SweepRate"""
         return self.PS.readFieldSweepRate()
 
     @pyqtSlot()
     @ExceptionHandling
     def setActivity(self, state):
-        '''set the Activity'''
+        """set the Activity"""
         self.PS.setActivity(state)
 
     @pyqtSlot()
     @ExceptionHandling
     def setSwitchHeater(self, state):
-        '''set the Switchheater state'''
+        """set the Switchheater state"""
         self.PS.setSwitchHeater(state)
 
     @pyqtSlot()
     @ExceptionHandling
     def setFieldSetpoint(self):
-        '''setthe Field Setpoint'''
+        """setthe Field Setpoint"""
         self.PS.setFieldSetpoint(self.field_setpoint)
 
     @pyqtSlot(float)
@@ -233,7 +257,7 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setFieldSweepRate(self):
-        '''set the Field SweepRate'''
+        """set the Field SweepRate"""
         self.PS.setFieldSweepRate(self.field_rate)
 
     @pyqtSlot(int)
@@ -245,11 +269,11 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setDisplay(self, display):
-        '''set the Display'''
+        """set the Display"""
         self.PS.setDisplay(display)
 
     @pyqtSlot()
     @ExceptionHandling
     def waitForField(self, timeout, error_margin):
-        '''wait For the Field'''
+        """wait For the Field"""
         return self.PS.waitForField()
