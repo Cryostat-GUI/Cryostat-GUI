@@ -41,8 +41,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.ERROR)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.Keithley6221 = Keithley6221(
             InstrumentAddress=InstrumentAddress, comLock=comLock)
@@ -65,7 +64,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         # error = self.Keithley6221.query_error()
         for error in self.Keithley6221.error_gen():
             if error[0] != '0':
-                self.logger.error('code:{}, message:{}'.format(
+                self._logger.error('code:{}, message:{}'.format(
                     error[0], error[1].strip('"')))
                 raise AssertionError(self.error)
             else:

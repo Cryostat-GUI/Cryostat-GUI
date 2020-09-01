@@ -24,6 +24,7 @@ from threading import Thread
 import time
 import numpy as np
 from copy import deepcopy
+import logging
 
 
 from util import ExceptionHandling
@@ -75,9 +76,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'ITC_control ' + InstrumentAddress
-        # try:
-        # print(self.logger, self.logger.name)
-
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
@@ -651,6 +650,8 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         super().__init__(**kwargs)
 
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+
         self.__name__ = 'ITC_Window'
         self.ITC_values = dict(setTemperature=4, SweepRate=2)
         self.controls = [self.groupSettings]
@@ -746,7 +747,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             # self.sig_useAutocheck.emit(self.window_settings.temp_ITC_useAutoPID)
             # self.sig_newFilePID.emit(self.window_settings.temp_ITC_PIDFile)
         except (VisaIOError, NameError) as e:
-            self.logger_personal.exception(e)
+            self._logger.exception(e)
 
     @pyqtSlot(dict)
     def updateGUI(self, data):
@@ -825,7 +826,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             # self.show_error_general(f'could not find a key: {e}')
-            self.logger_personal.warning(f'key {e} was not found in the settings')
+            self._logger.warning(f'key {e} was not found in the settings')
         del settings
 
         self.checkUseAuto.setChecked(
@@ -866,10 +867,10 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         try:
             with open(self._PIDFile) as f:
                 self.textConfShow_current.setText(f.read())
-        # except OSError as e:
-        #     self.logger_personal.exception(e)
+        except OSError as e:
+            self._logger.exception(e)
         except TypeError as e:
-            self.logger_personal.error(f' missing Filename! (TypeError: {e})')
+            self._logger.error(f' missing Filename! (TypeError: {e})')
 
     @ExceptionHandling
     def window_FileDialogOpen(self, test):
@@ -884,13 +885,31 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         try:
             with open(fname) as f:
                 self.textConfShow.setText(f.read())
-        # except OSError as e:
-        #     self.logger_personal.exception(e)
+        except OSError as e:
+            self._logger.exception(e)
         except TypeError as e:
-            self.logger_personal.error(f'missing Filename! (TypeError: {e})')
+            self._logger.error(f'missing Filename! (TypeError: {e})')
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     ITC_Instrumentadress = 'ASRL6::INSTR'
     form = ITCGUI(

@@ -23,7 +23,7 @@ from util import AbstractMainApp
 
 from datetime import datetime
 from pyvisa.errors import VisaIOError
-# import logging
+import logging
 
 
 class Template_ControlClient(AbstractLoopThreadClient):
@@ -50,7 +50,8 @@ class Template_ControlClient(AbstractLoopThreadClient):
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'LakeShore350_control ' + InstrumentAddress
+        self.__name__ = 'DeviceName_control ' + InstrumentAddress
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # try:
         # print(self.logger, self.logger.name)
 
@@ -85,7 +86,6 @@ class Template_ControlClient(AbstractLoopThreadClient):
 
         mainthread.spin_threadinterval.valueChanged.connect(
             lambda value: self.setInterval(value))
-
 
     # @control_checks
     @ExceptionHandling
@@ -174,20 +174,20 @@ class Template_ControlClient(AbstractLoopThreadClient):
     # @ExceptionHandling
     # def setLoopI_Param(self):
     #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    #         1, self.data['Loop_P_Param'], self.LoopI_value, self.data['Loop_D_Param'])
+    # 1, self.data['Loop_P_Param'], self.LoopI_value,
+    # self.data['Loop_D_Param'])
 
     # @pyqtSlot()
     # @ExceptionHandling
     # def setLoopD_Param(self):
     #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    #         1, self.data['Loop_P_Param'], self.data['Loop_I_Param'], self.LoopD_value)
-
+    # 1, self.data['Loop_P_Param'], self.data['Loop_I_Param'],
+    # self.LoopD_value)
 
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
     # GUI value acceptance functions
     # Examples:
-
 
     # @pyqtSlot()
     # def gettoset_Temp_K(self, value):
@@ -204,7 +204,6 @@ class Template_ControlClient(AbstractLoopThreadClient):
     # @pyqtSlot()
     # def gettoset_LoopD_Param(self, value):
     #     self.LoopD_value = value
-
 
 
 class DeviceGUI(AbstractMainApp, Window_trayService_ui):
@@ -258,7 +257,6 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # since the command failed in the communication with the device,
         # the last value is retained
 
-
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
         # Examples:
@@ -286,8 +284,26 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # -----------------------------------------------------------------------------------------------------------
 
 
-
 if __name__ == '__main__':
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
         ui_file='Template_main.ui', Name='Template', identity=b'templ', InstrumentAddress='')

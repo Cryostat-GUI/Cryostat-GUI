@@ -1,7 +1,5 @@
 """Module containing a class to interface with a LakeShore 350 Cryogenic Temperature Controller
 
-Attributes:
-    logger: a python logger object
 
 Classes:
     LakeShore350: a class for interfacing with a LakeShore350 temperature controller
@@ -15,9 +13,9 @@ from drivers import AbstractGPIBDeviceDriver
 from drivers import AbstractEthernetDeviceDriver
 
 # create a logger object for this module
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 # added so that log messages show up in Jupyter notebooks
-logger.addHandler(logging.StreamHandler())
+# logger.addHandler(logging.StreamHandler())
 
 # try:
 #     # the pyvisa manager we'll use to connect to the GPIB resources
@@ -43,6 +41,7 @@ class LakeShore350_bare(object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     # def go(self, command):
     #     """write a command to the instrument"""

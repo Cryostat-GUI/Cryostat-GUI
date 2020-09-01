@@ -10,6 +10,7 @@ Author(s):
 
 from drivers import AbstractSerialDeviceDriver
 from pyvisa.errors import VisaIOError
+import logging
 
 
 class itc503(AbstractSerialDeviceDriver):
@@ -17,6 +18,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         # self.write('$M0')

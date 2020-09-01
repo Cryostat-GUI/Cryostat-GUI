@@ -25,7 +25,7 @@ from datetime import datetime
 from pyvisa.errors import VisaIOError
 
 from Oxford.ilm211 import ilm211
-# import logging
+import logging
 
 
 class ILM_ControlClient(AbstractLoopThreadClient):
@@ -54,10 +54,9 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'LakeShore350_control ' + InstrumentAddress
-        # try:
-        # print(self.logger, self.logger.name)
-
+        self.__name__ = 'ILM_control ' + InstrumentAddress
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
@@ -67,7 +66,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # initial configurations for the hardware device
         self.control_state = 3
-        self.interval = 3
+        self.interval = 1
 
         self.setControl()
         # -------------------------------------------------------------------------------------------------------------------------
@@ -110,7 +109,6 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command: dict):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
@@ -183,7 +181,8 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'LakeShore_Window'
+        self.__name__ = 'ILM_Window'
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -237,6 +236,25 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == '__main__':
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
         ui_file='ILM_main.ui', Name='ILM 211', identity='ILM', InstrumentAddress='ASRL5::INSTR')

@@ -19,6 +19,7 @@ class windowSettings(Window_ui):
 
     def __init__(self, signals, zmqcontext, data, ui_file='.\\configurations\\settings_global.ui'):
         super(windowSettings, self).__init__(ui_file)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.MTsigs = signals
         self.zmq_context = zmqcontext
         self.zmq_sSettings = self.zmq_context.socket(zmq.REQ)
@@ -64,7 +65,8 @@ class windowSettings(Window_ui):
         tempcontrol.combo_thresholdsLoadingPreset.activated[
             'QString'].connect(self.tempcontrol_preset_restore)
 
-        tempcontrol.command_sendThresholds.clicked.connect(self.tempcontrol_sendconf)
+        tempcontrol.command_sendThresholds.clicked.connect(
+            self.tempcontrol_sendconf)
 
         self.tempcontrol_preset_parse()
         tempcontrol.pushRefreshPresets.clicked.connect(
@@ -141,9 +143,6 @@ class windowSettings(Window_ui):
         self.Sequences_tempcontrol.combo_thresholdsLoadingPreset.addItems(
             files)
 
-
-
-
     def tempcontrol_preset_restore(self, filename: str) -> None:
         '''restore a preset from a json file'''
         if filename == '-':
@@ -156,7 +155,7 @@ class windowSettings(Window_ui):
                 tempcontrol_preset = json.loads(f)
         except FileNotFoundError:
             self.sig_error.emit(f'Settings: The preset file you wanted ({filename}) was not found!')
-            logger.warning(f'The preset file you wanted ({filename}) was not found!')
+            self.?logger.warning(f'The preset file you wanted ({filename}) was not found!')
             return
 
         for key in tempcontrol_preset:

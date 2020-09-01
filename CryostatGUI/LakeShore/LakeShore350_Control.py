@@ -66,6 +66,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = "LakeShore350_Updater" + InstrumentAddress
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # try:
         self.LakeShore350 = LakeShore350_ethernet(
             InstrumentAddress=InstrumentAddress, comLock=comLock)

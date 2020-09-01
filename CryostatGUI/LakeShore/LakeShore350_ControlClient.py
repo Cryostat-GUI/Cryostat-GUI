@@ -36,6 +36,7 @@ from copy import deepcopy
 
 # from logging.handlers import RotatingFileHandler
 from pyvisa.errors import VisaIOError
+import logging
 
 
 class LakeShore350_ControlClient(AbstractLoopThreadClient):
@@ -83,6 +84,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_control ' + InstrumentAddress
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.LakeShore350 = LakeShore350(
             InstrumentAddress=InstrumentAddress, comLock=comLock)
@@ -453,6 +455,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         # print('GUI pre')
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
@@ -481,7 +484,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
-            self.logger_personal.exception(e)
+            self._logger.exception(e)
 
     # def calculate_Kpmin(self, data):
         # """calculate the rate of change of Temperature"""
@@ -573,18 +576,23 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == '__main__':
-    # logger = logging.getLogger()
-    # logger.setLevel(logging.DEBUG)
-    # # errorfile = 'Errors\\' + datetime.datetime.now().strftime('%Y%m%d') + '.error'
-    # # directory = os.path.dirname(errorfile)
-    # # os.makedirs(directory, exist_ok=True)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
-    # handler = logging.StreamHandler(sys.stdout)
-    # handler.setLevel(logging.DEBUG)
-    # formatter = logging.Formatter(
-    #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
 
     LakeShore_InstrumentAddress = 'TCPIP::192.168.2.105::7777::SOCKET'
     app = QtWidgets.QApplication(sys.argv)

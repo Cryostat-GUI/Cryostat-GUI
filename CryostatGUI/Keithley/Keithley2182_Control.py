@@ -32,8 +32,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.ERROR)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.save_InstrumentAddress = InstrumentAddress
         self.save_comLock = comLock
         # global Keithley
@@ -59,7 +58,7 @@ class Keithley2182_Updater(AbstractLoopThread):
 
         error = self.Keithley2182.query_error()
         if error[0] != '0':
-            self.logger.error('code:{}, message:{}'.format(
+            self._logger.error('code:{}, message:{}'.format(
                 error[0], error[1].strip('"')))
             if error[0] == '-213':
                 self.Keithley2182 = Keithley2182(

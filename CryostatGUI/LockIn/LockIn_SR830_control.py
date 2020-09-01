@@ -36,7 +36,7 @@ class SR830_Updater(AbstractLoopThread):
     def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
-        self.logger = log if log else logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.lockin = SR830(InstrumentAddress)
         self.__name__ = "SR830_Updater " + InstrumentAddress

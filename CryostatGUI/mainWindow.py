@@ -148,6 +148,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.setupUi(self)
 
         self.__name__ = 'MainWindow'
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.threads = dict(Lock=Lock())
         # self.threads = dict()
         self.threads_tiny = list()
@@ -241,7 +242,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def initialize_zmq(self):
         '''set up zmq communications'''
-        self.logger_personal.debug('initializing zmq communications')
+        self._logger.debug('initializing zmq communications')
         self.zmq_context = zmq.Context()
         self.zmq_smain_inproc = self.zmq_context.socket(zmq.REP)
         self.zmq_smain_inproc.bind("inproc://main_line")
@@ -257,15 +258,15 @@ class mainWindow(QtWidgets.QMainWindow):
     # @pyqtSlot()
     def zmq_handling(self):
         '''handle any messages which might have arrived'''
-        # self.logger_personal.debug('handling zmq requests')
+        # self._logger.debug('handling zmq requests')
         zmqquery_handle(self.zmq_smain_inproc, self.zmq_handlefunction)
         zmqquery_handle(self.zmq_smain_tcp, self.zmq_handlefunction)
-        # self.logger_personal.debug('handled zmq requests')
+        # self._logger.debug('handled zmq requests')
         # QTimer.singleShot(1e2, self.zmq_handling)
 
     def zmq_handlefunction(self, socket, message):
         '''handle incoming zmq requests'''
-        self.logger_personal.debug(
+        self._logger.debug(
             f'handling message: {message} for socket: {socket}')
         if message == b'data':
             # with self.dataLock:
@@ -292,36 +293,37 @@ class mainWindow(QtWidgets.QMainWindow):
                 # TODO: handle received data
                 raise genericAnswer(f'I do not know how to reply to that: {mes_dict}')
             else:
-                # the genericAnswer Exception is caught in zmqquery_handle() 
+                # the genericAnswer Exception is caught in zmqquery_handle()
                 raise genericAnswer(f'I do not know how to reply to that: {message}')
 
     def setup_logging_base(self):
-        self.logger_all = logging.getLogger()
-        self.logger_personal = logging.getLogger('CryostatGUI.main')
+        pass
+        # self.logger_all = logging.getLogger()
+        # self._logger = logging.getLogger('CryostatGUI.main')
 
-        self.Log_DBhandler = SQLiteHandler(
-            db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
-        self.Log_DBhandler.setLevel(logging.DEBUG)
+        # self.Log_DBhandler = SQLiteHandler(
+        #     db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
+        # self.Log_DBhandler.setLevel(logging.DEBUG)
 
-        self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.ERROR)
-        # self.logger_personal.addHandler(self.Log_DBhandler)
+        # self._logger.setLevel(logging.DEBUG)
+        # self.logger_all.setLevel(logging.ERROR)
+        # # self._logger.addHandler(self.Log_DBhandler)
 
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.ERROR)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger_personal.addHandler(handler)
-        self.logger_all.addHandler(handler)
+        # handler = logging.StreamHandler(sys.stdout)
+        # handler.setLevel(logging.ERROR)
+        # formatter = logging.Formatter(
+        #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # handler.setFormatter(formatter)
+        # self._logger.addHandler(handler)
+        # self.logger_all.addHandler(handler)
 
     def setup_logging(self):
         """set up the logger, handler, for now in DEBUG
         TODO: connect logging levels with GUI preferences"""
+        pass
+        # self.logger_all.setLevel(logging.INFO)
 
-        self.logger_all.setLevel(logging.INFO)
-
-        self.logger_all.addHandler(self.Log_DBhandler)
+        # self.logger_all.addHandler(self.Log_DBhandler)
 
     def load_settings(self):
         """load all settings store in the QSettings
@@ -331,11 +333,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_settings.temp_ITC_useAutoPID = bool(
                 settings.value("ITC_useAutoPID", int)
             )
-            self.window_settings.temp_ITC_PIDFile = settings.value("ITC_PIDFile", str)
+            self.window_settings.temp_ITC_PIDFile = settings.value(
+                "ITC_PIDFile", str)
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             self.show_error_general(f"could not find a key: {e}")
-            self.logger_personal.warning(f"key {e} was not found in the settings")
+            self._logger.warning(f"key {e} was not found in the settings")
         del settings
 
         self.window_settings.checkUseAuto.setChecked(
@@ -461,7 +464,7 @@ class mainWindow(QtWidgets.QMainWindow):
                                   newFilePID=self.sig_ITC_newFilePID,
                                   setTemp=self.sig_ITC_setTemperature,
                                   stopSweep=self.sig_ITC_stopSweep
-                             ),
+                                  ),
                          Sequence=dict(data=self.sig_Sequence_sendingData,
                                        dataLive=self.sig_Sequence_sendingDataLive,
                                        newconf=self.sig_Sequence_newconf),
@@ -504,7 +507,7 @@ class mainWindow(QtWidgets.QMainWindow):
         SB.window_FileDialogOpen()
         self.mdiArea_SequenceCount += 1
         name = f'Sequence_subwindow_{self.mdiArea_SequenceCount}'
-        self.logger_personal.debug(
+        self._logger.debug(
             'new Sequence window, sequence_file: {}'.format(SB.sequence_file))
         self.mdiArea_newWindow(SB, name)
 
@@ -518,7 +521,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
     @pyqtSlot()
     def mdiArea_newWindow(self, window, name):
-
 
         # window = mS.Sequence_builder()
 
@@ -549,11 +551,11 @@ class mainWindow(QtWidgets.QMainWindow):
         try:
             SB = self.mdiArea.activeSubWindow().widget()
         except AttributeError:
-            self.logger_personal.warning(
+            self._logger.warning(
                 'Tried to run a sequence without active Sequence!')
             self.SequenceRunningLock.release()
             return
-        self.logger_personal.debug(str(SB.data))
+        self._logger.debug(str(SB.data))
         self.pushSequenceAbort.setEnabled(True)
         self.pushSequenceRun.setEnabled(False)
         self.labelSequenceStatus.setText(
@@ -614,8 +616,8 @@ class mainWindow(QtWidgets.QMainWindow):
             sThread.sig_assertion.connect(self.show_error_general)
             sThread.sig_finished.connect(self.Sequence_finished)
 
-        except AttributeError:
-            self.logger_personal.exception('AttributeError')
+        except AttributeError as e:
+            self._logger.exception(e)
             self.Sequence_finished('AttributeError')
 
     def Sequence_abort(self):
@@ -702,7 +704,6 @@ class mainWindow(QtWidgets.QMainWindow):
     def ITC_fun_setTemp_valcha(self, value):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values["setTemperature"] = value
-
 
     @pyqtSlot(float)
     @ExceptionHandling
@@ -798,7 +799,6 @@ class mainWindow(QtWidgets.QMainWindow):
                     self.ITC_fun_sendConfTemp
                 )
 
-
                 def change_gas(self):
                     """to be worked in a separate worker thread (separate
                         time.sleep() from GUI)
@@ -824,11 +824,13 @@ class mainWindow(QtWidgets.QMainWindow):
                         else:
                             time1 = 60 / 1e2 * gas_old + 5
                             time2 = 60 / 1e2 * gas_new + 5
-                            self.threads["control_ITC"][0].gettoset_GasOutput(0)
+                            self.threads["control_ITC"][
+                                0].gettoset_GasOutput(0)
                             self.threads["control_ITC"][0].setGasOutput()
                             self.ITC_window.spinsetGasOutput.setEnabled(False)
                             time.sleep(time1)
-                            self.threads["control_ITC"][0].gettoset_GasOutput(gas_new)
+                            self.threads["control_ITC"][
+                                0].gettoset_GasOutput(gas_new)
                             self.threads["control_ITC"][0].setGasOutput()
                             time.sleep(time2)
                             self.ITC_window.spinsetGasOutput.setEnabled(True)
@@ -839,7 +841,8 @@ class mainWindow(QtWidgets.QMainWindow):
                     lambda value: getInfodata.gettoset_GasOutput(value)
                 )
                 self.ITC_window.spinsetGasOutput.editingFinished.connect(
-                    lambda: self.running_thread_tiny(Workerclass(change_gas, self))
+                    lambda: self.running_thread_tiny(
+                        Workerclass(change_gas, self))
                 )
 
                 self.ITC_window.spinsetHeaterPercent.valueChanged.connect(
@@ -943,16 +946,21 @@ class mainWindow(QtWidgets.QMainWindow):
                 if self.data["ITC"][key] is None:
                     self.data["ITC"][key] = np.nan
             # if not self.data['ITC']['Sensor_1_K'] is None:
-            self.ITC_window.lcdTemp_sens1_K.display(self.data["ITC"]["Sensor_1_K"])
+            self.ITC_window.lcdTemp_sens1_K.display(
+                self.data["ITC"]["Sensor_1_K"])
             # if not self.data['ITC']['Sensor_2_K'] is None:
-            self.ITC_window.lcdTemp_sens2_K.display(self.data["ITC"]["Sensor_2_K"])
+            self.ITC_window.lcdTemp_sens2_K.display(
+                self.data["ITC"]["Sensor_2_K"])
             # if not self.data['ITC']['Sensor_3_K'] is None:
-            self.ITC_window.lcdTemp_sens3_K.display(self.data["ITC"]["Sensor_3_K"])
+            self.ITC_window.lcdTemp_sens3_K.display(
+                self.data["ITC"]["Sensor_3_K"])
 
             # if not self.data['ITC']['set_temperature'] is None:
-            self.ITC_window.lcdTemp_set.display(self.data["ITC"]["set_temperature"])
+            self.ITC_window.lcdTemp_set.display(
+                self.data["ITC"]["set_temperature"])
             # if not self.data['ITC']['temperature_error'] is None:
-            self.ITC_window.lcdTemp_err.display(self.data["ITC"]["temperature_error"])
+            self.ITC_window.lcdTemp_err.display(
+                self.data["ITC"]["temperature_error"])
             # if not self.data['ITC']['heater_output_as_percent'] is None:
             try:
                 self.ITC_window.progressHeaterPercent.setValue(
@@ -1013,7 +1021,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata = self.running_thread_control(
                     ILM_Updater(
                         InstrumentAddress=ILM_Instrumentadress,
-                        log=self.logger_personal
+                        log=self._logger
                     ),
                     "ILM",
                     "control_ILM",
@@ -1037,7 +1045,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 # self.ILM_window.combosetProbingRate_chan2.activated['int'].connect(lambda value: self.threads['control_ILM'][0].setProbingSpeed(value, 2))
 
                 self.ILM_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: self.threads["control_ILM"][0].setInterval(value)
+                    lambda value: self.threads[
+                        "control_ILM"][0].setInterval(value)
                 )
 
                 self.window_SystemsOnline.checkaction_run_ILM.setChecked(True)
@@ -1083,8 +1092,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ILM_window.progressLevelHe.setValue(chan1)
             self.ILM_window.progressLevelN2.setValue(chan2)
 
-            self.ILM_window.lcdLevelHe.display(self.data["ILM"]["channel_1_level"])
-            self.ILM_window.lcdLevelN2.display(self.data["ILM"]["channel_2_level"])
+            self.ILM_window.lcdLevelHe.display(
+                self.data["ILM"]["channel_1_level"])
+            self.ILM_window.lcdLevelN2.display(
+                self.data["ILM"]["channel_2_level"])
 
             self.MainDock_HeLevel.setValue(chan1)
             self.MainDock_N2Level.setValue(chan2)
@@ -1120,7 +1131,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 getInfodata = self.running_thread_control(
                     IPS_Updater(
                         InstrumentAddress=IPS_Instrumentadress,
-                        log=self.logger_personal
+                        log=self._logger
                     ),
                     "IPS",
                     "control_IPS",
@@ -1137,10 +1148,12 @@ class mainWindow(QtWidgets.QMainWindow):
                 )
 
                 self.IPS_window.comboSetActivity.activated["int"].connect(
-                    lambda value: self.threads["control_IPS"][0].setActivity(value)
+                    lambda value: self.threads[
+                        "control_IPS"][0].setActivity(value)
                 )
                 self.IPS_window.comboSetSwitchHeater.activated["int"].connect(
-                    lambda value: self.threads["control_IPS"][0].setSwitchHeater(value)
+                    lambda value: self.threads["control_IPS"][
+                        0].setSwitchHeater(value)
                 )
 
                 self.IPS_window.spinSetFieldSetPoint.valueChanged.connect(
@@ -1162,7 +1175,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 )
 
                 self.IPS_window.spin_threadinterval.valueChanged.connect(
-                    lambda value: self.threads["control_IPS"][0].setInterval(value)
+                    lambda value: self.threads[
+                        "control_IPS"][0].setInterval(value)
                 )
 
                 self.window_SystemsOnline.checkaction_run_IPS.setChecked(True)
@@ -1195,11 +1209,13 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.data["IPS"]["FIELD_sweep_rate"]
             )
 
-            self.IPS_window.lcdOutputField.display(self.data["IPS"]["FIELD_output"])
+            self.IPS_window.lcdOutputField.display(
+                self.data["IPS"]["FIELD_output"])
             self.IPS_window.lcdMeasuredMagnetCurrent.display(
                 self.data["IPS"]["measured_magnet_current"]
             )
-            self.IPS_window.lcdOutputCurrent.display(self.data["IPS"]["CURRENT_output"])
+            self.IPS_window.lcdOutputCurrent.display(
+                self.data["IPS"]["CURRENT_output"])
             # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
             # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
 
@@ -1210,20 +1226,24 @@ class mainWindow(QtWidgets.QMainWindow):
             self.IPS_window.lcdPersistentMagnetField.display(
                 self.data["IPS"]["persistent_magnet_field"]
             )
-            self.IPS_window.lcdTripField.display(self.data["IPS"]["trip_field"])
+            self.IPS_window.lcdTripField.display(
+                self.data["IPS"]["trip_field"])
             self.IPS_window.lcdPersistentMagnetCurrent.display(
                 self.data["IPS"]["persistent_magnet_current"]
             )
-            self.IPS_window.lcdTripCurrent.display(self.data["IPS"]["trip_current"])
+            self.IPS_window.lcdTripCurrent.display(
+                self.data["IPS"]["trip_current"])
 
-            self.IPS_window.labelStatusMagnet.setText(self.data["IPS"]["status_magnet"])
+            self.IPS_window.labelStatusMagnet.setText(
+                self.data["IPS"]["status_magnet"])
             self.IPS_window.labelStatusCurrent.setText(
                 self.data["IPS"]["status_current"]
             )
             self.IPS_window.labelStatusActivity.setText(
                 self.data["IPS"]["status_activity"]
             )
-            self.IPS_window.labelStatusLocRem.setText(self.data["IPS"]["status_locrem"])
+            self.IPS_window.labelStatusLocRem.setText(
+                self.data["IPS"]["status_locrem"])
             self.IPS_window.labelStatusSwitchHeater.setText(
                 self.data["IPS"]["status_switchheater"]
             )
@@ -1243,7 +1263,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_SystemsOnline.checkaction_run_LakeShore350.clicked["bool"].connect(
             self.run_LakeShore350
         )
-        self.action_show_LakeShore350.triggered["bool"].connect(self.show_LakeShore350)
+        self.action_show_LakeShore350.triggered[
+            "bool"].connect(self.show_LakeShore350)
         self.LakeShore350_Kpmin = None
 
     @pyqtSlot(bool)
@@ -1256,7 +1277,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     LakeShore350_Updater(
                         InstrumentAddress=LakeShore_InstrumentAddress,
                         comLock=self.GPIB_comLock,
-                        log=self.logger_personal),
+                        log=self._logger),
                     "LakeShore350",
                     "control_LakeShore350",
                 )
@@ -1271,22 +1292,26 @@ class mainWindow(QtWidgets.QMainWindow):
                     lambda: self.show_error_general("LakeShore350: timeout")
                 )
 
-                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    True)
 
             except (VisaIOError, NameError) as e:
-                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                    False)
                 self.show_error_general("running: {}".format(e))
-                self.logger_personal.exception("could not start LakeShore350")
+                self._logger.exception("could not start LakeShore350")
 
         else:
-            self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(False)
+            self.window_SystemsOnline.checkaction_run_LakeShore350.setChecked(
+                False)
             self.stopping_thread("control_LakeShore350")
 
             self.LakeShore350_window.spinSetTemp_K.valueChanged.disconnect()
             self.LakeShore350_window.spinSetTemp_K.editingFinished.disconnect()
             self.LakeShore350_window.spinSetRampRate_Kpmin.valueChanged.disconnect()
             self.LakeShore350_window.spinSetRampRate_Kpmin.editingFinished.disconnect()
-            self.LakeShore350_window.comboSetInput_Sensor.activated["int"].disconnect()
+            self.LakeShore350_window.comboSetInput_Sensor.activated[
+                "int"].disconnect()
 
     @pyqtSlot(bool)
     def show_LakeShore350(self, boolean):
@@ -1435,7 +1460,8 @@ class mainWindow(QtWidgets.QMainWindow):
     # ------- Keithley 2182 + Keithley 6221 -------
     def initialize_window_Keithley(self):
         """initialize Keithley Window"""
-        self.Keithley_window = Window_ui(ui_file=".\\Keithley\\Keithley_control.ui")
+        self.Keithley_window = Window_ui(
+            ui_file=".\\Keithley\\Keithley_control.ui")
         self.Keithley_window.sig_closing.connect(
             lambda: self.action_show_Keithley.setChecked(False)
         )
@@ -1551,19 +1577,21 @@ class mainWindow(QtWidgets.QMainWindow):
                     clas(
                         InstrumentAddress=instradress,
                         comLock=self.GPIB_comLock,
-                        log=self.logger_personal
+                        log=self._logger
                     ),
                     dataname,
                     threadname
                 )
                 kwargs['threadname'] = threadname
                 worker.sig_Infodata.connect(
-                    lambda data: self.store_data_Keithley(data, dataname, **kwargs)
+                    lambda data: self.store_data_Keithley(
+                        data, dataname, **kwargs)
                 )
                 worker.sig_visaerror.connect(self.show_error_general)
                 worker.sig_assertion.connect(self.show_error_general)
                 worker.sig_visatimeout.connect(
-                    lambda: self.show_error_general("{0:s}: timeout".format(dataname))
+                    lambda: self.show_error_general(
+                        "{0:s}: timeout".format(dataname))
                 )
 
                 # display data given by nanovoltmeters & calculate resistance
@@ -1571,10 +1599,12 @@ class mainWindow(QtWidgets.QMainWindow):
                 # setting values for nanovoltmeters
                 if "GUI_number1" in kwargs:
                     kwargs["GUI_CBox_Display"].toggled["bool"].connect(
-                        lambda value: self.threads[threadname][0].ToggleDisplay(value)
+                        lambda value: self.threads[
+                            threadname][0].ToggleDisplay(value)
                     )
                     kwargs["GUI_CBox_Autozero"].toggled["bool"].connect(
-                        lambda value: self.threads[threadname][0].ToggleAutozero(value)
+                        lambda value: self.threads[threadname][
+                            0].ToggleAutozero(value)
                     )
                     kwargs["GUI_CBox_FronAutozero"].toggled["bool"].connect(
                         lambda value: self.threads[threadname][0].ToggleFrontAutozero(
@@ -1582,12 +1612,14 @@ class mainWindow(QtWidgets.QMainWindow):
                         )
                     )
                     kwargs["GUI_CBox_Autorange"].toggled["bool"].connect(
-                        lambda value: self.threads[threadname][0].ToggleAutorange(value)
+                        lambda value: self.threads[threadname][
+                            0].ToggleAutorange(value)
                     )
 
                     # check if delta between internal and present temperature is greater than 1 Kelvin
                     # if so then perform an ACAL and emit a signal
-                    delta = abs(self.data[dataname]['Internal_K'] - self.data[dataname]['Present_K'])
+                    delta = abs(self.data[dataname][
+                                'Internal_K'] - self.data[dataname]['Present_K'])
                     if delta > 1:
                         self.sig_acal_needed.emit()
                         kwargs['GUI_CBox_ACAL'].toggled['bool'].connect(
@@ -1727,7 +1759,7 @@ class mainWindow(QtWidgets.QMainWindow):
             # since the command failed in the communication with the device,
             # the last value is retained
             if 'GUI_number1' in kwargs:
-            # alternative: if 'Keithley2182' in dataname:
+                # alternative: if 'Keithley2182' in dataname:
                 try:
                     # calculate and display resistance and voltage
                     if not str(kwargs['GUI_Box'].currentText()) == '--':
@@ -1738,7 +1770,8 @@ class mainWindow(QtWidgets.QMainWindow):
                     if 'Resistance_Ohm' in self.data[dataname]:
                         kwargs['GUI_Display'].display(
                             self.data[dataname]['Resistance_Ohm'])
-                    # display internal and present temperature inside the voltmeter
+                    # display internal and present temperature inside the
+                    # voltmeter
                     kwargs['GUI_lcd_IntTemp'].display(
                         self.data[dataname]['Internal_K'])
                     kwargs['GUI_lcd_PreTemp'].display(
@@ -1750,11 +1783,13 @@ class mainWindow(QtWidgets.QMainWindow):
                         == "'NoneType' object has no attribute 'display'"
                     ):
                         self.show_error_general(
-                            "{name}: {err}".format(name=dataname, err=a_err.args[0])
+                            "{name}: {err}".format(
+                                name=dataname, err=a_err.args[0])
                         )
                 except KeyError as key_err:
                     self.show_error_general(
-                        "{name}: {err}".format(name=dataname, err=key_err.args[0])
+                        "{name}: {err}".format(
+                            name=dataname, err=key_err.args[0])
                     )
                 except ZeroDivisionError as z_err:
                     self.data[dataname]["Resistance_Ohm"] = np.nan
@@ -1790,7 +1825,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     SR830_Updater(
                         InstrumentAddress=SR830_InstrumentAddress,
                         comLock=self.GPIB_comLock,
-                        log=self.logger_personal
+                        log=self._logger
                     ),
                     "SR830",
                     "control_SR830",
@@ -1851,10 +1886,12 @@ class mainWindow(QtWidgets.QMainWindow):
                 # lambda value:
                 # self.threads['control_IPS'][0].setInterval(value))
 
-                self.window_SystemsOnline.checkaction_run_SR830.setChecked(True)
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    True)
 
             except (VisaIOError, NameError) as e:
-                self.window_SystemsOnline.checkaction_run_SR830.setChecked(False)
+                self.window_SystemsOnline.checkaction_run_SR830.setChecked(
+                    False)
                 self.show_error_general(e)
                 # print(e) # TODO: open window displaying the error message
         else:
@@ -1878,16 +1915,19 @@ class mainWindow(QtWidgets.QMainWindow):
             self.LockIn_window.lcdSetFrequency_Hz.display(
                 self.data["SR830"]["Frequency_Hz"]
             )
-            self.LockIn_window.lcdSetVoltage_V.display(self.data["SR830"]["Voltage_V"])
+            self.LockIn_window.lcdSetVoltage_V.display(
+                self.data["SR830"]["Voltage_V"])
             self.LockIn_window.textX_V.setText(
                 "{num:=+13.12f}".format(num=self.data["SR830"]["X_V"])
             )
 
             self.LockIn_window.textSampleCurrent_mA.setText(
-                "{num:=+8.6f}".format(num=self.data["SR830"]["SampleCurrent_mA"])
+                "{num:=+8.6f}".format(num=self.data["SR830"]
+                                      ["SampleCurrent_mA"])
             )
             self.LockIn_window.textSampleResistance_Ohm.setText(
-                "{num:=+8.6f}".format(num=self.data["SR830"]["SampleResistance_Ohm"])
+                "{num:=+8.6f}".format(num=self.data["SR830"]
+                                      ["SampleResistance_Ohm"])
             )
 
             self.LockIn_window.textY_V.setText(
@@ -1931,9 +1971,11 @@ class mainWindow(QtWidgets.QMainWindow):
         # file
 
         if boolean:
-            logger = self.running_thread_control(main_Logger(self), None, "logger")
+            logger = self.running_thread_control(
+                main_Logger(self), None, "logger")
             # logger.sig_log.connect(self.logging_send_all)
-            logger.sig_log.connect(lambda: self.sig_logging.emit(deepcopy(self.data)))
+            logger.sig_log.connect(
+                lambda: self.sig_logging.emit(deepcopy(self.data)))
             logger.sig_configuring.connect(self.show_logging_configuration)
             self.logging_running_logger = True
 
@@ -2017,7 +2059,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.window_SystemsOnline.checkaction_run_OneShot_Measuring.clicked[
             "bool"
         ].connect(self.run_OneShot)
-        self.action_show_OneShot_Measuring.triggered["bool"].connect(self.show_OneShot)
+        self.action_show_OneShot_Measuring.triggered[
+            "bool"].connect(self.show_OneShot)
         self.OneShot_running = False
 
     @pyqtSlot(bool)
@@ -2025,7 +2068,8 @@ class mainWindow(QtWidgets.QMainWindow):
         if boolean:
 
             OneShot = self.running_thread_control(
-                OneShot_Thread_multichannel(self), "measured", "control_OneShot"
+                OneShot_Thread_multichannel(
+                    self), "measured", "control_OneShot"
             )
             OneShot.sig_assertion.connect(self.OneShot_errorHandling)
 
@@ -2051,7 +2095,8 @@ class mainWindow(QtWidgets.QMainWindow):
             )
 
             self.window_OneShot.dSpinCurrent_revtime.valueChanged.connect(
-                lambda value: OneShot.update_conf("current_reversal_time", value)
+                lambda value: OneShot.update_conf(
+                    "current_reversal_time", value)
             )
 
             self.window_OneShot.commandMeasure.setEnabled(True)
@@ -2059,23 +2104,29 @@ class mainWindow(QtWidgets.QMainWindow):
             self.window_OneShot.commandStopSeries.setEnabled(True)
 
             self.logging_timer = QTimer()
-            self.logging_timer.timeout.connect(lambda: self.sig_measure_oneshot.emit())
+            self.logging_timer.timeout.connect(
+                lambda: self.sig_measure_oneshot.emit())
 
             self.window_OneShot.commandMeasure.clicked.connect(
                 lambda: self.sig_measure_oneshot.emit()
             )
             # for whatever reason, these need to be connected twice:
             #   only then both text AND color of the state indicator change!
-            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
-            self.window_OneShot.commandStartSeries.clicked.connect(self.OneShot_start)
-            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
-            self.window_OneShot.commandStopSeries.clicked.connect(self.OneShot_stop)
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                self.OneShot_start)
+            self.window_OneShot.commandStartSeries.clicked.connect(
+                self.OneShot_start)
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                self.OneShot_stop)
+            self.window_OneShot.commandStopSeries.clicked.connect(
+                self.OneShot_stop)
 
             self.window_OneShot.pushChoose_Datafile.clicked.connect(
                 lambda: self.OneShot_chooseDatafile(OneShot)
             )
 
-            self.running_thread_control(measurement_Logger(self), None, "save_OneShot")
+            self.running_thread_control(
+                measurement_Logger(self), None, "save_OneShot")
             OneShot.sig_storing.connect(
                 lambda value: self.sig_log_measurement.emit(value)
             )
@@ -2156,6 +2207,25 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
+
     app = QtWidgets.QApplication(sys.argv)
     form = mainWindow(app=app)
     form.show()

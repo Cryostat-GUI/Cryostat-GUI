@@ -137,7 +137,7 @@ class IPS_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAddress, log=None, **kwargs):
         super().__init__(**kwargs)
-        self.logger = log if log else logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # QThread.__init__(self)
         # global Oxford
         # ips120 = reload(Oxford.ips120).ips120

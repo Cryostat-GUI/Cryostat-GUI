@@ -25,6 +25,7 @@ import sys
 from datetime import datetime
 import numpy as np
 from pyvisa.errors import VisaIOError
+import logging
 #
 # import LockIn
 
@@ -46,10 +47,10 @@ class SR830_ControlClient(AbstractLoopThreadClient):
     def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', Lockin=None, **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
 
         self.__name__ = 'SR830_Updater ' + InstrumentAddress
         self._comLock = dummy() if comLock is None else comLock
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
@@ -185,10 +186,8 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         self._identity = self.kwargs['identity']
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         self._Lockin = Lockin
-        # print('GUI pre')
-        print(kwargs)
         super().__init__(**kwargs)
-        # print('GUI post')
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
@@ -217,7 +216,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
             # lambda: self.show_error_general('SR830: timeout'))
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
-            self.logger_personal.exception(e)
+            self._logger.exception(e)
 
     @pyqtSlot(dict)
     def updateGUI(self, data):
@@ -250,6 +249,24 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == '__main__':
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
 
     Sr830_InstrumentAddress = 'GPIB::9::INSTR'
     # Sr860_InstrumentAddress: 'filler'

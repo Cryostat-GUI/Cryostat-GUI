@@ -63,6 +63,7 @@ class SQLBase(object):
 
     def __init__(self, **kwargs):
         self._process_init_kwargs(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     def _identifying_data(self):
         return ''
@@ -108,7 +109,7 @@ class SQLBase(object):
             with self._conn_db(db) as conn:
                 conn.execute(self.sql_insert, self.as_row)
         except sqlite3.IntegrityError:
-            logging.error(
+            self._logger.error(
                 'This log entry does not seem unique: {}'.format(self.as_row))
 
 

@@ -9,6 +9,7 @@ Author(s):
 """
 from datetime import datetime
 import time
+import logging
 
 from drivers import AbstractSerialDeviceDriver
 from pyvisa.errors import VisaIOError
@@ -24,7 +25,8 @@ class ips120(AbstractSerialDeviceDriver):
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
         super().__init__(**kwargs)
-        # self.setControl() # done in thread
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self.setControl()
 
     def read_buffer(self):
         return self.read()
@@ -43,7 +45,8 @@ class ips120(AbstractSerialDeviceDriver):
         if not isinstance(state, int):
             raise AssertionError("IPS: setControl: Argument must be integer")
         if state not in [0, 1, 2, 3]:
-            raise AssertionError("IPS: setControl: Argument must be one of [0,1,2,3]")
+            raise AssertionError(
+                "IPS: setControl: Argument must be one of [0,1,2,3]")
 
         self.write("$C{}".format(state))
 
@@ -80,7 +83,8 @@ class ips120(AbstractSerialDeviceDriver):
         if not isinstance(variable, int):
             raise AssertionError("IPS: getValue: argument must be integer")
         if variable not in range(0, 23):
-            raise AssertionError("IPS: getValue: Argument is not a valid number.")
+            raise AssertionError(
+                "IPS: getValue: Argument is not a valid number.")
 
         value = self.query("R{}".format(variable))
         # value = self._visa_resource.read()
@@ -119,7 +123,6 @@ class ips120(AbstractSerialDeviceDriver):
         """
         return self.getValue(7)
 
-
     def readFieldSetpoint(self):
         """Read the current set point for the magnetic field in Tesla
 
@@ -128,7 +131,6 @@ class ips120(AbstractSerialDeviceDriver):
         """
         return self.getValue(8)
 
-
     def readFieldSweepRate(self):
         """Read the current magnetic field sweep rate in Tesla/min
 
@@ -136,7 +138,6 @@ class ips120(AbstractSerialDeviceDriver):
             sweep_rate(float): current magnetic field sweep rate in Tesla/min
         """
         return self.getValue(9)
-
 
     def setActivity(self, state=1):
         """Set the field activation method
@@ -153,7 +154,8 @@ class ips120(AbstractSerialDeviceDriver):
         if not isinstance(state, int):
             raise AssertionError("IPS: setActivity: Argument must be integer")
         if state not in [0, 1, 2, 3]:
-            raise AssertionError("IPS: setActivity: Argument must be one of [0,1,2,3]")
+            raise AssertionError(
+                "IPS: setActivity: Argument must be one of [0,1,2,3]")
 
         self.write("$A{}".format(state))
 
@@ -168,7 +170,8 @@ class ips120(AbstractSerialDeviceDriver):
             state(int): the switch heater activation state
         """
         if not isinstance(state, int):
-            raise AssertionError("IPS: setSwitchHeater: Argument must be integer")
+            raise AssertionError(
+                "IPS: setSwitchHeater: Argument must be integer")
         if state not in [0, 1, 2]:
             raise AssertionError(
                 "IPS: setSwitchHeater: Argument must be one of [0,1,2]"
@@ -190,7 +193,8 @@ class ips120(AbstractSerialDeviceDriver):
         MAX_FIELD = 8
         if not abs(field) < MAX_FIELD:
             raise AssertionError(
-                "IPS: setFieldSetpoint: Field must be less than {}".format(MAX_FIELD)
+                "IPS: setFieldSetpoint: Field must be less than {}".format(
+                    MAX_FIELD)
             )
 
         self.write("$J{}".format(field))

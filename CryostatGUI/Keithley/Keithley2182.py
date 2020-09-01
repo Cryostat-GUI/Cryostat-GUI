@@ -32,6 +32,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.setRate(num=3)
         self.go(":INIT:CONT OFF")
 
@@ -45,7 +46,6 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         :type command: str
         """
         return super().query(command)
-
 
     def measureInternalTemperature(self):
         """measure internal temperature

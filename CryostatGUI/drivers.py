@@ -31,16 +31,16 @@ import functools
 import sys
 
 # create a logger object for this module
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('CryoGUI.'+__name__)
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stderr)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG)
+# handler = logging.StreamHandler(sys.stderr)
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter(
+#     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 
 # keysight = False
@@ -91,38 +91,17 @@ def HandleVisaException(func):
         # if inspect.isclass(type(args[0])):
         # thread = args[0]
         try:
+            se = args[0]
             return func(*args, **kwargs)
-        # except AssertionError as e:
-        #     logger.exception(e)
 
-        # except TypeError as e:
-        #     logger.exception(e)
-
-        # except KeyError as e:
-        #     logger.exception(e)
-
-        # except IndexError as e:
-        #     logger.exception(e)
-
-        # except ValueError as e:
-        #     logger.exception(e)
-
-        # except AttributeError as e:
-        #     logger.exception(e)
-
-        # except NotImplementedError as e:
-        #     logger.exception(e)
-
-        # except OSError as e:
-        #     logger.exception(e)
         except VisaIOError as e:
-            if isinstance(e, type(args[0].timeouterror)) and \
-                    e.args == args[0].timeouterror.args:
+            if isinstance(e, type(se.timeouterror)) and \
+                    e.args == se.timeouterror.args:
                 try:
-                    args[0].sig_visatimeout.emit()
+                    se.sig_visatimeout.emit()
                 except AttributeError:
                     pass
-                logger.exception(e)
+                se._logger.exception(e)
                 time.sleep(0.01)
                 # this is not fully tested ---- In ---------------------------
                 if timeoutcounter < 5:
@@ -131,46 +110,46 @@ def HandleVisaException(func):
                 else:
                     return -1
                 # this is not fully tested ---- Out --------------------------
-            elif isinstance(e, type(args[0].connError)) and \
-                    e.args == args[0].connError.args:
-                logger.exception(e)
-                logger.error('Connection lost, trying to reconnect')
+            elif isinstance(e, type(se.connError)) and \
+                    e.args == se.connError.args:
+                se._logger.exception(e)
+                se._logger.error('Connection lost, trying to reconnect')
                 notyetthereagain = True
-                args[0].res_close()
+                se.res_close()
                 while notyetthereagain:
                     try:
                         time.sleep(1)
                         try:
-                            args[0].res_close()
+                            se.res_close()
                         except AttributeError:
                             pass
-                        args[0].res_open()
-                        q = args[0]._visa_resource.query('*IDN?')
+                        se.res_open()
+                        q = se._visa_resource.query('*IDN?')
                         notyetthereagain = False
                     except VisaIOError:
-                        logger.debug('trying to reactivate the connection!')
-                logger.info('Exception of lost connection resolved! (I hope)')
-            elif isinstance(e, type(args[0].visaIOError)) and \
-                    e.args == args[0].visaIOError.args:
-                logger.exception(e)
-                logger.error('Visa I/O Error, trying to reconnect')
+                        se._logger.debug('trying to reactivate the connection!')
+                se._logger.info('Exception of lost connection resolved! (I hope)')
+            elif isinstance(e, type(se.visaIOError)) and \
+                    e.args == se.visaIOError.args:
+                se._logger.exception(e)
+                se._logger.error('Visa I/O Error, trying to reconnect')
                 notyetthereagain = True
-                args[0].res_close()
+                se.res_close()
                 while notyetthereagain:
                     try:
                         time.sleep(1)
                         try:
-                            args[0].res_close()
+                            se.res_close()
                         except AttributeError:
                             pass
-                        args[0].res_open()
-                        q = args[0]._visa_resource.query('*IDN?')
+                        se.res_open()
+                        q = se._visa_resource.query('*IDN?')
                         notyetthereagain = False
                     except VisaIOError:
-                        logger.debug('trying to reactivate the connection!')
-                logger.info('Exception of I/O error resolved! (I hope)')
+                        se._logger.debug('trying to reactivate the connection!')
+                se._logger.info('Exception of I/O error resolved! (I hope)')
             else:
-                logger.exception(e)
+                se._logger.exception(e)
             try:
                 q
                 return wrapper_HandleVisaException(*args, **kwargs)
@@ -192,6 +171,7 @@ class AbstractVISADriver(object):
 
     def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self._comLock = threading.Lock()
         self.delay = 0
@@ -297,6 +277,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
                                       stop_bits=vconst.StopBits.two,
                                       parity=vconst.Parity.none)
         super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         # self.initialise_device_specifics(**self._device_specifics)
 
@@ -326,6 +307,7 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
     def __init__(self, comLock=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         if comLock is not None:
             self._comLock = comLock
 
@@ -354,7 +336,7 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
 
 class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
-    """docstring for Instrument_GPxIB"""
+    """docstring for Instrument_GPIB"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

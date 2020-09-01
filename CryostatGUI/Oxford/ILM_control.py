@@ -49,7 +49,7 @@ class ILM_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
         # global Oxford
         # ilm211 = reload(Oxford.ilm211).ilm211
-        self.logger = log if log else logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.__name__ = "ILM_Updater " + InstrumentAddress
         self.control_state = 3

@@ -144,8 +144,7 @@ class zmqClient(zmqBare):
     def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_data='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         # print('zmqClient')
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger(
-            'CryostatGUI:' + __name__ + ':' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
@@ -156,8 +155,8 @@ class zmqClient(zmqBare):
         self.comms_downstream = self._zctx.socket(zmq.SUB)
         self.comms_downstream.connect(f'tcp://{ip_maincontrol}:{port_downstream}')
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, '{}'.format(self.comms_name).encode('ascii'))
-        # zmq.SUBSCRIBE, b'')
+                                        # zmq.SUBSCRIBE, b'')
+            zmq.SUBSCRIBE, self.comms_name.encode('ascii'))
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
         self.comms_upstream.connect(f'tcp://{ip_data}:{port_upstream}')
@@ -177,7 +176,6 @@ class zmqClient(zmqBare):
 
     # @ExceptionHandling
     def zmq_handle(self):
-        # print('zmq handling')
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         if self.comms_tcp in evts:
             try:
@@ -203,7 +201,7 @@ class zmqClient(zmqBare):
                         elif 'unlock' in command_dict:
                             self.lock.release()
                     except AttributeError as e:
-                        logger.exception(e)
+                        self._logger.exception(e)
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
@@ -226,6 +224,7 @@ class zmqMainControl(zmqBare):
 
     def __init__(self, context=None, _ident='mainControl', ip_maincontrol='*', ip_data='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, port_data=5559, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.ROUTER)
@@ -286,6 +285,7 @@ class zmqDataStore(zmqBare):
 
     def __init__(self, context=None, _ident='dataStore', ip_maincontrol='localhost', ip_data='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, port_data=5559, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
@@ -360,7 +360,7 @@ class zmqDataStore(zmqBare):
                         elif 'unlock' in command_dict:
                             self.lock.release()
                     except AttributeError as e:
-                        logger.exception(e)
+                        self._logger.exception(e)
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:

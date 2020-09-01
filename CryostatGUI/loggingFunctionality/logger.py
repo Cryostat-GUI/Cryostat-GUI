@@ -154,6 +154,7 @@ class Logger_configuration(Window_ui):
 
     def __init__(self, parent=None, **kwargs):
         super().__init__(ui_file=".\\configurations\\Logger_conf.ui", **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.read_configuration()
 
@@ -256,6 +257,7 @@ class main_Logger(AbstractLoopThread):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.interval = 5  # 5s interval for logging as initialisation
@@ -284,7 +286,7 @@ class main_Logger(AbstractLoopThread):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-            logger.exception(assertion)
+            self._logger.exception(assertion)
 
     def update_conf(self, conf):
         """
@@ -309,7 +311,7 @@ class main_Logger(AbstractLoopThread):
             self.sig_assertion.emit(
                 "Logger: Couldn't establish connection: {}".format(err)
             )
-            logger.exception(err)
+            self._logger.exception(err)
             return False
 
     def createtable(self, tablename, dictname):
@@ -432,9 +434,9 @@ class main_Logger(AbstractLoopThread):
 
     def storing_to_database(self, data, names):
         """store data to the database"""
-        logger.debug(f'storing {data} in database')
+        self._logger.debug(f'storing {data} in database')
         for name in names:
-            logger.debug(f'store {name}')
+            self._logger.debug(f'store {name}')
             try:
                 # self.correcting_database_types(name, data)
 
@@ -445,10 +447,10 @@ class main_Logger(AbstractLoopThread):
 
             except AssertionError as assertion:
                 self.sig_assertion.emit(assertion.args[0])
-                logger.exception(assertion)
+                self._logger.exception(assertion)
             except KeyError as key:
                 self.sig_assertion.emit(key.args[0])
-                logger.exception(key)
+                self._logger.exception(key)
 
     @pyqtSlot(dict)
     def store_data(self, data):
@@ -507,6 +509,7 @@ class main_Logger_adaptable(main_Logger):
 
     def __init__(self,  **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.interval = 1
 
@@ -516,7 +519,7 @@ class main_Logger_adaptable(main_Logger):
             what data should be logged is set in self.conf
             or will be set there eventually at any rate
         """
-        logger.debug('storing data in sqlite!')
+        self._logger.debug('storing data in sqlite!')
         self.operror = False
         if self.not_yet_initialised:
             return
@@ -527,7 +530,7 @@ class main_Logger_adaptable(main_Logger):
             self.conf['logfile_location'])
         if not self.connected:
             self.sig_assertion.emit('no connection, storing locally')
-            logger.debug('no connection to database, storing locally')
+            self._logger.debug('no connection to database, storing locally')
             self.local_list.append(data)
             return
 
@@ -544,14 +547,14 @@ class main_Logger_adaptable(main_Logger):
             self.operror = True
             self.local_list.append(data)
             self.sig_assertion.emit(e.args[0])
-            logger.exception(e)
+            self._logger.exception(e)
         except sqlite3.Error as er:
             if not self.operror:
                 self.local_list.append(data)
             self.sig_assertion.emit(er.args[0])
-            logger.exception(er)
+            self._logger.exception(er)
             print(er)
-        logger.debug('done storing data in sqlite!')
+        self._logger.debug('done storing data in sqlite!')
         # data.update(timedict)
 
     def update_conf(self, conf):
@@ -574,6 +577,7 @@ class live_Logger_bare(object):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
         self.interval = 1
         self.length_list = 60
@@ -641,7 +645,7 @@ class live_Logger_bare(object):
                             timediff = (datetime.strptime(
                                 dic['realtime'], '%Y-%m-%d %H:%M:%S.%f') - datetime.now()).total_seconds()
                         except ValueError as err:
-                            logger.error(f'problem parsing time in {dic}')
+                            self._logger.error(f'problem parsing time in {dic}')
                             if 'does not match format' in err.args[0]:
                                 try:
                                     timediff = (datetime.strptime(
@@ -649,8 +653,11 @@ class live_Logger_bare(object):
                                 except ValueError as e:
                                     raise e
                             else:
-                                logger.exception(err)
+                                self._logger.exception(err)
                                 timediff = 0
+                        except TypeError:
+                            timediff = (dic['realtime'] -
+                                        datetime.now()).total_seconds()
                         uptodate = abs(timediff) < 10
 
                         # print(times[0])
@@ -664,16 +671,16 @@ class live_Logger_bare(object):
                                     self.Gauges[instr][varkey].set(dic[varkey])
                                 except TypeError as err:
                                     if not err.args[0].startswith("float() argument must be a string or a number"):
-                                        logger.exception(err.args[0])
+                                        self._logger.exception(err.args[0])
                                     else:
-                                        # logger.debug(err.args[0] + f'instr:
+                                        # self._logger.debug(err.args[0] + f'instr:
                                         # {instr}, varkey: {varkey}')
                                         pass
                                 except ValueError as err:
                                     if not err.args[0].startswith("could not convert string to float"):
-                                        logger.exception(err.args[0])
+                                        self._logger.exception(err.args[0])
                                     else:
-                                        # logger.debug(err.args[0] + f'instr:
+                                        # self._logger.debug(err.args[0] + f'instr:
                                         # {instr}, varkey: {varkey}')
                                         pass
                             else:
@@ -700,10 +707,10 @@ class live_Logger_bare(object):
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-            logger.exception(assertion)
+            self._logger.exception(assertion)
         except KeyError as key:
             self.sig_assertion.emit("live logger: " + key.args[0])
-            logger.exception(key)
+            self._logger.exception(key)
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -752,10 +759,10 @@ class live_Logger_bare(object):
             except TypeError as e:
                 # raise AssertionError(e_type.args[0])
                 # print('TYPE CALC')
-                logger.exception(e)
+                self._logger.exception(e)
             except ValueError as e_val:
                 raise AssertionError(e_val.args[0])
-                logger.exception(e)
+                self._logger.exception(e)
 
     def pre_init(self):
         self.initialised = False
@@ -798,7 +805,7 @@ class live_Logger_bare(object):
                                 # print(self.Gauges)
                         except ValueError:
                             # print('sth went wrong', instrument, variablekey)
-                            logger.info(
+                            self._logger.info(
                                 'sth went wrong with registering prometheus Gauges')
                         if all((x not in variablekey for x in self.noCalc)):
                             for calc in self.calculations:
@@ -844,6 +851,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(mainthread=mainthread, **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
@@ -860,7 +868,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-            logger.exception(assertion)
+            self._logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -876,7 +884,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
             self.running()
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
-            logger.exception(assertion)
+            self._logger.exception(assertion)
         finally:
             QTimer.singleShot(self.interval * 1e3, self.worker)
 
@@ -886,6 +894,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         del self.initialised
 
     def zmq_handle(self):
@@ -920,7 +929,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             self.initialisation()
 
     def get_answer(self, qdict):
-        logger.debug(f'getting answer for {qdict}')
+        self._logger.debug(f'getting answer for {qdict}')
         adict = dict()
         live = qdict['live']
         try:
@@ -936,7 +945,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         adict['data'] = data
         adict['uptodate'] = uptodate
         adict['timediff'] = timediff
-        logger.debug(f'answer: {adict}')
+        self._logger.debug(f'answer: {adict}')
         return adict
 
 
@@ -956,6 +965,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         self._identity = self.kwargs['identity']
         super().__init__(ui_file='.\\..\\loggingFunctionality\\Logging_main.ui', **kwargs)
         self.softwarecontrol_timer.stop()
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
@@ -1047,6 +1057,7 @@ class Logger_measurement_configuration(Window_ui):
 
     def __init__(self, parent=None, **kwargs):
         super().__init__(ui_file=".\\configurations\\Log_meas_conf.ui", **kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
         self.conf = self.initialise_dicts()
@@ -1091,6 +1102,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
         self.mainthread.sig_log_measurement.connect(self.store_data)
 
@@ -1271,7 +1283,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
-                logger.exception(err)
+                self._logger.exception(err)
         else:
             try:
                 with open(data["datafile"], "w") as f:
@@ -1279,7 +1291,7 @@ class measurement_Logger(AbstractEventhandlingThread):
                     f.write(datastring)
             except IOError as err:
                 self.sig_assertion.emit("DataSaver: " + err.args[0])
-                logger.exception(err)
+                self._logger.exception(err)
 
         # try:
         #     with open(data['datafile'][:-3]+'csv', 'a') as f:
@@ -1292,14 +1304,23 @@ if __name__ == '__main__':
     # dbname = 'He_first_cooldown.db'
     # conn = sqlite3.connect(dbname)
     # mycursor = conn.cursor()
-
+    logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stderr)
+
+    logger_2 = logging.getLogger('pyvisa')
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger('PyQt5')
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
     handler.setFormatter(formatter)
+
     logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
 
     app = QtWidgets.QApplication(sys.argv)
     form = LoggingGUI(

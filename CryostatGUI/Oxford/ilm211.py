@@ -18,6 +18,7 @@ class ilm211(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the Oxford controller

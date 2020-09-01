@@ -62,8 +62,6 @@ from zmqcomms import zmqDataStore
 # from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
 
-logger = logging.getLogger('CryostatGUI.utility')
-
 
 class BlockedError(Exception):
     pass
@@ -249,7 +247,7 @@ def ExceptionHandling(func):
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
         # else:
-        #     logger.warning('There is a bug!! ' + func.__name__)
+        #     args[0]._logger.warning('There is a bug!! ' + func.__name__)
 
     return wrapper_ExceptionHandling
 
@@ -362,45 +360,45 @@ class AbstractApp(QtWidgets.QMainWindow):
         # print('abstractApp pre')
         super().__init__(*args, **kwargs)
         # print('abstractApp post')
-        # self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         if ui_file is not None:
             loadUi(ui_file, self)
 
-        self.setup_logging_base()
+        # self.setup_logging_base()
         # self.setup_logging()
         self.sig_assertion.connect(
-            lambda value: self.logger_personal.exception(value))
+            lambda value: self._logger.exception(value))
         self.sig_visatimeout.connect(
-            lambda value: self.logger_personal.exception(value))
+            lambda value: self._logger.exception(value))
 
-    def setup_logging_base(self):
-        self.logger_all = logging.getLogger()
-        self.logger_personal = logging.getLogger(
-            'CryostatGUI:' + __name__ + ':' + self.__class__.__name__)
+    # def setup_logging_base(self):
+    #     self.logger_all = logging.getLogger()
+    #     self.logger_personal = logging.getLogger(
+    #         'CryostatGUI:' + __name__ + ':' + self.__class__.__name__)
 
-        # self.Log_DBhandler = SQLiteHandler(
-        #     db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
-        # self.Log_DBhandler.setLevel(logging.DEBUG)
+    #     # self.Log_DBhandler = SQLiteHandler(
+    #     #     db='Errors\\' + dt.datetime.now().strftime('%Y%m%d') + '_dblog.db')
+    #     # self.Log_DBhandler.setLevel(logging.DEBUG)
 
-        self.logger_personal.setLevel(logging.DEBUG)
-        self.logger_all.setLevel(logging.INFO)
-        # self.logger_personal.addHandler(self.Log_DBhandler)
+    #     self.logger_personal.setLevel(logging.DEBUG)
+    #     self.logger_all.setLevel(logging.INFO)
+    #     # self.logger_personal.addHandler(self.Log_DBhandler)
 
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger_personal.addHandler(handler)
-        self.logger_all.addHandler(handler)
+    #     handler = logging.StreamHandler(sys.stderr)
+    #     handler.setLevel(logging.DEBUG)
+    #     formatter = logging.Formatter(
+    #         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    #     handler.setFormatter(formatter)
+    #     self.logger_personal.addHandler(handler)
+    #     self.logger_all.addHandler(handler)
 
-        self._logger = self.logger_personal
+    #     self._logger = self.logger_personal
 
-    def setup_logging(self):
-        """set up the logger, handler, for now in DEBUG
-        TODO: connect logging levels with GUI preferences"""
+    # def setup_logging(self):
+    #     """set up the logger, handler, for now in DEBUG
+    #     TODO: connect logging levels with GUI preferences"""
 
-        self.logger_all.setLevel(logging.DEBUG)
+    #     self.logger_all.setLevel(logging.DEBUG)
 
         # self.logger_all.addHandler(self.Log_DBhandler)
 
@@ -459,6 +457,7 @@ class AbstractMainApp(AbstractApp):
     def __init__(self, **kwargs):
         # print('mainapp pre')
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # print('mainapp post')
 
         self.softwarecontrol_timer = QTimer()
@@ -548,9 +547,9 @@ class AbstractThread(QObject):
 
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
-        self.logger = logging.getLogger(__name__)
-        self.sig_assertion.connect(lambda value: logger.exception(value))
-        self.sig_visatimeout.connect(lambda value: logger.exception(value))
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self.sig_assertion.connect(lambda value: self._logger.exception(value))
+        self.sig_visatimeout.connect(lambda value: self._logger.exception(value))
 
     @pyqtSlot()
     def work(self):
@@ -569,6 +568,7 @@ class AbstractLoopThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 0.5  # second
         self.lock = Lock()
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
@@ -600,6 +600,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.run_finished = False
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()  # int
     def work(self):
@@ -641,6 +642,7 @@ class AbstractEventhandlingThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 500
         self.lock = Lock()
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()
     def work(self):
@@ -666,7 +668,7 @@ class Workerclass(QObject):
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
     def work(self):
         """run the passed function"""
@@ -683,7 +685,7 @@ class Window_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, **kwargs):
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         if "lock" in kwargs:
             del kwargs["lock"]
@@ -719,7 +721,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, Name=None, **kwargs):
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # print('trayservice pre')
         super().__init__(**kwargs)
         # print('trayservice post')
@@ -798,7 +800,7 @@ class Window_plotting_m(Window_ui):
     ):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.data = data
         self.labels_x = labels_x
         self.labels_y = labels_y
@@ -958,7 +960,7 @@ class Window_plotting_specification(Window_ui):
         **kwargs,
     ):
         super().__init__(ui_file, **kwargs)
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
 
         self.ui_file_plotselection = (
             ".\\configurations\\Data_display_selection_presetempty.ui"
@@ -973,7 +975,7 @@ class Window_plotting_specification(Window_ui):
         if not hasattr(mainthread, "data_live"):
             self.sig_error.emit("no live data to plot!")
 
-            logger.warning("no live data to plot!")
+            self._logger.warning("no live data to plot!")
             self.sig_error.emit(
                 "If you want to see live data, start the live logger!")
 
@@ -1024,7 +1026,7 @@ class Window_plotting_specification(Window_ui):
             with open(filename) as f:
                 self.selection_int = json.load(f)
         except FileNotFoundError:
-            logger.warning(f"The preset file you wanted ({filename}) was not found!")
+            self._logger.warning(f"The preset file you wanted ({filename}) was not found!")
             self.sig_error.emit(
                 f"Plotting: The preset file you wanted ({filename}) was not found!"
             )
@@ -1212,7 +1214,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     self.sig_error.emit('plotting: do not choose "-" '
                                         "please, there is nothing behind it!")
-                    logger.warning(
+                    self._logger.warning(
                         'do not choose "-" please, there is nothing behind it!')
 
                     return
@@ -1256,7 +1258,7 @@ class Window_plotting_specification(Window_ui):
                         plot_entry["X"]["value"]
                     ]
                 except KeyError:
-                    logger.warning(
+                    self._logger.warning(
                         'There was to be an empty plot - I ignored it....')                    
                     self.sig_error.emit(
                         "Plotting: There was to be an empty plot - I ignored it...."
@@ -1275,7 +1277,7 @@ class Window_plotting_specification(Window_ui):
                             labels_l.append('{}: {}'.format(
                                 plot_entry[ax]['instrument'], plot_entry[ax]['value']))
                         except KeyError:
-                            logger.warning(
+                            self._logger.warning(
                                 'some key was specified which is not present in the data!')
 
 

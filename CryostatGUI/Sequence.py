@@ -282,6 +282,7 @@ class Sequence_Functions(object):
     def __init__(self, device_signals, **kwargs):
         super().__init__(**kwargs)
         self.devices = device_signals
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         # self.temp_VTI_offset = probe_Toffset
 
     def setTemperature(self, temperature: float) -> None:
@@ -295,7 +296,7 @@ class Sequence_Functions(object):
         self.devices['ITC']['setTemp'].emit(dict(isSweep=False,
                                                  isSweepStartCurrent=False,
                                                  setTemp=temperature,))
-        logger.debug('setting the temp to {}K'.format(temperature))
+        self._logger.debug('setting the temp to {}K'.format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
         """
@@ -306,7 +307,7 @@ class Sequence_Functions(object):
         """
         self.devices['IPS']['setField'].emit(
             dict(field=field, EndMode=EndMode))
-        logger.debug(f'setting the field to {field}T, EndMode = {EndMode}')
+        self._logger.debug(f'setting the field to {field}T, EndMode = {EndMode}')
 
     def setPosition(self, position: float, speedindex: float) -> None:
         """
@@ -316,7 +317,7 @@ class Sequence_Functions(object):
             needs to be implemented.
             TODO: override method
         """
-        logger.debug(f'setting the position to {position}, speedindex = {speedindex}')
+        self._logger.debug(f'setting the position to {position}, speedindex = {speedindex}')
 
     def message_to_user(self, message: str) -> None:
         """deliver a message to a user in some way
@@ -328,7 +329,7 @@ class Sequence_Functions(object):
         # print(message)
         # self.devices['general']['message_to_user'].emit(message)
         self.sig_message.emit(message)
-        logger.debug(f'A message to the user: {message}')
+        self._logger.debug(f'A message to the user: {message}')
 
 
 class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
@@ -385,7 +386,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                 fin = self.running()
         except problemAbort as e:
             fin = f'Error occurred, aborting sequence! Error: {e}'
-            logger.error(fin)
+            self._logger.error(fin)
 
         finally:
             try:
@@ -393,7 +394,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             except NameError:
                 self.sig_finished.emit(
                     'An Error occurred! Aborted sequence completely!')
-                logger.error('An Error occurred! Aborted sequence completely!')
+                self._logger.error('An Error occurred! Aborted sequence completely!')
 
     def scan_T_programSweep(self, start: float, end: float, Nsteps: float, temperatures: list, SweepRate: float, SpacingCode: str = 'uniform'):
         """
@@ -411,7 +412,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                                                  start=start,
                                                  end=end,
                                                  SweepRate=SweepRate))
-        logger.debug(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}')
+        self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}')
 
     def scan_H_programSweep(self, start: float, end: float, Nsteps: float, fields: list, SweepRate: float, EndMode: str, SpacingCode: str = 'uniform'):
         """
@@ -427,7 +428,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     #         here, the devices should be programmed to start
     #         the respective Sweep of positions
     #     """
-    # logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
+    # self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
     # Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex},
     # SpacingCode: {SpacingCode}')
 
@@ -435,7 +436,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         """Method to be overridden by a child class
         return bool stating success or failure (optional)
         """
-        logger.debug(f'setFieldEndMode :: EndMode = {EndMode}')
+        self._logger.debug(f'setFieldEndMode :: EndMode = {EndMode}')
 
     def getTemperature(self) -> float:
         """Read the temperature 
@@ -463,7 +464,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             # print('not up to date')
             self.sig_assertion.emit(
                 f'Sequence: readData: data not sufficiently up to date. ({dataind1}: {timediff})')
-            logger.warning(f'data not sufficiently up to date. ({dataind1}: {timediff})')
+            self._logger.warning(f'data not sufficiently up to date. ({dataind1}: {timediff})')
             time.sleep(1)
             return False
         else:
@@ -487,7 +488,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             # print('KeyErr')
             self.sig_assertion.emit(
                 'Sequence: readData: no data: {}'.format(err.args[0]))
-            logger.error(
+            self._logger.error(
                 'no data: {} for request (Live={}) {}: {}'.format(err.args[0], Live, dataind1, dataind2))
             self.check_running()
             time.sleep(1)
@@ -502,14 +503,14 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             # print(data)
             temp = data[dataind1][dataind2]
         try:
-            logger.info(f'received from {dataind1} {dataind2}: {temp}')
+            self._logger.info(f'received from {dataind1} {dataind2}: {temp}')
             # temp = float(temp)
             temp = temp[-1]
         except TypeError:
             if Live:
-                logger.warning(f'datapoints are not a list: {temp}')
+                self._logger.warning(f'datapoints are not a list: {temp}')
         except IndexError:
-            logger.warning(f'datapoints are maybe an empty list: {temp}')
+            self._logger.warning(f'datapoints are maybe an empty list: {temp}')
         return temp
 
     def getPosition(self) -> float:
@@ -520,7 +521,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             returns: position as a float
         """
         val = np.random.rand() * 360
-        logger.debug(f'getPosition :: returning random value: {val}')
+        self._logger.debug(f'getPosition :: returning random value: {val}')
         return val
 
     def getField(self) -> float:
@@ -531,7 +532,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         returns: Field as a float
         """
         val = np.random.rand() * 9
-        logger.debug(f'getField :: returning random value: {val}')
+        self._logger.debug(f'getField :: returning random value: {val}')
         return val
 
     # def getChamber(self):
@@ -542,7 +543,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
     #     returns: chamber status
     #     """
     #     val = np.random.rand() * 4
-    #     logger.debug(f'getChamber :: returning random value: {val}')
+    #     self._logger.debug(f'getChamber :: returning random value: {val}')
     #     return val
 
     def checkStable_Temp(self, temp: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
@@ -566,14 +567,14 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
-        logger.debug(f'checking for stable temp: {temp}K')
+        self._logger.debug(f'checking for stable temp: {temp}K')
         if direction == 0 or ApproachMode != 'Sweep':
             # no information, temp should really stabilize
 
             if ApproachMode == 'Sweep':
                 # self.sig_assertion.emit(
                 #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-                # logger.error(
+                # self._logger.error(
                 #     'no direction information available in Sweep, cannot check temperature!')
                 raise problemAbort('no direction information available in Sweep, cannot check temperature!')
                 # self.stop()
@@ -581,7 +582,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
             stable = False
             while not stable:
-                logger.debug(f'waiting for stabilized temp: {temp}')
+                self._logger.debug(f'waiting for stabilized temp: {temp}')
                 self.check_running()
                 count = 0
 
@@ -623,16 +624,16 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
             # temp should be rising, all temps above 'temp' are fine
             while self.getTemperature() < temp:
                 self.check_running()
-                logger.debug(f'temp not yet above {temp}')
+                self._logger.debug(f'temp not yet above {temp}')
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
             while self.getTemperature() > temp:
                 self.check_running()
-                logger.debug(f'temp not yet below {temp}')
+                self._logger.debug(f'temp not yet below {temp}')
                 time.sleep(1)
 
-        logger.debug(f'Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
+        self._logger.debug(f'Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
     def execute_remark(self, remark: str, **kwargs) -> None:
         """use the given remark
@@ -640,7 +641,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         shoud be overriden in case the remark means anything"""
         try:
             if remark.strip()[:5] == 'scanT':
-                logger.debug('scan T explicitly')
+                self._logger.debug('scan T explicitly')
                 temps = [float(x) for x in mS.searchf_number.findall(remark)]
                 self.execute_scan_T(start=temps[0], end=temps[-1],
                                     temperatures_forced=temps,
@@ -674,7 +675,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         method should be overriden - possibly some convenience functionality
             will be added in the future
         """
-        logger.debug(f'Field {Field} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
+        self._logger.debug(f'Field {Field} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
 
     # def checkPosition(self, position: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
     #     """check whether the Field has passed a certain value
@@ -702,62 +703,62 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
-        logger.debug(f'going into safe shutdown mode')
+        self._logger.debug(f'going into safe shutdown mode')
 
     # def chamber_purge(self):
     #     """purge the chamber
 
     #     must block until the chamber is purged
     #     """
-    #     logger.debug(f'chamber_purge :: purging chamber')
+    #     self._logger.debug(f'chamber_purge :: purging chamber')
 
     # def chamber_vent(self):
     #     """vent the chamber
 
     #     must block until the chamber is vented
     #     """
-    #     logger.debug(f'chamber_vent :: venting chamber')
+    #     self._logger.debug(f'chamber_vent :: venting chamber')
 
     # def chamber_seal(self):
     #     """seal the chamber
 
     #     must block until the chamber is sealed
     #     """
-    #     logger.debug(f'chamber_seal :: sealing chamber')
+    #     self._logger.debug(f'chamber_seal :: sealing chamber')
 
     # def chamber_continuous(self, action):
     #     """pump or vent the chamber continuously"""
     #     if action == 'pumping':
-    #         logger.debug(f'chamber_continuous :: pumping continuously')
+    #         self._logger.debug(f'chamber_continuous :: pumping continuously')
     #     if action == 'venting':
-    #         logger.debug(f'chamber_continuous :: venting continuously')
+    #         self._logger.debug(f'chamber_continuous :: venting continuously')
 
     # def chamber_high_vacuum(self):
     #     """pump the chamber to high vacuum
 
     #     must block until the chamber is  at high vacuum
     #     """
-    #     logger.debug(f'chamber_high_vacuum :: bringing the chamber to HV')
+    #     self._logger.debug(f'chamber_high_vacuum :: bringing the chamber to HV')
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity
             Must be overridden!
             return dict with all data according to the set dataflags
         """
-        logger.debug(f' measuring the resistivity with the following dataflags: {dataflags} and the following bridge configuration: {bridge_conf}')
+        self._logger.debug(f' measuring the resistivity with the following dataflags: {dataflags} and the following bridge configuration: {bridge_conf}')
         return dict(res1=5, exc1=10, res2=8, exc2=10)
 
     def measuring_store_data(self, data: dict, datafile: str) -> None:
         """Store measured data
             Must be overridden!
         """
-        logger.debug(f' store the measured data: {data} in the file: {datafile}.')
+        self._logger.debug(f' store the measured data: {data} in the file: {datafile}.')
 
     def res_datafilecomment(self, comment: str, datafile: str) -> None:
         """write a comment to the datafile
             Must be overridden!
         """
-        logger.debug(f' write a comment: {comment} in the datafile: {datafile}.')
+        self._logger.debug(f' write a comment: {comment} in the datafile: {datafile}.')
 
     def res_change_datafile(self, datafile: str, mode: str) -> None:
         """change the datafile (location)
@@ -767,7 +768,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
                 'w': written over
             (to) the new datafile
         """
-        logger.debug(f' change the datafile to: {datafile}, with mode {mode}.')
+        self._logger.debug(f' change the datafile to: {datafile}, with mode {mode}.')
 
     @pyqtSlot()
     def setTempVTIOffset(self, offset):
@@ -779,6 +780,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
 
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(
@@ -802,7 +804,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
             with self.mainthread.controls_Lock:
                 conf['store_signal'].emit(
                     deepcopy(measure_resistance_singlechannel(**conf)))
-                logger.debug('measuring', convert_time(time.time()))
+                self._logger.debug('measuring', convert_time(time.time()))
         finally:
             QTimer.singleShot(
                 30 * 1e3, lambda: self.measure_oneshot(self.conf))
@@ -815,6 +817,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
 
     def __init__(self, mainthread):
         super().__init__()
+        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(self.measure_oneshot_once)
@@ -879,7 +882,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self):
         """invoke a single measurement and send it to saving the data"""
         try:
-            logger.debug('measuring', convert_time(time.time()), 'entering')
+            self._logger.debug('measuring', convert_time(time.time()), 'entering')
             self.measure_oneshot_once()
 
         # except AttributeError as e_arr:
