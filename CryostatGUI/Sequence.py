@@ -282,7 +282,7 @@ class Sequence_Functions(object):
     def __init__(self, device_signals, **kwargs):
         super().__init__(**kwargs)
         self.devices = device_signals
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # self.temp_VTI_offset = probe_Toffset
 
     def setTemperature(self, temperature: float) -> None:
@@ -780,7 +780,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
 
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(
@@ -817,7 +817,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
 
     def __init__(self, mainthread):
         super().__init__()
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.mainthread.sig_measure_oneshot.connect(self.measure_oneshot_once)

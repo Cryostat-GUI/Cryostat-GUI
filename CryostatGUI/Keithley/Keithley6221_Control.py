@@ -41,7 +41,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
 
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.Keithley6221 = Keithley6221(
             InstrumentAddress=InstrumentAddress, comLock=comLock)

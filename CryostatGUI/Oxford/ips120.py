@@ -25,7 +25,7 @@ class ips120(AbstractSerialDeviceDriver):
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.setControl()
 
     def read_buffer(self):

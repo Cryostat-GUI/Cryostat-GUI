@@ -50,7 +50,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
 
         self.__name__ = 'SR830_Updater ' + InstrumentAddress
         self._comLock = dummy() if comLock is None else comLock
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
@@ -187,7 +187,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         self._Lockin = Lockin
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 

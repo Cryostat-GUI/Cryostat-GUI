@@ -76,7 +76,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'ITC_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
@@ -650,7 +650,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         super().__init__(**kwargs)
 
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.__name__ = 'ITC_Window'
         self.ITC_values = dict(setTemperature=4, SweepRate=2)

@@ -63,7 +63,7 @@ class SQLBase(object):
 
     def __init__(self, **kwargs):
         self._process_init_kwargs(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     def _identifying_data(self):
         return ''

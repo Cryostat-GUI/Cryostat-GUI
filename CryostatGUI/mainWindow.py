@@ -148,7 +148,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.setupUi(self)
 
         self.__name__ = 'MainWindow'
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.threads = dict(Lock=Lock())
         # self.threads = dict()
         self.threads_tiny = list()

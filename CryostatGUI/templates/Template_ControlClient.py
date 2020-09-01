@@ -51,7 +51,7 @@ class Template_ControlClient(AbstractLoopThreadClient):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'DeviceName_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # try:
         # print(self.logger, self.logger.name)
 

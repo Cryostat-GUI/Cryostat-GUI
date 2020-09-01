@@ -84,7 +84,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'LakeShore350_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.LakeShore350 = LakeShore350(
             InstrumentAddress=InstrumentAddress, comLock=comLock)
@@ -455,7 +455,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = self.kwargs['InstrumentAddress']
         # print('GUI pre')
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)

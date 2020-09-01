@@ -47,7 +47,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     # def go(self, command):
     #     return super().go(command)

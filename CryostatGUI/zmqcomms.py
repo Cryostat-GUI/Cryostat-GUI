@@ -144,7 +144,7 @@ class zmqClient(zmqBare):
     def __init__(self, context=None, identity=None, ip_maincontrol='localhost', ip_data='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, *args, **kwargs):
         # print('zmqClient')
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.comms_name = identity
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
@@ -224,7 +224,7 @@ class zmqMainControl(zmqBare):
 
     def __init__(self, context=None, _ident='mainControl', ip_maincontrol='*', ip_data='localhost', port_reqp=5556, port_downstream=5557, port_upstream=5558, port_data=5559, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.ROUTER)
@@ -285,7 +285,7 @@ class zmqDataStore(zmqBare):
 
     def __init__(self, context=None, _ident='dataStore', ip_maincontrol='localhost', ip_data='*', port_reqp=5556, port_downstream=5557, port_upstream=5558, port_data=5559, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)

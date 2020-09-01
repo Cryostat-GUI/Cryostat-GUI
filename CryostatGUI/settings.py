@@ -19,7 +19,7 @@ class windowSettings(Window_ui):
 
     def __init__(self, signals, zmqcontext, data, ui_file='.\\configurations\\settings_global.ui'):
         super(windowSettings, self).__init__(ui_file)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.MTsigs = signals
         self.zmq_context = zmqcontext
         self.zmq_sSettings = self.zmq_context.socket(zmq.REQ)

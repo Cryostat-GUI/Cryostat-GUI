@@ -61,7 +61,7 @@ class ITC_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
         # global Oxford
         # itc503 = reload(Oxford.itc503).itc503
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
         self.__name__ = "ITC_Updater " + InstrumentAddress

@@ -171,7 +171,7 @@ class AbstractVISADriver(object):
 
     def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self._comLock = threading.Lock()
         self.delay = 0
@@ -277,7 +277,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
                                       stop_bits=vconst.StopBits.two,
                                       parity=vconst.Parity.none)
         super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         # self.initialise_device_specifics(**self._device_specifics)
 
@@ -307,7 +307,7 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
     def __init__(self, comLock=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         if comLock is not None:
             self._comLock = comLock
 

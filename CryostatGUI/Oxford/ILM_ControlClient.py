@@ -51,11 +51,10 @@ class ILM_ControlClient(AbstractLoopThreadClient):
 
     def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = 'ILM_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
@@ -182,7 +181,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # self.setupUi(self)
 
         self.__name__ = 'ILM_Window'
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -199,7 +198,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
-            self.logger_personal.exception(e)
+            self._logger.exception(e)
 
     @pyqtSlot(dict)
     def updateGUI(self, data):

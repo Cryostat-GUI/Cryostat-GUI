@@ -360,7 +360,7 @@ class AbstractApp(QtWidgets.QMainWindow):
         # print('abstractApp pre')
         super().__init__(*args, **kwargs)
         # print('abstractApp post')
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         if ui_file is not None:
             loadUi(ui_file, self)
 
@@ -457,7 +457,7 @@ class AbstractMainApp(AbstractApp):
     def __init__(self, **kwargs):
         # print('mainapp pre')
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # print('mainapp post')
 
         self.softwarecontrol_timer = QTimer()
@@ -547,7 +547,7 @@ class AbstractThread(QObject):
 
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.sig_assertion.connect(lambda value: self._logger.exception(value))
         self.sig_visatimeout.connect(lambda value: self._logger.exception(value))
 
@@ -568,7 +568,7 @@ class AbstractLoopThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 0.5  # second
         self.lock = Lock()
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
@@ -600,7 +600,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.run_finished = False
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()  # int
     def work(self):
@@ -642,7 +642,7 @@ class AbstractEventhandlingThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 500
         self.lock = Lock()
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     @pyqtSlot()
     def work(self):
@@ -668,7 +668,7 @@ class Workerclass(QObject):
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
     def work(self):
         """run the passed function"""
@@ -685,7 +685,7 @@ class Window_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, **kwargs):
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         if "lock" in kwargs:
             del kwargs["lock"]
@@ -721,7 +721,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, Name=None, **kwargs):
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         # print('trayservice pre')
         super().__init__(**kwargs)
         # print('trayservice post')
@@ -800,7 +800,7 @@ class Window_plotting_m(Window_ui):
     ):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.data = data
         self.labels_x = labels_x
         self.labels_y = labels_y
@@ -960,7 +960,7 @@ class Window_plotting_specification(Window_ui):
         **kwargs,
     ):
         super().__init__(ui_file, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.ui_file_plotselection = (
             ".\\configurations\\Data_display_selection_presetempty.ui"

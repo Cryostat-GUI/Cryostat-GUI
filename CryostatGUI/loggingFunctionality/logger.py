@@ -154,7 +154,7 @@ class Logger_configuration(Window_ui):
 
     def __init__(self, parent=None, **kwargs):
         super().__init__(ui_file=".\\configurations\\Logger_conf.ui", **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.read_configuration()
 
@@ -257,7 +257,7 @@ class main_Logger(AbstractLoopThread):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
 
         self.interval = 5  # 5s interval for logging as initialisation
@@ -509,7 +509,7 @@ class main_Logger_adaptable(main_Logger):
 
     def __init__(self,  **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.interval = 1
 
@@ -577,7 +577,7 @@ class live_Logger_bare(object):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
         self.interval = 1
         self.length_list = 60
@@ -851,7 +851,7 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
 
     def __init__(self, mainthread=None, **kwargs):
         super().__init__(mainthread=mainthread, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         mainthread.sig_running_new_thread.connect(self.pre_init)
         mainthread.sig_running_new_thread.connect(self.initialisation)
@@ -894,7 +894,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         del self.initialised
 
     def zmq_handle(self):
@@ -965,7 +965,7 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         self._identity = self.kwargs['identity']
         super().__init__(ui_file='.\\..\\loggingFunctionality\\Logging_main.ui', **kwargs)
         self.softwarecontrol_timer.stop()
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         # start thread 1: main_logger
         # start thread 2: newLiveLogger with zmq capability
@@ -1057,7 +1057,7 @@ class Logger_measurement_configuration(Window_ui):
 
     def __init__(self, parent=None, **kwargs):
         super().__init__(ui_file=".\\configurations\\Log_meas_conf.ui", **kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
 
         self.pushBrowseFileLocation.clicked.connect(self.window_FileDialogSave)
         self.conf = self.initialise_dicts()
@@ -1102,7 +1102,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 
     def __init__(self, mainthread, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.mainthread = mainthread
         self.mainthread.sig_log_measurement.connect(self.store_data)
 

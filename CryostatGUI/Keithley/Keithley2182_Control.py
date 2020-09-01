@@ -32,7 +32,7 @@ class Keithley2182_Updater(AbstractLoopThread):
     def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.'__name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
         self.save_InstrumentAddress = InstrumentAddress
         self.save_comLock = comLock
         # global Keithley
