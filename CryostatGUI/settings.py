@@ -155,7 +155,7 @@ class windowSettings(Window_ui):
                 tempcontrol_preset = json.loads(f)
         except FileNotFoundError:
             self.sig_error.emit(f'Settings: The preset file you wanted ({filename}) was not found!')
-            self.?logger.warning(f'The preset file you wanted ({filename}) was not found!')
+            self._logger.warning(f'The preset file you wanted ({filename}) was not found!')
             return
 
         for key in tempcontrol_preset:
