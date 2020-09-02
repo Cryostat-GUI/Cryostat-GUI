@@ -24,45 +24,46 @@ class Keithley2182_Updater(AbstractLoopThread):
         the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(
-        Voltage_V=None,
-        Internal_K=None,
-        Present_K=None)
+    sensors = dict(Voltage_V=None, Internal_K=None, Present_K=None)
 
-    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.save_InstrumentAddress = InstrumentAddress
         self.save_comLock = comLock
         # global Keithley
         # K_2182 = reload(Keithley.Keithley2182)
 
         self.Keithley2182 = Keithley2182(
-            InstrumentAddress=InstrumentAddress, comLock=comLock)
-        self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
+            InstrumentAddress=InstrumentAddress, comLock=comLock
+        )
+        self.__name__ = "Keithley2182_Updater " + InstrumentAddress
 
     # @control_checks
     @ExceptionHandling
     def running(self):
         """Measure Voltage, send the data"""
-        self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
-        self.sensors[
-            'Internal_K'] = self.Keithley2182.measureInternalTemperature()
-        self.sensors[
-            'Present_K'] = self.Keithley2182.measurePresentTemperature()
+        self.sensors["Voltage_V"] = self.Keithley2182.measureVoltage()
+        self.sensors["Internal_K"] = self.Keithley2182.measureInternalTemperature()
+        self.sensors["Present_K"] = self.Keithley2182.measurePresentTemperature()
 
-        self.sensors['realtime'] = datetime.now()
+        self.sensors["realtime"] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 
         error = self.Keithley2182.query_error()
-        if error[0] != '0':
-            self._logger.error('code:{}, message:{}'.format(
-                error[0], error[1].strip('"')))
-            if error[0] == '-213':
+        if error[0] != "0":
+            self._logger.error(
+                "code:{}, message:{}".format(error[0], error[1].strip('"'))
+            )
+            if error[0] == "-213":
                 self.Keithley2182 = Keithley2182(
-                    InstrumentAddress=self.save_InstrumentAddress, comLock=self.save_comLock)
+                    InstrumentAddress=self.save_InstrumentAddress,
+                    comLock=self.save_comLock,
+                )
 
     @pyqtSlot()
     @ExceptionHandling

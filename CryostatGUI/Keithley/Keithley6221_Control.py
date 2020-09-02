@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSlot
 # from PyQt5.uic import loadUi
 
 from Keithley.Keithley6221 import Keithley6221
+
 # from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
@@ -38,14 +39,17 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         #        Stop_Current = None
     )
 
-    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
         super().__init__(**kwargs)
 
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         self.Keithley6221 = Keithley6221(
-            InstrumentAddress=InstrumentAddress, comLock=comLock)
-        self.__name__ = 'Keithley6221_Updater ' + InstrumentAddress
+            InstrumentAddress=InstrumentAddress, comLock=comLock
+        )
+        self.__name__ = "Keithley6221_Updater " + InstrumentAddress
 
         self.Current_A_value = 0
         self.Current_A_storage = 0  # if power is turned off
@@ -63,9 +67,10 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         self.interval = 0.5  # seconds
         # error = self.Keithley6221.query_error()
         for error in self.Keithley6221.error_gen():
-            if error[0] != '0':
-                self._logger.error('code:{}, message:{}'.format(
-                    error[0], error[1].strip('"')))
+            if error[0] != "0":
+                self._logger.error(
+                    "code:{}, message:{}".format(error[0], error[1].strip('"'))
+                )
                 raise AssertionError(self.error)
             else:
                 break
@@ -100,7 +105,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         return int(self.Keithley6221.getstatus()[0])
 
     @ExceptionHandling
-    def toggle_frontpanel(self, bools, text='In sequence...'):
+    def toggle_frontpanel(self, bools, text="In sequence..."):
         """toggle frontpanel display text"""
         if bools:
             self.Keithley6221.enable_frontpanel(text)

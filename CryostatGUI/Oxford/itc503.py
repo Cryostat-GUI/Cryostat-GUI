@@ -18,7 +18,9 @@ class itc503(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         # self.write('$M0')
@@ -121,7 +123,10 @@ class itc503(AbstractSerialDeviceDriver):
                 try:
                     self.read()
                 except VisaIOError as e_visa:
-                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                    if (
+                        isinstance(e_visa, type(self.timeouterror))
+                        and e_visa.args == self.timeouterror.args
+                    ):
                         pass
                 return self.getValue(variable)
         except TypeError:
@@ -304,7 +309,7 @@ class itc503(AbstractSerialDeviceDriver):
     def SweepJumpToLast(self):
         """Stop any sweep which is currently running
         meaning to jump to the last part of the sweep"""
-        self.write('$S31')
+        self.write("$S31")
 
     def readSweepTable(self):
         """read the Sweep Table which is stored in the device

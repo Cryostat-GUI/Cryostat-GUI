@@ -29,10 +29,13 @@ import sqlite3
 import logging
 from os import path
 from collections import OrderedDict
+
 # from collections import defaultdict
 from contextlib import contextmanager
+
 # from abc import ABCMeta
 from abc import abstractproperty
+
 # from abc import abstractmethod
 
 from datetime import datetime as dt
@@ -46,16 +49,14 @@ def identity(x):
 
 
 class SQLBase(object):
-    db = path.join(path.expanduser('~'),
-                   'python-logging-proxy.sqlite')
-    sql_schema = abstractproperty(lambda _: '')
-    sql_insert = abstractproperty(lambda _: '')
+    db = path.join(path.expanduser("~"), "python-logging-proxy.sqlite")
+    sql_schema = abstractproperty(lambda _: "")
+    sql_insert = abstractproperty(lambda _: "")
     _flds = abstractproperty(lambda _: {})
 
     @property
     def as_row(self):
-        return tuple(func(getattr(self, key))
-                     for (key, func) in self._flds.items())
+        return tuple(func(getattr(self, key)) for (key, func) in self._flds.items())
 
     def _process_init_kwargs(self, **kwargs):
         for k, v in kwargs.items():
@@ -63,16 +64,19 @@ class SQLBase(object):
 
     def __init__(self, **kwargs):
         self._process_init_kwargs(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     def _identifying_data(self):
-        return ''
+        return ""
 
     def __repr__(self):
-        return "<%(class_name)s%(ident)s at %(hex_id)s>" % \
-               {'class_name': type(self).__name__,
-                'hex_id': hex(id(self)),
-                'ident': self._identifying_data()}
+        return "<%(class_name)s%(ident)s at %(hex_id)s>" % {
+            "class_name": type(self).__name__,
+            "hex_id": hex(id(self)),
+            "ident": self._identifying_data(),
+        }
 
     @classmethod
     @contextmanager
@@ -85,16 +89,18 @@ class SQLBase(object):
                         conn.cursor().execute(
                             "CREATE TABLE IF NOT EXISTS lock ("
                             "locked INTEGER NOT NULL, "
-                            "CHECK (locked IN (1)));")
+                            "CHECK (locked IN (1)));"
+                        )
                         conn.cursor().execute(
                             "CREATE UNIQUE INDEX IF NOT EXISTS "
-                            "unique_lock ON lock (locked);")
+                            "unique_lock ON lock (locked);"
+                        )
                         conn.cursor().execute("INSERT INTO lock VALUES (1)")
                         break
                     except conn.OperationalError:
                         pass
                     # except sqlite3.IntegrityError:
-                        # pass
+                    # pass
                 yield conn
             finally:
                 conn.cursor().execute("DELETE FROM lock")
@@ -110,7 +116,8 @@ class SQLBase(object):
                 conn.execute(self.sql_insert, self.as_row)
         except sqlite3.IntegrityError:
             self._logger.error(
-                'This log entry does not seem unique: {}'.format(self.as_row))
+                "This log entry does not seem unique: {}".format(self.as_row)
+            )
 
 
 def _SQLiteRecord_fields():
@@ -137,21 +144,25 @@ def _SQLiteRecord_fields():
                                     ?, ?, ?, ?,
                                     ?, ?, ?, ?,
                                     ?, ?, ? ); """
-    _flds = OrderedDict([('created', identity),
-                         ('name', identity),
-                         # ('host_name', identity),
-                         # ('port', identity),
-                         ('log_level', identity),
-                         ('log_level_name', identity),
-                         ('message', identity),
-                         ('args', repr),
-                         ('module', identity),
-                         ('func_name', identity),
-                         ('line_no', identity),
-                         ('exception', identity),
-                         ('process', identity),
-                         ('thread', identity),
-                         ('threadName', identity)])
+    _flds = OrderedDict(
+        [
+            ("created", identity),
+            ("name", identity),
+            # ('host_name', identity),
+            # ('port', identity),
+            ("log_level", identity),
+            ("log_level_name", identity),
+            ("message", identity),
+            ("args", repr),
+            ("module", identity),
+            ("func_name", identity),
+            ("line_no", identity),
+            ("exception", identity),
+            ("process", identity),
+            ("thread", identity),
+            ("threadName", identity),
+        ]
+    )
     return sql_schema, sql_insert, _flds
 
 
@@ -160,29 +171,45 @@ class SQLiteRecord(SQLBase):
     seen_entries = OrderedDict()
 
     def _identifying_data(self):
-        return " for %(path)s at %(created)r =: %(response)r" % \
-               {'path': self.args['request']['path'].split('?')[0],
-                'created': self.created,
-                'response': self.args['response']['data']}
+        return " for %(path)s at %(created)r =: %(response)r" % {
+            "path": self.args["request"]["path"].split("?")[0],
+            "created": self.created,
+            "response": self.args["response"]["data"],
+        }
 
-    def __init__(self, created, name, log_level,
-                 log_level_name, message, args, module, func_name, line_no,
-                 exception, process, thread, threadName):
-        super(SQLiteRecord, self).__init__(created=created,
-                                           name=name,
-                                           # host_name=host_name,
-                                           # port=port,
-                                           log_level=log_level,
-                                           log_level_name=log_level_name,
-                                           message=message,
-                                           args=args,
-                                           module=module,
-                                           func_name=func_name,
-                                           line_no=line_no,
-                                           exception=exception,
-                                           process=process,
-                                           thread=thread,
-                                           threadName=threadName)
+    def __init__(
+        self,
+        created,
+        name,
+        log_level,
+        log_level_name,
+        message,
+        args,
+        module,
+        func_name,
+        line_no,
+        exception,
+        process,
+        thread,
+        threadName,
+    ):
+        super(SQLiteRecord, self).__init__(
+            created=created,
+            name=name,
+            # host_name=host_name,
+            # port=port,
+            log_level=log_level,
+            log_level_name=log_level_name,
+            message=message,
+            args=args,
+            module=module,
+            func_name=func_name,
+            line_no=line_no,
+            exception=exception,
+            process=process,
+            thread=thread,
+            threadName=threadName,
+        )
         if isinstance(self.args, str):
             self.args = eval(self.args)
 
@@ -222,19 +249,20 @@ class SQLiteRecord(SQLBase):
         created = cls.last_seen().created if cls.seen_entries else 0
         with cls._conn_db(db) as conn:
             curs = conn.cursor()
-            for row in curs.execute("SELECT * FROM log WHERE Created>?",
-                                    (created,)):
+            for row in curs.execute("SELECT * FROM log WHERE Created>?", (created,)):
                 yield cls._see(row)
 
     @property
     def summary(self):
-        req = self.args['request']
-        res = self.args['response']
-        return {'name': req['path'],
-                'size': len(res['data']),
-                'start_time': req['time'],
-                'end_time': res['time'],
-                'time_taken': res['time'] - req['time']}
+        req = self.args["request"]
+        res = self.args["response"]
+        return {
+            "name": req["path"],
+            "size": len(res["data"]),
+            "start_time": req["time"],
+            "end_time": res["time"],
+            "time_taken": res["time"] - req["time"],
+        }
 
 
 class SQLiteHandler(logging.Handler):
@@ -260,8 +288,7 @@ class SQLiteHandler(logging.Handler):
     def emit(self, record):
         # Use default formatting:
         if record.exc_info:
-            record.exc_text = logging._defaultFormatter\
-                                     .formatException(record.exc_info)
+            record.exc_text = logging._defaultFormatter.formatException(record.exc_info)
         else:
             record.exc_text = ""
         self.format(record)
@@ -269,24 +296,27 @@ class SQLiteHandler(logging.Handler):
             record.asctime
         except AttributeError:
             # record.asctime = record.created
-            record.asctime = dt.fromtimestamp(
-                record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
+            record.asctime = dt.fromtimestamp(record.created).strftime(
+                "%Y-%m-%d %H:%M:%S.%f"
+            )
 
         # Insert log record:
-        SQLiteRecord(record.asctime,
-                     # record.asctime,
-                     # record.created,
-                     record.name,
-                     # record.args['request']['hostname'],
-                     # record.args['request']['port'],
-                     record.levelno,
-                     record.levelname,
-                     record.message,
-                     record.args,
-                     record.module,
-                     record.funcName,
-                     record.lineno,
-                     record.exc_text,
-                     record.process,
-                     record.thread,
-                     record.threadName).insert(self.db)
+        SQLiteRecord(
+            record.asctime,
+            # record.asctime,
+            # record.created,
+            record.name,
+            # record.args['request']['hostname'],
+            # record.args['request']['port'],
+            record.levelno,
+            record.levelname,
+            record.message,
+            record.args,
+            record.module,
+            record.funcName,
+            record.lineno,
+            record.exc_text,
+            record.process,
+            record.thread,
+            record.threadName,
+        ).insert(self.db)

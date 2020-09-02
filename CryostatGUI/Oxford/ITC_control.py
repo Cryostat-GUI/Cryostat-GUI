@@ -14,6 +14,7 @@ from Oxford.itc503 import itc503
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
+
 # from importlib import reload
 import numpy as np
 import time
@@ -61,7 +62,9 @@ class ITC_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
         # global Oxford
         # itc503 = reload(Oxford.itc503).itc503
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # here the class instance of the ITC should be handed
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
         self.__name__ = "ITC_Updater " + InstrumentAddress
@@ -97,7 +100,6 @@ class ITC_Updater(AbstractLoopThread):
         self.data_last = dict()
 
         self.lock_newthread = threading.Lock()
-
 
     # @control_checks
     @ExceptionHandling
@@ -143,8 +145,7 @@ class ITC_Updater(AbstractLoopThread):
         # print('retrieving', time.time()-starttime, data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
 
-        data["Sensor_1_calerr_K"] = data[
-            "set_temperature"] - data["temperature_error"]
+        data["Sensor_1_calerr_K"] = data["set_temperature"] - data["temperature_error"]
         self.data_last["status"] = self.read_status()
         self.data_last["sweep"] = self.checksweep(stop=False)
         data["realtime"] = datetime.now()
@@ -219,9 +220,7 @@ class ITC_Updater(AbstractLoopThread):
     @ExceptionHandling
     def stopSweep(self):
         # with self.lock:
-        self.setSweep(setpoint_temp=self.ITC.getValue(0),
-                      rate=50,
-                      start=False)
+        self.setSweep(setpoint_temp=self.ITC.getValue(0), rate=50, start=False)
         time.sleep(0.1)
         self.ITC.SweepJumpToLast()
         time.sleep(0.1)
@@ -310,7 +309,6 @@ class ITC_Updater(AbstractLoopThread):
         # for x in self.ITC.readSweepTable():
         # print(x)
 
-
     @ExceptionHandling
     def checksweep(self, stop=True):
         # print('checking sweep')
@@ -347,36 +345,39 @@ class ITC_Updater(AbstractLoopThread):
              SweepRate=SweepRate)
 
         """
-        values['self'] = self
+        values["self"] = self
 
         def settingtheTemp(values):
-            instance = values['self']
+            instance = values["self"]
             # stop sweep if it runs
-            if 'start' in values:
-                starting = values['start']
+            if "start" in values:
+                starting = values["start"]
             else:
                 starting = instance.ITC.getValue(0)
-            start = instance.ITC.getValue(
-                0) if values['isSweepStartCurrent'] else starting
+            start = (
+                instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
+            )
             instance.checksweep(stop=True)
-            autocontrol = instance.data_last['status']['auto_int']
+            autocontrol = instance.data_last["status"]["auto_int"]
             instance.ITC.setAutoControl(0)
-            while instance.data_last['sweep']:
+            while instance.data_last["sweep"]:
                 time.sleep(0.01)
                 # print('sleeping')
             else:
                 time.sleep(0.1)
             with instance.lock:
-                if values['isSweep']:
+                if values["isSweep"]:
                     # set up sweep
 
-                    instance.setSweep(setpoint_temp=values['end'],
-                                      rate=values['SweepRate'],
-                                      start=start)
+                    instance.setSweep(
+                        setpoint_temp=values["end"],
+                        rate=values["SweepRate"],
+                        start=start,
+                    )
                     instance.ITC.SweepStart()
                     instance.ITC.getValue(0)  # whatever this is needed fo
                 else:
-                    instance.ITC.setTemperature(values['setTemp'])
+                    instance.ITC.setTemperature(values["setTemp"])
                 instance.ITC.setAutoControl(autocontrol)
 
         with self.lock_newthread:

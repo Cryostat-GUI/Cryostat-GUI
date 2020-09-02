@@ -6,6 +6,7 @@ Classes:
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -45,17 +46,19 @@ class ILM_ControlClient(AbstractLoopThreadClient):
 
     # exposable data dictionary
     data = dict()
-    sensors = dict(
-        channel_1_level=1,
-        channel_2_level=2)
+    sensors = dict(channel_1_level=1, channel_2_level=2)
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(
+        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+    ):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'ILM_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
-        
+        self.__name__ = "ILM_control " + InstrumentAddress
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
@@ -73,13 +76,15 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
         if mainthread is not None:
-            mainthread.combosetProbingRate_chan1.activated['int'].connect(
-                lambda value: self.setProbingSpeed(value, 1))
+            mainthread.combosetProbingRate_chan1.activated["int"].connect(
+                lambda value: self.setProbingSpeed(value, 1)
+            )
 
             # -------------------------------------------------------------------------------------------------------------------------
 
             mainthread.spin_threadinterval.valueChanged.connect(
-                lambda value: self.setInterval(value))
+                lambda value: self.setInterval(value)
+            )
 
     # @control_checks
     @ExceptionHandling
@@ -99,7 +104,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         for key in self.sensors:
             self.data[key] = self.ILM.getValue(self.sensors[key]) * 0.1
 
-        self.data['realtime'] = datetime.now()
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -112,10 +117,10 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        if 'setInterval' in command:
-            self.setInterval(command['setInterval'])
-        if 'setProbingSpeed' in command:
-            self.setProbingSpeed(command['setProbingSpeed'], 1)
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
+        if "setProbingSpeed" in command:
+            self.setProbingSpeed(command["setProbingSpeed"], 1)
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
@@ -170,18 +175,20 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
-        del kwargs['identity']
-        del kwargs['InstrumentAddress']
-        self._identity = self.kwargs['identity']
-        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        del kwargs["identity"]
+        del kwargs["InstrumentAddress"]
+        self._identity = self.kwargs["identity"]
+        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         # print('GUI pre')
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'ILM_Window'
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self.__name__ = "ILM_Window"
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -191,8 +198,14 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the LakeShore350 thread"""
 
         try:
-            getInfodata = self.running_thread_control(ILM_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
+            getInfodata = self.running_thread_control(
+                ILM_ControlClient(
+                    InstrumentAddress=self._InstrumentAddress,
+                    mainthread=self,
+                    identity=self._identity,
+                ),
+                "Hardware",
+            )
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
 
@@ -217,37 +230,38 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
-        chan1 = 100 if self.data[
-            'channel_1_level'] > 100 else self.data['channel_1_level']
-        chan2 = 100 if self.data[
-            'channel_2_level'] > 100 else self.data['channel_2_level']
+        chan1 = (
+            100 if self.data["channel_1_level"] > 100 else self.data["channel_1_level"]
+        )
+        chan2 = (
+            100 if self.data["channel_2_level"] > 100 else self.data["channel_2_level"]
+        )
         self.progressLevelHe.setValue(chan1)
         self.progressLevelN2.setValue(chan2)
 
-        tooltip = u'ILM\nHe: {:.1f}\nN2: {:.1f}'.format(chan1, chan2)
+        tooltip = u"ILM\nHe: {:.1f}\nN2: {:.1f}".format(chan1, chan2)
         self.pyqt_sysTray.setToolTip(tooltip)
 
-        self.lcdLevelHe.display(
-            self.data['channel_1_level'])
-        self.lcdLevelN2.display(
-            self.data['channel_2_level'])
+        self.lcdLevelHe.display(self.data["channel_1_level"])
+        self.lcdLevelN2.display(self.data["channel_2_level"])
         # -----------------------------------------------------------------------------------------------------------
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logger_2 = logging.getLogger('pyvisa')
+    logger_2 = logging.getLogger("pyvisa")
     logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger('PyQt5')
+    logger_3 = logging.getLogger("PyQt5")
     logger_3.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
@@ -256,7 +270,11 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
-        ui_file='ILM_main.ui', Name='ILM 211', identity='ILM', InstrumentAddress='ASRL5::INSTR')
+        ui_file="ILM_main.ui",
+        Name="ILM 211",
+        identity="ILM",
+        InstrumentAddress="ASRL5::INSTR",
+    )
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

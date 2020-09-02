@@ -10,6 +10,7 @@ Author(s):
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -24,6 +25,7 @@ from datetime import datetime
 import numpy as np
 from pyvisa.errors import VisaIOError
 import logging
+
 #
 # import LockIn
 
@@ -34,25 +36,31 @@ from util import Window_trayService_ui
 from util import ExceptionHandling
 from util import dummy
 from util import AbstractMainApp
+
 # from zmqcomms import enc, dec
 
 
 class SR830_ControlClient(AbstractLoopThreadClient):
     """Updater class to update all instrument data of the SR830
     """
+
     data = dict()
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', Lockin=None, **kwargs):
+    def __init__(
+        self, mainthread=None, comLock=None, InstrumentAddress="", Lockin=None, **kwargs
+    ):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
 
-        self.__name__ = 'SR830_Updater ' + InstrumentAddress
+        self.__name__ = "SR830_Updater " + InstrumentAddress
         self._comLock = dummy() if comLock is None else comLock
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
-        self.lockin = Lockin(InstrumentAddress, read_termination='\n')
+        self.lockin = Lockin(InstrumentAddress, read_termination="\n")
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -66,18 +74,21 @@ class SR830_ControlClient(AbstractLoopThreadClient):
         # GUI: passing GUI interactions to the corresponding slots
 
         mainthread.spinSetFrequency_Hz.valueChanged.connect(
-            lambda value: self.gettoset_Frequency(value))
-        mainthread.spinSetFrequency_Hz.editingFinished.connect(
-            self.setFrequency)
+            lambda value: self.gettoset_Frequency(value)
+        )
+        mainthread.spinSetFrequency_Hz.editingFinished.connect(self.setFrequency)
 
         mainthread.spinSetVoltage_V.valueChanged.connect(
-            lambda value: self.gettoset_Voltage(value))
+            lambda value: self.gettoset_Voltage(value)
+        )
         mainthread.spinSetVoltage_V.editingFinished.connect(self.setVoltage)
 
         mainthread.spinShuntResistance_kOhm.valueChanged.connect(
-            lambda value: self.getShuntResistance(value * 1e3))
+            lambda value: self.getShuntResistance(value * 1e3)
+        )
         mainthread.spinContactResistance_Ohm.valueChanged.connect(
-            lambda value: self.getContactResistance(value))
+            lambda value: self.getContactResistance(value)
+        )
 
         # -------------------------------------------------------------------------------------------------------------------------
 
@@ -88,29 +99,29 @@ class SR830_ControlClient(AbstractLoopThreadClient):
         self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
         with self._comLock:
-            self.data['Frequency_Hz'] = self.lockin.frequency
+            self.data["Frequency_Hz"] = self.lockin.frequency
 
-            self.data['Voltage_V'] = self.lockin.sine_voltage
-            self.data['X_V'] = self.lockin.x
-            self.data['Y_V'] = self.lockin.y
-            self.data['R_V'] = self.lockin.magnitude
-            self.data['Theta_Deg'] = self.lockin.theta
+            self.data["Voltage_V"] = self.lockin.sine_voltage
+            self.data["X_V"] = self.lockin.x
+            self.data["Y_V"] = self.lockin.y
+            self.data["R_V"] = self.lockin.magnitude
+            self.data["Theta_Deg"] = self.lockin.theta
 
-            self.data['ShuntResistance_user_Ohm'] = self.ShuntResistance_Ohm
-            self.data['ContactResistance_user_Ohm'] = self.ContactResistance_Ohm
+            self.data["ShuntResistance_user_Ohm"] = self.ShuntResistance_Ohm
+            self.data["ContactResistance_user_Ohm"] = self.ContactResistance_Ohm
 
         # in mili ampers, 50 ohm is the internal resistance of the lockin
-        SampleCurrent_A = self.data['Voltage_V'] / \
-            (self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50)
-        self.data['SampleCurrent_mA'] = SampleCurrent_A * 1e3
+        SampleCurrent_A = self.data["Voltage_V"] / (
+            self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50
+        )
+        self.data["SampleCurrent_mA"] = SampleCurrent_A * 1e3
 
         try:
-            self.data['SampleResistance_Ohm'] = self.data[
-                'X_V'] / SampleCurrent_A
+            self.data["SampleResistance_Ohm"] = self.data["X_V"] / SampleCurrent_A
         except ZeroDivisionError:
-            self.data['SampleResistance_Ohm'] = np.NaN
+            self.data["SampleResistance_Ohm"] = np.NaN
 
-        self.data['realtime'] = datetime.now()
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -126,10 +137,10 @@ class SR830_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
-        if 'setFrequency' in command:
-            self.setFrequency(command['setFrequency'])
-        if 'setVoltage' in command:
-            self.setVoltage(command['setVoltage'])
+        if "setFrequency" in command:
+            self.setFrequency(command["setFrequency"])
+        if "setVoltage" in command:
+            self.setVoltage(command["setVoltage"])
         # -------------------------------------------------------------------------------------------------------------------------
 
     @pyqtSlot()
@@ -179,17 +190,19 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
 
     def __init__(self, Lockin=None, **kwargs):
         self.kwargs = deepcopy(kwargs)
-        del kwargs['identity']
-        del kwargs['InstrumentAddress']
-        self._identity = self.kwargs['identity']
-        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        del kwargs["identity"]
+        del kwargs["InstrumentAddress"]
+        self._identity = self.kwargs["identity"]
+        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         self._Lockin = Lockin
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'Lockin_Window'
+        self.__name__ = "Lockin_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -198,8 +211,15 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
     def run_Hardware(self):
         """start/stop the Lockin thread"""
         try:
-            getInfodata = self.running_thread_control(SR830_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity, Lockin=self._Lockin), 'Hardware')
+            getInfodata = self.running_thread_control(
+                SR830_ControlClient(
+                    InstrumentAddress=self._InstrumentAddress,
+                    mainthread=self,
+                    identity=self._identity,
+                    Lockin=self._Lockin,
+                ),
+                "Hardware",
+            )
             # getInfodata = self.running_thread_control(SR530_ControlClient(
             # InstrumentAddress=self._InstrumentAddress, mainthread=self,
             # identity=self._identity), 'Hardware', )
@@ -226,52 +246,54 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         # since the command failed in the communication with the device,
         # the last value is retained
 
-        self.lcdSetFrequency_Hz.display(
-            self.data['Frequency_Hz'])
-        self.lcdSetVoltage_V.display(
-            self.data['Voltage_V'])
-        self.textX_V.setText(
-            '{num:=+13.12f}'.format(num=self.data['X_V']))
+        self.lcdSetFrequency_Hz.display(self.data["Frequency_Hz"])
+        self.lcdSetVoltage_V.display(self.data["Voltage_V"])
+        self.textX_V.setText("{num:=+13.12f}".format(num=self.data["X_V"]))
 
         self.textSampleCurrent_mA.setText(
-            '{num:=+8.6f}'.format(num=self.data['SampleCurrent_mA']))
+            "{num:=+8.6f}".format(num=self.data["SampleCurrent_mA"])
+        )
         self.textSampleResistance_Ohm.setText(
-            '{num:=+8.6f}'.format(num=self.data['SampleResistance_Ohm']))
+            "{num:=+8.6f}".format(num=self.data["SampleResistance_Ohm"])
+        )
 
-        self.textY_V.setText(
-            '{num:=+13.12f}'.format(num=self.data['Y_V']))
-        self.textR_V.setText(
-            '{num:=+13.12f}'.format(num=self.data['R_V']))
-        self.textTheta_Deg.setText(
-            '{num:=+8.6f}'.format(num=self.data['Theta_Deg']))
+        self.textY_V.setText("{num:=+13.12f}".format(num=self.data["Y_V"]))
+        self.textR_V.setText("{num:=+13.12f}".format(num=self.data["R_V"]))
+        self.textTheta_Deg.setText("{num:=+8.6f}".format(num=self.data["Theta_Deg"]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logger_2 = logging.getLogger('pyvisa')
+    logger_2 = logging.getLogger("pyvisa")
     logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger('PyQt5')
+    logger_3 = logging.getLogger("PyQt5")
     logger_3.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
     logger_2.addHandler(handler)
     logger_3.addHandler(handler)
 
-    Sr830_InstrumentAddress = 'GPIB::9::INSTR'
+    Sr830_InstrumentAddress = "GPIB::9::INSTR"
     # Sr860_InstrumentAddress: 'filler'
 
     app = QtWidgets.QApplication(sys.argv)
     form = SR830GUI(
-        ui_file='LockIn_main.ui', Name='Lockin SR830', identity='SR830_1', InstrumentAddress=Sr830_InstrumentAddress, Lockin=SR830)
+        ui_file="LockIn_main.ui",
+        Name="Lockin SR830",
+        identity="SR830_1",
+        InstrumentAddress=Sr830_InstrumentAddress,
+        Lockin=SR830,
+    )
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

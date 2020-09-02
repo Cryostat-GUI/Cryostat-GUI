@@ -32,7 +32,9 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.setRate(num=3)
         self.go(":INIT:CONT OFF")
 
@@ -52,8 +54,8 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         :return: temperature in K
         :return type: float 
         """
-        answer = self.query('CAL:UNPR:ACAL:TEMP?')[0]
-        if answer[0:2] == '--':  # not sure if necessary
+        answer = self.query("CAL:UNPR:ACAL:TEMP?")[0]
+        if answer[0:2] == "--":  # not sure if necessary
             answer = answer[1:]
         return float(answer)
 
@@ -63,8 +65,8 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         :return type: float 
         """
         #        self.go("SENS:CHAN 1")
-        answer = self.query('SENS:TEMP:RTEM?')[0]
-        if answer[0:2] == '--':  # not sure if necessary
+        answer = self.query("SENS:TEMP:RTEM?")[0]
+        if answer[0:2] == "--":  # not sure if necessary
             answer = answer[1:]
         return float(answer)
 
@@ -78,8 +80,8 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         # return self.query("SENS:DATA:FRES?")[0]
         # self.go(':TRIGger:COUNt 1')
 
-        answer = self.query(':READ?')[0]
-        if answer[0:2] == '--':
+        answer = self.query(":READ?")[0]
+        if answer[0:2] == "--":
             answer = answer[1:]
         return float(answer)
 
@@ -98,14 +100,14 @@ class Keithley2182(AbstractGPIBDeviceDriver):
             :READ?
             (Enter reading)
         """
-        self.go(':INIT:CONT OFF')
-        self.go(':SENSe:VOLTage:DC:NPLC 0.01')
-        self.go(':DISPlay:ENABle OFF')
-        self.go(':SENSe:VOLTage:DC:LPASs OFF')
-        self.go(':SENSe:VOLTage:DC:DFILter OFF')
-        self.go(':TRIGger:COUNt 1')
-        answer = self.query(':READ?')[0]
-        if answer[0:2] == '--':
+        self.go(":INIT:CONT OFF")
+        self.go(":SENSe:VOLTage:DC:NPLC 0.01")
+        self.go(":DISPlay:ENABle OFF")
+        self.go(":SENSe:VOLTage:DC:LPASs OFF")
+        self.go(":SENSe:VOLTage:DC:DFILter OFF")
+        self.go(":TRIGger:COUNt 1")
+        answer = self.query(":READ?")[0]
+        if answer[0:2] == "--":
             answer = answer[1:]
         return float(answer)
 
@@ -240,9 +242,9 @@ class Keithley2182(AbstractGPIBDeviceDriver):
                             mode)” for details).
         """
 
-        self.go(':CAL:UNPR:ACAL:INIT')
-        self.go(':CAL:UNPR:ACAL:STEP2')
-        self.go(':CAL:UNPR:ACAL:DONE')
+        self.go(":CAL:UNPR:ACAL:INIT")
+        self.go(":CAL:UNPR:ACAL:STEP2")
+        self.go(":CAL:UNPR:ACAL:DONE")
         pass
 
     def more_Range(self):
@@ -275,4 +277,4 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
-        return self.query(':SYST:ERR?')
+        return self.query(":SYST:ERR?")

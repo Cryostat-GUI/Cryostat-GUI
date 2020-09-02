@@ -36,12 +36,13 @@ class SR830_Updater(AbstractLoopThread):
     def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         self.lockin = SR830(InstrumentAddress)
         self.__name__ = "SR830_Updater " + InstrumentAddress
         self._comLock = comLock
-
 
         # self.interval = 0.05
         self.ShuntResistance_Ohm = 1e3  # default value in the GUI
@@ -65,7 +66,6 @@ class SR830_Updater(AbstractLoopThread):
             data["ShuntResistance_user_Ohm"] = self.ShuntResistance_Ohm
             data["ContactResistance_user_Ohm"] = self.ContactResistance_Ohm
 
-
         # in mili ampers, 50 ohm is the internal resistance of the lockin
         SampleCurrent_A = data["Voltage_V"] / (
             self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50
@@ -77,8 +77,7 @@ class SR830_Updater(AbstractLoopThread):
         except ZeroDivisionError:
             data["SampleResistance_Ohm"] = np.NaN
 
-        data['realtime'] = datetime.now()
-
+        data["realtime"] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(data))
 
