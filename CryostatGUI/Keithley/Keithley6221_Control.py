@@ -39,7 +39,7 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         #        Stop_Current = None
     )
 
-    def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
 
         self._logger = logging.getLogger(

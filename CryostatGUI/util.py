@@ -37,7 +37,7 @@ import logging
 # from contextlib import suppress
 from copy import deepcopy
 from datetime import datetime as dt
-from datetime import timedelta as td
+# from datetime import timedelta as td
 from visa import VisaIOError
 from threading import Lock
 

@@ -155,7 +155,7 @@ class Logger_configuration(Window_ui):
         derivative_action_time=False,
     )
 
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(ui_file=".\\configurations\\Logger_conf.ui", **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -329,8 +329,9 @@ class main_Logger(AbstractLoopThread):
         # print(sql)
         try:
             self.mycursor.execute(sql)
-        except OperationalError as err:
+        except OperationalError:
             # print(err)
+            self._logger.debug('encountered OperationalError from sqlite (table of column might already exist)')
             pass
 
         for key in dictname.keys():
@@ -341,6 +342,7 @@ class main_Logger(AbstractLoopThread):
                 # print(sql)
                 self.mycursor.execute(sql)
             except OperationalError:
+                self._logger.debug('encountered OperationalError from sqlite (table of column might already exist)')
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
 

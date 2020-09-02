@@ -991,7 +991,7 @@ class OneShot_Thread_multichannel(AbstractEventhandlingThread):
     def measure_oneshot(self):
         """invoke a single measurement and send it to saving the data"""
         try:
-            self._logger.debug("measuring", convert_time(time.time()), "entering")
+            self._logger.debug("enter measuring")
             self.measure_oneshot_once()
 
         # except AttributeError as e_arr:

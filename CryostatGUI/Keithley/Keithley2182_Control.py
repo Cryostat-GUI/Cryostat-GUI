@@ -26,7 +26,7 @@ class Keithley2182_Updater(AbstractLoopThread):
 
     sensors = dict(Voltage_V=None, Internal_K=None, Present_K=None)
 
-    def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
         self._logger = logging.getLogger(

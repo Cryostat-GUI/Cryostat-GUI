@@ -20,7 +20,6 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
 
 from copy import deepcopy
-import sys
 from datetime import datetime
 import numpy as np
 from pyvisa.errors import VisaIOError

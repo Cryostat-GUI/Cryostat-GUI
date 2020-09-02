@@ -4,7 +4,7 @@ import logging
 import zmq
 
 from PyQt5.QtCore import QSettings
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 
 from util import Window_ui
