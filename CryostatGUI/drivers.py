@@ -28,8 +28,6 @@ from pyvisa.errors import VisaIOError
 from visa import constants as vconst
 import functools
 
-import sys
-
 # create a logger object for this module
 logger = logging.getLogger('CryoGUI.'+__name__)
 

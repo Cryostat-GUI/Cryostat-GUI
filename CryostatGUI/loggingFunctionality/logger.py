@@ -35,7 +35,6 @@ from util import convert_time_searchable
 from util import convert_time_date
 from util import AbstractMainApp
 from util import Window_trayService_ui
-from util import ExceptionHandling
 
 
 from sqlite3 import OperationalError

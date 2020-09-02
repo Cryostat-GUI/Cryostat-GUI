@@ -1,6 +1,5 @@
 import zmq
 import logging
-from time import sleep as timesleep
 from json import loads as dictload
 from json import dumps
 from json import decoder
@@ -240,7 +239,7 @@ class zmqMainControl(zmqBare):
 
         self.comms_inproc = self._zctx.socket(zmq.ROUTER)
         self.comms_inproc.identity = b'mainControl'  # id
-        self.comms_inproc.bind(f'inproc://main')
+        self.comms_inproc.bind('inproc://main')
         # self.comms_upstream = self._zctx.socket(zmq.SUB)
         # self.comms_upstream.bind(f'tcp://{ip_maincontrol}:{port_upstream}')
         # self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b'')

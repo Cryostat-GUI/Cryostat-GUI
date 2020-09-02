@@ -6,7 +6,6 @@ Classes:
                 there, the looping behaviour of this thread is defined
 """
 from PyQt5.QtCore import pyqtSlot
-from pyvisa.errors import VisaIOError
 from copy import deepcopy
 # from importlib import reload
 

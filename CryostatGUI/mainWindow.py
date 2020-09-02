@@ -48,8 +48,6 @@ import datetime as dt
 from threading import Lock
 import numpy as np
 from copy import deepcopy
-# from importlib import reload
-import sqlite3
 import logging
 # logger = logging.getLogger()
 # logger.setLevel(logging.DEBUG)
@@ -58,7 +56,6 @@ import json
 # from logging.handlers import RotatingFileHandler
 
 from pyvisa.errors import VisaIOError
-import visa
 
 import measureSequences as mS
 
@@ -81,8 +78,6 @@ from loggingFunctionality.logger import live_Logger
 from loggingFunctionality.logger import measurement_Logger
 from loggingFunctionality.logger import Logger_configuration
 
-from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
-
 from settings import windowSettings
 
 from util import Window_ui
@@ -96,7 +91,6 @@ from util import ExceptionHandling
 
 import zmq
 from zmqcomms import zmqquery_handle
-from zmqcomms import zmqquery
 from zmqcomms import genericAnswer
 
 ITC_Instrumentadress = "ASRL6::INSTR"

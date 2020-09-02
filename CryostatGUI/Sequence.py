@@ -12,9 +12,6 @@ from PyQt5.QtCore import QTimer
 
 # import sys
 import datetime as dt
-# import pickle
-# import os
-import re
 import zmq
 import time
 from copy import deepcopy
@@ -30,8 +27,6 @@ from util import loops_off
 from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
-
-from zmqcomms import zmqquery
 from zmqcomms import zmqquery_dict
 
 import measureSequences as mS
@@ -703,7 +698,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
-        self._logger.debug(f'going into safe shutdown mode')
+        self._logger.debug('going into safe shutdown mode')
 
     # def chamber_purge(self):
     #     """purge the chamber

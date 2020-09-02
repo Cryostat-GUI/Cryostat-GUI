@@ -79,7 +79,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
     def enable_frontpanel(self):
         self.go("DISPlay:ENABle on")
         self.go("DISPlay:TEXT:STATe off")
-        self.go(f"DISPlay:WINDow2TEXT:STATe off")
+        self.go("DISPlay:WINDow2TEXT:STATe off")
 
     def setCurrent(self, current_value):
         """Sets Current

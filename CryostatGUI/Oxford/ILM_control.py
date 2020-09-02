@@ -12,7 +12,6 @@ from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
-from importlib import reload
 
 from datetime import datetime
 

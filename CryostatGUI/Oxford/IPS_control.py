@@ -9,7 +9,6 @@ Author(s):
 """
 import time
 from copy import deepcopy
-from importlib import reload
 
 from PyQt5.QtCore import pyqtSlot
 
