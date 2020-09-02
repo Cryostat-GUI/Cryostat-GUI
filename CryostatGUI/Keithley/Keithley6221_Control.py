@@ -103,9 +103,9 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
     def toggle_frontpanel(self, bools, text='In sequence...'):
         """toggle frontpanel display text"""
         if bools:
-            self.Keithley6221.enable_frontpanel(text)
+            self.Keithley6221.enable_frontpanel()
         else:
-            self.Keithley6221.disable_frontpanel()
+            self.Keithley6221.disable_frontpanel(text)
 
     @pyqtSlot()
     @ExceptionHandling

@@ -312,29 +312,29 @@ class itc503(AbstractSerialDeviceDriver):
 
         """
         raise NotImplementedError
-        steps = [str(i) for i in range(1, 17)]
-        stepdict = {
-            key: dict(set_point="not read", sweep_time="not read", hold_time="not read")
-            for key in steps
-        }
-        with self._comLock:
-            for step in steps:
-                step_setting = "$x{}".format(step)
-                self.write(step_setting, f=True)
-                self.write("$y1", f=True)
-                print("written1")
-                try:
-                    stepdict[step]["set_point"] = self.query("r", f=True)
-                except Exception as e:
-                    print(e)
-                print("received 1")
+        # steps = [str(i) for i in range(1, 17)]
+        # stepdict = {
+        #     key: dict(set_point="not read", sweep_time="not read", hold_time="not read")
+        #     for key in steps
+        # }
+        # with self._comLock:
+        #     for step in steps:
+        #         step_setting = "$x{}".format(step)
+        #         self.write(step_setting, f=True)
+        #         self.write("$y1", f=True)
+        #         print("written1")
+        #         try:
+        #             stepdict[step]["set_point"] = self.query("r", f=True)
+        #         except Exception as e:
+        #             print(e)
+        #         print("received 1")
 
-                self.write(step_setting)  # just in cas, f=Truee
-                self.write("$y2", f=True)
-                stepdict[step]["sweep_time"] = self.query("r", f=True)
+        #         self.write(step_setting)  # just in cas, f=Truee
+        #         self.write("$y2", f=True)
+        #         stepdict[step]["sweep_time"] = self.query("r", f=True)
 
-                self.write(step_setting)  # just in cas, f=Truee
-                self.write("$y3", f=True)
-                stepdict[step]["hold_time"] = self.query("r", f=True)
-        print(stepdict)
-        return stepdict
+        #         self.write(step_setting)  # just in cas, f=Truee
+        #         self.write("$y3", f=True)
+        #         stepdict[step]["hold_time"] = self.query("r", f=True)
+        # print(stepdict)
+        # return stepdict
