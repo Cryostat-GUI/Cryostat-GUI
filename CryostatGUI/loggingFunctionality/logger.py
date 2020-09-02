@@ -10,7 +10,6 @@ from PyQt5 import QtWidgets
 import pandas as pd
 import time
 import pickle
-import os
 import sqlite3
 
 # import pandas as pd
@@ -200,13 +199,13 @@ class Logger_configuration(Window_ui):
         """
 
         self.ITC_sensors.update(dict(thread=False))
-        conf = dict()
+        conf = {}
         conf["ITC"] = self.ITC_sensors
-        conf["ILM"] = dict()
-        conf["PS"] = dict()
-        conf["Lakeshore350"] = dict()
-        conf["Keithley Current"] = dict()
-        conf["Keithley Volt"] = dict()
+        conf["ILM"] = {}
+        conf["PS"] = {}
+        conf["Lakeshore350"] = {}
+        conf["Keithley Current"] = {}
+        conf["Keithley Volt"] = {}
         conf["general"] = dict(logfile_location="", interval=2, interval_live=1)
         return conf
 
@@ -804,7 +803,7 @@ class live_Logger_bare(object):
         try:
             self.Gauges["ITC"]
         except AttributeError:
-            self.Gauges = dict()
+            self.Gauges = {}
         except KeyError:
             pass
         with self.dataLock:
@@ -816,7 +815,7 @@ class live_Logger_bare(object):
                     dic = self.data[instrument]
                     dic.update(timedict)
                     if instrument not in self.Gauges.keys():
-                        self.Gauges[instrument] = dict()
+                        self.Gauges[instrument] = {}
                     self.data_live[instrument].update(timedict)
                     for variablekey in dic:
                         self.data_live[instrument][variablekey] = []
@@ -959,7 +958,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def get_answer(self, qdict):
         self._logger.debug(f"getting answer for {qdict}")
-        adict = dict()
+        adict = {}
         live = qdict["live"]
         try:
             if live:
@@ -993,8 +992,8 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
     sig_logging_newconf = pyqtSignal(dict)
     # sig_send_conf = pyqtSignal(dict)
 
-    data = dict()
-    data_live = dict()
+    data = {}
+    data_live = {}
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)

@@ -149,9 +149,9 @@ class mainWindow(QtWidgets.QMainWindow):
         )
         self.threads = dict(Lock=Lock())
         # self.threads = dict()
-        self.threads_tiny = list()
-        self.data = dict()
-        self.logging_bools = dict()
+        self.threads_tiny = []
+        self.data = {}
+        self.logging_bools = {}
 
         self.logging_running_ITC = False
         self.logging_running_logger = False
@@ -384,7 +384,7 @@ class mainWindow(QtWidgets.QMainWindow):
             pass
         else:
             with self.dataLock:
-                self.data[dataname] = dict()
+                self.data[dataname] = {}
         with self.threads["Lock"]:
             # this needs to be locked when a new thread is added, as otherwise
             # the thread locking context manager would try to unlock the new thread
@@ -438,7 +438,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.Errors_window.raise_()
         # self.Errors_window.activateWindow()
 
-    def show_window(self, window, boolean=None):
+    @staticmethod
+    def show_window(window, boolean=None):
         """show or close a window"""
         if boolean is not None:
             if boolean:
@@ -500,7 +501,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def initialize_mdiArea(self):
         """initialise all commands for the mdiArea and subwindows"""
         self.actionNew_Sequence.triggered.connect(self.Sequence_newWindow)
-        self.mdiArea_windows = dict()
+        self.mdiArea_windows = {}
         self.mdiArea_SequenceCount = 0
         self.pushSequenceRun.clicked.connect(self.Sequence_running)
         self.pushSequenceAbort.clicked.connect(self.Sequence_abort)
@@ -1379,7 +1380,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # coeffs, data = self.calculate_Kpmin(data)
         try:
             with self.dataLock_live:
-                if any([self.data_live["LakeShore350"][value] for value in slopes]):
+                if any(self.data_live["LakeShore350"][value] for value in slopes):
                     livedata = [
                         self.data_live["LakeShore350"][value][-1] for value in slopes
                     ]
@@ -1688,7 +1689,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 kwargs["GUI_push"].setEnabled(False)
 
     @pyqtSlot()
-    def Keithley_toggleOutput(self, GUI_Button, worker):
+    @staticmethod
+    def Keithley_toggleOutput(GUI_Button, worker):
         worker.OutputOn = worker.getstatus()
         if not worker.OutputOn:
             worker.enable()
@@ -1942,7 +1944,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
     # ------- MISC -------
 
-    def printing(self, b):
+    @staticmethod
+    def printing(b):
         """arbitrary example function"""
         print(b)
 
@@ -2018,7 +2021,7 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.stopping_thread("control_Logging_live")
             self.actionLogging_LIVE.setChecked(False)
-            self.data_live = dict()
+            self.data_live = {}
 
     def initialize_window_Errors(self):
         """initialize Error Window"""

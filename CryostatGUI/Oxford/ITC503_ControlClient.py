@@ -58,7 +58,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict()
+    data = {}
     sensors = dict(
         set_temperature=0,
         Sensor_1_K=1,
@@ -118,7 +118,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             mainthread.sig_newFilePID.connect(self.setPIDFile)
             mainthread.sig_sendConfTemp.connect(self.setTemperature)
             mainthread.sig_stopSweep.connect(self.stopSweep)
-        self.data_last = dict()
+        self.data_last = {}
 
         self.lock_newthread = Lock()
 
@@ -216,7 +216,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.sensors["set_temperature"]
         )
 
-        for key in self.sensors.keys():
+        for key in self.sensors:
             try:
 
                 value = self.ITC.getValue(self.sensors[key])
@@ -485,9 +485,9 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             instance.ITC.setAutoControl(0)
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
-                # print('sleeping')
-            else:
+                
                 time.sleep(0.1)
+            # print('sleeping')
             with instance.lock:
                 if values["isSweep"]:
                     # set up sweep

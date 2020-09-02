@@ -154,7 +154,7 @@ class IPS_Updater(AbstractLoopThread):
             time.sleep(1)
             self.first = False
         try:
-            data = dict()
+            data = {}
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():

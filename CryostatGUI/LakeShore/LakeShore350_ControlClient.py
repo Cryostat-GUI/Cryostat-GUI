@@ -304,7 +304,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @ExceptionHandling
     def read_Temperatures(self):
-        sensors = dict()
+        sensors = {}
         sensor_names = ["Sensor_1_K", "Sensor_2_K", "Sensor_3_K", "Sensor_4_K"]
         temp_list = self.LakeShore350.KelvinReadingQuery(0)
 

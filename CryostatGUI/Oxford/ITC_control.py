@@ -97,7 +97,7 @@ class ITC_Updater(AbstractLoopThread):
         self.mainthreadSignals["newFilePID"].connect(self.setPIDFile)
         self.mainthreadSignals["setTemp"].connect(self.setTemperature)
         self.mainthreadSignals["stopSweep"].connect(self.stopSweep)
-        self.data_last = dict()
+        self.data_last = {}
 
         self.lock_newthread = threading.Lock()
 
@@ -113,7 +113,7 @@ class ITC_Updater(AbstractLoopThread):
 
         """
 
-        data = dict()
+        data = {}
         # get key-value pairs of the sensors dict,
         # so I can then transmit one single dict
         # starttime = time.time()
@@ -121,7 +121,7 @@ class ITC_Updater(AbstractLoopThread):
         data["temperature_error"] = self.ITC.getValue(self.sensors["temperature_error"])
         data["set_temperature"] = self.ITC.getValue(self.sensors["set_temperature"])
 
-        for key in self.sensors.keys():
+        for key in self.sensors:
             try:
 
                 value = self.ITC.getValue(self.sensors[key])
@@ -362,9 +362,9 @@ class ITC_Updater(AbstractLoopThread):
             instance.ITC.setAutoControl(0)
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
-                # print('sleeping')
-            else:
+                
                 time.sleep(0.1)
+            # print('sleeping')
             with instance.lock:
                 if values["isSweep"]:
                     # set up sweep

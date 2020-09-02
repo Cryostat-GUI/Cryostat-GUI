@@ -14,7 +14,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
-import sys
 from copy import deepcopy
 
 from util import ExceptionHandling

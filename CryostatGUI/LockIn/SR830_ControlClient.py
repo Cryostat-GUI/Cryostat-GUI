@@ -44,7 +44,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
     """Updater class to update all instrument data of the SR830
     """
 
-    data = dict()
+    data = {}
 
     def __init__(
         self, mainthread=None, comLock=None, InstrumentAddress="", Lockin=None, **kwargs

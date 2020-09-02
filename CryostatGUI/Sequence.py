@@ -74,7 +74,7 @@ def measure_resistance_singlechannel(
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
     current_reversal_time = 0.06
 
-    data = dict()
+    data = {}
     temps = []
     resistances = []  # pos & neg
 
@@ -159,7 +159,7 @@ def measure_resistance_multichannel(
             raise AssertionError(
                 "number of excitation currents, current sources and voltmeters does not coincide!"
             )
-    data = dict()
+    data = {}
     resistances = {
         key: dict(coeff=0, residuals=0, nonohmic=0) for key in threadnames_RES
     }
@@ -248,7 +248,7 @@ def AbstractMeasureResistance(
     """Abstract logic for resistance measurement"""
     currents = []
     voltages = []
-    resistance = dict()
+    resistance = {}
     for current_base in iv_characteristic:
         for currentfactor in [-1, 1]:
             current = exc_curr * currentfactor * current_base

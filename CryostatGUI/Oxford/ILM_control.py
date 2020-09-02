@@ -64,7 +64,7 @@ class ILM_Updater(AbstractLoopThread):
     @ExceptionHandling
     def running(self):
         """Try to extract all current data from the ILM, and emit signal, sending the data"""
-        data = dict()
+        data = {}
 
         for key in self.sensors:
             try:

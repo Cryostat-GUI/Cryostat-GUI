@@ -68,7 +68,8 @@ class SQLBase(object):
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
 
-    def _identifying_data(self):
+    @staticmethod
+    def _identifying_data():
         return ""
 
     def __repr__(self):

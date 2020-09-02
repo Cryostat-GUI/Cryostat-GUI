@@ -53,7 +53,7 @@ class SR830_Updater(AbstractLoopThread):
         """Try to extract all current data from the Lock-In, and emit signal, sending the data
         """
 
-        data = dict()
+        data = {}
         with self._comLock:
             data["Frequency_Hz"] = self.lockin.frequency
 
