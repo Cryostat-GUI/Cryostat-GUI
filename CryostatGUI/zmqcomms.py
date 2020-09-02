@@ -232,7 +232,7 @@ class zmqClient(zmqBare):
         )
 
     def running(self):
-        self.data = dict()
+        self.data = {}
         super().running()
 
 

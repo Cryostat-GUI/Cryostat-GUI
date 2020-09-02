@@ -445,7 +445,7 @@ class AbstractApp(QtWidgets.QMainWindow):
 class AbstractMainApp(AbstractApp):
     """docstring for AbstractMainApp"""
 
-    data = dict()
+    data = {}
 
     def __init__(self, **kwargs):
         # print('mainapp pre')
@@ -1123,7 +1123,7 @@ class Window_plotting_specification(Window_ui):
         # self.data['legend_labels'].append('dummy')
 
         self.selection.append(
-            dict(X=dict(), Y1=dict(), Y2=dict(), Y3=dict(), Y4=dict(), Y5=dict())
+            dict(X={}, Y1={}, Y2={}, Y3={}, Y4={}, Y5={})
         )
 
         with self.mainthread.dataLock_live:

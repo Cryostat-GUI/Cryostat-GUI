@@ -148,7 +148,6 @@ class itc503(AbstractSerialDeviceDriver):
             prop: Proportional band, in steps of 0.0001K.
         """
         self.write("$P{}".format(prop))
-        return None
 
     def setIntegral(self, integral=0):
         """Sets the integral action time.
@@ -158,7 +157,6 @@ class itc503(AbstractSerialDeviceDriver):
                         Ranges from 0 to 140 minutes.
         """
         self.write("$I{}".format(integral))
-        return None
 
     def setDerivative(self, derivative=0):
         """Sets the derivative action time.
@@ -168,7 +166,6 @@ class itc503(AbstractSerialDeviceDriver):
                         Ranges from 0 to 273 minutes.
         """
         self.write("$D{}".format(derivative))
-        return None
 
     def setHeaterSensor(self, sensor=1):
         """Selects the heater sensor.
@@ -182,7 +179,6 @@ class itc503(AbstractSerialDeviceDriver):
             raise AssertionError("ITC: setHeaterSensor: Heater not on list.")
 
         self.write("$H{}".format(sensor))
-        return None
 
     def setHeaterOutput(self, heater_output=0):
         """Sets the heater output level.
@@ -194,7 +190,6 @@ class itc503(AbstractSerialDeviceDriver):
         """
 
         self.write("$O{}".format(heater_output))
-        return None
 
     def setGasOutput(self, gas_output=0):
         """Sets the gas (needle valve) output level.
@@ -205,7 +200,6 @@ class itc503(AbstractSerialDeviceDriver):
                     Min: 0. Max: 999.
         """
         self.write("$G{}".format(gas_output))
-        return None
 
     def setAutoControl(self, auto_manual=0):
         """Sets automatic control for heater/gas(needle valve).

@@ -91,7 +91,8 @@ class ilm211(AbstractSerialDeviceDriver):
 
         return float(value.strip("R+"))
 
-    def _converting_status_channel(self, i):
+    @staticmethod
+    def _converting_status_channel(i):
         i = int(i)
         if i == 0:
             return "not in use"

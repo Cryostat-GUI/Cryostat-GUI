@@ -14,7 +14,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
-import sys
 from copy import deepcopy
 
 from util import ExceptionHandling
@@ -45,7 +44,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict()
+    data = {}
     sensors = dict(channel_1_level=1, channel_2_level=2)
 
     def __init__(
