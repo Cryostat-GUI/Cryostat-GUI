@@ -486,6 +486,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
             time.sleep(0.1)
+
             # print('sleeping')
             with instance.lock:
                 if values["isSweep"]:
