@@ -45,12 +45,12 @@ logger = logging.getLogger("CryoGUI." + __name__)
 # ni = False
 
 
-def get_rm(visalib="ks"):
+def get_rm(_unused_visalib="ni"):
     try:
         # the pyvisa manager we'll use to connect to the GPIB resources
         NI_RESOURCE_MANAGER = visa.ResourceManager()
         #        'C:\\Windows\\System32\\visa32.dll')
-        ni = True
+        # ni = True
         # print('     made resource manager')
     except OSError:
         logger.exception(
@@ -156,7 +156,7 @@ def HandleVisaException(func):
     return wrapper_HandleVisaException
 
 
-class AbstractVISADriver(object):
+class AbstractVISADriver:
     """Abstract VISA Device Driver
 
     visalib: 'ni' or 'ks' (national instruments/keysight)
@@ -199,7 +199,7 @@ class AbstractVISADriver(object):
         del self._visa_resource
 
     def res_open(self):
-        self._resource_manager = get_rm(visalib=self.visalib_kw)
+        self._resource_manager = get_rm(self.visalib_kw)
         try:
             self._visa_resource = self._resource_manager.open_resource(
                 self._instrumentaddress
@@ -276,7 +276,6 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
         write_termination="\r",
         baud_rate=9600,
         data_bits=8,
-        *args,
         **kwargs
     ):
         self._device_specifics = dict(
@@ -288,7 +287,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
             stop_bits=vconst.StopBits.two,
             parity=vconst.Parity.none,
         )
-        super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
+        super().__init__(InstrumentAddress=InstrumentAddress, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -322,13 +321,11 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
 class AbstractModernVISADriver(AbstractVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, comLock=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        if comLock is not None:
-            self._comLock = comLock
 
     def query(self, command):
         """Sends commands as strings to the device and receives strings from the device
@@ -369,13 +366,12 @@ class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
         InstrumentAddress,
         read_termination="\r\n",
         write_termination="\n",
-        *args,
         **kwargs
     ):
         self._device_specifics = dict(
             read_termination=read_termination, write_termination=write_termination
         )
-        super().__init__(*args, InstrumentAddress=InstrumentAddress, **kwargs)
+        super().__init__(InstrumentAddress=InstrumentAddress, **kwargs)
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ def conf():
     return df
 
 
-def plotting(i):
+def plotting(_unused_i):
     global df
     global line
     conn = create_connection(data)

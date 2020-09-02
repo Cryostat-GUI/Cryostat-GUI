@@ -4,6 +4,7 @@ from json import loads as dictload
 from json import dumps
 from json import decoder
 import functools
+import time
 
 # from threading import Thread
 
@@ -104,7 +105,7 @@ def zmqquery(socket, query):
                 logger.debug("no answer")
 
     except zmq.ZMQError as e:
-        logger.exception("There was an error in the zmq communication!", e)
+        logger.exception(e)
         return -1
     except customEx:
         return message
@@ -126,13 +127,13 @@ def zmqquery_dict(socket, query):
                 logger.debug("no answer")
 
     except zmq.ZMQError as e:
-        logger.exception("There was an error in the zmq communication!", e)
+        logger.exception(e)
         return -1
     except customEx:
         return message
 
 
-class zmqBare(object):
+class zmqBare:
     """docstring for zmqBare"""
 
     pass
@@ -150,11 +151,10 @@ class zmqClient(zmqBare):
         port_reqp=5556,
         port_downstream=5557,
         port_upstream=5558,
-        *args,
         **kwargs,
     ):
         # print('zmqClient')
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -178,6 +178,8 @@ class zmqClient(zmqBare):
         self.poller = zmq.Poller()
         self.poller.register(self.comms_tcp, zmq.POLLIN)
         self.poller.register(self.comms_downstream, zmq.POLLIN)
+
+        self.data = {}
 
     # def work_zmq(self):
     #     try:
@@ -247,12 +249,11 @@ class zmqMainControl(zmqBare):
         ip_data="localhost",
         port_reqp=5556,
         port_downstream=5557,
-        port_upstream=5558,
+        # port_upstream=5558,
         port_data=5559,
-        *args,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -322,10 +323,9 @@ class zmqDataStore(zmqBare):
         port_downstream=5557,
         port_upstream=5558,
         port_data=5559,
-        *args,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )

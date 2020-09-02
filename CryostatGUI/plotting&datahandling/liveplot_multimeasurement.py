@@ -76,7 +76,7 @@ def conf(datafile):
     return df
 
 
-def plotting(i, first=False):
+def plotting(_unused_i, first=False):
     global data_static
     global data_dyn
 

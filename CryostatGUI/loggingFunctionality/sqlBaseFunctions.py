@@ -48,7 +48,7 @@ def identity(x):
     return x
 
 
-class SQLBase(object):
+class SQLBase:
     db = path.join(path.expanduser("~"), "python-logging-proxy.sqlite")
     sql_schema = abstractproperty(lambda _: "")
     sql_insert = abstractproperty(lambda _: "")

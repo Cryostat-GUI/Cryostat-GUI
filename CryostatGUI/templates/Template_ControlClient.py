@@ -45,7 +45,7 @@ class Template_ControlClient(AbstractLoopThreadClient):
     data = dict(Temp_K=None,)
 
     def __init__(
-        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+        self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs
     ):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)

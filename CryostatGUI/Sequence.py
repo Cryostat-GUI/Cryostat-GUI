@@ -84,7 +84,7 @@ def measure_resistance_singlechannel(
             threads[threadname_Temp][0].read_Temperatures()[temperature_sensor]
         )
 
-        for idx in range(n_measurements):
+        for _ in range(n_measurements):
             # as first time, apply positive current --> pos voltage (correct)
             for currentfactor in [1, -1]:
                 threads[threadname_CURR][0].gettoset_Current_A(
@@ -171,7 +171,7 @@ def measure_resistance_multichannel(
         temp1 = threads[threadname_Temp][0].read_Temperatures()
         temps = {key: [val] for key, val in zip(temp1.keys(), temp1.values())}
 
-        for ct, (name_curr, exc_curr, name_volt) in enumerate(
+        for _, (name_curr, exc_curr, name_volt) in enumerate(
             zip(threadnames_CURR, excitation_currents_A, threadnames_RES)
         ):
             threshold_residuals = 1e4
@@ -293,7 +293,7 @@ def AbstractMeasureResistanceMultichannel(
     return resistances, excitations, voltages
 
 
-class Sequence_Functions(object):
+class Sequence_Functions:
     """docstring for Functions"""
 
     sig_message = pyqtSignal(str)
@@ -910,7 +910,7 @@ class OneShot_Thread(AbstractEventhandlingThread):
                 conf["store_signal"].emit(
                     deepcopy(measure_resistance_singlechannel(**conf))
                 )
-                self._logger.debug("measuring", convert_time(time.time()))
+                self._logger.debug("measuring")
         finally:
             QTimer.singleShot(30 * 1e3, lambda: self.measure_oneshot(self.conf))
 

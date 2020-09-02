@@ -48,7 +48,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     sensors = dict(channel_1_level=1, channel_2_level=2)
 
     def __init__(
-        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+        self, mainthread=None, InstrumentAddress="", **kwargs
     ):
         super().__init__(**kwargs)
 

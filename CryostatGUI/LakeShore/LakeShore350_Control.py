@@ -58,26 +58,19 @@ class LakeShore350_Updater(AbstractLoopThread):
         OutputMode=None,
     )
 
-    def __init__(self, comLock, InstrumentAddress="", log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", **kwargs):
 
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
-        # print(self.logger, self.logger.name)
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = "LakeShore350_Updater" + InstrumentAddress
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        # try:
         self.LakeShore350 = LakeShore350_ethernet(
             InstrumentAddress=InstrumentAddress, comLock=comLock
         )
-        # except VisaIOError as e:
-        #     self.sig_assertion.emit('running in control: {}'.format(e))
-        #     return
 
-        # need to quit the THREAD!!
         self.Temp_K_value = 3
         #       self.Heater_mW_value = 0
         self.Ramp_Rate_value = 0

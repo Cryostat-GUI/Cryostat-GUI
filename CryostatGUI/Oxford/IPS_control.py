@@ -134,7 +134,7 @@ class IPS_Updater(AbstractLoopThread):
         },
     )
 
-    def __init__(self, InstrumentAddress, log=None, **kwargs):
+    def __init__(self, InstrumentAddress, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__

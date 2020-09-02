@@ -89,15 +89,15 @@ def convert_time_searchable_reverse(tstr):
     return dt.strptime(tstr, "%Y%m%d%H%M%S")
 
 
-def convert_time_realtime_reverse(tstr):
-    """convert the realtime entry in the database back to a datetime object
-    Timezones are for now ignored, apart from the note in the database entry"""
-    # var = 'UTC' + '{:+05.0f} '.format(self.houroffset) +
-    # var.strftime('%Y-%m-%d  %H:%M:%S.%f')
-    utcoffset = td(hours=float(tstr[3:8]))
-    var = dt.strptime(tstr[8:], "%Y-%m-%d  %H:%M:%S.%f")
-    return var
-    pass
+# def convert_time_realtime_reverse(tstr):
+#     """convert the realtime entry in the database back to a datetime object
+#     Timezones are for now ignored, apart from the note in the database entry"""
+#     # var = 'UTC' + '{:+05.0f} '.format(self.houroffset) +
+#     # var.strftime('%Y-%m-%d  %H:%M:%S.%f')
+#     utcoffset = td(hours=float(tstr[3:8]))
+#     var = dt.strptime(tstr[8:], "%Y-%m-%d  %H:%M:%S.%f")
+#     return var
+#     # pass
 
 
 def shaping(entry):
@@ -304,7 +304,7 @@ class loops_off:
             thread.lock.release()
 
 
-class noblockLock(object):
+class noblockLock:
     """docstring for noblockLock"""
 
     def __init__(self, lock):
@@ -348,7 +348,7 @@ class AbstractApp(QtWidgets.QMainWindow):
     timeouterror = VisaIOError(-1073807339)
     sig_Infodata = pyqtSignal(dict)
 
-    def __init__(self, ui_file=None, *args, **kwargs):
+    def __init__(self, *args, ui_file=None, **kwargs):
         # print('abstractApp pre')
         super().__init__(*args, **kwargs)
         # print('abstractApp post')
@@ -726,13 +726,11 @@ class Window_trayService_ui(QtWidgets.QWidget):
     sig_closing = pyqtSignal()
     sig_error = pyqtSignal(str)
 
-    def __init__(self, ui_file=None, Name=None, **kwargs):
+    def __init__(self, Name=None, **kwargs):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        # print('trayservice pre')
         super().__init__(**kwargs)
-        # print('trayservice post')
 
         icon = QtGui.QIcon("./../TU-Signet.png")
         self.pyqt_sysTray = SystemTrayIcon(icon, self)
@@ -1241,13 +1239,13 @@ class Window_plotting_specification(Window_ui):
             lambda: self.plot_sel_val(
                 GUI_instr=GUI_instr,
                 GUI_value=GUI_value,
-                livevsdb="LIVE",
+                # livevsdb="LIVE",
                 axis=axis,
                 tab=tab,
             )
         )
 
-    def plot_sel_val(self, GUI_instr, GUI_value, livevsdb, axis, tab):
+    def plot_sel_val(self, GUI_instr, GUI_value, axis, tab):
         """get instrument and value of the chosen axis, and store it"""
         value_name = GUI_value.currentText()
         instrument_name = GUI_instr.currentText()

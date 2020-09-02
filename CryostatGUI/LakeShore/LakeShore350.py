@@ -26,7 +26,7 @@ from drivers import AbstractEthernetDeviceDriver
 #         "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
 
 
-class LakeShore350_bare(object):
+class LakeShore350_bare:
     """class to interface with a LakeShore350
 
     in order to change the self.go() and self.query() commands,

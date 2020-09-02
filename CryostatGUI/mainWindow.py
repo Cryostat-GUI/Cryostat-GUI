@@ -50,11 +50,7 @@ import numpy as np
 from copy import deepcopy
 import logging
 
-# logger = logging.getLogger()
-# logger.setLevel(logging.DEBUG)
 import json
-
-# from logging.handlers import RotatingFileHandler
 
 from pyvisa.errors import VisaIOError
 
@@ -1766,7 +1762,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 # alternative: if 'Keithley2182' in dataname:
                 try:
                     # calculate and display resistance and voltage
-                    if not str(kwargs["GUI_Box"].currentText()) == "--":
+                    if str(kwargs["GUI_Box"].currentText()) != "--":
                         self.data[dataname]["Resistance_Ohm"] = self.data[dataname][
                             "Voltage_V"
                         ] / (
@@ -1788,8 +1784,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 except AttributeError as a_err:
                     if (
-                        not a_err.args[0]
-                        == "'NoneType' object has no attribute 'display'"
+                        a_err.args[0]
+                        != "'NoneType' object has no attribute 'display'"
                     ):
                         self.show_error_general(
                             "{name}: {err}".format(name=dataname, err=a_err.args[0])
@@ -1798,7 +1794,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     self.show_error_general(
                         "{name}: {err}".format(name=dataname, err=key_err.args[0])
                     )
-                except ZeroDivisionError as z_err:
+                except ZeroDivisionError:
                     self.data[dataname]["Resistance_Ohm"] = np.nan
 
     # -------------- Lock-In SR 830  ------------------------

@@ -579,7 +579,7 @@ class main_Logger_adaptable(main_Logger):
         self.conf_done_layer2 = False
 
 
-class live_Logger_bare(object):
+class live_Logger_bare:
     """docstring for live_Logger"""
 
     def __init__(self, mainthread=None, **kwargs):
@@ -783,8 +783,8 @@ class live_Logger_bare(object):
                 # print('TYPE CALC')
                 self._logger.exception(e)
             except ValueError as e_val:
-                raise AssertionError(e_val.args[0])
-                self._logger.exception(e)
+                self._logger.exception(e_val)
+                # raise AssertionError(e_val.args[0])
 
     def pre_init(self):
         self.initialised = False
@@ -1041,7 +1041,8 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
         # ------------- live Logging configuration initialisation -------------
         self.dataLock = Lock()
         self.dataLock_live = Lock()
-        logger_live = self.running_thread_control(
+        # logger_live =
+        self.running_thread_control(
             live_zmqDataStoreLogger(mainthread=self), "zmq_liveLogger"
         )
         # ----------------------------------------------------------------------
@@ -1098,7 +1099,7 @@ class Logger_measurement_configuration(Window_ui):
 
     sig_send_conf = pyqtSignal(dict)
 
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(ui_file=".\\configurations\\Log_meas_conf.ui", **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
