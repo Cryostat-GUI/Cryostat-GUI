@@ -47,9 +47,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     data = {}
     sensors = dict(channel_1_level=1, channel_2_level=2)
 
-    def __init__(
-        self, mainthread=None, InstrumentAddress="", **kwargs
-    ):
+    def __init__(self, mainthread=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
 
         # here the class instance of the LakeShore should be handed

@@ -1783,10 +1783,7 @@ class mainWindow(QtWidgets.QMainWindow):
                     kwargs["GUI_lcd_PreTemp"].display(self.data[dataname]["Present_K"])
 
                 except AttributeError as a_err:
-                    if (
-                        a_err.args[0]
-                        != "'NoneType' object has no attribute 'display'"
-                    ):
+                    if a_err.args[0] != "'NoneType' object has no attribute 'display'":
                         self.show_error_general(
                             "{name}: {err}".format(name=dataname, err=a_err.args[0])
                         )

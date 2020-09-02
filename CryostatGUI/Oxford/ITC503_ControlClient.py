@@ -73,9 +73,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         derivative_action_time=10,
     )
 
-    def __init__(
-        self, mainthread=None, InstrumentAddress="", **kwargs
-    ):
+    def __init__(self, mainthread=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
