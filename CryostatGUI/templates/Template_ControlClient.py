@@ -6,6 +6,7 @@ Classes:
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -42,16 +43,19 @@ class Template_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict(
-        Temp_K=None,)
+    data = dict(Temp_K=None,)
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(
+        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+    ):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'DeviceName_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self.__name__ = "DeviceName_control " + InstrumentAddress
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # try:
         # print(self.logger, self.logger.name)
 
@@ -85,7 +89,8 @@ class Template_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
 
         mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value))
+            lambda value: self.setInterval(value)
+        )
 
     # @control_checks
     @ExceptionHandling
@@ -102,7 +107,7 @@ class Template_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
         # example:
         # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
-        self.data['realtime'] = datetime.now()
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -214,17 +219,17 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
-        del kwargs['identity']
-        del kwargs['InstrumentAddress']
-        self._identity = self.kwargs['identity']
-        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        del kwargs["identity"]
+        del kwargs["InstrumentAddress"]
+        self._identity = self.kwargs["identity"]
+        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         # print('GUI pre')
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'LakeShore_Window'
+        self.__name__ = "LakeShore_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -234,8 +239,14 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the LakeShore350 thread"""
 
         try:
-            getInfodata = self.running_thread_control(Template_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
+            getInfodata = self.running_thread_control(
+                Template_ControlClient(
+                    InstrumentAddress=self._InstrumentAddress,
+                    mainthread=self,
+                    identity=self._identity,
+                ),
+                "Hardware",
+            )
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
 
@@ -284,20 +295,21 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         # -----------------------------------------------------------------------------------------------------------
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logger_2 = logging.getLogger('pyvisa')
+    logger_2 = logging.getLogger("pyvisa")
     logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger('PyQt5')
+    logger_3 = logging.getLogger("PyQt5")
     logger_3.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
@@ -306,7 +318,11 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
     form = DeviceGUI(
-        ui_file='Template_main.ui', Name='Template', identity=b'templ', InstrumentAddress='')
+        ui_file="Template_main.ui",
+        Name="Template",
+        identity=b"templ",
+        InstrumentAddress="",
+    )
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

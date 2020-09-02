@@ -12,12 +12,12 @@ from PyQt5.QtCore import pyqtSlot
 from pyvisa.errors import VisaIOError
 
 from copy import deepcopy
-from importlib import reload
 
 from datetime import datetime
 
 from util import AbstractLoopThread
 from util import ExceptionHandling
+
 # import Oxford
 import logging
 from Oxford.ilm211 import ilm211
@@ -49,7 +49,9 @@ class ILM_Updater(AbstractLoopThread):
         super().__init__(**kwargs)
         # global Oxford
         # ilm211 = reload(Oxford.ilm211).ilm211
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.ILM = ilm211(InstrumentAddress=InstrumentAddress)
         self.__name__ = "ILM_Updater " + InstrumentAddress
         self.control_state = 3
@@ -92,7 +94,7 @@ class ILM_Updater(AbstractLoopThread):
                     self.ILM.clear_buffers()
                 else:
                     self.sig_visaerror.emit(e_visa.args[0])
-        data['realtime'] = datetime.now()
+        data["realtime"] = datetime.now()
         self.sig_Infodata.emit(deepcopy(data))
 
     # def read_buffer(self):

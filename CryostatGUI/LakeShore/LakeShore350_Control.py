@@ -6,8 +6,8 @@ Classes:
                 there, the looping behaviour of this thread is defined
 """
 from PyQt5.QtCore import pyqtSlot
-from pyvisa.errors import VisaIOError
 from copy import deepcopy
+
 # from importlib import reload
 
 # import LakeShore
@@ -66,10 +66,13 @@ class LakeShore350_Updater(AbstractLoopThread):
 
         # here the class instance of the LakeShore should be handed
         self.__name__ = "LakeShore350_Updater" + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # try:
         self.LakeShore350 = LakeShore350_ethernet(
-            InstrumentAddress=InstrumentAddress, comLock=comLock)
+            InstrumentAddress=InstrumentAddress, comLock=comLock
+        )
         # except VisaIOError as e:
         #     self.sig_assertion.emit('running in control: {}'.format(e))
         #     return
@@ -131,8 +134,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors["Sensor_4_K"] = temp_list[3]
         ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
         self.sensors["Ramp_Rate"] = (
-            ramp_rate if self.Temp_K_value > self.sensors[
-                "Temp_K"] else -ramp_rate
+            ramp_rate if self.Temp_K_value > self.sensors["Temp_K"] else -ramp_rate
         )
         temp_list2 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
         self.sensors["Loop_P_Param"] = temp_list2[0]
@@ -140,8 +142,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors["Loop_D_Param"] = temp_list2[2]
 
         self.sensors["Heater_Range"] = self.LakeShore350.HeaterRangeQuery(1)
-        self.sensors["Heater_Range_times_10"] = self.sensors[
-            "Heater_Range"] * 10
+        self.sensors["Heater_Range_times_10"] = self.sensors["Heater_Range"] * 10
         self.sensors["Heater_Output_percentage"] = self.LakeShore350.HeaterOutputQuery(
             1
         )
@@ -160,7 +161,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.sensors["Sensor_4_Ohm"] = temp_list3[3]
         self.sensors["OutputMode"] = self.LakeShore350.OutputModeQuery(1)[1]
 
-        self.sensors['realtime'] = datetime.now()
+        self.sensors["realtime"] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 
@@ -183,8 +184,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         self.LakeShore350.HeaterSetupCommand(1, 2, 2, 1, 2)
         self._max_current = 1  # [A]
         self._heater_resistance = 50  # [Ohm]
-        self._max_power = self._heater_resistance * \
-            self._max_current ** 2  # [W]
+        self._max_power = self._heater_resistance * self._max_current ** 2  # [W]
 
     @ExceptionHandling
     def configTempLimit(self):

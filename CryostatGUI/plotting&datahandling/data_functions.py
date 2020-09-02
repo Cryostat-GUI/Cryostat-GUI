@@ -33,6 +33,5 @@ def conf(datafile):
         cur.execute("SELECT timeseconds from LakeShore350")
         times2 = np.array(cur.fetchall())[:, 0]
 
-    df = pd.DataFrame(dict(times_temps=times2, temps=temps,
-                           times_res=times1, res=res,))
+    df = pd.DataFrame(dict(times_temps=times2, temps=temps, times_res=times1, res=res,))
     return df

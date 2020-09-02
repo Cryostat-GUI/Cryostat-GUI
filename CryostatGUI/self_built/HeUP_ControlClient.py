@@ -6,6 +6,7 @@ Classes:
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -23,6 +24,7 @@ from util import AbstractMainApp
 
 from datetime import datetime
 from pyvisa.errors import VisaIOError
+
 # import logging
 
 
@@ -42,15 +44,16 @@ class HeUP_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict(
-        Temp_K=None,)
+    data = dict(Temp_K=None,)
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(
+        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+    ):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'LakeShore350_control ' + InstrumentAddress
+        self.__name__ = "LakeShore350_control " + InstrumentAddress
         # try:
         # print(self.logger, self.logger.name)
 
@@ -84,7 +87,8 @@ class HeUP_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
 
         mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value))
+            lambda value: self.setInterval(value)
+        )
 
     # @control_checks
     @ExceptionHandling
@@ -101,7 +105,7 @@ class HeUP_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
         # example:
         # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
-        self.data['realtime'] = datetime.now()
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -213,17 +217,17 @@ class HeUPGUI(AbstractMainApp, Window_trayService_ui):
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
-        del kwargs['identity']
-        del kwargs['InstrumentAddress']
-        self._identity = self.kwargs['identity']
-        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        del kwargs["identity"]
+        del kwargs["InstrumentAddress"]
+        self._identity = self.kwargs["identity"]
+        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         # print('GUI pre')
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = 'LakeShore_Window'
+        self.__name__ = "LakeShore_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -233,8 +237,14 @@ class HeUPGUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the LakeShore350 thread"""
 
         try:
-            getInfodata = self.running_thread_control(Template_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware', )
+            getInfodata = self.running_thread_control(
+                Template_ControlClient(
+                    InstrumentAddress=self._InstrumentAddress,
+                    mainthread=self,
+                    identity=self._identity,
+                ),
+                "Hardware",
+            )
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
 
@@ -283,10 +293,14 @@ class HeUPGUI(AbstractMainApp, Window_trayService_ui):
         # -----------------------------------------------------------------------------------------------------------
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     form = HeUPGUI(
-        ui_file='Template_main.ui', Name='Template', identity=b'templ', InstrumentAddress='')
+        ui_file="Template_main.ui",
+        Name="Template",
+        identity=b"templ",
+        InstrumentAddress="",
+    )
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

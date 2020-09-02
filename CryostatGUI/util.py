@@ -28,9 +28,6 @@ import matplotlib.gridspec as gridspec
 
 
 import functools
-# import inspect
-import sys
-import time
 import numpy as np
 import json
 import os
@@ -57,10 +54,10 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from zmqcomms import zmqClient
 from zmqcomms import zmqDataStore
+
 # from zmqcomms import enc
 
 # from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
-
 
 
 class BlockedError(Exception):
@@ -89,7 +86,7 @@ def convert_time_searchable(ts):
 
 def convert_time_searchable_reverse(tstr):
     """convert the time string into datetime object"""
-    return dt.strptime(tstr, '%Y%m%d%H%M%S')
+    return dt.strptime(tstr, "%Y%m%d%H%M%S")
 
 
 def convert_time_realtime_reverse(tstr):
@@ -98,7 +95,7 @@ def convert_time_realtime_reverse(tstr):
     # var = 'UTC' + '{:+05.0f} '.format(self.houroffset) +
     # var.strftime('%Y-%m-%d  %H:%M:%S.%f')
     utcoffset = td(hours=float(tstr[3:8]))
-    var = dt.strptime(tstr[8:], '%Y-%m-%d  %H:%M:%S.%f')
+    var = dt.strptime(tstr[8:], "%Y-%m-%d  %H:%M:%S.%f")
     return var
     pass
 
@@ -171,18 +168,14 @@ def running_thread(worker, info=None, **kwargs):
 def ExceptionSignal(thread, func, e_type, err):
     """Emit assertion-signal with relevant information"""
     string = "{}: {}: {}: {} :: {}".format(
-        thread.__name__,
-        func.__name__,
-        e_type,
-        err.args[0],
-        err.__traceback__)
+        thread.__name__, func.__name__, e_type, err.args[0], err.__traceback__
+    )
 
     thread.sig_assertion.emit(string)
     return string
 
 
 def ExceptionHandling(func):
-
     @functools.wraps(func)
     def wrapper_ExceptionHandling(*args, **kwargs):
         # if inspect.isclass(type(args[0])):
@@ -269,8 +262,7 @@ def readPID_fromFile(filename):
     """read PID values from file"""
     arr = np.loadtxt(filename)
     list_T = arr[:, 0]
-    listPID = [dict(p=arr[x, 1], i=arr[x, 2], d=arr[x, 3])
-                    for x in range(arr.shape[0])]
+    listPID = [dict(p=arr[x, 1], i=arr[x, 2], d=arr[x, 3]) for x in range(arr.shape[0])]
     return list_T, listPID
 
 
@@ -360,16 +352,16 @@ class AbstractApp(QtWidgets.QMainWindow):
         # print('abstractApp pre')
         super().__init__(*args, **kwargs)
         # print('abstractApp post')
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         if ui_file is not None:
             loadUi(ui_file, self)
 
         # self.setup_logging_base()
         # self.setup_logging()
-        self.sig_assertion.connect(
-            lambda value: self._logger.exception(value))
-        self.sig_visatimeout.connect(
-            lambda value: self._logger.exception(value))
+        self.sig_assertion.connect(lambda value: self._logger.exception(value))
+        self.sig_visatimeout.connect(lambda value: self._logger.exception(value))
 
     # def setup_logging_base(self):
     #     self.logger_all = logging.getLogger()
@@ -400,7 +392,7 @@ class AbstractApp(QtWidgets.QMainWindow):
 
     #     self.logger_all.setLevel(logging.DEBUG)
 
-        # self.logger_all.addHandler(self.Log_DBhandler)
+    # self.logger_all.addHandler(self.Log_DBhandler)
 
 
 # class AbstractLoopApp(AbstractApp):
@@ -452,12 +444,15 @@ class AbstractApp(QtWidgets.QMainWindow):
 
 class AbstractMainApp(AbstractApp):
     """docstring for AbstractMainApp"""
+
     data = dict()
 
     def __init__(self, **kwargs):
         # print('mainapp pre')
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # print('mainapp post')
 
         self.softwarecontrol_timer = QTimer()
@@ -524,7 +519,7 @@ class AbstractMainApp(AbstractApp):
         """
         worker, thread = running_thread(worker)
 
-        with self.threads['Lock']:
+        with self.threads["Lock"]:
             # this needs to be locked when a new thread is added, as otherwise
             # the thread locking context manager would try to unlock the new thread
             # before it was ever locked, resulting in a crash
@@ -547,7 +542,9 @@ class AbstractThread(QObject):
 
     def __init__(self, **kwargs):
         QThread.__init__(self, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.sig_assertion.connect(lambda value: self._logger.exception(value))
         self.sig_visatimeout.connect(lambda value: self._logger.exception(value))
 
@@ -568,7 +565,9 @@ class AbstractLoopThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 0.5  # second
         self.lock = Lock()
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
@@ -600,7 +599,9 @@ class AbstractLoopZmqThread(AbstractLoopThread):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.run_finished = False
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     @pyqtSlot()  # int
     def work(self):
@@ -616,7 +617,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             # print('blocked')
         # except AssertionError as assertion:
         #     self.sig_assertion.emit(assertion.args[0])
-            # print('assertion', assertion.args[0])
+        # print('assertion', assertion.args[0])
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)
 
@@ -642,7 +643,9 @@ class AbstractEventhandlingThread(AbstractThread):
         super().__init__(**kwargs)
         self.interval = 500
         self.lock = Lock()
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     @pyqtSlot()
     def work(self):
@@ -668,7 +671,9 @@ class Workerclass(QObject):
         self.workfunction = workfunction
         self.args = args
         self.kwargs = kwargs
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     def work(self):
         """run the passed function"""
@@ -685,7 +690,9 @@ class Window_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, **kwargs):
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         if "lock" in kwargs:
             del kwargs["lock"]
@@ -702,7 +709,6 @@ class Window_ui(QtWidgets.QWidget):
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
-
     def __init__(self, icon, parent=None):
         super(SystemTrayIcon, self).__init__(icon, parent)
         parent.pyqt_trayMenu = QtWidgets.QMenu(parent)
@@ -721,18 +727,20 @@ class Window_trayService_ui(QtWidgets.QWidget):
     sig_error = pyqtSignal(str)
 
     def __init__(self, ui_file=None, Name=None, **kwargs):
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # print('trayservice pre')
         super().__init__(**kwargs)
         # print('trayservice post')
 
-        icon = QtGui.QIcon('./../TU-Signet.png')
+        icon = QtGui.QIcon("./../TU-Signet.png")
         self.pyqt_sysTray = SystemTrayIcon(icon, self)
         self.setWindowIcon(QtGui.QIcon(icon))
 
         self.pyqt_sysTray.activated.connect(self.restore_window)
         if Name is not None:
-            self.pyqt_sysTray.setToolTip(u'{}'.format(Name))
+            self.pyqt_sysTray.setToolTip("{}".format(Name))
             self.setToolTipDuration(-1)
             self.setWindowTitle(Name)
             self._Name = Name
@@ -745,8 +753,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
         self.hide()
 
     def event(self, event):
-        if (event.type() == QtCore.QEvent.WindowStateChange and
-                self.isMinimized()):
+        if event.type() == QtCore.QEvent.WindowStateChange and self.isMinimized():
             # take out of taskbar
             self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.Tool)
             self.pyqt_sysTray.show()
@@ -757,12 +764,16 @@ class Window_trayService_ui(QtWidgets.QWidget):
     def closeEvent(self, event):
         reply = QtWidgets.QMessageBox.question(
             self,
-            'Message', "Are you sure to quit this application?\n\n" +
-            "'Yes'    will kill me (if I am a service, I might restart immediately)\n" +
-            "'No'     will minimize me to the Tray\n" +
-            "'Cancel' will do....nothing",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel,
-            QtWidgets.QMessageBox.Cancel)
+            "Message",
+            "Are you sure to quit this application?\n\n"
+            + "'Yes'    will kill me (if I am a service, I might restart immediately)\n"
+            + "'No'     will minimize me to the Tray\n"
+            + "'Cancel' will do....nothing",
+            QtWidgets.QMessageBox.Yes
+            | QtWidgets.QMessageBox.No
+            | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel,
+        )
 
         if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
@@ -800,7 +811,9 @@ class Window_plotting_m(Window_ui):
     ):
         """storing data, building the window layout, starting timer to update"""
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.data = data
         self.labels_x = labels_x
         self.labels_y = labels_y
@@ -867,8 +880,7 @@ class Window_plotting_m(Window_ui):
         with self.lock:
             for entry, label in zip(self.data, self.legend):
                 ent0, ent1 = shaping(entry)
-                self.lines.append(self.ax.plot(
-                    ent0, ent1, "*-", label=label)[0])
+                self.lines.append(self.ax.plot(ent0, ent1, "*-", label=label)[0])
         self.ax.legend()
 
     def plot_base_multiple(self):
@@ -905,8 +917,7 @@ class Window_plotting_m(Window_ui):
                     c1, c2 = shaping(curve)
                     # print(c)
                     self.lines[-1].append(
-                        self.axes[ct].plot(
-                            c1, c2, self.linestyle, label=label)[0]
+                        self.axes[ct].plot(c1, c2, self.linestyle, label=label)[0]
                     )
                 self.axes[ct].legend()
         # plt.tight_layout(w_pad=10, pad=5)
@@ -960,7 +971,9 @@ class Window_plotting_specification(Window_ui):
         **kwargs,
     ):
         super().__init__(ui_file, **kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         self.ui_file_plotselection = (
             ".\\configurations\\Data_display_selection_presetempty.ui"
@@ -976,8 +989,7 @@ class Window_plotting_specification(Window_ui):
             self.sig_error.emit("no live data to plot!")
 
             self._logger.warning("no live data to plot!")
-            self.sig_error.emit(
-                "If you want to see live data, start the live logger!")
+            self.sig_error.emit("If you want to see live data, start the live logger!")
 
             self.close()
             return
@@ -990,8 +1002,7 @@ class Window_plotting_specification(Window_ui):
 
         self.lineEdit_savingpreset.textEdited.connect(self.store_filenamevalue)
         self.lineEdit_savingpreset.returnPressed.connect(self.saving)
-        self.combo_loadingpreset.activated[
-            "QString"].connect(self.restoring_preset)
+        self.combo_loadingpreset.activated["QString"].connect(self.restoring_preset)
 
         self.parse_presets()
 
@@ -1011,8 +1022,7 @@ class Window_plotting_specification(Window_ui):
     def saving(self):
         """save the current configuration (self.selection) as a preset"""
         with open(
-            ".\\configurations\\plotting_presets\\{}.json".format(
-                self.filenamevalue),
+            ".\\configurations\\plotting_presets\\{}.json".format(self.filenamevalue),
             "w",
         ) as output:
             output.write(json.dumps(self.selection))
@@ -1026,7 +1036,9 @@ class Window_plotting_specification(Window_ui):
             with open(filename) as f:
                 self.selection_int = json.load(f)
         except FileNotFoundError:
-            self._logger.warning(f"The preset file you wanted ({filename}) was not found!")
+            self._logger.warning(
+                f"The preset file you wanted ({filename}) was not found!"
+            )
             self.sig_error.emit(
                 f"Plotting: The preset file you wanted ({filename}) was not found!"
             )
@@ -1212,10 +1224,13 @@ class Window_plotting_specification(Window_ui):
                 try:
                     value_names = list(self.mainthread.data_live[instrument_name])
                 except KeyError:
-                    self.sig_error.emit('plotting: do not choose "-" '
-                                        "please, there is nothing behind it!")
+                    self.sig_error.emit(
+                        'plotting: do not choose "-" '
+                        "please, there is nothing behind it!"
+                    )
                     self._logger.warning(
-                        'do not choose "-" please, there is nothing behind it!')
+                        'do not choose "-" please, there is nothing behind it!'
+                    )
 
                     return
 
@@ -1259,7 +1274,8 @@ class Window_plotting_specification(Window_ui):
                     ]
                 except KeyError:
                     self._logger.warning(
-                        'There was to be an empty plot - I ignored it....')                    
+                        "There was to be an empty plot - I ignored it...."
+                    )
                     self.sig_error.emit(
                         "Plotting: There was to be an empty plot - I ignored it...."
                     )
@@ -1272,14 +1288,21 @@ class Window_plotting_specification(Window_ui):
                     if ("instrument" and "value") in plot_entry[ax]:
                         # print('found something!')
                         try:
-                            y.append(self.mainthread.data_live[plot_entry[ax][
-                                     'instrument']][plot_entry[ax]['value']])
-                            labels_l.append('{}: {}'.format(
-                                plot_entry[ax]['instrument'], plot_entry[ax]['value']))
+                            y.append(
+                                self.mainthread.data_live[plot_entry[ax]["instrument"]][
+                                    plot_entry[ax]["value"]
+                                ]
+                            )
+                            labels_l.append(
+                                "{}: {}".format(
+                                    plot_entry[ax]["instrument"],
+                                    plot_entry[ax]["value"],
+                                )
+                            )
                         except KeyError:
                             self._logger.warning(
-                                'some key was specified which is not present in the data!')
-
+                                "some key was specified which is not present in the data!"
+                            )
 
                 # y = [entry_data[key] for key in entry_data if key != 'X']
 

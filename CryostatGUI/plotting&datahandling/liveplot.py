@@ -1,15 +1,14 @@
 import sqlite3
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import time
 import pandas as pd
 import numpy as np
 
-data = 'Logs/cooldown_20200422_2.db'
+data = "Logs/cooldown_20200422_2.db"
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
-line, = ax1.plot([], [], 'o-', color='b', markersize=5)
+(line,) = ax1.plot([], [], "o-", color="b", markersize=5)
 
 
 def create_connection(db_file):
@@ -42,8 +41,7 @@ def conf():
         cur.execute("SELECT timeseconds from LakeShore350")
         times2 = np.array(cur.fetchall())[:, 0]
 
-    df = pd.DataFrame(dict(times_res=times1, res=res,
-                           times_temps=times2, temps=temps))
+    df = pd.DataFrame(dict(times_res=times1, res=res, times_temps=times2, temps=temps))
     return df
 
 
@@ -54,18 +52,14 @@ def plotting(i):
 
     with conn:
         cur = conn.cursor()
-        cur.execute(
-            "SELECT SampleResistance_Ohm from SR830 ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT SampleResistance_Ohm from SR830 ORDER BY id DESC LIMIT 1")
         res = np.array(cur.fetchall())[:, 0]
-        cur.execute(
-            "SELECT timeseconds from SR830 ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT timeseconds from SR830 ORDER BY id DESC LIMIT 1")
         times1 = np.array(cur.fetchall())[:, 0]
 
-        cur.execute(
-            "SELECT Sensor_1_K from LakeShore350 ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT Sensor_1_K from LakeShore350 ORDER BY id DESC LIMIT 1")
         temps = np.array(cur.fetchall())[:, 0]
-        cur.execute(
-            "SELECT timeseconds from LakeShore350 ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT timeseconds from LakeShore350 ORDER BY id DESC LIMIT 1")
         times2 = np.array(cur.fetchall())[:, 0]
 
     # arr = np.array([times1, times2]).T
@@ -73,10 +67,12 @@ def plotting(i):
 
     # df = pd.DataFrame(dict(times_res=times1, res=res,
     #                        times_temps=times2, temps=temps))
-    df = df.append(dict(times_res=times1, res=res,
-                        times_temps=times2, temps=temps), ignore_index=True)
-    plot_res = df.loc[df.times_res - df.times_temps < 1, 'res']
-    plot_temp = df.loc[df.times_res - df.times_temps < 1, 'temps']
+    df = df.append(
+        dict(times_res=times1, res=res, times_temps=times2, temps=temps),
+        ignore_index=True,
+    )
+    plot_res = df.loc[df.times_res - df.times_temps < 1, "res"]
+    plot_temp = df.loc[df.times_res - df.times_temps < 1, "temps"]
     # print(df.times_res)
 
     # ax1.clear()
@@ -87,16 +83,15 @@ def plotting(i):
     line.set_ydata(plot_res)
     for a in [ax1]:
         a.relim()
-        a.autoscale_view()    
-
+        a.autoscale_view()
 
     # ax1.plot(roll['set_pressure'], roll['resistivity'], '-', color='r')
     # overwrite the x-label added by `psd`
-    ax1.set_ylabel('SampleResistance_Ohm')
-    ax1.set_xlabel('Temperature K')  # overwrite the x-label added by `psd`
+    ax1.set_ylabel("SampleResistance_Ohm")
+    ax1.set_xlabel("Temperature K")  # overwrite the x-label added by `psd`
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     df = conf()
 

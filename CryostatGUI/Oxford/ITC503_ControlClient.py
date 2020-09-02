@@ -9,6 +9,7 @@ Author(s):
 """
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -17,6 +18,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import QSettings
 from PyQt5 import QtWidgets
+
 # import json
 # import sys
 from threading import Lock
@@ -68,15 +70,20 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         gas_flow_output=7,
         proportional_band=8,
         integral_action_time=9,
-        derivative_action_time=10)
+        derivative_action_time=10,
+    )
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress='', log=None, **kwargs):
+    def __init__(
+        self, mainthread=None, comLock=None, InstrumentAddress="", log=None, **kwargs
+    ):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
 
         # here the class instance of the LakeShore should be handed
-        self.__name__ = 'ITC_control ' + InstrumentAddress
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self.__name__ = "ITC_control " + InstrumentAddress
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
@@ -104,7 +111,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.setControl()
         self.interval = 1
 
-        self.setPIDFile('.\\..\\configurations\\PID_conf\\P1C1.conf')
+        self.setPIDFile(".\\..\\configurations\\PID_conf\\P1C1.conf")
         self.useAutoPID = True
         if mainthread is not None:
             mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
@@ -157,42 +164,36 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         #     else:
         #         self.threads['control_ITC'][0].setGasOutput()
 
-        mainthread.spinsetGasOutput.valueChanged.connect(
-            self.gettoset_GasOutput)
+        mainthread.spinsetGasOutput.valueChanged.connect(self.gettoset_GasOutput)
         mainthread.spinsetGasOutput.editingFinished.connect(self.setGasOutput)
 
-        mainthread.spinsetHeaterPercent.valueChanged.connect(
-            self.gettoset_HeaterOutput)
-        mainthread.spinsetHeaterPercent.editingFinished.connect(
-            self.setHeaterOutput)
+        mainthread.spinsetHeaterPercent.valueChanged.connect(self.gettoset_HeaterOutput)
+        mainthread.spinsetHeaterPercent.editingFinished.connect(self.setHeaterOutput)
 
         mainthread.spinsetProportionalID.valueChanged.connect(
-            self.gettoset_Proportional)
-        mainthread.spinsetProportionalID.editingFinished.connect(
-            self.setProportional)
+            self.gettoset_Proportional
+        )
+        mainthread.spinsetProportionalID.editingFinished.connect(self.setProportional)
 
-        mainthread.spinsetPIntegrationD.valueChanged.connect(
-            self.gettoset_Integral)
-        mainthread.spinsetPIntegrationD.editingFinished.connect(
-            self.setIntegral)
+        mainthread.spinsetPIntegrationD.valueChanged.connect(self.gettoset_Integral)
+        mainthread.spinsetPIntegrationD.editingFinished.connect(self.setIntegral)
 
-        mainthread.spinsetPIDerivative.valueChanged.connect(
-            self.gettoset_Derivative)
-        mainthread.spinsetPIDerivative.editingFinished.connect(
-            self.setDerivative)
+        mainthread.spinsetPIDerivative.valueChanged.connect(self.gettoset_Derivative)
+        mainthread.spinsetPIDerivative.editingFinished.connect(self.setDerivative)
 
-        mainthread.combosetHeatersens.activated['int'].connect(
-            lambda value: self.setHeaterSensor(value + 1))
+        mainthread.combosetHeatersens.activated["int"].connect(
+            lambda value: self.setHeaterSensor(value + 1)
+        )
 
-        mainthread.combosetAutocontrol.activated[
-            'int'].connect(self.setAutoControl)
+        mainthread.combosetAutocontrol.activated["int"].connect(self.setAutoControl)
 
         mainthread.spin_threadinterval.valueChanged.connect(self.setInterval)
 
         # -------------------------------------------------------------------------------------------------------------------------
 
         mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value))
+            lambda value: self.setInterval(value)
+        )
 
     # @control_checks
     @ExceptionHandling
@@ -208,10 +209,12 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
 
         # self.data['status'] = self.read_status()
-        self.data['temperature_error'] = self.ITC.getValue(
-            self.sensors['temperature_error'])
-        self.data['set_temperature'] = self.ITC.getValue(
-            self.sensors['set_temperature'])
+        self.data["temperature_error"] = self.ITC.getValue(
+            self.sensors["temperature_error"]
+        )
+        self.data["set_temperature"] = self.ITC.getValue(
+            self.sensors["set_temperature"]
+        )
 
         for key in self.sensors.keys():
             try:
@@ -225,7 +228,10 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 self._logger.exception(e_ass)
                 self.data[key] = None
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                if (
+                    isinstance(e_visa, type(self.timeouterror))
+                    and e_visa.args == self.timeouterror.args
+                ):
                     self.sig_visatimeout.emit()
                     self.ITC.clear_buffers()
                     self.data[key] = None
@@ -236,15 +242,16 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # print('retrieving', time.time()-starttime, self.data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
 
-        self.data['Sensor_1_calerr_K'] = self.data[
-            'set_temperature'] - self.data['temperature_error']
-        self.data_last['status'] = self.read_status()
-        self.data_last['sweep'] = self.checksweep(stop=False)
-        self.data['autocontrol'] = int(self.data_last['status']['auto_int'])
+        self.data["Sensor_1_calerr_K"] = (
+            self.data["set_temperature"] - self.data["temperature_error"]
+        )
+        self.data_last["status"] = self.read_status()
+        self.data_last["sweep"] = self.checksweep(stop=False)
+        self.data["autocontrol"] = int(self.data_last["status"]["auto_int"])
 
         if self.useAutoPID:
-            self.set_PID(temperature=self.data['Sensor_1_K'])
-        self.data['realtime'] = datetime.now()
+            self.set_PID(temperature=self.data["Sensor_1_K"])
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -257,8 +264,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        if 'setTemp_K' in command:
-            self.setTemperature(command['setTemp_K'])
+        if "setTemp_K" in command:
+            self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
@@ -296,9 +303,9 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         except IndexError:
             PID_id = -1
         PID_conf = self.PID_configuration[1][PID_id]
-        self.set_prop = PID_conf['p']
-        self.set_integral = PID_conf['i']
-        self.set_derivative = PID_conf['d']
+        self.set_prop = PID_conf["p"]
+        self.set_integral = PID_conf["i"]
+        self.set_derivative = PID_conf["d"]
         self.setProportional()
         self.setIntegral()
         self.setDerivative()
@@ -314,9 +321,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def stopSweep(self):
         # with self.lock:
-        self.setSweep(setpoint_temp=self.ITC.getValue(0),
-                      rate=50,
-                      start=False)
+        self.setSweep(setpoint_temp=self.ITC.getValue(0), rate=50, start=False)
         time.sleep(0.1)
         self.ITC.SweepJumpToLast()
         time.sleep(0.1)
@@ -343,7 +348,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 sweep_time = 0.1
             if sweep_time > 20e3:
                 raise AssertionError(
-                    'A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!')
+                    "A sweep can be maximal 15 * 23h long (about 20 000 minutes, about 205K at 0.01 K/min)!"
+                )
             if sweep_time > 23.5 * 60:
                 # not only one step suffices, as the maximum time for one step
                 # is 24 hours (using 23.5 for safety)
@@ -353,12 +359,13 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 # calculate remaining time in minutes
                 remaining_min = sweep_time - n_sweeps * 23 * 60
                 # make list with full sweep times
-                sweep_times = [
-                    23 * 60 for n in range(n_sweeps)]
+                sweep_times = [23 * 60 for n in range(n_sweeps)]
 
                 # make list with full sweep temps
-                sweep_temps = [setpoint_now + delta_Temperature * 23 * 60 /
-                               sweep_time * (n + 1) for n in range(n_sweeps)]
+                sweep_temps = [
+                    setpoint_now + delta_Temperature * 23 * 60 / sweep_time * (n + 1)
+                    for n in range(n_sweeps)
+                ]
                 if not np.isclose(0, remaining_min):
                     # append remaining times and temps in case the user
                     # did not hit a mark
@@ -369,25 +376,31 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 sweep_times = [sweep_time]
                 sweep_temps = [setpoint_temp]
 
-        sp = {str(z): dict(set_point=setpoint_temp,
-                           hold_time=0,
-                           sweep_time=0) for z in range(1, 17)}
-        sp.update({str(1): dict(set_point=setpoint_now,
-                                hold_time=0,
-                                sweep_time=0),
-                   # str(2): dict(set_point=setpoint_temp,
-                   #              hold_time=0,
-                   #              sweep_time=sweep_time),
-                   # str(15): dict(set_point=setpoint_temp,
-                   #               hold_time=0,
-                   #               sweep_time=0),
-                   str(16): dict(set_point=setpoint_temp,
-                                 hold_time=0,
-                                 sweep_time=0.1)})
+        sp = {
+            str(z): dict(set_point=setpoint_temp, hold_time=0, sweep_time=0)
+            for z in range(1, 17)
+        }
+        sp.update(
+            {
+                str(1): dict(set_point=setpoint_now, hold_time=0, sweep_time=0),
+                # str(2): dict(set_point=setpoint_temp,
+                #              hold_time=0,
+                #              sweep_time=sweep_time),
+                # str(15): dict(set_point=setpoint_temp,
+                #               hold_time=0,
+                #               sweep_time=0),
+                str(16): dict(set_point=setpoint_temp, hold_time=0, sweep_time=0.1),
+            }
+        )
         # fill up the steps
-        sp.update({str(z + 2): dict(set_point=sweep_temps[z],
-                                    hold_time=0,
-                                    sweep_time=sweep_times[z]) for z in range(n_sweeps + 1)})
+        sp.update(
+            {
+                str(z + 2): dict(
+                    set_point=sweep_temps[z], hold_time=0, sweep_time=sweep_times[z]
+                )
+                for z in range(n_sweeps + 1)
+            }
+        )
 
         self.sweep_parameters = sp
         # print('setting sweep to', self.sweep_parameters)
@@ -426,13 +439,13 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         status = self.read_status(run=False)
         # print(status)
         try:
-            int(status['sweep'])
-            status['sweep'] = bool(int(status['sweep']))
+            int(status["sweep"])
+            status["sweep"] = bool(int(status["sweep"]))
         except ValueError:
-            status['sweep'] = True
+            status["sweep"] = True
         # print('sweep status: ', status['sweep'])
-        self.sweep_running_device = status['sweep']
-        if stop and status['sweep']:
+        self.sweep_running_device = status["sweep"]
+        if stop and status["sweep"]:
             # print('setTemp: sweep running, stopping sweep')
             self.stopSweep()
 
@@ -455,36 +468,39 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
              SweepRate=SweepRate)
 
         """
-        values['self'] = self
+        values["self"] = self
 
         def settingtheTemp(values):
-            instance = values['self']
+            instance = values["self"]
             # stop sweep if it runs
-            if 'start' in values:
-                starting = values['start']
+            if "start" in values:
+                starting = values["start"]
             else:
                 starting = instance.ITC.getValue(0)
-            start = instance.ITC.getValue(
-                0) if values['isSweepStartCurrent'] else starting
+            start = (
+                instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
+            )
             instance.checksweep(stop=True)
-            autocontrol = instance.data_last['status']['auto_int']
+            autocontrol = instance.data_last["status"]["auto_int"]
             instance.ITC.setAutoControl(0)
-            while instance.data_last['sweep']:
+            while instance.data_last["sweep"]:
                 time.sleep(0.01)
                 # print('sleeping')
             else:
                 time.sleep(0.1)
             with instance.lock:
-                if values['isSweep']:
+                if values["isSweep"]:
                     # set up sweep
 
-                    instance.setSweep(setpoint_temp=values['end'],
-                                      rate=values['SweepRate'],
-                                      start=start)
+                    instance.setSweep(
+                        setpoint_temp=values["end"],
+                        rate=values["SweepRate"],
+                        start=start,
+                    )
                     instance.ITC.SweepStart()
                     instance.ITC.getValue(0)  # whatever this is needed fo
                 else:
-                    instance.ITC.setTemperature(values['setTemp'])
+                    instance.ITC.setTemperature(values["setTemp"])
                 instance.ITC.setAutoControl(autocontrol)
 
         with self.lock_newthread:
@@ -637,6 +653,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
     """docstring for ITCGUI"""
+
     sig_sendConfTemp = pyqtSignal(dict)
     sig_useAutocheck = pyqtSignal(bool)
     sig_newFilePID = pyqtSignal(str)
@@ -644,26 +661,26 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
     def __init__(self, **kwargs):
         self.kwargs = deepcopy(kwargs)
-        del kwargs['identity']
-        del kwargs['InstrumentAddress']
-        self._identity = self.kwargs['identity']
-        self._InstrumentAddress = self.kwargs['InstrumentAddress']
+        del kwargs["identity"]
+        del kwargs["InstrumentAddress"]
+        self._identity = self.kwargs["identity"]
+        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         super().__init__(**kwargs)
 
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
-        self.__name__ = 'ITC_Window'
+        self.__name__ = "ITC_Window"
         self.ITC_values = dict(setTemperature=4, SweepRate=2)
         self.controls = [self.groupSettings]
         self._useAutoPID = True
-        self._PIDFile = '.\\..\\configurations\\PID_conf\\P1C1.conf'
+        self._PIDFile = ".\\..\\configurations\\PID_conf\\P1C1.conf"
 
-        self.checkUseAuto.toggled[
-            'bool'].connect(self.fun_useAutoPID)
+        self.checkUseAuto.toggled["bool"].connect(self.fun_useAutoPID)
         # self.lineConfFile.textEdited.connect(
         #     self.ITC_PIDFile_store)
-        self.pushConfLoad.clicked.connect(
-            self.fun_PIDFile_send)
+        self.pushConfLoad.clicked.connect(self.fun_PIDFile_send)
         self.pushConfBrowse.clicked.connect(self.window_FileDialogOpen)
         # self.lineConfFile.returnPressed.connect(
         #     self.fun_PIDFile_send)
@@ -675,27 +692,29 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     @ExceptionHandling
     def fun_setTemp_valcha(self, value):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
-        self.ITC_values['setTemperature'] = value
+        self.ITC_values["setTemperature"] = value
 
     @pyqtSlot(float)
     @ExceptionHandling
     def fun_setRamp_valcha(self, value):
-        self.ITC_values['SweepRate'] = value
+        self.ITC_values["SweepRate"] = value
         # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
 
     @pyqtSlot(bool)
     @ExceptionHandling
     def fun_checkSweep_toggled(self, boolean):
-        self.ITC_values['Sweep_status_software'] = boolean
+        self.ITC_values["Sweep_status_software"] = boolean
 
     @pyqtSlot()
     @ExceptionHandling
     def fun_sendConfTemp(self):
-        self.fun_startTemp(isSweep=self.ITC_values['Sweep_status_software'],
-                           isSweepStartCurrent=True,
-                           setTemp=self.ITC_values['setTemperature'],
-                           end=self.ITC_values['setTemperature'],
-                           SweepRate=self.ITC_values['SweepRate'])
+        self.fun_startTemp(
+            isSweep=self.ITC_values["Sweep_status_software"],
+            isSweepStartCurrent=True,
+            setTemp=self.ITC_values["setTemperature"],
+            end=self.ITC_values["setTemperature"],
+            SweepRate=self.ITC_values["SweepRate"],
+        )
 
     # @pyqtSlot(dict)
     # @ExceptionHandling
@@ -707,26 +726,44 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     #                            SweepRate=d['SweepRate'])
 
     @pyqtSlot(dict)
-    def fun_startTemp(self, isSweep=False, isSweepStartCurrent=True, setTemp=4, start=None, end=5, SweepRate=2):
-        self.sig_sendConfTemp.emit(dict(isSweep=isSweep,
-                                        isSweepStartCurrent=isSweepStartCurrent,
-                                        setTemp=setTemp,
-                                        start=start,
-                                        end=end,
-                                        SweepRate=SweepRate))
+    def fun_startTemp(
+        self,
+        isSweep=False,
+        isSweepStartCurrent=True,
+        setTemp=4,
+        start=None,
+        end=5,
+        SweepRate=2,
+    ):
+        self.sig_sendConfTemp.emit(
+            dict(
+                isSweep=isSweep,
+                isSweepStartCurrent=isSweepStartCurrent,
+                setTemp=setTemp,
+                start=start,
+                end=end,
+                SweepRate=SweepRate,
+            )
+        )
 
     @pyqtSlot()
     def run_Hardware(self):
         """method to start/stop the thread which controls the Oxford ITC"""
 
         try:
-            getInfodata = self.running_thread_control(ITC503_ControlClient(
-                InstrumentAddress=self._InstrumentAddress, mainthread=self, identity=self._identity), 'Hardware')
+            getInfodata = self.running_thread_control(
+                ITC503_ControlClient(
+                    InstrumentAddress=self._InstrumentAddress,
+                    mainthread=self,
+                    identity=self._identity,
+                ),
+                "Hardware",
+            )
 
-            self.ITC_values['setTemperature'] = getInfodata.ITC.getValue(0)
+            self.ITC_values["setTemperature"] = getInfodata.ITC.getValue(0)
             with getInfodata.lock:
                 sweepstatus = getInfodata.checksweep(stop=False)
-            self.ITC_values['Sweep_status_software'] = sweepstatus
+            self.ITC_values["Sweep_status_software"] = sweepstatus
             self.checkSweep.setChecked(sweepstatus)
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
@@ -739,8 +776,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
             # setting ITC values by GUI
             self.spinsetTemp.valueChanged.connect(self.fun_setTemp_valcha)
-            self.checkSweep.toggled['bool'].connect(
-                self.fun_checkSweep_toggled)
+            self.checkSweep.toggled["bool"].connect(self.fun_checkSweep_toggled)
             self.dspinSetRamp.valueChanged.connect(self.fun_setRamp_valcha)
             self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
 
@@ -768,73 +804,58 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             if self.data[key] is None:
                 self.data[key] = np.nan
         # if not self.data['Sensor_1_K'] is None:
-        self.lcdTemp_sens1_K.display(
-            self.data['Sensor_1_K'])
+        self.lcdTemp_sens1_K.display(self.data["Sensor_1_K"])
         # if not self.data['Sensor_2_K'] is None:
-        self.lcdTemp_sens2_K.display(
-            self.data['Sensor_2_K'])
+        self.lcdTemp_sens2_K.display(self.data["Sensor_2_K"])
         # if not self.data['Sensor_3_K'] is None:
-        self.lcdTemp_sens3_K.display(
-            self.data['Sensor_3_K'])
+        self.lcdTemp_sens3_K.display(self.data["Sensor_3_K"])
 
         # if not self.data['set_temperature'] is None:
-        self.lcdTemp_set.display(
-            self.data['set_temperature'])
+        self.lcdTemp_set.display(self.data["set_temperature"])
         # if not self.data['temperature_error'] is None:
-        self.lcdTemp_err.display(
-            self.data['temperature_error'])
+        self.lcdTemp_err.display(self.data["temperature_error"])
         # if not self.data['heater_output_as_percent'] is None:
         try:
             self.progressHeaterPercent.setValue(
-                int(self.data['heater_output_as_percent']))
+                int(self.data["heater_output_as_percent"])
+            )
             # if not self.data['gas_flow_output'] is None:
-            self.progressNeedleValve.setValue(
-                int(self.data['gas_flow_output']))
+            self.progressNeedleValve.setValue(int(self.data["gas_flow_output"]))
         except ValueError:
             pass
         # if not self.data['heater_output_as_voltage'] is None:
-        self.lcdHeaterVoltage.display(
-            self.data['heater_output_as_voltage'])
+        self.lcdHeaterVoltage.display(self.data["heater_output_as_voltage"])
         # if not self.data['gas_flow_output'] is None:
-        self.lcdNeedleValve_percent.display(
-            self.data['gas_flow_output'])
+        self.lcdNeedleValve_percent.display(self.data["gas_flow_output"])
         # if not self.data['proportional_band'] is None:
-        self.lcdProportionalID.display(
-            self.data['proportional_band'])
+        self.lcdProportionalID.display(self.data["proportional_band"])
         # if not self.data['integral_action_time'] is None:
-        self.lcdPIntegrationD.display(
-            self.data['integral_action_time'])
+        self.lcdPIntegrationD.display(self.data["integral_action_time"])
         # if not self.data['derivative_action_time'] is None:
-        self.lcdPIDerivative.display(
-            self.data['derivative_action_time'])
+        self.lcdPIDerivative.display(self.data["derivative_action_time"])
 
-        self.lcdTemp_sens1_calcerr_K.display(
-            self.data['Sensor_1_calerr_K'])
+        self.lcdTemp_sens1_calcerr_K.display(self.data["Sensor_1_calerr_K"])
 
-        self.combosetAutocontrol.setCurrentIndex(
-            self.data['autocontrol'])
+        self.combosetAutocontrol.setCurrentIndex(self.data["autocontrol"])
 
     def load_settings(self):
         """load all settings store in the QSettings
         set corresponding values in the 'Global Settings' window"""
         settings = QSettings("TUW", "CryostatGUI")
         try:
-            self._useAutoPID = bool(
-                settings.value('ITC_useAutoPID', int))
-            self._PIDFile = settings.value(
-                'ITC_PIDFile', str)
+            self._useAutoPID = bool(settings.value("ITC_useAutoPID", int))
+            self._PIDFile = settings.value("ITC_PIDFile", str)
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             # self.show_error_general(f'could not find a key: {e}')
-            self._logger.warning(f'key {e} was not found in the settings')
+            self._logger.warning(f"key {e} was not found in the settings")
         del settings
 
-        self.checkUseAuto.setChecked(
-            self._useAutoPID)
+        self.checkUseAuto.setChecked(self._useAutoPID)
         if isinstance(self._PIDFile, str):
             text = self._PIDFile
         else:
-            text = ''
+            text = ""
         self.lineConfFile.setText(text)
         self.fun_PIDFile_read()
 
@@ -845,7 +866,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self._useAutoPID = boolean
         self.sig_useAutocheck.emit(boolean)
         settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue('ITC_useAutoPID', int(boolean))
+        settings.setValue("ITC_useAutoPID", int(boolean))
         del settings
 
     @ExceptionHandling
@@ -854,11 +875,11 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         if isinstance(self._PIDFile, str):
             text = self._PIDFile
         else:
-            text = ''
+            text = ""
         self.sig_newFilePID.emit(text)
 
         settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue('ITC_PIDFile', self._PIDFile)
+        settings.setValue("ITC_PIDFile", self._PIDFile)
         del settings
         self.fun_PIDFile_read()
 
@@ -870,14 +891,14 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         except OSError as e:
             self._logger.exception(e)
         except TypeError as e:
-            self._logger.error(f' missing Filename! (TypeError: {e})')
+            self._logger.error(f" missing Filename! (TypeError: {e})")
 
     @ExceptionHandling
     def window_FileDialogOpen(self, test):
         # print(test)
         fname, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self, 'Choose PID configuration file',
-            'c:\\', ".conf(*.conf)")
+            self, "Choose PID configuration file", "c:\\", ".conf(*.conf)"
+        )
         self.lineConfFile.setText(fname)
         self._PIDFile = fname
         # self.setValue('general', 'logfile_location', fname)
@@ -888,22 +909,23 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         except OSError as e:
             self._logger.exception(e)
         except TypeError as e:
-            self._logger.error(f'missing Filename! (TypeError: {e})')
+            self._logger.error(f"missing Filename! (TypeError: {e})")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logger_2 = logging.getLogger('pyvisa')
+    logger_2 = logging.getLogger("pyvisa")
     logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger('PyQt5')
+    logger_3 = logging.getLogger("PyQt5")
     logger_3.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s')
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)
@@ -911,9 +933,13 @@ if __name__ == '__main__':
     logger_3.addHandler(handler)
 
     app = QtWidgets.QApplication(sys.argv)
-    ITC_Instrumentadress = 'ASRL6::INSTR'
+    ITC_Instrumentadress = "ASRL6::INSTR"
     form = ITCGUI(
-        ui_file='itc503_main.ui', Name='ITC 503', identity='ITC', InstrumentAddress=ITC_Instrumentadress)
+        ui_file="itc503_main.ui",
+        Name="ITC 503",
+        identity="ITC",
+        InstrumentAddress=ITC_Instrumentadress,
+    )
     form.show()
     # print('date: ', dt.datetime.now(),
     #       '\nstartup time: ', time.time() - a)

@@ -47,7 +47,9 @@ class Keithley6221(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     # def go(self, command):
     #     return super().go(command)
@@ -79,7 +81,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
     def enable_frontpanel(self):
         self.go("DISPlay:ENABle on")
         self.go("DISPlay:TEXT:STATe off")
-        self.go(f"DISPlay:WINDow2TEXT:STATe off")
+        self.go("DISPlay:WINDow2TEXT:STATe off")
 
     def setCurrent(self, current_value):
         """Sets Current
@@ -183,7 +185,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
-        return self.query(':SYST:ERR?')
+        return self.query(":SYST:ERR?")
 
     def error_gen(self):
         """As error and status messages occur, they are placed in the Error Queue. This query command
@@ -196,4 +198,4 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
-        yield self.query(':SYST:ERR?')
+        yield self.query(":SYST:ERR?")

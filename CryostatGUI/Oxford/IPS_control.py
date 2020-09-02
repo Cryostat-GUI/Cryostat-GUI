@@ -9,7 +9,6 @@ Author(s):
 """
 import time
 from copy import deepcopy
-from importlib import reload
 
 from PyQt5.QtCore import pyqtSlot
 
@@ -137,7 +136,9 @@ class IPS_Updater(AbstractLoopThread):
 
     def __init__(self, InstrumentAddress, log=None, **kwargs):
         super().__init__(**kwargs)
-        self._logger = logging.getLogger('CryoGUI.' + __name__ + '.' + self.__class__.__name__)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         # QThread.__init__(self)
         # global Oxford
         # ips120 = reload(Oxford.ips120).ips120
@@ -161,7 +162,7 @@ class IPS_Updater(AbstractLoopThread):
                 data[key] = self.PS.getValue(idx_sensor)
             data.update(self.getStatus())
 
-            data['realtime'] = datetime.now()
+            data["realtime"] = datetime.now()
 
             self.sig_Infodata.emit(deepcopy(data))
         except AssertionError as e_ass:

@@ -14,10 +14,18 @@ setuptools.setup(
     url="https://github.com/Cryostat-GUI/Cryostat-GUI",
     # download_url='https://github.com/bklebel/measureSequences/archive/v0.1.0.tar.gz',
     # packages=setuptools.find_packages(),
-    packages=['CryostatGUI'],
-    install_requires=['numpy', 'PyQt5', 'pyvisa', 'matplotlib',
-                      'pymeasure', 'measureSequences'],
-    dependency_links=['https://github.com/bklebel/measureSequences/archive/v0.1.7.tar.gz'],
+    packages=["CryostatGUI"],
+    install_requires=[
+        "numpy",
+        "PyQt5",
+        "pyvisa",
+        "matplotlib",
+        "pymeasure",
+        "measureSequences",
+    ],
+    dependency_links=[
+        "https://github.com/bklebel/measureSequences/archive/v0.1.7.tar.gz"
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
