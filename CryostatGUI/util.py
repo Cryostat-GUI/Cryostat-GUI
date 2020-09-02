@@ -1122,9 +1122,7 @@ class Window_plotting_specification(Window_ui):
         # self.data['labels_y'].append('dummy')
         # self.data['legend_labels'].append('dummy')
 
-        self.selection.append(
-            dict(X={}, Y1={}, Y2={}, Y3={}, Y4={}, Y5={})
-        )
+        self.selection.append(dict(X={}, Y1={}, Y2={}, Y3={}, Y4={}, Y5={}))
 
         with self.mainthread.dataLock_live:
             # all the dictionary keys
