@@ -33,7 +33,12 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__ + "." + kwargs['InstrumentAddress']
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
         )
 
         self.setRate(num=3)

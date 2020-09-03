@@ -24,7 +24,12 @@ class Keithley6221(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__ + "." + kwargs['InstrumentAddress']
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
         )
 
     # def go(self, command):
@@ -50,13 +55,13 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         return self.query("OUTPUT:STATE?")
 
     def disable_frontpanel(self, text):
-        self._logger.debug('disabling frontpanel, setting to %s', text)
+        self._logger.debug("disabling frontpanel, setting to %s", text)
         self.go('DISPlay:TEXT:STATe on; DISPlay:TEXT "measuring..."')
         self.go(f'DISPlay:WINDow2TEXT:STATe on; DISPlay:WINDow2:TEXT "{text}"')
         self.go("DISPlay:ENABle off")
 
     def enable_frontpanel(self):
-        self._logger.debug('enabling frontpanel')
+        self._logger.debug("enabling frontpanel")
         self.go("DISPlay:ENABle on")
         self.go("DISPlay:TEXT:STATe off")
         self.go("DISPlay:WINDow2TEXT:STATe off")
@@ -68,7 +73,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
             raise AssertionError(
                 "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
             )
-        self._logger.debug('setting current to %d', current_value)
+        self._logger.debug("setting current to %d", current_value)
         self.go("CURR {0:e}".format(current_value))
 
     def configSourceFunctions(self, bias_current=1e-4, compliance=1):

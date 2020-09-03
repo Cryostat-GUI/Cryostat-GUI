@@ -657,7 +657,9 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     sig_newFilePID = pyqtSignal(str)
     sig_stopSweep = pyqtSignal()
 
-    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+    def __init__(
+        self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
+    ):
         # self.kwargs = deepcopy(kwargs)
         # del kwargs["identity"]
         # del kwargs["InstrumentAddress"]

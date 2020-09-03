@@ -600,7 +600,7 @@ class AbstractLoopThread(AbstractThread):
 class PrometheusGaugeClient:
     """docstring for PrometheusGaugedclient"""
 
-    def __init__(self, *args, prometheus_port=None,  prometheus_name=None, **kwargs):
+    def __init__(self, *args, prometheus_port=None, prometheus_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._port = prometheus_port
         # self._prometheus_initialised = None
@@ -612,7 +612,7 @@ class PrometheusGaugeClient:
 
         if None not in (self._port, self._name_prometheus):
             self._prometheus_enabled = True
-            self._logger.debug('prometheus is enabled here!')
+            self._logger.debug("prometheus is enabled here!")
         else:
             self._prometheus_enabled = False
 
@@ -623,17 +623,22 @@ class PrometheusGaugeClient:
                 self._prometheus_initialised
             except AttributeError:
                 self._logger.debug(
-                    'initialising prometheus client service for %s on port %s', self._name_prometheus, self._port)
+                    "initialising prometheus client service for %s on port %s",
+                    self._name_prometheus,
+                    self._port,
+                )
                 for variablekey in self.data:
                     self._gauges[variablekey] = Gauge(
                         "CryoGUIservice_{}_{}".format(
-                            self._name_prometheus, variablekey), "no description"
+                            self._name_prometheus, variablekey
+                        ),
+                        "no description",
                     )
                 self.set_gauges()
                 start_http_server(self._port)
                 self._prometheus_initialised = True
             self.set_gauges()
- 
+
     def set_gauges(self):
         self._logger.debug("setting prometheus metrics")
         for variablekey in self.data:
@@ -650,14 +655,12 @@ class PrometheusGaugeClient:
                     # {instr}, varkey: {varkey}')
                     pass
             except ValueError as err:
-                if not err.args[0].startswith(
-                    "could not convert string to float"
-                ):
+                if not err.args[0].startswith("could not convert string to float"):
                     self._logger.exception(err.args[0])
                 else:
                     # self._logger.debug(err.args[0] + f'instr:
                     # {instr}, varkey: {varkey}')
-                    pass       
+                    pass
 
 
 class AbstractLoopZmqThread(AbstractLoopThread):
@@ -713,7 +716,7 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
         #     self.sig_assertion.emit(assertion.args[0])
         # print('assertion', assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)        
+            QTimer.singleShot(self.interval * 1e3, self.work)
 
 
 class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
