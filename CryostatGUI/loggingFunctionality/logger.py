@@ -331,7 +331,9 @@ class main_Logger(AbstractLoopThread):
             self.mycursor.execute(sql)
         except OperationalError:
             # print(err)
-            self._logger.debug('encountered OperationalError from sqlite (table of column might already exist)')
+            self._logger.debug(
+                "encountered OperationalError from sqlite (table of column might already exist)"
+            )
             pass
 
         for key in dictname.keys():
@@ -342,7 +344,9 @@ class main_Logger(AbstractLoopThread):
                 # print(sql)
                 self.mycursor.execute(sql)
             except OperationalError:
-                self._logger.debug('encountered OperationalError from sqlite (table of column might already exist)')
+                self._logger.debug(
+                    "encountered OperationalError from sqlite (table of column might already exist)"
+                )
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
 
