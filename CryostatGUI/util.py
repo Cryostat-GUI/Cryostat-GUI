@@ -33,6 +33,9 @@ import json
 import os
 import logging
 
+from prometheus_client import start_http_server
+from prometheus_client import Gauge
+
 
 # from contextlib import suppress
 from copy import deepcopy
@@ -594,6 +597,69 @@ class AbstractLoopThread(AbstractThread):
         self.interval = interval
 
 
+class PrometheusGaugeClient:
+    """docstring for PrometheusGaugedclient"""
+
+    def __init__(self, *args, prometheus_port=None,  prometheus_name=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._port = prometheus_port
+        # self._prometheus_initialised = None
+        self._name_prometheus = prometheus_name
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+        self._gauges = {}
+
+        if None not in (self._port, self._name_prometheus):
+            self._prometheus_enabled = True
+            self._logger.debug('prometheus is enabled here!')
+        else:
+            self._prometheus_enabled = False
+
+    def run_prometheus(self):
+        if self._prometheus_enabled:
+            # if self.run_finished:
+            try:
+                self._prometheus_initialised
+            except AttributeError:
+                self._logger.debug(
+                    'initialising prometheus client service for %s on port %s', self._name_prometheus, self._port)
+                for variablekey in self.data:
+                    self._gauges[variablekey] = Gauge(
+                        "CryoGUIservice_{}_{}".format(
+                            self._name_prometheus, variablekey), "no description"
+                    )
+                self.set_gauges()
+                start_http_server(self._port)
+                self._prometheus_initialised = True
+            self.set_gauges()
+ 
+    def set_gauges(self):
+        self._logger.debug("setting prometheus metrics")
+        for variablekey in self.data:
+            try:
+                self._gauges[variablekey].set(self.data[variablekey])
+                # self.Gauges[instr][varkey].set(dic[varkey])
+            except TypeError as err:
+                if not err.args[0].startswith(
+                    "float() argument must be a string or a number"
+                ):
+                    self._logger.exception(err.args[0])
+                else:
+                    # self._logger.debug(err.args[0] + f'instr:
+                    # {instr}, varkey: {varkey}')
+                    pass
+            except ValueError as err:
+                if not err.args[0].startswith(
+                    "could not convert string to float"
+                ):
+                    self._logger.exception(err.args[0])
+                else:
+                    # self._logger.debug(err.args[0] + f'instr:
+                    # {instr}, varkey: {varkey}')
+                    pass       
+
+
 class AbstractLoopZmqThread(AbstractLoopThread):
     """Abstract thread class to be used with instruments """
 
@@ -612,6 +678,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             with noblockLock(self.lock):
                 self.running()
                 if self.run_finished:
+                    self._logger.debug("Hardware run finished, sending data upstream!")
                     self.send_data_upstream()
         except BlockedError:
             pass
@@ -623,11 +690,30 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             QTimer.singleShot(self.interval * 1e3, self.work)
 
 
-class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient):
+class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGaugeClient):
     """docstring for AbstractLoopThreadClient"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @pyqtSlot()  # int
+    def work(self):
+        """class method which is working all the time while the thread is running. """
+        try:
+            self.zmq_handle()  # inherited later from zmqClient
+            with noblockLock(self.lock):
+                self.running()
+                if self.run_finished:
+                    self.run_prometheus()
+                    self.send_data_upstream()
+        except BlockedError:
+            pass
+            # print('blocked')
+        # except AssertionError as assertion:
+        #     self.sig_assertion.emit(assertion.args[0])
+        # print('assertion', assertion.args[0])
+        finally:
+            QTimer.singleShot(self.interval * 1e3, self.work)        
 
 
 class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
