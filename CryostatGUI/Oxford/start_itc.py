@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 import sys
 
 from ITC503_ControlClient import ITCGUI
+
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

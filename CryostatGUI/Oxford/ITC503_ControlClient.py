@@ -918,7 +918,9 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == "__main__":
-    print("please use the program 'start_XXX.py' to start communicating with this device!")
+    print(
+        "please use the program 'start_XXX.py' to start communicating with this device!"
+    )
     # logger = logging.getLogger()
     # logger.setLevel(logging.DEBUG)
 
