@@ -257,12 +257,12 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
+        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
         if "setTemp_K" in command:
-            # value is a dict with specifications
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
@@ -657,12 +657,14 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     sig_newFilePID = pyqtSignal(str)
     sig_stopSweep = pyqtSignal()
 
-    def __init__(self, **kwargs):
-        self.kwargs = deepcopy(kwargs)
-        del kwargs["identity"]
-        del kwargs["InstrumentAddress"]
-        self._identity = self.kwargs["identity"]
-        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
+    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+        # self.kwargs = deepcopy(kwargs)
+        # del kwargs["identity"]
+        # del kwargs["InstrumentAddress"]
+        # self._identity = self.kwargs["identity"]
+        self._identity = identity
+        # self._InstrumentAddress = self.kwargs["InstrumentAddress"]
+        self._InstrumentAddress = InstrumentAddress
         super().__init__(**kwargs)
 
         self._logger = logging.getLogger(
