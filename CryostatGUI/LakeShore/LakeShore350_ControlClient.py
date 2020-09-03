@@ -92,8 +92,8 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
 
-        self.LakeShore350 = LakeShore350(
-            InstrumentAddress=InstrumentAddress, comLock=comLock
+        self.LakeShore350 = LakeShore350_ethernet(
+            InstrumentAddress=InstrumentAddress
         )
 
         self.Temp_K_value = 3
