@@ -12,19 +12,6 @@ from itertools import combinations
 from drivers import AbstractGPIBDeviceDriver
 from drivers import AbstractEthernetDeviceDriver
 
-# create a logger object for this module
-# logger = logging.getLogger(__name__)
-# added so that log messages show up in Jupyter notebooks
-# logger.addHandler(logging.StreamHandler())
-
-# try:
-#     # the pyvisa manager we'll use to connect to the GPIB resources
-#     resource_manager = visa.ResourceManager(
-#         'C:\\Windows\\System32\\agvisa32.dll')
-# except OSError:
-#     logger.exception(
-#         "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
-
 
 class LakeShore350_bare:
     """class to interface with a LakeShore350
@@ -39,11 +26,13 @@ class LakeShore350_bare:
         self.__init__()
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__
-        )
+    def __init__(self, log=None):
+        if log is None:
+            self._logger = logging.getLogger(
+                "CryoGUI." + __name__ + "." + self.__class__.__name__
+            )
+        else:
+            self._logger = log
 
     # def go(self, command):
     #     """write a command to the instrument"""
@@ -1229,7 +1218,9 @@ class LakeShore350_bare:
         try:
             answer = [float(x) for x in answer]
         except TypeError as e:
-            raise AssertionError("{}".format(e))
+            self._logger.exception(e)
+            # raise AssertionError("{}".format(e))
+        # self._logger.debug("read temperatures: %s", str(answer))
         return answer
 
     def FrontPanelLEDSCommand(self, check_state):
@@ -2270,11 +2261,28 @@ class LakeShore350(AbstractGPIBDeviceDriver, LakeShore350_bare):
     """docstring for LakeShore350"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
+        )
+        super().__init__(*args, log=self._logger, **kwargs)
 
 
 class LakeShore350_ethernet(AbstractEthernetDeviceDriver, LakeShore350_bare):
     """docstring for LakeShore350"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+        super().__init__(*args, log=None, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
+        )

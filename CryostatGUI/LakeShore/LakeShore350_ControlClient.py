@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
-from LakeShore.LakeShore350 import LakeShore350_ethernet as LakeShore350
+from LakeShore import LakeShore350_ethernet
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
@@ -92,9 +92,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
 
-        self.LakeShore350 = LakeShore350(
-            InstrumentAddress=InstrumentAddress, comLock=comLock
-        )
+        self.LakeShore350 = LakeShore350_ethernet(InstrumentAddress=InstrumentAddress)
 
         self.Temp_K_value = 3
         # self.Heater_mW_value = 0
