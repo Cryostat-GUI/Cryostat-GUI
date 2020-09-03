@@ -257,12 +257,12 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
         if "setTemp_K" in command:
+            # value is a dict with specifications
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
