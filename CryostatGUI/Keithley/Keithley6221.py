@@ -4,33 +4,9 @@ Provides support for the Keithley 6221 constant current supply
 
 # IMPORTS #####################################################################
 
-# import threading
-# import visa
-
 import logging
-
 from drivers import AbstractGPIBDeviceDriver
 
-# create a logger object for this module
-logger = logging.getLogger(__name__)
-# added so that log messages show up in Jupyter notebooks
-logger.addHandler(logging.StreamHandler())
-
-# try:
-#     # the pyvisa manager we'll use to connect to the GPIB resources
-#     resource_manager = visa.ResourceManager(
-#         'C:\\Windows\\System32\\agvisa32.dll')
-# except OSError:
-#     logger.exception(
-#         "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
-
-# from __future__ import absolute_import
-# from __future__ import division
-
-# import quantities as pq
-
-# from Keithley.lib import PowerSupply
-# from Keithley.lib import SCPIInstrument
 
 # CLASSES #####################################################################
 
@@ -48,7 +24,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__
+            "CryoGUI." + __name__ + "." + self.__class__.__name__ + "." + kwargs['InstrumentAddress']
         )
 
     # def go(self, command):
@@ -74,11 +50,13 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         return self.query("OUTPUT:STATE?")
 
     def disable_frontpanel(self, text):
+        self._logger.debug('disabling frontpanel, setting to %s', text)
         self.go('DISPlay:TEXT:STATe on; DISPlay:TEXT "measuring..."')
         self.go(f'DISPlay:WINDow2TEXT:STATe on; DISPlay:WINDow2:TEXT "{text}"')
         self.go("DISPlay:ENABle off")
 
     def enable_frontpanel(self):
+        self._logger.debug('enabling frontpanel')
         self.go("DISPlay:ENABle on")
         self.go("DISPlay:TEXT:STATe off")
         self.go("DISPlay:WINDow2TEXT:STATe off")
@@ -90,6 +68,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
             raise AssertionError(
                 "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
             )
+        self._logger.debug('setting current to %d', current_value)
         self.go("CURR {0:e}".format(current_value))
 
     def configSourceFunctions(self, bias_current=1e-4, compliance=1):
@@ -198,4 +177,8 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
-        yield self.query(":SYST:ERR?")
+        while True:
+            a = self.query(":SYST:ERR?")
+            yield a
+            if a[0] == "0":
+                break

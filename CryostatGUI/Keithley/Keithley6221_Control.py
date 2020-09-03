@@ -69,9 +69,9 @@ class Keithley6221_Updater(AbstractEventhandlingThread):
         for error in self.Keithley6221.error_gen():
             if error[0] != "0":
                 self._logger.error(
-                    "code:{}, message:{}".format(error[0], error[1].strip('"'))
+                    "code:%s, message:%s", error[0], error[1].strip('"')
                 )
-                raise AssertionError(self.error)
+                # raise AssertionError(self.error)
             else:
                 break
 

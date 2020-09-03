@@ -33,8 +33,9 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__
+            "CryoGUI." + __name__ + "." + self.__class__.__name__ + "." + kwargs['InstrumentAddress']
         )
+
         self.setRate(num=3)
         self.go(":INIT:CONT OFF")
 
@@ -52,7 +53,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def measureInternalTemperature(self):
         """measure internal temperature
         :return: temperature in K
-        :return type: float 
+        :return type: float
         """
         answer = self.query("CAL:UNPR:ACAL:TEMP?")[0]
         if answer[0:2] == "--":  # not sure if necessary
@@ -245,7 +246,6 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         self.go(":CAL:UNPR:ACAL:INIT")
         self.go(":CAL:UNPR:ACAL:STEP2")
         self.go(":CAL:UNPR:ACAL:DONE")
-        pass
 
     def more_Range(self):
         """Commands Description Default
