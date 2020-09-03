@@ -14,7 +14,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from pyvisa.errors import VisaIOError
 
-from Oxford.ips120 import ips120
+from Oxford import ips120
 import logging
 
 from util import AbstractLoopThread

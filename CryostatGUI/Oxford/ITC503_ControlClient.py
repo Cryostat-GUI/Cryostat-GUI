@@ -38,7 +38,7 @@ from util import AbstractMainApp
 # from zmqcomms import dec, enc
 
 from datetime import datetime
-from Oxford.itc503 import itc503
+from Oxford import itc503
 from pyvisa.errors import VisaIOError
 
 

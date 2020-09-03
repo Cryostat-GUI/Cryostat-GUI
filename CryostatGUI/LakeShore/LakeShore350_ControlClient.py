@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
-from LakeShore.LakeShore350 import LakeShore350_ethernet as LakeShore350
+from LakeShore import LakeShore350_ethernet
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal

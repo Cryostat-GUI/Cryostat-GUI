@@ -24,7 +24,7 @@ from util import AbstractMainApp
 from datetime import datetime
 from pyvisa.errors import VisaIOError
 
-from Oxford.ilm211 import ilm211
+from Oxford import ilm211
 import logging
 
 
