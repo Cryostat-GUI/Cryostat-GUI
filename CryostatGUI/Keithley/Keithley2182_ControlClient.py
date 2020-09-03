@@ -48,7 +48,6 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     data = {}
     sensors = dict(Voltage_V=None, Internal_K=None, Present_K=None)
 
-
     def __init__(self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         # self.logger = log if log else logging.getLogger(__name__)
@@ -117,9 +116,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
 
         error = self.Keithley2182.query_error()
         if error[0] != "0":
-            self._logger.error(
-                "code:%s, message:%s", error[0], error[1].strip('"')
-            )
+            self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
             if error[0] == "-213":
                 self.Keithley2182 = Keithley2182(
                     InstrumentAddress=self.save_InstrumentAddress,
