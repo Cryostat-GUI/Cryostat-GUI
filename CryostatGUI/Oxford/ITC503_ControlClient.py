@@ -665,6 +665,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self._identity = identity
         # self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         self._InstrumentAddress = InstrumentAddress
+        self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
 
         self._logger = logging.getLogger(
@@ -756,6 +757,8 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
+                    prometheus_port=self._prometheus_port,
+                    prometheus_name=self._identity,
                 ),
                 "Hardware",
             )
@@ -939,6 +942,7 @@ if __name__ == "__main__":
         Name="ITC 503",
         identity="ITC",
         InstrumentAddress=ITC_Instrumentadress,
+        prometheus_port=8001,
     )
     form.show()
     # print('date: ', dt.datetime.now(),
