@@ -170,13 +170,10 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
-        self.kwargs = deepcopy(kwargs)
-        del kwargs["identity"]
-        del kwargs["InstrumentAddress"]
-        self._identity = self.kwargs["identity"]
-        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
-        # print('GUI pre')
+    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+        self._identity = identity
+        self._InstrumentAddress = InstrumentAddress
+        self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
@@ -200,6 +197,8 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
+                    prometheus_port=self._prometheus_port,
+                    prometheus_name=self._identity,                    
                 ),
                 "Hardware",
             )
@@ -245,34 +244,37 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == "__main__":
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    logger_2 = logging.getLogger("pyvisa")
-    logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger("PyQt5")
-    logger_3.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    print(
+        "please use the program 'start_XXX.py' to start communicating with this device!"
     )
-    handler.setFormatter(formatter)
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
 
-    logger.addHandler(handler)
-    logger_2.addHandler(handler)
-    logger_3.addHandler(handler)
+    # logger_2 = logging.getLogger("pyvisa")
+    # logger_2.setLevel(logging.INFO)
+    # logger_3 = logging.getLogger("PyQt5")
+    # logger_3.setLevel(logging.INFO)
 
-    app = QtWidgets.QApplication(sys.argv)
-    form = DeviceGUI(
-        ui_file="ILM_main.ui",
-        Name="ILM 211",
-        identity="ILM",
-        InstrumentAddress="ASRL5::INSTR",
-    )
-    form.show()
-    # print('date: ', dt.datetime.now(),
-    #       '\nstartup time: ', time.time() - a)
-    sys.exit(app.exec_())
+    # handler = logging.StreamHandler(sys.stdout)
+    # handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter(
+    #     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    # )
+    # handler.setFormatter(formatter)
+
+    # logger.addHandler(handler)
+    # logger_2.addHandler(handler)
+    # logger_3.addHandler(handler)
+
+    # app = QtWidgets.QApplication(sys.argv)
+    # form = DeviceGUI(
+    #     ui_file="ILM_main.ui",
+    #     Name="ILM 211",
+    #     identity="ILM",
+    #     InstrumentAddress="ASRL5::INSTR",
+    #     prometheus_port=8002,
+    # )
+    # form.show()
+    # # print('date: ', dt.datetime.now(),
+    # #       '\nstartup time: ', time.time() - a)
+    # sys.exit(app.exec_())

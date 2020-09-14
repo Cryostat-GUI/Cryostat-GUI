@@ -660,12 +660,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     def __init__(
         self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
     ):
-        # self.kwargs = deepcopy(kwargs)
-        # del kwargs["identity"]
-        # del kwargs["InstrumentAddress"]
-        # self._identity = self.kwargs["identity"]
         self._identity = identity
-        # self._InstrumentAddress = self.kwargs["InstrumentAddress"]
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
         super().__init__(**kwargs)

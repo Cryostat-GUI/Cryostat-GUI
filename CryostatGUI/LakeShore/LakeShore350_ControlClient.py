@@ -475,13 +475,10 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
-        self.kwargs = deepcopy(kwargs)
-        del kwargs["identity"]
-        del kwargs["InstrumentAddress"]
-        self._identity = self.kwargs["identity"]
-        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
-        # print('GUI pre')
+    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+        self._identity = identity
+        self._InstrumentAddress = InstrumentAddress
+        self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -505,6 +502,8 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
+                    prometheus_port=self._prometheus_port,
+                    prometheus_name=self._identity,
                 ),
                 "Hardware",
             )
@@ -602,34 +601,38 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    print(
+        "please use the program 'start_XXX.py' to start communicating with this device!"
+    )    
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
 
-    logger_2 = logging.getLogger("pyvisa")
-    logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger("PyQt5")
-    logger_3.setLevel(logging.INFO)
+    # logger_2 = logging.getLogger("pyvisa")
+    # logger_2.setLevel(logging.INFO)
+    # logger_3 = logging.getLogger("PyQt5")
+    # logger_3.setLevel(logging.INFO)
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
+    # handler = logging.StreamHandler(sys.stdout)
+    # handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter(
+    #     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    # )
+    # handler.setFormatter(formatter)
 
-    logger.addHandler(handler)
-    logger_2.addHandler(handler)
-    logger_3.addHandler(handler)
+    # logger.addHandler(handler)
+    # logger_2.addHandler(handler)
+    # logger_3.addHandler(handler)
 
-    LakeShore_InstrumentAddress = "TCPIP::192.168.2.105::7777::SOCKET"
-    app = QtWidgets.QApplication(sys.argv)
-    form = LakeShoreGUI(
-        ui_file="LakeShore_main.ui",
-        Name="LakeShore350",
-        identity="LakeShore350",
-        InstrumentAddress=LakeShore_InstrumentAddress,
-    )
-    form.show()
-    # print('date: ', dt.datetime.now(),
-    #       '\nstartup time: ', time.time() - a)
-    sys.exit(app.exec_())
+    # LakeShore_InstrumentAddress = "TCPIP::192.168.2.105::7777::SOCKET"
+    # app = QtWidgets.QApplication(sys.argv)
+    # form = LakeShoreGUI(
+    #     ui_file="LakeShore_main.ui",
+    #     Name="LakeShore350",
+    #     identity="LakeShore350",
+    #     InstrumentAddress=LakeShore_InstrumentAddress,
+    #     prometheus_port=8004,
+    # )
+    # form.show()
+    # # print('date: ', dt.datetime.now(),
+    # #       '\nstartup time: ', time.time() - a)
+    # sys.exit(app.exec_())

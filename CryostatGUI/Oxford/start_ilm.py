@@ -1,9 +1,8 @@
 import logging
-import sys
 from PyQt5 import QtWidgets
-from pymeasure.instruments.srs import SR860
+import sys
 
-from SR830_ControlClient import SR830GUI
+from ILM_ControlClient import DeviceGUI
 
 if __name__ == "__main__":
     logger = logging.getLogger()
@@ -25,18 +24,13 @@ if __name__ == "__main__":
     logger_2.addHandler(handler)
     logger_3.addHandler(handler)
 
-    # Sr860_InstrumentAddress = 'GPIB::4::INSTR'
-    # Sr860_InstrumentAddress = 'TCPIP::192.168.2.104::1865::SOCKET'
-    Sr860_InstrumentAddress = "TCPIP::192.168.2.104::INSTR"
-
     app = QtWidgets.QApplication(sys.argv)
-    form = SR830GUI(
-        ui_file="LockIn_main.ui",
-        Name="LockinSR860",
-        identity="SR860_1",
-        InstrumentAddress=Sr860_InstrumentAddress,
-        Lockin=SR860,
-        prometheus_port=8005,
+    form = DeviceGUI(
+        ui_file="ILM_main.ui",
+        Name="ILM 211",
+        identity="ILM",
+        InstrumentAddress="ASRL5::INSTR",
+        prometheus_port=8002,
     )
     form.show()
     # print('date: ', dt.datetime.now(),

@@ -1,9 +1,8 @@
 import logging
-import sys
 from PyQt5 import QtWidgets
-from pymeasure.instruments.srs import SR860
+import sys
 
-from SR830_ControlClient import SR830GUI
+from LakeShore350_ControlClient import LakeShoreGUI
 
 if __name__ == "__main__":
     logger = logging.getLogger()
@@ -25,18 +24,14 @@ if __name__ == "__main__":
     logger_2.addHandler(handler)
     logger_3.addHandler(handler)
 
-    # Sr860_InstrumentAddress = 'GPIB::4::INSTR'
-    # Sr860_InstrumentAddress = 'TCPIP::192.168.2.104::1865::SOCKET'
-    Sr860_InstrumentAddress = "TCPIP::192.168.2.104::INSTR"
-
+    LakeShore_InstrumentAddress = "TCPIP::192.168.2.105::7777::SOCKET"
     app = QtWidgets.QApplication(sys.argv)
-    form = SR830GUI(
-        ui_file="LockIn_main.ui",
-        Name="LockinSR860",
-        identity="SR860_1",
-        InstrumentAddress=Sr860_InstrumentAddress,
-        Lockin=SR860,
-        prometheus_port=8005,
+    form = LakeShoreGUI(
+        ui_file="LakeShore_main.ui",
+        Name="LakeShore350",
+        identity="LakeShore350",
+        InstrumentAddress=LakeShore_InstrumentAddress,
+        prometheus_port=8004,
     )
     form.show()
     # print('date: ', dt.datetime.now(),

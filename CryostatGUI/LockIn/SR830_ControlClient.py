@@ -187,12 +187,10 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, Lockin=None, **kwargs):
-        self.kwargs = deepcopy(kwargs)
-        del kwargs["identity"]
-        del kwargs["InstrumentAddress"]
-        self._identity = self.kwargs["identity"]
-        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
+    def __init__(self, Lockin=None, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+        self._identity = identity
+        self._InstrumentAddress = InstrumentAddress
+        self._prometheus_port = prometheus_port
         self._Lockin = Lockin
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
@@ -216,6 +214,8 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
                     mainthread=self,
                     identity=self._identity,
                     Lockin=self._Lockin,
+                    prometheus_port=self._prometheus_port,
+                    prometheus_name=self._identity,                    
                 ),
                 "Hardware",
             )
@@ -292,6 +292,7 @@ if __name__ == "__main__":
         identity="SR830_1",
         InstrumentAddress=Sr830_InstrumentAddress,
         Lockin=SR830,
+        prometheus_port=8006,
     )
     form.show()
     # print('date: ', dt.datetime.now(),

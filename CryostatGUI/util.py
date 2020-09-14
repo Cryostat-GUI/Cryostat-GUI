@@ -640,7 +640,7 @@ class PrometheusGaugeClient:
             self.set_gauges()
 
     def set_gauges(self):
-        self._logger.debug("setting prometheus metrics")
+        # self._logger.debug("setting prometheus metrics")
         for variablekey in self.data:
             try:
                 self._gauges[variablekey].set(self.data[variablekey])
