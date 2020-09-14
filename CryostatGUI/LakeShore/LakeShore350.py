@@ -123,8 +123,7 @@ class LakeShore350_bare:
         return self.go("*OPC?")
 
     def ResetInstrumentCommand(self):
-        """Sets controller parameters to power-up settings.
-        """
+        """Sets controller parameters to power-up settings."""
         self.go("*RST")
 
     def ServiceRequestEnableRegisterCommand(self, bit_weighting):
@@ -303,8 +302,7 @@ class LakeShore350_bare:
         return self.query("ALARMST? " + "{0:1}".format(input_value))
 
     def ResetAlarmStatusCommand(self):
-        """Clears both the high and low status of all alarms, including latching items.
-        """
+        """Clears both the high and low status of all alarms, including latching items."""
         self.go("ALMRST")
 
     def MonitorOutParameterCommand(
@@ -1288,8 +1286,7 @@ class LakeShore350_bare:
         return self.query("MDAT? " + "{0:1}".format(input_value))
 
     def MinimumMaximumFunctionResetCommand(self):
-        """Resets the minimum and maximum data for all inputs.
-        """
+        """Resets the minimum and maximum data for all inputs."""
         self.go("MNMXRST")
 
     def RemoteInterfaceModeCommand(self, mode):

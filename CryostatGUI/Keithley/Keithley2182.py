@@ -68,7 +68,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     def measurePresentTemperature(self):
         """measure present temperature
         :return: temperature in K
-        :return type: float 
+        :return type: float
         """
         #        self.go("SENS:CHAN 1")
         answer = self.query("SENS:TEMP:RTEM?")[0]
@@ -93,18 +93,18 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def ForceFast(self):
         """
-            *RST
-            :INITiate:CONTinuous OFF;:ABORt
-            :SENSe:FUNCtion ‘VOLTage:DC’
-            :SENSe:VOLTage:DC:RANGe 10      // Use fixed range for fastest readings.
-            :SENSe:VOLTage:DC:NPLC 0.01       // Use lowest NPLC setting for fastest readings.
-            :DISPlay:ENABle OFF             // Turn off display to increase speed.
-            :SYSTem:AZERo:STATe OFF         // Disable autozero to increase speed, but may cause drift over time
-            :SENSe:VOLTage:DC:LPASs OFF     // Turn off analog filter for speed.
-            :SENSe:VOLTage:DC:DFILter OFF   // Turn off digital filter for speed.
-            :TRIGger:COUNt 1
-            :READ?
-            (Enter reading)
+        *RST
+        :INITiate:CONTinuous OFF;:ABORt
+        :SENSe:FUNCtion ‘VOLTage:DC’
+        :SENSe:VOLTage:DC:RANGe 10      // Use fixed range for fastest readings.
+        :SENSe:VOLTage:DC:NPLC 0.01       // Use lowest NPLC setting for fastest readings.
+        :DISPlay:ENABle OFF             // Turn off display to increase speed.
+        :SYSTem:AZERo:STATe OFF         // Disable autozero to increase speed, but may cause drift over time
+        :SENSe:VOLTage:DC:LPASs OFF     // Turn off analog filter for speed.
+        :SENSe:VOLTage:DC:DFILter OFF   // Turn off digital filter for speed.
+        :TRIGger:COUNt 1
+        :READ?
+        (Enter reading)
         """
         self.go(":INIT:CONT OFF")
         self.go(":SENSe:VOLTage:DC:NPLC 0.01")
@@ -137,7 +137,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
                     Specify integration rate in seconds:
                        [166.67μsec to 1 sec (60Hz)]
                        [200μsec to 1 sec (50Hz)]
-            """
+        """
         if num is None:
             if value == "FAS":
                 self.go(":SENSe:VOLTage:DC:NPLC 0.1")
@@ -157,53 +157,51 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def FrontAutozeroOn(self):
         """
-            With Front Autozero for the front-end amplifier enabled (which is the default setting), the
-            Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
-            measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
-            This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
-            amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
+        With Front Autozero for the front-end amplifier enabled (which is the default setting), the
+        Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
+        measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
+        This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
+        amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
 
-            For Front Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :FAZero [state] <b> Enable or disable Front Autozero. ON
+        For Front Autozero:
+            :SYSTem SYSTem Subsystem:
+                :FAZero [state] <b> Enable or disable Front Autozero. ON
         """
         self.go(":SYST:FAZ ON")
 
     def FrontAutozeroOff(self):
-        """See FrontAutoZeroOn
-        """
+        """See FrontAutoZeroOn"""
         self.go(":SYST:FAZ OFF")
 
     def AutozeroOn(self):
         """
-            When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
-            temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
-            However, the zero, gain, and temperature reference points will eventually drift resulting in
-            inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
-            short periods of time.
-            When Autozero is enabled after being off for a long period of time, the internal reference points
-            will not be updated immediately. This will initially result in inaccurate measurements, especially
-            if the ambient temperature has changed by several degrees. A faster update of reference points
-            can be forced by setting a faster integration rate.
+        When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
+        temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
+        However, the zero, gain, and temperature reference points will eventually drift resulting in
+        inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
+        short periods of time.
+        When Autozero is enabled after being off for a long period of time, the internal reference points
+        will not be updated immediately. This will initially result in inaccurate measurements, especially
+        if the ambient temperature has changed by several degrees. A faster update of reference points
+        can be forced by setting a faster integration rate.
 
-            For Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :AZERo [state] <b> Enable or disable Autozero. ON
+        For Autozero:
+            :SYSTem SYSTem Subsystem:
+                :AZERo [state] <b> Enable or disable Autozero. ON
         """
         self.go(":SYST:AZER ON")
 
     def AutozeroOff(self):
-        """See AutoZeroOn
-        """
+        """See AutoZeroOn"""
         self.go(":SYST:AZER OFF")
 
     def AutorangeOn(self):
         """
-            To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
-            autoranging is selected. While autoranging is enabled, the instrument automatically selects the
-            best range to measure the applied signal. Autoranging should not be used when optimum speed
-            is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
-            Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
+        To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
+        autoranging is selected. While autoranging is enabled, the instrument automatically selects the
+        best range to measure the applied signal. Autoranging should not be used when optimum speed
+        is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
+        Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
         """
         self.go(":SENS:VOLT:RANG:AUTO ON")
 
@@ -213,39 +211,39 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def more_ACAL(self):
         """
-            There are two ACAL options. FULL ACAL calibrates the 10mV and 100V ranges, while
-            LOW-LVL (low-level) ACAL only calibrates the 10mV range. If you are not going to use the
-            100V range, it is recommended that you only perform LOW-LVL ACAL.
-            The message “ACAL” will be displayed while calibration is in process.
-            It takes around five minutes to complete LOW-LVL ACAL and a little more than five
-            minutes to complete FULL ACAL. When finished, the instrument returns to the normal
-            display state.
+        There are two ACAL options. FULL ACAL calibrates the 10mV and 100V ranges, while
+        LOW-LVL (low-level) ACAL only calibrates the 10mV range. If you are not going to use the
+        100V range, it is recommended that you only perform LOW-LVL ACAL.
+        The message “ACAL” will be displayed while calibration is in process.
+        It takes around five minutes to complete LOW-LVL ACAL and a little more than five
+        minutes to complete FULL ACAL. When finished, the instrument returns to the normal
+        display state.
 
-            For ACAL:
-                :CALibration CALibration Subsystem:
-                    :UNPRotected
-                        :ACALibration ACAL:
-                            :INITiate Prepare 2182 for ACAL.
-                            :STEP1 Perform full ACAL (100V and 10mV).
-                            :STEP2 Perform low level ACAL (10mV only).
-                            :DONE Exit ACAL (see Note).
-                            :TEMPerature? Read the internal temperature (in °C) at the time
-                                of the last ACAL.
-                :SENSe SENSe Subsystem:
-                    :TEMPerature
-                        :RTEMperature? Measure the present internal temperature (in °C).
+        For ACAL:
+            :CALibration CALibration Subsystem:
+                :UNPRotected
+                    :ACALibration ACAL:
+                        :INITiate Prepare 2182 for ACAL.
+                        :STEP1 Perform full ACAL (100V and 10mV).
+                        :STEP2 Perform low level ACAL (10mV only).
+                        :DONE Exit ACAL (see Note).
+                        :TEMPerature? Read the internal temperature (in °C) at the time
+                            of the last ACAL.
+            :SENSe SENSe Subsystem:
+                :TEMPerature
+                    :RTEMperature? Measure the present internal temperature (in °C).
 
-            For LYSNC:
-                :SYSTem SYSTem Subsystem:
-                    :LSYNc [state] <b> Enable or disable line cycle synchronization. OFF
+        For LYSNC:
+            :SYSTem SYSTem Subsystem:
+                :LSYNc [state] <b> Enable or disable line cycle synchronization. OFF
 
-            not necessarily necessary:
-            For Low Charge Injection:
-                :SENSe:VOLTage SENSe Subsystem:
-                    :CHANnel2
-                        :LQMode <b> Enable or disable Low Charge Injection Mode for
-                            Channel 2 (see “Pumpout current (low charge injection
-                            mode)” for details).
+        not necessarily necessary:
+        For Low Charge Injection:
+            :SENSe:VOLTage SENSe Subsystem:
+                :CHANnel2
+                    :LQMode <b> Enable or disable Low Charge Injection Mode for
+                        Channel 2 (see “Pumpout current (low charge injection
+                        mode)” for details).
         """
 
         self.go(":CAL:UNPR:ACAL:INIT")

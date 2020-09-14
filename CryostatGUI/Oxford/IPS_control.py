@@ -251,7 +251,7 @@ class IPS_Updater(AbstractLoopThread):
     @pyqtSlot(float)
     def gettoset_FieldSetpoint(self, value):
         """receive and store the value, to set the Field Setpoint
-            TODO: adjust for units!
+        TODO: adjust for units!
         """
         self.field_setpoint = value
 

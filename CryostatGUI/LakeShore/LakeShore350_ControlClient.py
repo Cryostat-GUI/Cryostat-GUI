@@ -45,16 +45,16 @@ import logging
 class LakeShore350_ControlClient(AbstractLoopThreadClient):
     """Updater class for the LakeShore350 Temperature controller
 
-        For each Lakeshore350 function there is a wrapping method,
-        which we can call by a signal/by zmq comms. This wrapper sends
-        the corresponding value to the device.
+    For each Lakeshore350 function there is a wrapping method,
+    which we can call by a signal/by zmq comms. This wrapper sends
+    the corresponding value to the device.
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently published on the data upstream. It is packed in a dict,
-        the keys of which are displayed in the "data" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently published on the data upstream. It is packed in a dict,
+    the keys of which are displayed in the "data" dict in this class.
     """
 
     # exposable data dictionary
@@ -260,8 +260,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @ExceptionHandling
     def configSensor(self):
-        """configures sensor inputs to Cernox
-        """
+        """configures sensor inputs to Cernox"""
         for i in ["A", "B", "C", "D"]:
             self.LakeShore350.InputTypeParameterCommand(i, 3, 1, 0, 1, 1, 0)
 
@@ -281,8 +280,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @ExceptionHandling
     def configTempLimit(self, confdict=None):
-        """sets temperature limit
-        """
+        """sets temperature limit"""
         if confdict is None:
             confdict = {key: 400 for key in ["A", "B", "C", "D"]}
         for i in ["A", "B", "C", "D"]:
@@ -291,8 +289,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot()
     @ExceptionHandling
     def setTemp_K(self, Temp_K=None):
-        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
-        """
+        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature."""
         if Temp_K is not None:
             self.Temp_K_value = Temp_K
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
@@ -339,8 +336,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot()
     @ExceptionHandling
     def setInput(self, Input_value):
-        """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
-        """
+        """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
         self.LakeShore350.OutputModeCommand(1, 1, Input_value, 1)
 
     @pyqtSlot()
@@ -367,15 +363,13 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot()
     @ExceptionHandling
     def startHeater(self):
-        """start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
-        """
+        """start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
         self.LakeShore.OutputModeCommand(1, 1, self.sensor_values[5], 1)
 
     @pyqtSlot()
     @ExceptionHandling
     def setHeater_Range(self, range_value=None):
-        """set Heater Range for Output 1
-        """
+        """set Heater Range for Output 1"""
         if range_value is None:
             self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
         elif range_value is not None:
@@ -475,7 +469,9 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+    def __init__(
+        self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
+    ):
         self._identity = identity
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
@@ -564,8 +560,8 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
     @pyqtSlot(dict)
     def updateGUI(self, data):
         """
-            Calculate the rate of change of Temperature on the sensors [K/min]
-            Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
+        Calculate the rate of change of Temperature on the sensors [K/min]
+        Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
         self.data.update(data)
         # data['date'] = convert_time(time.time())
@@ -603,7 +599,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 if __name__ == "__main__":
     print(
         "please use the program 'start_XXX.py' to start communicating with this device!"
-    )    
+    )
     # logger = logging.getLogger()
     # logger.setLevel(logging.DEBUG)
 

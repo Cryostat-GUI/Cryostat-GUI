@@ -282,7 +282,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def _resetSweepTablePointers(self):
         """Resets the table pointers to x=0 and y=0 to prevent
-           accidental sweep table changes.
+        accidental sweep table changes.
         """
         self.write("$x0", f=True)
         self.write("$y0", f=True)
@@ -307,7 +307,7 @@ class itc503(AbstractSerialDeviceDriver):
 
     def readSweepTable(self):
         """read the Sweep Table which is stored in the device
-            Not WORKING CURRENTLY
+        Not WORKING CURRENTLY
 
         """
         raise NotImplementedError

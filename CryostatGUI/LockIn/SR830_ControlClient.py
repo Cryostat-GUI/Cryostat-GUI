@@ -40,8 +40,7 @@ from util import AbstractMainApp
 
 
 class SR830_ControlClient(AbstractLoopThreadClient):
-    """Updater class to update all instrument data of the SR830
-    """
+    """Updater class to update all instrument data of the SR830"""
 
     data = {}
 
@@ -93,8 +92,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
 
     @ExceptionHandling
     def running(self):
-        """Try to extract all current data from the Lock-In, and emit signal, sending the data
-        """
+        """Try to extract all current data from the Lock-In, and emit signal, sending the data"""
         self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
         with self._comLock:
@@ -187,7 +185,14 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, Lockin=None, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+    def __init__(
+        self,
+        Lockin=None,
+        identity=None,
+        InstrumentAddress=None,
+        prometheus_port=None,
+        **kwargs
+    ):
         self._identity = identity
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
@@ -215,7 +220,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
                     identity=self._identity,
                     Lockin=self._Lockin,
                     prometheus_port=self._prometheus_port,
-                    prometheus_name=self._identity,                    
+                    prometheus_name=self._identity,
                 ),
                 "Hardware",
             )

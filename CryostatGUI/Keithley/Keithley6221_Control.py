@@ -20,16 +20,16 @@ from util import ExceptionHandling
 class Keithley6221_Updater(AbstractEventhandlingThread):
     """This is the worker thread, which updates all instrument data of a Keithely 6221
 
-        For each method of the device class (except collecting data), there is a wrapping method,
-        which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device.
+    For each method of the device class (except collecting data), there is a wrapping method,
+    which we can call by a signal, from the main thread. This wrapper sends
+    the corresponding value to the device.
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently sent to the main thread. It is packed in a dict,
+    the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sensors = dict(

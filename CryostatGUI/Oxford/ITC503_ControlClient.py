@@ -539,7 +539,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setProportional(self):
         """set Proportional of the instrument
 
-            prop: Proportional band, in steps of 0.0001K.
+        prop: Proportional band, in steps of 0.0001K.
         """
         self.ITC.setProportional(self.set_prop)
 
@@ -548,8 +548,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setIntegral(self):
         """set Integral of the instrument
 
-            integral: Integral action time, in steps of 0.1 minute.
-                        Ranges from 0 to 140 minutes.
+        integral: Integral action time, in steps of 0.1 minute.
+                    Ranges from 0 to 140 minutes.
         """
         self.ITC.setIntegral(self.set_integral)
 
@@ -558,8 +558,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setDerivative(self):
         """set Derivative of the instrument
 
-            derivative: Derivative action time.
-            Ranges from 0 to 273 minutes.
+        derivative: Derivative action time.
+        Ranges from 0 to 273 minutes.
         """
         self.ITC.setDerivative(self.set_derivative)
 
@@ -568,8 +568,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setHeaterSensor(self, value):
         """set HeaterSensor of the instrument
 
-            sensor: Should be 1, 2, or 3, corresponding to
-            the heater on the front panel.
+        sensor: Should be 1, 2, or 3, corresponding to
+        the heater on the front panel.
         """
         self.set_sensor = value
         self.ITC.setHeaterSensor(self.set_sensor)
@@ -579,9 +579,9 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setHeaterOutput(self):
         """set HeaterOutput of the instrument
 
-            heater_output: Sets the percent of the maximum
-                        heater output in units of 0.1%.
-                        Min: 0. Max: 999.
+        heater_output: Sets the percent of the maximum
+                    heater output in units of 0.1%.
+                    Min: 0. Max: 999.
         """
         self.ITC.setHeaterOutput(self.set_heater_output)
 
@@ -590,9 +590,9 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
     def setGasOutput(self):
         """set GasOutput of the instrument
 
-            gas_output: Sets the percent of the maximum gas
-                    output in units of 1%.
-                    Min: 0. Max: 99.
+        gas_output: Sets the percent of the maximum gas
+                output in units of 1%.
+                Min: 0. Max: 99.
         """
         self.ITC.setGasOutput(self.set_gas_output)
 
@@ -788,8 +788,8 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
     @pyqtSlot(dict)
     def updateGUI(self, data):
         """
-            Calculate the rate of change of Temperature on the sensors [K/min]
-            Store ITC data in self.data['ITC'], update ITC_window
+        Calculate the rate of change of Temperature on the sensors [K/min]
+        Store ITC data in self.data['ITC'], update ITC_window
         """
         # with self.dataLock:
         # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])

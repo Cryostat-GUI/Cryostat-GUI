@@ -31,16 +31,16 @@ import logging
 class ILM_ControlClient(AbstractLoopThreadClient):
     """Updater class for the LakeShore350 Temperature controller
 
-        For each Lakeshore350 function there is a wrapping method,
-        which we can call by a signal/by zmq comms. This wrapper sends
-        the corresponding value to the device.
+    For each Lakeshore350 function there is a wrapping method,
+    which we can call by a signal/by zmq comms. This wrapper sends
+    the corresponding value to the device.
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently published on the data upstream. It is packed in a dict,
-        the keys of which are displayed in the "data" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently published on the data upstream. It is packed in a dict,
+    the keys of which are displayed in the "data" dict in this class.
     """
 
     # exposable data dictionary
@@ -136,9 +136,9 @@ class ILM_ControlClient(AbstractLoopThreadClient):
     def setProbingSpeed(self, speed, channel=1):
         """set probing speed for a specific channel
 
-            for fast probing, speed = 1
-            for slow probing, speed = 0
-            this comes from the order in the comboBox in the GUI
+        for fast probing, speed = 1
+        for slow probing, speed = 0
+        this comes from the order in the comboBox in the GUI
         """
         if speed == 1:
             self.ILM.setFast(channel)
@@ -170,7 +170,9 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs):
+    def __init__(
+        self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
+    ):
         self._identity = identity
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
@@ -198,7 +200,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
                     mainthread=self,
                     identity=self._identity,
                     prometheus_port=self._prometheus_port,
-                    prometheus_name=self._identity,                    
+                    prometheus_name=self._identity,
                 ),
                 "Hardware",
             )
@@ -212,7 +214,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     @pyqtSlot(dict)
     def updateGUI(self, data):
         """
-            Store Device data in self.data, update values in GUI
+        Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
 

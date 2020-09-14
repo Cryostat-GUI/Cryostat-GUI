@@ -353,9 +353,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def softwarecontrol_check(self):
         """disable all respective GUI elements in case
-            the controls_lock is locked
-            thus prevent interference of the user
-                with a running sequence/measurement
+        the controls_lock is locked
+        thus prevent interference of the user
+            with a running sequence/measurement
         """
         # try:
         if self.controls_Lock.locked():
@@ -367,12 +367,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def running_thread_control(self, worker, dataname, threadname, info=None, **kwargs):
         """
-            run a specified worker class in a thread
-                this should be a device controlling thread
-            add a corresponding entry in the data dictionary
-            add the thread and worker-class instances to the threads dictionary
+        run a specified worker class in a thread
+            this should be a device controlling thread
+        add a corresponding entry in the data dictionary
+        add the thread and worker-class instances to the threads dictionary
 
-            return: the worker-class instance
+        return: the worker-class instance
         """
         worker, thread = running_thread(worker)
 
@@ -392,11 +392,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def running_thread_tiny(self, worker):
         """
-            run a specified worker class in a thread
-                this is a small worker which performs one single task
-                intended to be used in conjuction with util.Workerclass
+        run a specified worker class in a thread
+            this is a small worker which performs one single task
+            intended to be used in conjuction with util.Workerclass
 
-            return: None
+        return: None
         """
         worker, thread = running_thread(worker)
         self.threads_tiny.append((worker, thread))
@@ -668,8 +668,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def plotting_deleting_window(self, window, number):
         """delete the window entry in the list of windows
-            was planned to fix the memory leak, not sure if it really works
-            this is operated from Window_plotting_specification in util.py!
+        was planned to fix the memory leak, not sure if it really works
+        this is operated from Window_plotting_specification in util.py!
         """
         for ct, w in enumerate(self.windows_plotting):
             if w.number == number:
@@ -824,14 +824,14 @@ class mainWindow(QtWidgets.QMainWindow):
 
                 def change_gas(self):
                     """to be worked in a separate worker thread (separate
-                        time.sleep() from GUI)
-                        change the opening percentage of the needle valve in a
-                        repeatable fashion (go to zero, go to new value)
-                        disable the GUI element during the operation
+                    time.sleep() from GUI)
+                    change the opening percentage of the needle valve in a
+                    repeatable fashion (go to zero, go to new value)
+                    disable the GUI element during the operation
 
-                        should be changed, to use signals to change GUI,
-                        and possibly timers instead of time.sleep()
-                        (QTimer not usefil in the second case)
+                    should be changed, to use signals to change GUI,
+                    and possibly timers instead of time.sleep()
+                    (QTimer not usefil in the second case)
                     """
                     if self.ITC_window.checkGas_gothroughzero.isChecked():
                         gas_new = self.threads["control_ITC"][0].set_gas_output
@@ -945,8 +945,8 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_itc(self, data):
         """
-            Calculate the rate of change of Temperature on the sensors [K/min]
-            Store ITC data in self.data['ITC'], update ITC_window
+        Calculate the rate of change of Temperature on the sensors [K/min]
+        Store ITC data in self.data['ITC'], update ITC_window
         """
         self.store_data(data=data, device="ITC")
         # timedict = {'timeseconds': time.time(),
@@ -1362,8 +1362,8 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_LakeShore350(self, data):
         """
-            Calculate the rate of change of Temperature on the sensors [K/min]
-            Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
+        Calculate the rate of change of Temperature on the sensors [K/min]
+        Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
 
         slopes = [
@@ -1748,7 +1748,7 @@ class mainWindow(QtWidgets.QMainWindow):
     @pyqtSlot(dict)
     def store_data_Keithley(self, data, dataname, **kwargs):
         """
-            Store Keithley data in self.data['Keithley'], update Keithley_window
+        Store Keithley data in self.data['Keithley'], update Keithley_window
         """
         self.store_data(data=data, device=dataname)
 
@@ -2139,9 +2139,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def OneShot_start(self):
         """
-            get the timer seconds, change the state to "running", start the timer
-            this can only be invoked in case the control thread is working:
-                the button is otherwise disabled
+        get the timer seconds, change the state to "running", start the timer
+        this can only be invoked in case the control thread is working:
+            the button is otherwise disabled
         """
         sec = self.threads["control_OneShot"][0].conf["interval"]
         msec = sec * 1e3

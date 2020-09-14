@@ -67,8 +67,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         self.go("DISPlay:WINDow2TEXT:STATe off")
 
     def setCurrent(self, current_value):
-        """Sets Current
-        """
+        """Sets Current"""
         if -0.105 > current_value > 0.105:
             raise AssertionError(
                 "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
@@ -88,8 +87,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         self.go("SOUR:CURR:COMP " + "{0:f}".format(compliance))
 
     def setupSweep(self, start_current, stop_current, step_current, delay):
-        """Sets up the Sweep
-        """
+        """Sets up the Sweep"""
         self.go("OUR:SWE:SPAC LIN")
         self.go("OUR:CURR:STAR " + "{0:e}".format(start_current))
         self.go("OUR:CURR:STOP " + "{0:e}".format(stop_current))
@@ -100,8 +98,7 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         self.go("OUR:SWE:CAB OFF")
 
     def startSweep(self):
-        """Starts the Sweep
-        """
+        """Starts the Sweep"""
         self.go("SOUR:SWE:ARM")
         self.go("INIT")
 

@@ -47,8 +47,8 @@ logger = logging.getLogger("CryostatGUI.loggingFunctionality")
 
 def slope_from_timestampX(tmp_):
     """casting datetime into seconds:
-        dt = pandas series of datetime objects
-        seconds = dt.astype('int64') // 1e9
+    dt = pandas series of datetime objects
+    seconds = dt.astype('int64') // 1e9
 
     """
     slope = pd.Series(
@@ -195,7 +195,7 @@ class Logger_configuration(Window_ui):
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
-            return the empty conf dict
+        return the empty conf dict
         """
 
         self.ITC_sensors.update(dict(thread=False))
@@ -211,9 +211,9 @@ class Logger_configuration(Window_ui):
 
     def read_configuration(self):
         """
-            search for configuration file,
-            load it if found,
-            initialise new dict if not found
+        search for configuration file,
+        load it if found,
+        initialise new dict if not found
         """
         configurations = os.listdir(r".\\configurations")
         if "log_conf.pickle" in configurations:
@@ -253,8 +253,7 @@ class Logger_configuration(Window_ui):
 
 
 class main_Logger(AbstractLoopThread):
-    """This is a the logging worker thread
-    """
+    """This is a the logging worker thread"""
 
     sig_configuring = pyqtSignal(bool)
     sig_log = pyqtSignal()
@@ -295,11 +294,11 @@ class main_Logger(AbstractLoopThread):
 
     def update_conf(self, conf):
         """
-            - update the configuration with one being sent.
-            - set the configuration done bool to True,
-                so that self.running will actually log
-            - set self.conf_done_layer2 to False,
-                so that the configuring thread will be quit.
+        - update the configuration with one being sent.
+        - set the configuration done bool to True,
+            so that self.running will actually log
+        - set self.conf_done_layer2 to False,
+            so that the configuring thread will be quit.
 
         """
         self.conf = conf
@@ -321,7 +320,7 @@ class main_Logger(AbstractLoopThread):
 
     def createtable(self, tablename, dictname):
         """create the sql table if it does not exist,
-            with all columns named after the keys in the dictionary
+        with all columns named after the keys in the dictionary
         """
 
         sql = "CREATE TABLE IF NOT EXISTS {} ".format(tablename)
@@ -352,12 +351,12 @@ class main_Logger(AbstractLoopThread):
 
     def updatetable(self, tablename, dictname):
         """insert a new row into the database table with all data
-            a table-updating scheme was chosen to loop through all key-value pairs,
-            instead of an approach where the sql command-string is built in the loop
-            thus:
-                - insert a new row into the database table with the time
-                - loop through the dict
-                    - update the newly made row with the key-value pair of the dict in the loop
+        a table-updating scheme was chosen to loop through all key-value pairs,
+        instead of an approach where the sql command-string is built in the loop
+        thus:
+            - insert a new row into the database table with the time
+            - loop through the dict
+                - update the newly made row with the key-value pair of the dict in the loop
         """
         # print('ichi update')
         if not dictname:
@@ -392,8 +391,8 @@ class main_Logger(AbstractLoopThread):
             raise AssertionError(err.args[0])
 
     def printtable(self, tablename, dictname, date1, date2):
-        """ print the data of one table between two dates
-            (given in time.time())
+        """print the data of one table between two dates
+        (given in time.time())
         """
 
         for colnames in dictname.keys():
@@ -412,9 +411,9 @@ class main_Logger(AbstractLoopThread):
     def exportdatatoarr(self, tablename, colnamelist):
         """export the data (defined by the list of columns) from a table (tablename)
 
-            returns:
-                numpy array containing all the data,
-                in the same order as in the colnamelist
+        returns:
+            numpy array containing all the data,
+            in the same order as in the colnamelist
         """
 
         array = []
@@ -432,9 +431,9 @@ class main_Logger(AbstractLoopThread):
 
     def correcting_database_types(self, name, data):
         """
-            correct the types of the database entries,
-            in case something was overlooked
-            NOT OPERATIONAL, there is a bug somehwere...
+        correct the types of the database entries,
+        in case something was overlooked
+        NOT OPERATIONAL, there is a bug somehwere...
         """
         sql = change_to_correct_types(name, data[name])
         for ct, command in enumerate(sql):
@@ -468,8 +467,8 @@ class main_Logger(AbstractLoopThread):
     @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
-            what data should be logged is set in self.conf
-            or will be set there eventually at any rate
+        what data should be logged is set in self.conf
+        or will be set there eventually at any rate
         """
         self.operror = False
         if self.not_yet_initialised:
@@ -516,8 +515,7 @@ class main_Logger(AbstractLoopThread):
 
 
 class main_Logger_adaptable(main_Logger):
-    """This is a the logging worker thread
-    """
+    """This is a the logging worker thread"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -530,8 +528,8 @@ class main_Logger_adaptable(main_Logger):
     @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
-            what data should be logged is set in self.conf
-            or will be set there eventually at any rate
+        what data should be logged is set in self.conf
+        or will be set there eventually at any rate
         """
         self._logger.debug("storing data in sqlite!")
         self.operror = False
@@ -572,11 +570,11 @@ class main_Logger_adaptable(main_Logger):
 
     def update_conf(self, conf):
         """
-            - update the configuration with one being sent.
-            - set the configuration done bool to True,
-                so that self.running will actually log
-            - set self.conf_done_layer2 to False,
-                so that the configuring thread will be quit.
+        - update the configuration with one being sent.
+        - set the configuration done bool to True,
+            so that self.running will actually log
+        - set self.conf_done_layer2 to False,
+            so that the configuring thread will be quit.
 
         """
         self.conf = conf
@@ -640,8 +638,8 @@ class live_Logger_bare:
 
     def running(self):
         """
-            go through all stored values for every instrument,
-            and append them to the list which will be plotted
+        go through all stored values for every instrument,
+        and append them to the list which will be plotted
         """
         try:
             # print("live logger trying to log")
@@ -746,9 +744,9 @@ class live_Logger_bare:
 
     def calculations_perform(self, instr, varkey, calc, times):
         """
-            perform one specified calculation on all corresponding datasets
+        perform one specified calculation on all corresponding datasets
 
-            return: None
+        return: None
         """
         if calc == "slope":
             fit = self.calculations[calc](times, self.data_live[instr][varkey])
@@ -797,12 +795,14 @@ class live_Logger_bare:
 
     def initialisation(self):
         """
-           copy the current data-dict,
-           update for logging times,
-           insert empty lists in all values
+        copy the current data-dict,
+        update for logging times,
+        insert empty lists in all values
         """
         self.startingtime = time.time()
-        timedict = dict(logging_timeseconds=0,)
+        timedict = dict(
+            logging_timeseconds=0,
+        )
         self.time_init = False
         self.count = 0
         self.counting = True
@@ -869,7 +869,7 @@ class live_Logger_bare:
 
     def update_conf(self, conf):
         """
-            - update the configuration with one being sent.
+        - update the configuration with one being sent.
         """
         self.interval = conf["interval_live"]
 
@@ -889,8 +889,8 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
     @pyqtSlot()  # int
     def work(self):
         """
-            class method which (here) starts the run,
-            as soon as the initialisation was done.
+        class method which (here) starts the run,
+        as soon as the initialisation was done.
         """
         try:
             while not self.initialised:
@@ -905,8 +905,8 @@ class live_Logger(live_Logger_bare, AbstractLoopThread):
     @pyqtSlot()  # int
     def worker(self):
         """
-            class method which is working all the time,
-            while the thread is running, keeping the event loop busy
+        class method which is working all the time,
+        while the thread is running, keeping the event loop busy
         """
         try:
             while not self.initialised:
@@ -1065,9 +1065,9 @@ class LoggingGUI(AbstractMainApp, Window_trayService_ui):
 
     def read_configuration(self):
         """
-            search for configuration file,
-            load it if found,
-            initialise new dict if not found
+        search for configuration file,
+        load it if found,
+        initialise new dict if not found
         """
         configurations = os.listdir(r".\\..\\configurations")
         if "log_conf.pickle" in configurations:
@@ -1132,7 +1132,7 @@ class Logger_measurement_configuration(Window_ui):
 
     def initialise_dicts(self):
         """initialise the conf dict, in case it was not handed down
-            return the empty conf dict
+        return the empty conf dict
         """
         conf = dict(datafile="")
         return conf
@@ -1146,8 +1146,7 @@ class Logger_measurement_configuration(Window_ui):
 
 
 class measurement_Logger(AbstractEventhandlingThread):
-    """This is the datasaving thread
-    """
+    """This is the datasaving thread"""
 
     # sig_configuring = pyqtSignal(bool)
     sig_log = pyqtSignal()
@@ -1168,7 +1167,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 
     def update_conf(self, conf):
         """
-            - update the configuration with one being sent.
+        - update the configuration with one being sent.
 
         """
         self.conf = conf
@@ -1176,8 +1175,8 @@ class measurement_Logger(AbstractEventhandlingThread):
     @pyqtSlot(dict)
     def store_data(self, data):
         """storing logging data
-            what data should be logged is set in self.conf
-            or will be set there eventually at any rate
+        what data should be logged is set in self.conf
+        or will be set there eventually at any rate
         """
         # if isinstance(data, dict):
         if data["type"] == "multichannel":

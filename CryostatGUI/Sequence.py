@@ -54,21 +54,21 @@ def measure_resistance_singlechannel(
     **kwargs,
 ):
     """conduct one 'full' measurement of resistance:
-        arguments: dict conf
-            threads = dict of threads running of the mainWindow class
-            threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadname_RES  = name of the (Keithley) Voltage measure thread
-            threadname_CURR  = name of the (Keithley) Current set thread
-            n_measurements  = number of measurements (dual polarity) to be averaged over
-                            default = 1 (no reason to do much more)
-            excitation_current_A = excitation current for the measurement
-        returns: dict data
-            T_mean_K : mean of temperature readings
-                    before and after measurement [K]
-            T_std_K : std of temperature readings
-                    before and after measurement [K]
-            R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
-            R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
+    arguments: dict conf
+        threads = dict of threads running of the mainWindow class
+        threadname_Temp  = name of the (LakeShore) Temperature thread
+        threadname_RES  = name of the (Keithley) Voltage measure thread
+        threadname_CURR  = name of the (Keithley) Current set thread
+        n_measurements  = number of measurements (dual polarity) to be averaged over
+                        default = 1 (no reason to do much more)
+        excitation_current_A = excitation current for the measurement
+    returns: dict data
+        T_mean_K : mean of temperature readings
+                before and after measurement [K]
+        T_std_K : std of temperature readings
+                before and after measurement [K]
+        R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
+        R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
@@ -129,24 +129,24 @@ def measure_resistance_multichannel(
     **kwargs,
 ):
     """conduct one 'full' measurement of resistance:
-        arguments: dict conf
-            threads = dict of threads running of the mainWindow class
-            threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadnames_RES  = list of names of the (Keithley) Voltage measure threads
-            threadnames_CURR  = list of names of the (Keithley) Current set threads
-            n_measurements  = number of measurements (dual polarity) to be averaged over
-                            default = 1 (no reason to do much more)
-            excitation_currents_A = list of excitations currents for the measurement
-        returns: dict data
-            T_mean_K : dict of means of temperature readings
-                    before and after measurement [K]
-            T_std_K : dict of stds of temperature readings
-                    before and after measurement [K]
-            resistances, voltages, currents:
-                dicts with corresponding values for all measurement channels
-            timeseconds: pythons time.time()
-            ReadableTime: Time in %Y-%m-%d %H:%M:%S
-            SearchableTime: Time in %Y%m%d%H%M%S
+    arguments: dict conf
+        threads = dict of threads running of the mainWindow class
+        threadname_Temp  = name of the (LakeShore) Temperature thread
+        threadnames_RES  = list of names of the (Keithley) Voltage measure threads
+        threadnames_CURR  = list of names of the (Keithley) Current set threads
+        n_measurements  = number of measurements (dual polarity) to be averaged over
+                        default = 1 (no reason to do much more)
+        excitation_currents_A = list of excitations currents for the measurement
+    returns: dict data
+        T_mean_K : dict of means of temperature readings
+                before and after measurement [K]
+        T_std_K : dict of stds of temperature readings
+                before and after measurement [K]
+        resistances, voltages, currents:
+            dicts with corresponding values for all measurement channels
+        timeseconds: pythons time.time()
+        ReadableTime: Time in %Y-%m-%d %H:%M:%S
+        SearchableTime: Time in %Y%m%d%H%M%S
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
@@ -308,34 +308,38 @@ class Sequence_Functions:
 
     def setTemperature(self, temperature: float) -> None:
         """
-            Method to be overridden/injected by a child class
-            here, all logic which is needed to go to a
-            certain temperature directly
-            needs to be implemented.
-            TODO: override method
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a
+        certain temperature directly
+        needs to be implemented.
+        TODO: override method
         """
         self.devices["ITC"]["setTemp"].emit(
-            dict(isSweep=False, isSweepStartCurrent=False, setTemp=temperature,)
+            dict(
+                isSweep=False,
+                isSweepStartCurrent=False,
+                setTemp=temperature,
+            )
         )
         self._logger.debug("setting the temp to {}K".format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
         """
-            Method to be overridden/injected by a child class
-            here, all logic which is needed to go to a certain field directly
-            needs to be implemented.
-            TODO: override method
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a certain field directly
+        needs to be implemented.
+        TODO: override method
         """
         self.devices["IPS"]["setField"].emit(dict(field=field, EndMode=EndMode))
         self._logger.debug(f"setting the field to {field}T, EndMode = {EndMode}")
 
     def setPosition(self, position: float, speedindex: float) -> None:
         """
-            Method to be overridden/injected by a child class
-            here, all logic which is needed to go to a
-            certain position directly
-            needs to be implemented.
-            TODO: override method
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a
+        certain position directly
+        needs to be implemented.
+        TODO: override method
         """
         self._logger.debug(
             f"setting the position to {position}, speedindex = {speedindex}"
@@ -437,12 +441,16 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         SpacingCode: str = "uniform",
     ):
         """
-            Method to be overriden by a child class
-            here, the devices should be programmed to start
-            the respective Sweep of temperatures
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep of temperatures
         """
         self.devices["ITC"]["setTemp"].emit(
-            dict(isSweep=False, isSweepStartCurrent=False, setTemp=start,)
+            dict(
+                isSweep=False,
+                isSweepStartCurrent=False,
+                setTemp=start,
+            )
         )
         self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
         self.devices["ITC"]["setTemp"].emit(
@@ -470,9 +478,9 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         SpacingCode: str = "uniform",
     ):
         """
-            Method to be overriden by a child class
-            here, the devices should be programmed to start
-            the respective Sweep for field values
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep for field values
         """
         print(
             f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
@@ -495,7 +503,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         self._logger.debug(f"setFieldEndMode :: EndMode = {EndMode}")
 
     def getTemperature(self) -> float:
-        """Read the temperature 
+        """Read the temperature
 
         Method to be overriden by child class
         implement measuring the temperature used for control
@@ -582,10 +590,10 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
     def getPosition(self) -> float:
         """
-            Method to be overriden by child class
-            implement checking the position
+        Method to be overriden by child class
+        implement checking the position
 
-            returns: position as a float
+        returns: position as a float
         """
         val = np.random.rand() * 360
         self._logger.debug(f"getPosition :: returning random value: {val}")
@@ -840,8 +848,8 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity
-            Must be overridden!
-            return dict with all data according to the set dataflags
+        Must be overridden!
+        return dict with all data according to the set dataflags
         """
         self._logger.debug(
             f" measuring the resistivity with the following dataflags: {dataflags} and the following bridge configuration: {bridge_conf}"
@@ -850,23 +858,23 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
 
     def measuring_store_data(self, data: dict, datafile: str) -> None:
         """Store measured data
-            Must be overridden!
+        Must be overridden!
         """
         self._logger.debug(f" store the measured data: {data} in the file: {datafile}.")
 
     def res_datafilecomment(self, comment: str, datafile: str) -> None:
         """write a comment to the datafile
-            Must be overridden!
+        Must be overridden!
         """
         self._logger.debug(f" write a comment: {comment} in the datafile: {datafile}.")
 
     def res_change_datafile(self, datafile: str, mode: str) -> None:
         """change the datafile (location)
-            Must be overridden!
-            mode ('a' or 'w') determines whether data should be
-                'a': appended
-                'w': written over
-            (to) the new datafile
+        Must be overridden!
+        mode ('a' or 'w') determines whether data should be
+            'a': appended
+            'w': written over
+        (to) the new datafile
         """
         self._logger.debug(f" change the datafile to: {datafile}, with mode {mode}.")
 

@@ -4,7 +4,7 @@ import numpy as np
 
 
 def create_connection(db_file):
-    """ create a database connection to the SQLite database
+    """create a database connection to the SQLite database
         specified by the db_file
     :param db_file: database file
     :return: Connection object or None
@@ -33,5 +33,12 @@ def conf(datafile):
         cur.execute("SELECT timeseconds from LakeShore350")
         times2 = np.array(cur.fetchall())[:, 0]
 
-    df = pd.DataFrame(dict(times_temps=times2, temps=temps, times_res=times1, res=res,))
+    df = pd.DataFrame(
+        dict(
+            times_temps=times2,
+            temps=temps,
+            times_res=times1,
+            res=res,
+        )
+    )
     return df

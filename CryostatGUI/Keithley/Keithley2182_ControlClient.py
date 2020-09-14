@@ -32,16 +32,16 @@ from Keithley.Keithley2182 import Keithley2182
 class Keithley2182_ControlClient(AbstractLoopThreadClient):
     """Updater class for the LakeShore350 Temperature controller
 
-        For each Device function there is a wrapping method,
-        which we can call by a signal/by zmq comms. This wrapper sends
-        the corresponding value to the device.
+    For each Device function there is a wrapping method,
+    which we can call by a signal/by zmq comms. This wrapper sends
+    the corresponding value to the device.
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently published on the data upstream. It is packed in a dict,
-        the keys of which are displayed in the "data" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently published on the data upstream. It is packed in a dict,
+    the keys of which are displayed in the "data" dict in this class.
     """
 
     # exposable data dictionary
@@ -156,8 +156,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot()
     @ExceptionHandling
     def speed_up(self):
-        """increase measurement speed
-        """
+        """increase measurement speed"""
         self.Keithley2182.setRate("FAS")
 
     @pyqtSlot()
@@ -260,7 +259,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     @pyqtSlot(dict)
     def updateGUI(self, data):
         """
-            Store Device data in self.data, update values in GUI
+        Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
         # data['date'] = convert_time(time.time())
