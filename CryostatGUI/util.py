@@ -622,22 +622,25 @@ class PrometheusGaugeClient:
             try:
                 self._prometheus_initialised
             except AttributeError:
-                self._logger.debug(
-                    "initialising prometheus client service for %s on port %s",
-                    self._name_prometheus,
-                    self._port,
-                )
-                for variablekey in self.data:
-                    self._gauges[variablekey] = Gauge(
-                        "CryoGUIservice_{}_{}".format(
-                            self._name_prometheus, variablekey
-                        ),
-                        "no description",
-                    )
-                self.set_gauges()
-                start_http_server(self._port)
+                self.initialise_gauges()
                 self._prometheus_initialised = True
             self.set_gauges()
+
+    def initialise_gauges(self):
+        self._logger.debug(
+            "initialising prometheus client service for %s on port %s",
+            self._name_prometheus,
+            self._port,
+        )
+        for variablekey in self.data:
+            self._gauges[variablekey] = Gauge(
+                "CryoGUIservice_{}_{}".format(
+                    self._name_prometheus, variablekey
+                ),
+                "no description",
+            )
+        self.set_gauges()
+        start_http_server(self._port)
 
     def set_gauges(self):
         # self._logger.debug("setting prometheus metrics")
@@ -711,10 +714,6 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
                     self.send_data_upstream()
         except BlockedError:
             pass
-            # print('blocked')
-        # except AssertionError as assertion:
-        #     self.sig_assertion.emit(assertion.args[0])
-        # print('assertion', assertion.args[0])
         finally:
             QTimer.singleShot(self.interval * 1e3, self.work)
 
