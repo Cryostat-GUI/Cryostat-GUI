@@ -634,9 +634,7 @@ class PrometheusGaugeClient:
         )
         for variablekey in self.data:
             self._gauges[variablekey] = Gauge(
-                "CryoGUIservice_{}_{}".format(
-                    self._name_prometheus, variablekey
-                ),
+                "CryoGUIservice_{}_{}".format(self._name_prometheus, variablekey),
                 "no description",
             )
         self.set_gauges()
