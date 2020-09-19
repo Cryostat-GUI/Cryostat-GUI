@@ -240,7 +240,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self._logger.exception(e)
-            raise ApplicationExit('Could not connect to Hardware!')
+            raise ApplicationExit("Could not connect to Hardware!")
 
     @pyqtSlot(dict)
     def updateGUI(self, data):

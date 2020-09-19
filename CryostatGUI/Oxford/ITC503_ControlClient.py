@@ -786,7 +786,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             # self.sig_newFilePID.emit(self.window_settings.temp_ITC_PIDFile)
         except (VisaIOError, NameError) as e:
             self._logger.exception(e)
-            raise ApplicationExit('Could not connect to Hardware!')
+            raise ApplicationExit("Could not connect to Hardware!")
 
     @pyqtSlot(dict)
     def updateGUI(self, data):
