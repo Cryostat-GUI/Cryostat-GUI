@@ -27,7 +27,7 @@ from util import loops_off
 from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
-from zmqcomms import zmqquery_dict
+from util.zmqcomms import zmqquery_dict
 
 import measureSequences as mS
 

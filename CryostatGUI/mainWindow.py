@@ -88,8 +88,8 @@ from util import Window_plotting_specification
 from util import ExceptionHandling
 
 import zmq
-from zmqcomms import zmqquery_handle
-from zmqcomms import genericAnswer
+from util.zmqcomms import zmqquery_handle
+from util.zmqcomms import genericAnswer
 
 ITC_Instrumentadress = "ASRL6::INSTR"
 ILM_Instrumentadress = "ASRL5::INSTR"

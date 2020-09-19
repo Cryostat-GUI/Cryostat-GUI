@@ -83,6 +83,42 @@ def get_rm(_unused_visalib="ni"):
     # return rm
 
 
+class ApplicationExit(Exception):
+    """should never be handled, but if raised, crash the application
+    this is intended for use with a service,
+    which will be restarted upon uncontrolled exit
+    Windows:
+        - service
+    Ubuntu:
+        - systemd service
+    """
+
+
+def reopen_connection(se, error, e, trials=10):
+    se._logger.exception(e)
+    se._logger.error("%s, trying to reconnect", error)
+    notyetthereagain = True
+    se.res_close()
+    ct_trial = 0
+    while notyetthereagain and ct_trial < trials:
+        try:
+            time.sleep(1)
+            try:
+                se.res_close()
+            except AttributeError:
+                pass
+            se.res_open()
+            q = se._visa_resource.query("*IDN?")
+            notyetthereagain = False
+        except VisaIOError:
+            se._logger.debug("retrying to reconnect!")
+        ct_trial += 1
+    if ct_trial == trials:
+        raise ApplicationExit(f"exiting because of {error}")
+    se._logger.info("Exception of %s resolved! (I hope)", error)
+    return q
+
+
 def HandleVisaException(func):
     @functools.wraps(func)
     def wrapper_HandleVisaException(*args, timeoutcounter=0, **kwargs):
@@ -110,41 +146,9 @@ def HandleVisaException(func):
                     return -1
                 # this is not fully tested ---- Out --------------------------
             elif isinstance(e, type(se.connError)) and e.args == se.connError.args:
-                se._logger.exception(e)
-                se._logger.error("Connection lost, trying to reconnect")
-                notyetthereagain = True
-                se.res_close()
-                while notyetthereagain:
-                    try:
-                        time.sleep(1)
-                        try:
-                            se.res_close()
-                        except AttributeError:
-                            pass
-                        se.res_open()
-                        q = se._visa_resource.query("*IDN?")
-                        notyetthereagain = False
-                    except VisaIOError:
-                        se._logger.debug("trying to reactivate the connection!")
-                se._logger.info("Exception of lost connection resolved! (I hope)")
+                reopen_connection(se, "connection lost", e, trials=10)
             elif isinstance(e, type(se.visaIOError)) and e.args == se.visaIOError.args:
-                se._logger.exception(e)
-                se._logger.error("Visa I/O Error, trying to reconnect")
-                notyetthereagain = True
-                se.res_close()
-                while notyetthereagain:
-                    try:
-                        time.sleep(1)
-                        try:
-                            se.res_close()
-                        except AttributeError:
-                            pass
-                        se.res_open()
-                        q = se._visa_resource.query("*IDN?")
-                        notyetthereagain = False
-                    except VisaIOError:
-                        se._logger.debug("trying to reactivate the connection!")
-                se._logger.info("Exception of I/O error resolved! (I hope)")
+                reopen_connection(se, "Visa I/O Error", e, trials=10)
             else:
                 se._logger.exception(e)
             try:
@@ -275,7 +279,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
         write_termination="\r",
         baud_rate=9600,
         data_bits=8,
-        **kwargs
+        **kwargs,
     ):
         self._device_specifics = dict(
             timeout=timeout,
@@ -365,7 +369,7 @@ class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
         InstrumentAddress,
         read_termination="\r\n",
         write_termination="\n",
-        **kwargs
+        **kwargs,
     ):
         self._device_specifics = dict(
             read_termination=read_termination, write_termination=write_termination
