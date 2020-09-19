@@ -91,7 +91,7 @@ class ApplicationExit(Exception):
         - service
     Ubuntu:
         - systemd service
-        """
+    """
 
 
 def reopen_connection(se, error, e, trials=10):
@@ -113,7 +113,7 @@ def reopen_connection(se, error, e, trials=10):
             se._logger.debug("retrying to reconnect!")
         ct_trial += 1
     if ct_trial == trials:
-        raise ApplicationExit(f'exiting because of {error}')
+        raise ApplicationExit(f"exiting because of {error}")
     se._logger.info("Exception of %s resolved! (I hope)", error)
     return q
 
@@ -145,7 +145,7 @@ def HandleVisaException(func):
                     return -1
                 # this is not fully tested ---- Out --------------------------
             elif isinstance(e, type(se.connError)) and e.args == se.connError.args:
-                reopen_connection(se, 'connection lost', e, trials=10)
+                reopen_connection(se, "connection lost", e, trials=10)
             elif isinstance(e, type(se.visaIOError)) and e.args == se.visaIOError.args:
                 reopen_connection(se, 'Visa I/O Error', e, trials=10)
             elif isinstance(e, type(se.visaNotFoundError)) and e.args == se.visaNotFoundError.args:
