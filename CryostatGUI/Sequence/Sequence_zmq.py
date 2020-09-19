@@ -31,7 +31,6 @@ from Sequence import AbstractMeasureResistanceMultichannel
 
 
 import logging
+
 logger = logging.getLogger("CryostatGUI.Sequences")
 logger_measure = logging.getLogger("CryostatGUI.measuring")
-
-
