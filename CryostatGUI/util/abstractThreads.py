@@ -358,4 +358,3 @@ class AbstractEventhandlingThread(AbstractThread):
     def running(self):
         """empty method to keep thread alive (there is surely a better solution) """
         pass
-
