@@ -147,9 +147,12 @@ def HandleVisaException(func):
             elif isinstance(e, type(se.connError)) and e.args == se.connError.args:
                 reopen_connection(se, "connection lost", e, trials=10)
             elif isinstance(e, type(se.visaIOError)) and e.args == se.visaIOError.args:
-                reopen_connection(se, 'Visa I/O Error', e, trials=10)
-            elif isinstance(e, type(se.visaNotFoundError)) and e.args == se.visaNotFoundError.args:
-                reopen_connection(se, 'resource not found', e, trials=2)
+                reopen_connection(se, "Visa I/O Error", e, trials=10)
+            elif (
+                isinstance(e, type(se.visaNotFoundError))
+                and e.args == se.visaNotFoundError.args
+            ):
+                reopen_connection(se, "resource not found", e, trials=2)
             else:
                 se._logger.exception(e)
             try:
