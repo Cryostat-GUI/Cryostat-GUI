@@ -308,9 +308,6 @@ class AbstractLoopZmqThread(AbstractLoopThread):
 class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGaugeClient):
     """docstring for AbstractLoopThreadClient"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @pyqtSlot()  # int
     def work(self):
         """class method which is working all the time while the thread is running. """
@@ -329,9 +326,6 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
 
 class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
     """docstring for AbstractLoopThreadDataStore"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 class AbstractEventhandlingThread(AbstractThread):
