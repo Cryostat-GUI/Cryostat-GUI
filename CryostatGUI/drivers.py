@@ -98,7 +98,6 @@ def reopen_connection(se, error, e, trials=10):
     se._logger.exception(e)
     se._logger.error("%s, trying to reconnect", error)
     notyetthereagain = True
-    se.res_close()
     ct_trial = 0
     while notyetthereagain and ct_trial < trials:
         try:
@@ -149,6 +148,8 @@ def HandleVisaException(func):
                 reopen_connection(se, 'connection lost', e, trials=10)
             elif isinstance(e, type(se.visaIOError)) and e.args == se.visaIOError.args:
                 reopen_connection(se, 'Visa I/O Error', e, trials=10)
+            elif isinstance(e, type(se.visaNotFoundError)) and e.args == se.visaNotFoundError.args:
+                reopen_connection(se, 'resource not found', e, trials=2)
             else:
                 se._logger.exception(e)
             try:
@@ -169,7 +170,9 @@ class AbstractVISADriver:
     connError = VisaIOError(-1073807194)
     timeouterror = VisaIOError(-1073807339)
     visaIOError = VisaIOError(-1073807298)
+    visaNotFoundError = VisaIOError(-1073807343)
 
+    @HandleVisaException
     def __init__(self, InstrumentAddress, visalib="ni", **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
         self._logger = logging.getLogger(
@@ -279,7 +282,7 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
         write_termination="\r",
         baud_rate=9600,
         data_bits=8,
-        **kwargs
+        **kwargs,
     ):
         self._device_specifics = dict(
             timeout=timeout,
@@ -369,7 +372,7 @@ class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
         InstrumentAddress,
         read_termination="\r\n",
         write_termination="\n",
-        **kwargs
+        **kwargs,
     ):
         self._device_specifics = dict(
             read_termination=read_termination, write_termination=write_termination
