@@ -380,9 +380,6 @@ class AbstractModernVISADriver(AbstractVISADriver):
 class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
 
 class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""

@@ -49,7 +49,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import pyqtSlot
+
+# from PyQt5.QtCore import pyqtSlot
 
 from PyQt5 import QtCore
 from PyQt5.uic import loadUi
@@ -675,6 +676,8 @@ class Window_plotting_specification(Window_ui):
 
         self.parse_presets()
 
+        self.filenamevalue = None
+
         # self.combo_loadingpreset.currentIndexChanged["QString"].connect(
         #     self.restoring_preset
         # )
@@ -703,7 +706,7 @@ class Window_plotting_specification(Window_ui):
         filename = os.path.join(self.presets_path, str(filename) + ".json")
         try:
             with open(filename) as f:
-                self.selection_int = json.load(f)
+                selection_int = json.load(f)
         except FileNotFoundError:
             self._logger.warning(
                 f"The preset file you wanted ({filename}) was not found!"
@@ -712,11 +715,11 @@ class Window_plotting_specification(Window_ui):
                 f"Plotting: The preset file you wanted ({filename}) was not found!"
             )
             return
-        # print(len(self.selection_int))
+        # print(len(selection_int))
         self.tablist = []
         self.tabW_selection.clear()
 
-        for plot_entry in self.selection_int:
+        for plot_entry in selection_int:
             # print('adding a tab')
             self.adding_selectiontab()
             # print('added a tab')
@@ -755,7 +758,7 @@ class Window_plotting_specification(Window_ui):
                 except KeyError:
                     # this axis was not chosen, it may seem
                     pass
-        self.selection = deepcopy(self.selection_int)
+        self.selection = deepcopy(selection_int)
 
     # def function(self, val):
     #     pass

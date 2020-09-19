@@ -43,14 +43,6 @@ class PrometheusGaugeClient:
         else:
             self._prometheus_enabled = False
 
-    def start_server(self):
-        self._prometheus_thread, self._prometheus_server = start_http_server_custom(
-            self._prometheus_port
-        )
-
-    def stop_server(self):
-        pass
-
     def run_prometheus(self):
         if self._prometheus_enabled:
             # if self.run_finished:
