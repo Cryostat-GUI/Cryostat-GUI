@@ -675,7 +675,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         self.ITC_values = dict(setTemperature=4, SweepRate=2)
         self.controls = [self.groupSettings]
         self._useAutoPID = True
-        self._PIDFile = ".\\..\\configurations\\PID_conf\\P1C1.conf"
+        self._PIDFile = "./../configurations/PID_conf/P1C1.conf"
 
         self.checkUseAuto.toggled["bool"].connect(self.fun_useAutoPID)
         # self.lineConfFile.textEdited.connect(
@@ -894,7 +894,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
         except OSError as e:
             self._logger.exception(e)
         except TypeError as e:
-            self._logger.error(f" missing Filename! (TypeError: {e})")
+            self._logger.error(f"missing Filename! (TypeError: {e})")
 
     @ExceptionHandling
     def window_FileDialogOpen(self, test):

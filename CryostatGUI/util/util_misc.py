@@ -55,6 +55,10 @@ from PyQt5 import QtCore
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QSizePolicy
 
+# from drivers import HandleVisaException
+from drivers import ApplicationExit
+
+
 # from zmqcomms import zmqClient
 # from zmqcomms import zmqDataStore
 
@@ -182,61 +186,49 @@ def ExceptionHandling(func):
     @functools.wraps(func)
     def wrapper_ExceptionHandling(*args, **kwargs):
         # if inspect.isclass(type(args[0])):
-        # thread = args[0]
         try:
             return func(*args, **kwargs)
         except AssertionError as e:
             s = ExceptionSignal(args[0], func, "Assertion", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except TypeError as e:
             s = ExceptionSignal(args[0], func, "Type", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except KeyError as e:
             s = ExceptionSignal(args[0], func, "Key", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except IndexError as e:
             s = ExceptionSignal(args[0], func, "Index", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except ValueError as e:
             s = ExceptionSignal(args[0], func, "Value", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except AttributeError as e:
             s = ExceptionSignal(args[0], func, "Attribute", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
 
         except NotImplementedError as e:
             s = ExceptionSignal(args[0], func, "NotImplemented", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
             # e.args = [str(e)]
 
         except VisaIOError as e:
-            # if isinstance(e, type(args[0].timeouterror)) and \
-            #         e.args == args[0].timeouterror.args:
-            #     args[0].sig_visatimeout.emit()
-            # else:
             s = ExceptionSignal(args[0], func, "VisaIO", e)
-            # thread.logger.exception(s)
             args[0]._logger.error(s)
             args[0]._logger.exception(e)
+            raise ApplicationExit("unresolvable hardware connection error occured")
 
         except OSError as e:
             s = ExceptionSignal(args[0], func, "OSError", e)

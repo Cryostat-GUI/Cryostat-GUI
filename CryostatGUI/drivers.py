@@ -28,6 +28,12 @@ from pyvisa.errors import VisaIOError
 from visa import constants as vconst
 import functools
 
+
+connError = VisaIOError(-1073807194)
+timeouterror = VisaIOError(-1073807339)
+visaIOError = VisaIOError(-1073807298)
+visaNotFoundError = VisaIOError(-1073807343)
+
 # create a logger object for this module
 logger = logging.getLogger("CryoGUI." + __name__)
 
@@ -104,10 +110,10 @@ def reopen_connection(se, error, e, trials=10):
             time.sleep(1)
             try:
                 se.res_close()
+                se.res_open()
+                q = se._visa_resource.query("*IDN?")
             except AttributeError:
-                pass
-            se.res_open()
-            q = se._visa_resource.query("*IDN?")
+                q = True
             notyetthereagain = False
         except VisaIOError:
             se._logger.debug("retrying to reconnect!")
@@ -118,9 +124,28 @@ def reopen_connection(se, error, e, trials=10):
     return q
 
 
+def retrying_call(se, func, args, kwargs, err, trials=3):
+    se._logger.exception(err)
+    se._logger.error("%s, trying to reconnect", "timeout error")
+    noanswer = True
+    ct_trial = 0
+    while noanswer and ct_trial < trials:
+        try:
+            time.sleep(0.5)
+            return func(*args, **kwargs)
+        except VisaIOError as e:
+            if isinstance(e, type(timeouterror)) and e.args == timeouterror.args:
+                ct_trial += 1
+            else:
+                raise e
+    if ct_trial == trials:
+        return reopen_connection(se, "probably connection lost (timeout)", err, trials=3)
+        # raise ApplicationExit("exiting because of timeout error")
+
+
 def HandleVisaException(func):
     @functools.wraps(func)
-    def wrapper_HandleVisaException(*args, timeoutcounter=0, **kwargs):
+    def wrapper_HandleVisaException(*args, **kwargs):
         # if inspect.isclass(type(args[0])):
         # thread = args[0]
         try:
@@ -128,38 +153,30 @@ def HandleVisaException(func):
             return func(*args, **kwargs)
 
         except VisaIOError as e:
-            if isinstance(e, type(se.timeouterror)) and e.args == se.timeouterror.args:
+            if isinstance(e, type(timeouterror)) and e.args == timeouterror.args:
                 try:
-                    se.sig_visatimeout.emit()
-                except AttributeError:
-                    pass
-                se._logger.exception(e)
-                time.sleep(0.01)
-                # this is not fully tested ---- In ---------------------------
-                if timeoutcounter < 5:
-                    timeoutcounter += 1
-                    return wrapper_HandleVisaException(
-                        *args, timeoutcounter=timeoutcounter, **kwargs
-                    )
-                else:
-                    return -1
-                # this is not fully tested ---- Out --------------------------
-            elif isinstance(e, type(se.connError)) and e.args == se.connError.args:
-                reopen_connection(se, "connection lost", e, trials=10)
-            elif isinstance(e, type(se.visaIOError)) and e.args == se.visaIOError.args:
-                reopen_connection(se, "Visa I/O Error", e, trials=10)
+                    return retrying_call(se, func, args, kwargs, e, trials=2)
+                    # same as return func() above
+                except VisaIOError:
+                    return wrapper_HandleVisaException(*args, **kwargs)
+            elif isinstance(e, type(connError)) and e.args == connError.args:
+                q = reopen_connection(se, "connection lost", e, trials=3)
+            elif isinstance(e, type(visaIOError)) and e.args == visaIOError.args:
+                q = reopen_connection(se, "Visa I/O Error", e, trials=3)
             elif (
-                isinstance(e, type(se.visaNotFoundError))
-                and e.args == se.visaNotFoundError.args
+                isinstance(e, type(visaNotFoundError))
+                and e.args == visaNotFoundError.args
             ):
-                reopen_connection(se, "resource not found", e, trials=2)
+                q = reopen_connection(se, "resource not found", e, trials=2)
             else:
                 se._logger.exception(e)
             try:
                 q
+                if q is None:
+                    raise ApplicationExit("something bad happened here")
                 return wrapper_HandleVisaException(*args, **kwargs)
             except NameError:
-                return -1
+                raise ApplicationExit("something bad happened here")
 
     return wrapper_HandleVisaException
 
@@ -318,8 +335,8 @@ class AbstractSerialDeviceDriver(AbstractVISADriver):
                 self._visa_resource.read()
         except VisaIOError as e_visa:
             if (
-                isinstance(e_visa, type(self.timeouterror))
-                and e_visa.args == self.timeouterror.args
+                isinstance(e_visa, type(timeouterror))
+                and e_visa.args == timeouterror.args
             ):
                 pass
             else:
