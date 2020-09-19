@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
 from LakeShore import LakeShore350_ethernet
+from drivers import ApplicationExit
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
@@ -516,6 +517,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self._logger.exception(e)
+            raise ApplicationExit('Could not connect to Hardware!')
 
     # def calculate_Kpmin(self, data):
     # """calculate the rate of change of Temperature"""

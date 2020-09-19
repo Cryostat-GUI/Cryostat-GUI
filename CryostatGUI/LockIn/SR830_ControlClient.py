@@ -29,6 +29,7 @@ import logging
 # import LockIn
 
 from pymeasure.instruments.srs import SR830
+from drivers import ApplicationExit
 
 from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
@@ -239,6 +240,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self._logger.exception(e)
+            raise ApplicationExit('Could not connect to Hardware!')
 
     @pyqtSlot(dict)
     def updateGUI(self, data):
