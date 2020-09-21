@@ -966,7 +966,12 @@ class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions
         comms_data,
         **kwargs,
     ):
-        super().__init__(sequence=sequence, comms_downstream=comms_downstream, comms_data=comms_data, **kwargs)
+        super().__init__(
+            sequence=sequence,
+            comms_downstream=comms_downstream,
+            comms_data=comms_data,
+            **kwargs,
+        )
 
         self.__name__ = "runSequence"
 
