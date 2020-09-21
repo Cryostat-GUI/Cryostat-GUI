@@ -377,7 +377,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         **kwargs,
     ):
         super().__init__(sequence=sequence, device_signals=device_signals, **kwargs)
-
+        self.python_default_path = 'seqfiles/'
         self.__name__ = "runSequence"
 
         self.devices = device_signals
