@@ -139,7 +139,9 @@ def retrying_call(se, func, args, kwargs, err, trials=3):
             else:
                 raise e
     if ct_trial == trials:
-        return reopen_connection(se, "probably connection lost (timeout)", err, trials=3)
+        return reopen_connection(
+            se, "probably connection lost (timeout)", err, trials=3
+        )
         # raise ApplicationExit("exiting because of timeout error")
 
 

@@ -967,8 +967,8 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
     def get_answer(self, qdict):
         self._logger.debug(f"getting answer for {qdict}")
         adict = {}
-        live = qdict["live"]
         try:
+            live = qdict["live"]
             if live:
                 data = self.data_live[qdict["instr"]][qdict["value"]][-1]
             else:
@@ -984,7 +984,9 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             return dict(
                 ERROR="KeyError",
                 ERROR_message=e.args[0],
-                info="the data you requested is seemingly not present in the data",
+                info="the data you requested is not present in the data,"
+                + "or you sent a faulty question dictionary. "
+                + "Required keys are: 'live': bool, 'instr': str, 'value': str",
             )
         adict["data"] = data
         adict["uptodate"] = uptodate
