@@ -1358,7 +1358,7 @@ class measurement_Logger(AbstractEventhandlingThread):
 
 if __name__ == "__main__":
     try:
-        with PidFile('zmqLogger'):
+        with PidFile("zmqLogger"):
             # dbname = 'He_first_cooldown.db'
             # conn = sqlite3.connect(dbname)
             # mycursor = conn.cursor()
@@ -1388,5 +1388,5 @@ if __name__ == "__main__":
             #       '\nstartup time: ', time.time() - a)
             sys.exit(app.exec_())
     except PidFileError:
-        print('Program already running! \nShutting down now!\n')
+        print("Program already running! \nShutting down now!\n")
         sys.exit()

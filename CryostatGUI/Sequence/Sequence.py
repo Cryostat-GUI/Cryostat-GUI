@@ -883,6 +883,591 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         self.temp_VTI_offset = offset
 
 
+class Sequence_Functions_zmq:
+    """docstring for Functions"""
+
+    sig_message = pyqtSignal(str)
+
+    def __init__(self, device_signals, **kwargs):
+        super().__init__(**kwargs)
+        self.devices = device_signals
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+        # self.temp_VTI_offset = probe_Toffset
+
+    def setTemperature(self, temperature: float) -> None:
+        """
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a
+        certain temperature directly
+        needs to be implemented.
+        TODO: override method
+        """
+        self.devices["ITC"]["setTemp"].emit(
+            dict(
+                isSweep=False,
+                isSweepStartCurrent=False,
+                setTemp=temperature,
+            )
+        )
+        self._logger.debug("setting the temp to {}K".format(temperature))
+
+    def setField(self, field: float, EndMode: str) -> None:
+        """
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a certain field directly
+        needs to be implemented.
+        TODO: override method
+        """
+        self.devices["IPS"]["setField"].emit(dict(field=field, EndMode=EndMode))
+        self._logger.debug(f"setting the field to {field}T, EndMode = {EndMode}")
+
+    def setPosition(self, position: float, speedindex: float) -> None:
+        """
+        Method to be overridden/injected by a child class
+        here, all logic which is needed to go to a
+        certain position directly
+        needs to be implemented.
+        TODO: override method
+        """
+        self._logger.debug(
+            f"setting the position to {position}, speedindex = {speedindex}"
+        )
+
+    def message_to_user(self, message: str) -> None:
+        """deliver a message to a user in some way
+
+        default is printing to the command line
+        may be overriden!
+        """
+        # super().message_to_user(message)
+        # print(message)
+        # self.devices['general']['message_to_user'].emit(message)
+        self.sig_message.emit(message)
+        self._logger.debug(f"A message to the user: {message}")
+
+
+class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions):
+    """docstring for Sequence_Thread"""
+
+    # sig_aborted = pyqtSignal()
+    sig_finished = pyqtSignal(str)
+    sig_message = pyqtSignal(str)
+
+    def __init__(
+        self,
+        sequence: list,
+        # data: list, datalock, dataLive: list, data_LiveLock,
+        comms_downstream,
+        thresholdsconf: dict,
+        tempdefinition: list,
+        controlsLock,
+        comms_data,
+        **kwargs,
+    ):
+        super().__init__(sequence=sequence, comms_downstream=comms_downstream, comms_data=comms_data, **kwargs)
+
+        self.__name__ = "runSequence"
+
+        self.devices = device_signals
+        # self.data = data
+        # self.dataLock = datalock
+        # self.data_Live = dataLive
+        # self.data_LiveLock = data_LiveLock
+        self.tempdefinition = tempdefinition
+        self.thresholdsconf = thresholdsconf
+        self.controlsLock = controlsLock
+
+        # self.devices['Sequence']['data'].connect(self.storing_data)
+        # self.devices['Sequence']['dataLive'].connect(self.storing_dataLive)
+
+        self.devices["Sequence"]["newconf"].connect(self.storing_thresholds)
+
+        # logger_measure.debug('data from main:' + zmqquery(self.zmq_sSeq, 'data'))
+
+    # def storing_data(self, data):
+    #     self.data = data
+
+    # def storing_dataLive(self, data):
+    #     self.data_Live = data
+
+    def storing_thresholds(self, thresholds):
+        self.thresholdsconf = thresholds
+
+    # @ExceptionHandling
+    def work(self):
+        """run the sequence, emit the finish-line"""
+        # print('I will now start to work!')
+        # print('data from main:' ,zmqquery(self.zmq_sSeq, 'data'))
+        try:
+            with self.controlsLock:
+                fin = self.running()
+        except problemAbort as e:
+            fin = f"Error occurred, aborting sequence! Error: {e}"
+            self._logger.error(fin)
+
+        finally:
+            try:
+                self.sig_finished.emit(fin)
+            except NameError:
+                self.sig_finished.emit(
+                    "An Error occurred! Aborted sequence completely!"
+                )
+                self._logger.error("An Error occurred! Aborted sequence completely!")
+
+    def scan_T_programSweep(
+        self,
+        start: float,
+        end: float,
+        Nsteps: float,
+        temperatures: list,
+        SweepRate: float,
+        SpacingCode: str = "uniform",
+    ):
+        """
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep of temperatures
+        """
+        self.devices["ITC"]["setTemp"].emit(
+            dict(
+                isSweep=False,
+                isSweepStartCurrent=False,
+                setTemp=start,
+            )
+        )
+        self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
+        self.devices["ITC"]["setTemp"].emit(
+            dict(
+                isSweep=True,
+                isSweepStartCurrent=True,
+                # setTemp=setTemp,
+                start=start,
+                end=end,
+                SweepRate=SweepRate,
+            )
+        )
+        self._logger.debug(
+            f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}"
+        )
+
+    def scan_H_programSweep(
+        self,
+        start: float,
+        end: float,
+        Nsteps: float,
+        fields: list,
+        SweepRate: float,
+        EndMode: str,
+        SpacingCode: str = "uniform",
+    ):
+        """
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep for field values
+        """
+        print(
+            f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
+        )
+
+    # def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
+    #     """
+    #         Method to be overriden by a child class
+    #         here, the devices should be programmed to start
+    #         the respective Sweep of positions
+    #     """
+    # self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
+    # Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex},
+    # SpacingCode: {SpacingCode}')
+
+    def setFieldEndMode(self, EndMode: str) -> bool:
+        """Method to be overridden by a child class
+        return bool stating success or failure (optional)
+        """
+        self._logger.debug(f"setFieldEndMode :: EndMode = {EndMode}")
+
+    def getTemperature(self) -> float:
+        """Read the temperature
+
+        Method to be overriden by child class
+        implement measuring the temperature used for control
+        returns: temperature as a float
+        """
+        return self.readDataFromList(
+            dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False
+        )
+
+    def check_uptodate(self, dataind1: str, Live) -> bool:
+
+        if Live:
+            data = zmqquery_dict(self.zmq_sSeq, "dataLive")
+        else:
+            data = zmqquery_dict(self.zmq_sSeq, "data")
+        dateentry = data[dataind1]["realtime"]
+        if Live:
+            dateentry = dateentry[-1]
+
+        timediff = (dt.datetime.now() - dateentry).total_seconds()
+        uptodate = timediff < 10
+        if not uptodate:
+            # print('not up to date')
+            self.sig_assertion.emit(
+                f"Sequence: readData: data not sufficiently up to date. ({dataind1}: {timediff})"
+            )
+            self._logger.warning(
+                f"data not sufficiently up to date. ({dataind1}: {timediff})"
+            )
+            time.sleep(1)
+            return False
+        else:
+            return True
+
+    @ExceptionHandling
+    def readDataFromList(
+        self, dataind1: str, dataind2: str, Live: bool = False
+    ) -> float:
+        """retrieve a datapoint from the central list"""
+        gotit = False
+        uptodate = False
+        # datalock = self.data_LiveLock if Live else self.dataLock
+        # data = self.data_Live if Live else self.data
+        # print('reading from list')
+        try:
+            # TODO: include timeout....and throw error, or sth
+            while not uptodate:
+                self.check_running()
+                uptodate = self.check_uptodate(dataind1=dataind1, Live=Live)
+
+        except KeyError as err:
+            # print('KeyErr')
+            self.sig_assertion.emit(
+                "Sequence: readData: no data: {}".format(err.args[0])
+            )
+            self._logger.error(
+                "no data: {} for request (Live={}) {}: {}".format(
+                    err.args[0], Live, dataind1, dataind2
+                )
+            )
+            self.check_running()
+            time.sleep(1)
+            temp = self.readDataFromList(
+                dataind1=dataind1, dataind2=dataind2, Live=Live
+            )
+            gotit = True
+
+        # print('came through')
+        if not gotit:
+            # with datalock:
+            data = zmqquery_dict(self.zmq_sSeq, "data")
+            # print(data)
+            temp = data[dataind1][dataind2]
+        try:
+            self._logger.info(f"received from {dataind1} {dataind2}: {temp}")
+            # temp = float(temp)
+            temp = temp[-1]
+        except TypeError:
+            if Live:
+                self._logger.warning(f"datapoints are not a list: {temp}")
+        except IndexError:
+            self._logger.warning(f"datapoints are maybe an empty list: {temp}")
+        return temp
+
+    def getPosition(self) -> float:
+        """
+        Method to be overriden by child class
+        implement checking the position
+
+        returns: position as a float
+        """
+        val = np.random.rand() * 360
+        self._logger.debug(f"getPosition :: returning random value: {val}")
+        return val
+
+    def getField(self) -> float:
+        """Read the Field
+
+        Method to be overriden by child class
+        implement measuring the field
+        returns: Field as a float
+        """
+        val = np.random.rand() * 9
+        self._logger.debug(f"getField :: returning random value: {val}")
+        return val
+
+    # def getChamber(self):
+    #     """Read the Chamber status
+
+    #     Method to be overriden by child class
+    #     implement measuring whether the chamber is ready
+    #     returns: chamber status
+    #     """
+    #     val = np.random.rand() * 4
+    #     self._logger.debug(f'getChamber :: returning random value: {val}')
+    #     return val
+
+    def checkStable_Temp(
+        self, temp: float, direction: int = 0, ApproachMode: str = "Sweep"
+    ) -> bool:
+        """wait for the temperature to stabilize
+
+        param: Temp:
+            the temperature which needs to be arrived to continue
+            function must block until the temperature has reached this value!
+            (apart from checking whether the sequence qas aborted)
+
+        param: direction:
+            indicates whether the 'Temp' should currently be
+                rising or falling
+                direction =  0: default, no information / non-sweeping
+                direction =  1: temperature should be rising
+                direction = -1: temperature should be falling
+
+        param: ApproachMode:
+            specifies the mode of approach in the scan this function is called
+
+        method should be overriden - possibly some convenience functionality
+            will be added in the future
+        """
+        self._logger.debug(f"checking for stable temp: {temp}K")
+        if direction == 0 or ApproachMode != "Sweep":
+            # no information, temp should really stabilize
+
+            if ApproachMode == "Sweep":
+                # self.sig_assertion.emit(
+                #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+                # self._logger.error(
+                #     'no direction information available in Sweep, cannot check temperature!')
+                raise problemAbort(
+                    "no direction information available in Sweep, cannot check temperature!"
+                )
+                # self.stop()
+                # self.check_running()
+
+            stable = False
+            while not stable:
+                self._logger.debug(f"waiting for stabilized temp: {temp}")
+                self.check_running()
+                count = 0
+
+                temperature = self.getTemperature()
+                mean = self.readDataFromList(
+                    dataind1=self.tempdefinition[0],
+                    dataind2=self.tempdefinition[1] + "_calc_ar_mean",
+                    Live=True,
+                )
+                stderr_rel = self.readDataFromList(
+                    dataind1=self.tempdefinition[0],
+                    dataind2=self.tempdefinition[1] + "_calc_stderr_rel",
+                    Live=True,
+                )
+                slope_rel = self.readDataFromList(
+                    dataind1=self.tempdefinition[0],
+                    dataind2=self.tempdefinition[1] + "_calc_slope_rel",
+                    Live=True,
+                )
+                slope_residuals = self.readDataFromList(
+                    dataind1=self.tempdefinition[0],
+                    dataind2=self.tempdefinition[1] + "_calc_slope_residuals",
+                    Live=True,
+                )
+
+                if abs(temperature - temp) < self.thresholdsconf["threshold_T_K"]:
+                    count += 1
+                if abs(mean - temp) < self.thresholdsconf["threshold_Tmean_K"]:
+                    count += 1
+                if abs(stderr_rel) < self.thresholdsconf["threshold_stderr_rel"]:
+                    count += 1
+                if abs(slope_rel) < self.thresholdsconf["threshold_relslope_Kpmin"]:
+                    count += 1
+                if (
+                    abs(slope_residuals)
+                    < self.thresholdsconf["threshold_slope_residuals"]
+                ):
+                    count += 1
+
+                if count >= 5:
+                    stable = True
+                else:
+                    time.sleep(1)
+
+        elif direction == 1:
+            # temp should be rising, all temps above 'temp' are fine
+            while self.getTemperature() < temp:
+                self.check_running()
+                self._logger.debug(f"temp not yet above {temp}")
+                time.sleep(1)
+        elif direction == -1:
+            # temp should be falling, all temps below 'temp' are fine
+            while self.getTemperature() > temp:
+                self.check_running()
+                self._logger.debug(f"temp not yet below {temp}")
+                time.sleep(1)
+
+        self._logger.debug(
+            f"Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+        )
+
+    def execute_remark(self, remark: str, **kwargs) -> None:
+        """use the given remark
+
+        shoud be overriden in case the remark means anything"""
+        try:
+            if remark.strip()[:5] == "scanT":
+                self._logger.debug("scan T explicitly")
+                temps = [float(x) for x in mS.searchf_number.findall(remark)]
+                self.execute_scan_T(
+                    start=temps[0],
+                    end=temps[-1],
+                    temperatures_forced=temps,
+                    Nsteps=None,
+                    SweepRate=None,
+                    ApproachMode="No O'Shoot",
+                    SpacingCode=None,
+                    commands=[
+                        {
+                            "typ": "Wait",
+                            "Temp": True,
+                            "Field": False,
+                            "Position": False,
+                            "Chamber": False,
+                            "Delay": 60.0,
+                            "DisplayText": "   Wait for Temperature & 60.0 seconds more",
+                        }
+                    ],
+                )
+        except IndexError:
+            pass
+
+        self.message_to_user(f"remark: {remark}")
+
+    def checkField(
+        self, Field: float, direction: int = 0, ApproachMode: str = "Sweep"
+    ) -> bool:
+        """check whether the Field has passed a certain value
+
+        param: Field:
+            the field which needs to be arrived to continue
+            function must block until the field has reached this value!
+            (apart from checking whether the sequence qas aborted)
+
+        param: direction:
+            indicates whether the 'Field' should currently be
+                rising or falling
+                direction =  0: default, no information / non-sweeping
+                direction =  1: temperature should be rising
+                direction = -1: temperature should be falling
+
+        param: ApproachMode:
+            specifies the mode of approach in the scan this function is called
+
+        method should be overriden - possibly some convenience functionality
+            will be added in the future
+        """
+        self._logger.debug(
+            f"Field {Field} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+        )
+
+    # def checkPosition(self, position: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
+    #     """check whether the Field has passed a certain value
+
+    #     param: position:
+    #         the field which needs to be arrived to continue
+    #         function must block until the field has reached this value!
+    #         (apart from checking whether the sequence qas aborted)
+
+    #     param: direction:
+    #         indicates whether the 'Field' should currently be
+    #             rising or falling
+    #             direction =  0: default, no information / non-sweeping
+    #             direction =  1: temperature should be rising
+    #             direction = -1: temperature should be falling
+
+    #     param: ApproachMode:
+    # specifies the mode of approach in the scan this function is called
+
+    #     method should be overriden - possibly some convenience functionality
+    #         will be added in the future
+    #     """
+    # logger.debug(f'checkPosition :: position: {position} is stable!,
+    # ApproachMode = {ApproachMode}, direction = {direction}')
+
+    def Shutdown(self):
+        """Shut down instruments to a safe standby-configuration"""
+        self._logger.debug("going into safe shutdown mode")
+
+    # def chamber_purge(self):
+    #     """purge the chamber
+
+    #     must block until the chamber is purged
+    #     """
+    #     self._logger.debug(f'chamber_purge :: purging chamber')
+
+    # def chamber_vent(self):
+    #     """vent the chamber
+
+    #     must block until the chamber is vented
+    #     """
+    #     self._logger.debug(f'chamber_vent :: venting chamber')
+
+    # def chamber_seal(self):
+    #     """seal the chamber
+
+    #     must block until the chamber is sealed
+    #     """
+    #     self._logger.debug(f'chamber_seal :: sealing chamber')
+
+    # def chamber_continuous(self, action):
+    #     """pump or vent the chamber continuously"""
+    #     if action == 'pumping':
+    #         self._logger.debug(f'chamber_continuous :: pumping continuously')
+    #     if action == 'venting':
+    #         self._logger.debug(f'chamber_continuous :: venting continuously')
+
+    # def chamber_high_vacuum(self):
+    #     """pump the chamber to high vacuum
+
+    #     must block until the chamber is  at high vacuum
+    #     """
+    #     self._logger.debug(f'chamber_high_vacuum :: bringing the chamber to HV')
+
+    def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
+        """Measure resistivity
+        Must be overridden!
+        return dict with all data according to the set dataflags
+        """
+        self._logger.debug(
+            f" measuring the resistivity with the following dataflags: {dataflags} and the following bridge configuration: {bridge_conf}"
+        )
+        return dict(res1=5, exc1=10, res2=8, exc2=10)
+
+    def measuring_store_data(self, data: dict, datafile: str) -> None:
+        """Store measured data
+        Must be overridden!
+        """
+        self._logger.debug(f" store the measured data: {data} in the file: {datafile}.")
+
+    def res_datafilecomment(self, comment: str, datafile: str) -> None:
+        """write a comment to the datafile
+        Must be overridden!
+        """
+        self._logger.debug(f" write a comment: {comment} in the datafile: {datafile}.")
+
+    def res_change_datafile(self, datafile: str, mode: str) -> None:
+        """change the datafile (location)
+        Must be overridden!
+        mode ('a' or 'w') determines whether data should be
+            'a': appended
+            'w': written over
+        (to) the new datafile
+        """
+        self._logger.debug(f" change the datafile to: {datafile}, with mode {mode}.")
+
+    @pyqtSlot()
+    def setTempVTIOffset(self, offset):
+        self.temp_VTI_offset = offset
+
+
 class OneShot_Thread(AbstractEventhandlingThread):
     """docstring for OneShot_Thread"""
 
