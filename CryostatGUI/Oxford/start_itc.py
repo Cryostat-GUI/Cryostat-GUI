@@ -10,7 +10,7 @@ from ITC503_ControlClient import ITCGUI
 if __name__ == "__main__":
 
     try:
-        with PidFile('itc503'):
+        with PidFile("itc503"):
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
 
@@ -44,5 +44,5 @@ if __name__ == "__main__":
             #       '\nstartup time: ', time.time() - a)
             sys.exit(app.exec_())
     except PidFileError:
-        print('Program already running! \nShutting down now!\n')
+        print("Program already running! \nShutting down now!\n")
         sys.exit()

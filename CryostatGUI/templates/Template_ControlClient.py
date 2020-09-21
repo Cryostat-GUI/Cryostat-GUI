@@ -304,7 +304,7 @@ if __name__ == "__main__":
     from pid import PidFileError
 
     try:
-        with PidFile('Template'):
+        with PidFile("Template"):
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
 
@@ -336,5 +336,5 @@ if __name__ == "__main__":
             #       '\nstartup time: ', time.time() - a)
             sys.exit(app.exec_())
     except PidFileError:
-        print('Program already running! \nShutting down now!\n')
+        print("Program already running! \nShutting down now!\n")
         sys.exit()

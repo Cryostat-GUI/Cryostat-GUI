@@ -9,7 +9,7 @@ from LakeShore350_ControlClient import LakeShoreGUI
 
 if __name__ == "__main__":
     try:
-        with PidFile('LakeShore350'):
+        with PidFile("LakeShore350"):
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
 
@@ -43,5 +43,5 @@ if __name__ == "__main__":
             #       '\nstartup time: ', time.time() - a)
             sys.exit(app.exec_())
     except PidFileError:
-        print('Program already running! \nShutting down now!\n')
+        print("Program already running! \nShutting down now!\n")
         sys.exit()
