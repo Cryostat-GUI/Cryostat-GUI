@@ -57,14 +57,14 @@ from pyvisa.errors import VisaIOError
 import measureSequences as mS
 
 # import Oxford
-from Oxford.ITC_control import ITC_Updater
-from Oxford.ILM_control import ILM_Updater
-from Oxford.IPS_control import IPS_Updater
-from LakeShore.LakeShore350_Control import LakeShore350_Updater
-from Keithley.Keithley2182_Control import Keithley2182_Updater
-from Keithley.Keithley6221_Control import Keithley6221_Updater
+# from Oxford.ITC_control import ITC_Updater
+# from Oxford.ILM_control import ILM_Updater
+# from Oxford.IPS_control import IPS_Updater
+# from LakeShore.LakeShore350_Control import LakeShore350_Updater
+# from Keithley.Keithley2182_Control import Keithley2182_Updater
+# from Keithley.Keithley6221_Control import Keithley6221_Updater
 
-from LockIn.LockIn_SR830_control import SR830_Updater
+# from LockIn.LockIn_SR830_control import SR830_Updater
 
 # from Sequence import OneShot_Thread
 from Sequence import OneShot_Thread_multichannel
@@ -206,7 +206,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.initialize_window_IPS()
         self.initialize_window_Log_conf()
         self.initialize_window_LakeShore350()
-        self.initialize_window_Keithley()
+        # self.initialize_window_Keithley()
         self.initialize_window_LockIn()
         self.initialize_window_Errors()
         self.show_data()
@@ -1684,8 +1684,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 # kwargs['GUI_push'].setText('Output ON')
                 kwargs["GUI_push"].setEnabled(False)
 
-    @pyqtSlot()
     @staticmethod
+    @pyqtSlot()
     def Keithley_toggleOutput(GUI_Button, worker):
         worker.OutputOn = worker.getstatus()
         if not worker.OutputOn:
