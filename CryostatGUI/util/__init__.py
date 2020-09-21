@@ -20,6 +20,7 @@ from .util_misc import dummy
 
 
 from .abstractThreads import AbstractMainApp
+from .abstractThreads import AbstractThread
 from .abstractThreads import AbstractLoopThread
 from .abstractThreads import AbstractLoopZmqThread
 from .abstractThreads import AbstractLoopThreadClient
