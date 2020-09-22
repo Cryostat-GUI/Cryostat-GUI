@@ -28,6 +28,7 @@ from util import ExceptionHandling
 from util import convert_time
 from util import convert_time_searchable
 from util.zmqcomms import zmqquery_dict
+from util.zmqcomms import dictdump
 
 import measureSequences as mS
 
@@ -888,13 +889,23 @@ class Sequence_Functions_zmq:
 
     sig_message = pyqtSignal(str)
 
-    def __init__(self, device_signals, **kwargs):
+    def __init__(self,
+                 comms_downstream,
+                 comms_data,
+                 tempdefinition: list,  # list[0] SAME AS TEMPCONTROL ZMQ IDENTIY!
+                 **kwargs,
+    ):
         super().__init__(**kwargs)
-        self.devices = device_signals
+        self.comms_downstream = comms_downstream
+        self.comms_data = comms_data
+        self.tempdefinition = tempdefinition
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
         # self.temp_VTI_offset = probe_Toffset
+
+    def commanding(self, ID, message):
+        self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
 
     def setTemperature(self, temperature: float) -> None:
         """
@@ -902,26 +913,37 @@ class Sequence_Functions_zmq:
         here, all logic which is needed to go to a
         certain temperature directly
         needs to be implemented.
-        TODO: override method
+
+        dict(isSweep=isSweep,
+             isSweepStartCurrent=isSweepStartCurrent,
+             setTemp=setTemp,
+             start=start,
+             end=end,
+             SweepRate=SweepRate
+        )
         """
-        self.devices["ITC"]["setTemp"].emit(
-            dict(
-                isSweep=False,
-                isSweepStartCurrent=False,
-                setTemp=temperature,
+        self.commanding(
+            ID=self.tempdefinition[0],
+            dictdump(
+                {'setTemp_K': dict(
+                                isSweep=False,
+                                isSweepStartCurrent=False,
+                                setTemp=temperature,
+                          )
+                }
             )
         )
         self._logger.debug("setting the temp to {}K".format(temperature))
 
-    def setField(self, field: float, EndMode: str) -> None:
-        """
-        Method to be overridden/injected by a child class
-        here, all logic which is needed to go to a certain field directly
-        needs to be implemented.
-        TODO: override method
-        """
-        self.devices["IPS"]["setField"].emit(dict(field=field, EndMode=EndMode))
-        self._logger.debug(f"setting the field to {field}T, EndMode = {EndMode}")
+    # def setField(self, field: float, EndMode: str) -> None:
+    #     """
+    #     Method to be overridden/injected by a child class
+    #     here, all logic which is needed to go to a certain field directly
+    #     needs to be implemented.
+    #     TODO: override method
+    #     """
+    #     self.devices["IPS"]["setField"].emit(dict(field=field, EndMode=EndMode))
+    #     self._logger.debug(f"setting the field to {field}T, EndMode = {EndMode}")
 
     def setPosition(self, position: float, speedindex: float) -> None:
         """
@@ -945,7 +967,7 @@ class Sequence_Functions_zmq:
         # print(message)
         # self.devices['general']['message_to_user'].emit(message)
         self.sig_message.emit(message)
-        self._logger.debug(f"A message to the user: {message}")
+        self._logger.warning(f"A message to the user: {message}")
 
 
 class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions):
@@ -959,10 +981,10 @@ class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions
         self,
         sequence: list,
         # data: list, datalock, dataLive: list, data_LiveLock,
-        comms_downstream,
         thresholdsconf: dict,
         tempdefinition: list,
         controlsLock,
+        comms_downstream,
         comms_data,
         **kwargs,
     ):
@@ -970,6 +992,7 @@ class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions
             sequence=sequence,
             comms_downstream=comms_downstream,
             comms_data=comms_data,
+            tempdefinition=tempdefinition,
             **kwargs,
         )
 
