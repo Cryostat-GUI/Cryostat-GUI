@@ -437,7 +437,7 @@ class Window_trayService_ui(QtWidgets.QWidget):
             "Message",
             "Are you sure to quit this application?\n\n"
             + "'Yes'    will kill me, possible interaction with hardware will be lost\n"
-            + +"'No'     will minimize me to the Tray\n"
+            + "'No'     will minimize me to the Tray\n"
             + "'Cancel' will do....nothing",
             QtWidgets.QMessageBox.Yes
             | QtWidgets.QMessageBox.No
