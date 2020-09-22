@@ -130,7 +130,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
             mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
-                lambda value: self.gettoset_Ramp_Rate_K(value)
+                self.gettoset_Ramp_Rate_K
             )
             mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
                 self.setRamp_Rate_K
@@ -155,17 +155,17 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             # """ NEW GUI controls P, I and D values for Control Loop PID Values Command
             # """
             mainthread.spinSetLoopP_Param.valueChanged.connect(
-                lambda value: self.gettoset_LoopP_Param(value)
+                self.gettoset_LoopP_Param
             )
             mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
             mainthread.spinSetLoopI_Param.valueChanged.connect(
-                lambda value: self.gettoset_LoopI_Param(value)
+                self.gettoset_LoopI_Param
             )
             mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
             mainthread.spinSetLoopD_Param.valueChanged.connect(
-                lambda value: self.gettoset_LoopD_Param(value)
+                self.gettoset_LoopD_Param
             )
             mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
@@ -408,15 +408,15 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     #     """
     #     self.Heater_mW_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_LoopP_Param(self, value):
         self.LoopP_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_LoopI_Param(self, value):
         self.LoopI_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_LoopD_Param(self, value):
         self.LoopD_value = value
 
@@ -428,19 +428,19 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     def gettoset_Upper_Bound(self, value):
         self.Upper_Bound_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_ZoneP_Param(self, value):
         self.ZoneP_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_ZoneI_Param(self, value):
         self.ZoneI_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_ZoneD_Param(self, value):
         self.ZoneD_value = value
 
-    @pyqtSlot(float)
+    @pyqtSlot(int)
     def gettoset_ZoneMout(self, value):
         self.Mout_value = value
 
@@ -448,7 +448,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     def gettoset_Zone_Range(self, value):
         self.Zone_Range_value = value
 
-    @pyqtSlotfloat()
+    @pyqtSlot(float)
     def gettoset_Zone_Rate(self, value):
         self.Zone_Rate_value = value
 
