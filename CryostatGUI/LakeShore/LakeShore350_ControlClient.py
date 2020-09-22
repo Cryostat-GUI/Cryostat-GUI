@@ -124,18 +124,19 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # self.startHeater()
 
         if mainthread is not None:
+            mainthread.sig_sendConfTemp.connect(self.setTemp_K)
             # setting LakeShore values by GUI LakeShore window
-            mainthread.spinSetTemp_K.valueChanged.connect(
-                lambda value: self.gettoset_Temp_K(value)
-            )
-            mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
+            # mainthread.spinSetTemp_K.valueChanged.connect(
+            #     lambda value: self.gettoset_Temp_K(value)
+            # )
+            # mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
-            mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
-                self.gettoset_Ramp_Rate_K
-            )
-            mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
-                self.setRamp_Rate_K
-            )
+            # mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
+            #     self.gettoset_Ramp_Rate_K
+            # )
+            # mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
+            #     self.setRamp_Rate_K
+            # )
 
             # turns off heater output
             mainthread.pushButtonHeaterOut.clicked.connect(
@@ -151,7 +152,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             # mainthread.spinSetInput_Sensor.editingFinished.(lambda
             # value: self.threads['control_LakeShore350'][0].setInput())
 
-            mainthread.checkRamp_Status.toggled["bool"].connect(self.setStatusRamp)
+            # mainthread.checkRamp_Status.toggled["bool"].connect(self.setStatusRamp)
 
             # """ NEW GUI controls P, I and D values for Control Loop PID Values Command
             # """
