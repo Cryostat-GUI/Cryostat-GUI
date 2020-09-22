@@ -333,7 +333,7 @@ class main_Logger(AbstractLoopThread):
         except OperationalError:
             # print(err)
             # self._logger.debug(
-                # "encountered OperationalError from sqlite (table of column might already exist)"
+            # "encountered OperationalError from sqlite (table of column might already exist)"
             # )
             pass
 
@@ -346,7 +346,7 @@ class main_Logger(AbstractLoopThread):
                 self.mycursor.execute(sql)
             except OperationalError:
                 # self._logger.debug(
-                    # "encountered OperationalError from sqlite (table of column might already exist)"
+                # "encountered OperationalError from sqlite (table of column might already exist)"
                 # )
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
@@ -760,7 +760,7 @@ class live_Logger_bare:
                             except IndexError as err:
                                 self._logger.exception(err)
                         else:
-                            self.Gauges[instr][varkey].set(0)                            
+                            self.Gauges[instr][varkey].set(0)
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -873,20 +873,34 @@ class live_Logger_bare:
                                 self.data_live[instrument][
                                     "{key}_calc_{c}".format(key=variablekey, c=calc)
                                 ] = []
-                                if "{key}_calc_{c}".format(key=variablekey, c=calc) not in self.Gauges[instrument].keys():
-                                    self.Gauges[instrument]["{key}_calc_{c}".format(key=variablekey, c=calc)
+                                if (
+                                    "{key}_calc_{c}".format(key=variablekey, c=calc)
+                                    not in self.Gauges[instrument].keys()
+                                ):
+                                    self.Gauges[instrument][
+                                        "{key}_calc_{c}".format(key=variablekey, c=calc)
                                     ] = Gauge(
-                                        "CryoGUI_{}_{}_calc_{}".format(instrument, variablekey, calc), ""
-                                        )
+                                        "CryoGUI_{}_{}_calc_{}".format(
+                                            instrument, variablekey, calc
+                                        ),
+                                        "",
+                                    )
                             for calc in self.slopes:
                                 self.data_live[instrument][
                                     "{key}_calc_{c}".format(key=variablekey, c=calc)
                                 ] = []
-                                if "{key}_calc_{c}".format(key=variablekey, c=calc) not in self.Gauges[instrument].keys():
-                                    self.Gauges[instrument]["{key}_calc_{c}".format(key=variablekey, c=calc)
+                                if (
+                                    "{key}_calc_{c}".format(key=variablekey, c=calc)
+                                    not in self.Gauges[instrument].keys()
+                                ):
+                                    self.Gauges[instrument][
+                                        "{key}_calc_{c}".format(key=variablekey, c=calc)
                                     ] = Gauge(
-                                        "CryoGUI_{}_{}_calc_{}".format(instrument, variablekey, calc), ""
-                                        )
+                                        "CryoGUI_{}_{}_calc_{}".format(
+                                            instrument, variablekey, calc
+                                        ),
+                                        "",
+                                    )
         self.initialised = True
 
     def setLength(self, length):
