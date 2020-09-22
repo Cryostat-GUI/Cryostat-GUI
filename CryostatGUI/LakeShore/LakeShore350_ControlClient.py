@@ -118,6 +118,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.initiating_PID()
 
         self.Ramp_status_internal = int(False)
+        self._SensorInput = 1
 
         # self.setControlLoopZone()
         # self.startHeater()
@@ -290,7 +291,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setTemp_K(self, Temp_K=None):
+    def setTemp_K(self, Temp_K=None, **kwargs):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature."""
         if Temp_K is not None:
             self.Temp_K_value = Temp_K
@@ -331,7 +332,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def setRamp_Rate_K(self):
         self.LakeShore350.ControlSetpointRampParameterCommand(
-            1, self.Ramp_status_internal, self.Ramp_Rate_value
+            self._SensorInput, self.Ramp_status_internal, self.Ramp_Rate_value
         )
         # the lone '1' here is the output
 
@@ -339,6 +340,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def setInput(self, Input_value):
         """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
+        self._SensorInput = Input_value
         self.LakeShore350.OutputModeCommand(1, 1, Input_value, 1)
 
     @pyqtSlot()
@@ -488,7 +490,67 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         self.__name__ = "LakeShore_Window"
         self.controls = [self.groupSettings]
 
+        self.tempcontrol_values = dict(setTemperature=4, SweepRate=2)
+
         QTimer.singleShot(0, self.run_Hardware)
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def fun_setTemp_valcha(self, value):
+        # self.threads['control_ITC'][0].gettoset_Temperature(value)
+        self.tempcontrol_values["setTemperature"] = value
+
+    @pyqtSlot(float)
+    @ExceptionHandling
+    def fun_setRamp_valcha(self, value):
+        self.tempcontrol_values["SweepRate"] = value
+        # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+
+    @pyqtSlot(bool)
+    @ExceptionHandling
+    def fun_checkSweep_toggled(self, boolean):
+        self.tempcontrol_values["Sweep_status_software"] = boolean
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def fun_sendConfTemp(self):
+        self.fun_startTemp(
+            isSweep=self.tempcontrol_values["Sweep_status_software"],
+            isSweepStartCurrent=True,
+            setTemp=self.tempcontrol_values["setTemperature"],
+            end=self.tempcontrol_values["setTemperature"],
+            SweepRate=self.tempcontrol_values["SweepRate"],
+        )
+
+    # @pyqtSlot(dict)
+    # @ExceptionHandling
+    # def ITC_fun_routeSignalTemps(self, d: dict) -> None:
+    #     self.ITC_fun_startTemp(isSweep=d['Sweep_status_software'],
+    #                            isSweepStartCurrent=d['isSweepStartCurrent'],
+    #                            setTemp=d['setTemperature'],
+    #                            end=d['setTemperature'],
+    #                            SweepRate=d['SweepRate'])
+
+    @pyqtSlot(dict)
+    def fun_startTemp(
+        self,
+        isSweep=False,
+        isSweepStartCurrent=True,
+        setTemp=4,
+        start=None,
+        end=5,
+        SweepRate=2,
+    ):
+        self.sig_sendConfTemp.emit(
+            dict(
+                isSweep=isSweep,
+                isSweepStartCurrent=isSweepStartCurrent,
+                setTemp=setTemp,
+                start=start,
+                end=end,
+                SweepRate=SweepRate,
+            )
+        )
 
     @pyqtSlot()
     def run_Hardware(self):
@@ -505,6 +567,10 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
                 ),
                 "Hardware",
             )
+            with getInfodata.lock:
+                temps = getInfodata.LakeShore350.KelvinReadingQuery(0)
+                inputTemp = temps[getInfodata._SensorInput - 1]
+                self.tempcontrol_values['setTemperature'] = inputTemp
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
