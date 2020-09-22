@@ -768,7 +768,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             with getInfodata.lock:
                 sweepstatus = getInfodata.checksweep(stop=False)
             self.ITC_values["Sweep_status_software"] = sweepstatus
-            self.checkSweep.setChecked(sweepstatus)
+            self.checkRamp_Status.setChecked(sweepstatus)
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
@@ -779,9 +779,9 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             #     lambda: self.show_error_general('ITC: timeout'))
 
             # setting ITC values by GUI
-            self.spinsetTemp.valueChanged.connect(self.fun_setTemp_valcha)
-            self.checkSweep.toggled["bool"].connect(self.fun_checkSweep_toggled)
-            self.dspinSetRamp.valueChanged.connect(self.fun_setRamp_valcha)
+            self.spinsetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
+            self.checkRamp_Status.toggled["bool"].connect(self.fun_checkSweep_toggled)
+            self.spinSetRamp_Kpmin.valueChanged.connect(self.fun_setRamp_valcha)
             self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
 
             # self.sig_useAutocheck.emit(self.window_settings.temp_ITC_useAutoPID)
