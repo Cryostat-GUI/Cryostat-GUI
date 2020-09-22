@@ -137,7 +137,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QDoubleSpinBox" name="dspinSetRamp">
+               <widget class="QDoubleSpinBox" name="spinSetRamp_Kpmin">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -174,7 +174,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="spinsetTemp">
+               <widget class="QDoubleSpinBox" name="spinsetTemp_K">
                 <property name="decimals">
                  <number>2</number>
                 </property>
@@ -500,7 +500,7 @@ diff to Setpoint</string>
          <x>0</x>
          <y>0</y>
          <width>684</width>
-         <height>476</height>
+         <height>461</height>
         </rect>
        </property>
        <attribute name="label">
