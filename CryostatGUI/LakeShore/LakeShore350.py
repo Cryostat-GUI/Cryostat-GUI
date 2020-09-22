@@ -433,7 +433,7 @@ class LakeShore350_bare:
             AT  UNE 2,1 [term] — initiates Autotuning of control loop associated with output 2, in P and I mode.
         """
         if output not in [1, 2, 3, 4]:
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if output not in [3, 4]:
             raise AssertionError("Mode parameter must be an integer in [0,1,2].")
@@ -542,7 +542,7 @@ class LakeShore350_bare:
 
         if format not in [1, 2, 3, 4]:
             raise AssertionError(
-                "Format_Value parameter must be an integer in [1,2,3,4]."
+                "Format_Value parameter must be an integer in [1, 2, 3, 4]."
             )
 
         if limit_value < 0:
@@ -1321,7 +1321,7 @@ class LakeShore350_bare:
             MOUT 1,22.45[term] — Output 1 manual output is 22.45%.
         """
         if output not in [1, 2, 3, 4]:
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0.0 > value > 100.0:
             raise AssertionError("Value parameter must be a float in between 0 - 100.")
@@ -1338,7 +1338,7 @@ class LakeShore350_bare:
         """
         if input_value not in [1, 2, 3, 4]:
             raise AssertionError(
-                "Input_Value Parameter must be an integer in [1,2,3,4]."
+                "Input_Value Parameter must be an integer in [1, 2, 3, 4]."
             )
 
         return self.query("MOUT? " + "{0:1d}".format(input_value))
@@ -1564,7 +1564,7 @@ class LakeShore350_bare:
         """
 
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0 > mode > 5:
             raise AssertionError("Mode parameter must be an integer in [0,1,2,3,4,5].")
@@ -1595,7 +1595,7 @@ class LakeShore350_bare:
         :return: ['<mode>','<input_value>','<powerup enable>']
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         answer = self.query("OUTMODE? " + "{0:1d}".format(output))
         return [int(x) for x in answer]
@@ -1617,7 +1617,7 @@ class LakeShore350_bare:
             PID 1,10,50,0[term] — Output 1 P is 10, I is 50, and D is 0%.
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0.1 > p_value > 1000.0:
             raise AssertionError(
@@ -1650,7 +1650,7 @@ class LakeShore350_bare:
         :return: ['<P value>','<I value>','<D value>']
         """
         if output not in (1, 2, 3, 4):  # is this faster than not in?
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
         answer = self.query("PID? " + "{0:1d}".format(output))
         return [float(x) for x in answer]
 
@@ -1672,10 +1672,10 @@ class LakeShore350_bare:
             RAMP 1,1,10.5[term] — when Output 1 setpoint is changed, ramp the current setpoint to the target setpoint at 10.5 K/minute.
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        if 0 > check_state > 1:
-            raise AssertionError("Check_State parameter must be an integer in [0,1].")
+        if check_state not in [1, 2]:
+            raise AssertionError("Check_State parameter must be an integer in [0, 1].")
 
         if 0.001 > rate_value > 100.0:
             raise AssertionError(
@@ -1695,7 +1695,7 @@ class LakeShore350_bare:
         :return: ['<off/on>','<rate value>']
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         answer = self.query("RAMP? " + "{0:1d}".format(output))
         # print(answer, type(answer), type(answer[0]))
@@ -1710,7 +1710,7 @@ class LakeShore350_bare:
         :return: <ramp status> 0 = Not ramping, 1 = Setpoint is ramping.
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         return self.query("RAMPST? " + "{0:1d}".format(output))
 
@@ -1731,7 +1731,7 @@ class LakeShore350_bare:
         :type range: int
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0 > range_value > 5 and 0 < output < 3:
             raise AssertionError(
@@ -1754,7 +1754,7 @@ class LakeShore350_bare:
         :return: <range>
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
         answer = self.query("RANGE? " + "{0:1d}".format(output))
         return int(answer[0])
 
@@ -1935,7 +1935,7 @@ class LakeShore350_bare:
             SETP 1,122.5[term] — Output 1 setpoint is now 122.5 (based on its units).
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if not isinstance(value, (int, float)):
             raise AssertionError("Value Parameter must be an integer or float.")
@@ -1952,7 +1952,7 @@ class LakeShore350_bare:
         :return: <value>
         """
         if output not in (1, 2, 3, 4):
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         answer = self.query("SETP? " + "{0:1d}".format(output))
 
@@ -2179,7 +2179,7 @@ class LakeShore350_bare:
             P = 10, I = 20, D = 0, a heater range of medium, sensor input B, and aramp rate of 10 K/min.
         """
         if 4 < output < 1:
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 10 < zone < 1:
             raise AssertionError("Zone parameter must be an integer in between 1 - 10.")
@@ -2247,7 +2247,7 @@ class LakeShore350_bare:
         :return: ['<upper boundary>','<P value>','<I value>','<D value>','<mout value>','<range>','<input_value>','<rate>']
         """
         if 4 < output < 1:
-            raise AssertionError("Output parameter must be an integer in [1,2,3,4]")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4]")
 
         if 10 < zone < 1:
             raise AssertionError("Zone parameter must be an integer in between 1 - 10.")
