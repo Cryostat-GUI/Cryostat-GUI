@@ -265,6 +265,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # commands are received via zmq downstream, and executed here
         # examples:
         if "setTemp_K" in command:
+            # value in this dictionary must the the required dictionary!
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
@@ -498,7 +499,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                         start=start,
                     )
                     instance.ITC.SweepStart()
-                    instance.ITC.getValue(0)  # whatever this is needed fo
+                    # whatever this is needed for, does not work without
+                    instance.ITC.getValue(0)
                 else:
                     instance.ITC.setTemperature(values["setTemp"])
                 instance.ITC.setAutoControl(autocontrol)
