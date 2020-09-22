@@ -332,9 +332,9 @@ class main_Logger(AbstractLoopThread):
             self.mycursor.execute(sql)
         except OperationalError:
             # print(err)
-            self._logger.debug(
-                "encountered OperationalError from sqlite (table of column might already exist)"
-            )
+            # self._logger.debug(
+                # "encountered OperationalError from sqlite (table of column might already exist)"
+            # )
             pass
 
         for key in dictname.keys():
@@ -345,9 +345,9 @@ class main_Logger(AbstractLoopThread):
                 # print(sql)
                 self.mycursor.execute(sql)
             except OperationalError:
-                self._logger.debug(
-                    "encountered OperationalError from sqlite (table of column might already exist)"
-                )
+                # self._logger.debug(
+                    # "encountered OperationalError from sqlite (table of column might already exist)"
+                # )
                 # print(err)
                 pass  # Logger: probably the column already exists, no problem.
 
@@ -691,29 +691,29 @@ class live_Logger_bare:
                             self.data_live[instr][varkey].append(dic[varkey])
                             # print(instr, varkey)
                             # print(self.Gauges)
-                            if uptodate:
-                                try:
-                                    self.Gauges[instr][varkey].set(dic[varkey])
-                                except TypeError as err:
-                                    if not err.args[0].startswith(
-                                        "float() argument must be a string or a number"
-                                    ):
-                                        self._logger.exception(err.args[0])
-                                    else:
-                                        # self._logger.debug(err.args[0] + f'instr:
-                                        # {instr}, varkey: {varkey}')
-                                        pass
-                                except ValueError as err:
-                                    if not err.args[0].startswith(
-                                        "could not convert string to float"
-                                    ):
-                                        self._logger.exception(err.args[0])
-                                    else:
-                                        # self._logger.debug(err.args[0] + f'instr:
-                                        # {instr}, varkey: {varkey}')
-                                        pass
-                            else:
-                                self.Gauges[instr][varkey].set(0)
+                            # if uptodate:
+                            #     try:
+                            #         self.Gauges[instr][varkey].set(dic[varkey])
+                            #     except TypeError as err:
+                            #         if not err.args[0].startswith(
+                            #             "float() argument must be a string or a number"
+                            #         ):
+                            #             self._logger.exception(err.args[0])
+                            #         else:
+                            #             # self._logger.debug(err.args[0] + f'instr:
+                            #             # {instr}, varkey: {varkey}')
+                            #             pass
+                            #     except ValueError as err:
+                            #         if not err.args[0].startswith(
+                            #             "could not convert string to float"
+                            #         ):
+                            #             self._logger.exception(err.args[0])
+                            #         else:
+                            #             # self._logger.debug(err.args[0] + f'instr:
+                            #             # {instr}, varkey: {varkey}')
+                            #             pass
+                            # else:
+                            #     self.Gauges[instr][varkey].set(0)
 
                         if self.time_init:
                             times = [
@@ -733,6 +733,34 @@ class live_Logger_bare:
                         if self.count > self.length_list:
                             self.counting = False
                             self.data_live[instr][varkey].pop(0)
+                        if uptodate:
+                            try:
+                                _val = self.data_live[instr][varkey][-1]
+                                self.Gauges[instr][varkey].set(_val)
+                            except TypeError as err:
+                                if not err.args[0].startswith(
+                                    "float() argument must be a string or a number"
+                                ):
+                                    self._logger.exception(err.args[0])
+                                else:
+                                    # self._logger.debug(err.args[0] + f'instr:
+                                    # {instr}, varkey: {varkey}')
+                                    pass
+                            except ValueError as err:
+                                if not err.args[0].startswith(
+                                    "could not convert string to float"
+                                ):
+                                    self._logger.exception(err.args[0])
+                                else:
+                                    # self._logger.debug(err.args[0] + f'instr:
+                                    # {instr}, varkey: {varkey}')
+                                    pass
+                            # except KeyError as key:
+                            #     self._logger.exception(key)
+                            except IndexError as err:
+                                self._logger.exception(err)
+                        else:
+                            self.Gauges[instr][varkey].set(0)                            
 
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
@@ -833,6 +861,7 @@ class live_Logger_bare:
                                 self.Gauges[instrument][variablekey] = Gauge(
                                     "CryoGUI_{}_{}".format(instrument, variablekey), ""
                                 )
+
                                 # print(self.Gauges)
                         except ValueError:
                             # print('sth went wrong', instrument, variablekey)
@@ -844,10 +873,20 @@ class live_Logger_bare:
                                 self.data_live[instrument][
                                     "{key}_calc_{c}".format(key=variablekey, c=calc)
                                 ] = []
+                                if "{key}_calc_{c}".format(key=variablekey, c=calc) not in self.Gauges[instrument].keys():
+                                    self.Gauges[instrument]["{key}_calc_{c}".format(key=variablekey, c=calc)
+                                    ] = Gauge(
+                                        "CryoGUI_{}_{}_calc_{}".format(instrument, variablekey, calc), ""
+                                        )
                             for calc in self.slopes:
                                 self.data_live[instrument][
                                     "{key}_calc_{c}".format(key=variablekey, c=calc)
                                 ] = []
+                                if "{key}_calc_{c}".format(key=variablekey, c=calc) not in self.Gauges[instrument].keys():
+                                    self.Gauges[instrument]["{key}_calc_{c}".format(key=variablekey, c=calc)
+                                    ] = Gauge(
+                                        "CryoGUI_{}_{}_calc_{}".format(instrument, variablekey, calc), ""
+                                        )
         self.initialised = True
 
     def setLength(self, length):
