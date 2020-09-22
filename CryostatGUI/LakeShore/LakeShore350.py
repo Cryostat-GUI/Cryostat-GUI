@@ -1636,7 +1636,7 @@ class LakeShore350_bare:
 
         self.go(
             "PID "
-            + "{0:1d},{1:4.1f},{2:4.1f},{3:3d}".format(
+            + "{0:1d},{1:4.1f},{2:4.1f},{3:4.1f}".format(
                 output, p_value, i_value, d_value
             )
         )
