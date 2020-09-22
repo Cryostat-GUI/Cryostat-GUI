@@ -38,7 +38,6 @@ from datetime import datetime
 # import datetime as dt
 # from threading import Lock
 from copy import deepcopy
-
 # from logging.handlers import RotatingFileHandler
 from pyvisa.errors import VisaIOError
 import logging
@@ -307,7 +306,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.Ramp_Rate_value = tempdict["SweepRate"]
 
         if tempdict["isSweep"]:
-            setpoint_now = self.Lakeshore350.ControlSetpointQuery(1)
+            setpoint_now = self.LakeShore350.ControlSetpointQuery(1)
             if "start" in tempdict:
                 starting = tempdict["start"]
             else:
@@ -504,6 +503,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
 
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
+    sig_sendConfTemp = pyqtSignal(dict)
 
     def __init__(
         self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
@@ -602,7 +602,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
             with getInfodata.lock:
                 temp = getInfodata.LakeShore350.ControlSetpointQuery(output=1)
                 self.tempcontrol_values['setTemperature'] = temp
-                rampstatus = getInfodata.Lakeshore350.ControlSetpointRampParameterQuery(output=1)
+                rampstatus = getInfodata.LakeShore350.ControlSetpointRampParameterQuery(output=1)
                 self.tempcontrol_values["Sweep_status_software"] = bool(rampstatus[0])
                 self.tempcontrol_values["SweepRate"] = rampstatus[1]
 
@@ -611,7 +611,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
             # getInfodata.sig_visaerror.connect(self.show_error_general)
             # getInfodata.sig_assertion.connect(self.printing)
             # getInfodata.sig_assertion.connect(self.show_error_general)
-            self.spinsetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
+            self.spinSetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
             self.checkRamp_Status.toggled["bool"].connect(self.fun_checkSweep_toggled)
             self.spinSetRamp_Kpmin.valueChanged.connect(self.fun_setRamp_valcha)
             self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
