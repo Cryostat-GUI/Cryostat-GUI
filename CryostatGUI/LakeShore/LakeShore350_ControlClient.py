@@ -290,13 +290,21 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setTemp_K(self, Temp_K=None):
-        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature."""
+    def setTemp_K(self, Temp_K=None, tempdict: dict):
+        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
+            dict(isSweep=isSweep,
+                 isSweepStartCurrent=isSweepStartCurrent,
+                 setTemp=setTemp,
+                 start=start,
+                 end=end,
+                 SweepRate=SweepRate)
+
+        """
         if Temp_K is not None:
             self.Temp_K_value = Temp_K
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
         self.LakeShore350.ControlSetpointRampParameterCommand(
-            1, self.Ramp_status_internal, self.Ramp_Rate_value
+            self._, self.Ramp_status_internal, self.Ramp_Rate_value
         )
 
     @ExceptionHandling
