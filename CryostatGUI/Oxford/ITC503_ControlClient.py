@@ -776,7 +776,7 @@ class ITCGUI(AbstractMainApp, Window_trayService_ui):
             #     lambda: self.show_error_general('ITC: timeout'))
 
             # setting ITC values by GUI
-            self.spinsetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
+            self.spinSetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
             self.checkRamp_Status.toggled["bool"].connect(self.fun_checkSweep_toggled)
             self.spinSetRamp_Kpmin.valueChanged.connect(self.fun_setRamp_valcha)
             self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
