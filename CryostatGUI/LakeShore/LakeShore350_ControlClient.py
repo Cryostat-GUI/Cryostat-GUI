@@ -130,7 +130,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             mainthread.spinSetTemp_K.editingFinished.connect(self.setTemp_K)
 
             mainthread.spinSetRampRate_Kpmin.valueChanged.connect(
-                self.gettoset_Ramp_Rate_K
+                lambda value: self.gettoset_Ramp_Rate_K(value)
             )
             mainthread.spinSetRampRate_Kpmin.editingFinished.connect(
                 self.setRamp_Rate_K
