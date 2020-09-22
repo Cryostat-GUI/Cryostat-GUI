@@ -1281,9 +1281,7 @@ class measurement_Logger(AbstractEventhandlingThread):
             datastring = "\n{ReadableTime} ".format(**data) + datastring
             # print(datastring)
 
-            headerstring = HEADERSTRING.format(
-                date=convert_time(self.starttime)
-            )
+            headerstring = HEADERSTRING.format(date=convert_time(self.starttime))
 
         else:
             datastring = "\n {T_mean_K:.3E} {T_std_K:.3E} {R_mean_Ohm:.14E} {R_std_Ohm:.14E} {timeseconds} {ReadableTime}".format(
