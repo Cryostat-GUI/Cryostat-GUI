@@ -309,6 +309,9 @@ class zmqMainControl(zmqBare):
             except zmq.Again:
                 pass
 
+    def commanding(self, ID, message):
+        self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+
 
 class zmqDataStore(zmqBare):
     """docstring for zmqDev"""
