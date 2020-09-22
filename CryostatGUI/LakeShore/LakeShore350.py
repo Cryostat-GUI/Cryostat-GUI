@@ -1674,7 +1674,7 @@ class LakeShore350_bare:
         if output not in (1, 2, 3, 4):
             raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        if check_state not in [1, 2]:
+        if check_state not in [0, 1]:
             raise AssertionError("Check_State parameter must be an integer in [0, 1].")
 
         if 0.001 > rate_value > 100.0:
