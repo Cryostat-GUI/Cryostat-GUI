@@ -240,7 +240,9 @@ class itc503(AbstractSerialDeviceDriver):
         null_parameter = {"set_point": 2, "sweep_time": 0, "hold_time": 0}
         for step in steps:
             if str(step) in parameters_keys:
-                self._logger.debug("changing step: {} to {}".format(step, sweep_parameters[step]))
+                self._logger.debug(
+                    "changing step: {} to {}".format(step, sweep_parameters[step])
+                )
                 self._setSweepStep(step, sweep_parameters[step])
             else:
                 self._logger.debug("setting step to null_parameter: {}".format(step))
