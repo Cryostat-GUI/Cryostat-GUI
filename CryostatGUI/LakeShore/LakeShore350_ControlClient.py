@@ -289,9 +289,9 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         for i in ["A", "B", "C", "D"]:
             self.LakeShore350.TemperatureLimitCommand(i, 400.0)
 
-    @pyqtSlot()
+    @pyqtSlot(dict)
     @ExceptionHandling
-    def setTemp_K(self, Temp_K=None, tempdict: dict):
+    def setTemp_K(self, tempdict: dict):
         """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
             dict(isSweep=isSweep,
                  isSweepStartCurrent=isSweepStartCurrent,
@@ -301,11 +301,34 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
                  SweepRate=SweepRate)
 
         """
-        if Temp_K is not None:
-            self.Temp_K_value = Temp_K
+        self.Temp_K_value = tempdict['setTemp']
+        self.Ramp_status_internal = int(tempdict["isSweep"])
+        self.Ramp_Rate_value = tempdict["SweepRate"]
+
+        if tempdict["isSweep"]:
+            setpoint_now = self.Lakeshore350.ControlSetpointQuery(1)
+            if "start" in tempdict:
+                starting = tempdict["start"]
+            else:
+                starting = setpoint_now
+            start = setpoint_now if tempdict["isSweepStartCurrent"] else starting
+            self.LakeShore350.ControlSetpointCommand(1, start)
+            self.LakeShore350.ControlSetpointRampParameterCommand(
+                1, self.Ramp_status_internal, self.Ramp_Rate_value
+            )
+            self.LakeShore350.ControlSetpointCommand(1, tempdict["end"])
+
+        else:
+            self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
+            self.LakeShore350.ControlSetpointRampParameterCommand(
+                1, self.Ramp_status_internal, self.Ramp_Rate_value
+            )
+
+        # if Temp_K is not None:
+        #     self.Temp_K_value = Temp_K
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
         self.LakeShore350.ControlSetpointRampParameterCommand(
-            self._, self.Ramp_status_internal, self.Ramp_Rate_value
+            1, self.Ramp_status_internal, self.Ramp_Rate_value
         )
 
     @ExceptionHandling
@@ -330,25 +353,25 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     #        else:
     #            self.sig_visaerror.emit(e_visa.args[0])
 
-    @pyqtSlot(bool)
-    def setStatusRamp(self, bools):
-        self.Ramp_status_internal = int(bools)
-        self.setRamp_Rate_K()
-        self.setTemp_K()
+    # @pyqtSlot(bool)
+    # def setStatusRamp(self, bools):
+    #     self.Ramp_status_internal = int(bools)
+    #     self.setRamp_Rate_K()
+    #     self.setTemp_K()
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def setRamp_Rate_K(self):
-        self.LakeShore350.ControlSetpointRampParameterCommand(
-            self._SensorInput, self.Ramp_status_internal, self.Ramp_Rate_value
-        )
-        # the lone '1' here is the output
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setRamp_Rate_K(self):
+    #     self.LakeShore350.ControlSetpointRampParameterCommand(
+    #         1, self.Ramp_status_internal, self.Ramp_Rate_value
+    #     )
+    #     # the lone '1' here is the output
 
     @pyqtSlot(int)
     @ExceptionHandling
     def setInput(self, Input_value):
         """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
-        self._SensorInput = Input_value
+        # self._SensorInput = Input_value
         self.LakeShore350.OutputModeCommand(1, 1, Input_value, 1)
 
     @pyqtSlot()
@@ -381,7 +404,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot(float)
     @ExceptionHandling
     def setHeater_Range(self, range_value=None):
-        """set Heater Range for Output 1"""
+        """set Heater Range for Output 1 (and only 1, using Heater 1, not 2)"""
         if range_value is None:
             self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
         elif range_value is not None:
@@ -498,7 +521,7 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
         self.__name__ = "LakeShore_Window"
         self.controls = [self.groupSettings]
 
-        self.tempcontrol_values = dict(setTemperature=4, SweepRate=2)
+        self.tempcontrol_values = dict(setTemperature=4, SweepRate=2, isSweep=False)
 
         QTimer.singleShot(0, self.run_Hardware)
 
@@ -576,15 +599,21 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
                 "Hardware",
             )
             with getInfodata.lock:
-                temps = getInfodata.LakeShore350.KelvinReadingQuery(0)
-                inputTemp = temps[getInfodata._SensorInput - 1]
-                self.tempcontrol_values['setTemperature'] = inputTemp
+                temp = getInfodata.LakeShore350.ControlSetpointQuery(output=1)
+                self.tempcontrol_values['setTemperature'] = temp
+                rampstatus = getInfodata.Lakeshore350.ControlSetpointRampParameterQuery(output=1)
+                self.tempcontrol_values["Sweep_status_software"] = bool(rampstatus[0])
+                self.tempcontrol_values["SweepRate"] = rampstatus[1]
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
             # getInfodata.sig_visaerror.connect(self.show_error_general)
             # getInfodata.sig_assertion.connect(self.printing)
             # getInfodata.sig_assertion.connect(self.show_error_general)
+            self.spinsetTemp_K.valueChanged.connect(self.fun_setTemp_valcha)
+            self.checkRamp_Status.toggled["bool"].connect(self.fun_checkSweep_toggled)
+            self.spinSetRamp_Kpmin.valueChanged.connect(self.fun_setRamp_valcha)
+            self.commandSendConfTemp.clicked.connect(self.fun_sendConfTemp)
 
             # getInfodata.sig_visatimeout.connect(
             #     lambda: self.show_error_general('LakeShore350: timeout'))
