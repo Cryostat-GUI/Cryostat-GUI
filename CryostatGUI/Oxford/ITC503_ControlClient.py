@@ -187,13 +187,10 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         mainthread.combosetAutocontrol.activated["int"].connect(self.setAutoControl)
 
-        mainthread.spin_threadinterval.valueChanged.connect(self.setInterval)
-
         # -------------------------------------------------------------------------------------------------------------------------
 
-        mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value)
-        )
+        mainthread.spin_threadinterval.valueChanged.connect(self.setInterval)
+
 
     # @control_checks
     @ExceptionHandling
@@ -567,7 +564,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         """
         self.ITC.setDerivative(self.set_derivative)
 
-    @pyqtSlot()
+    @pyqtSlot(int)
     @ExceptionHandling
     def setHeaterSensor(self, value):
         """set HeaterSensor of the instrument
