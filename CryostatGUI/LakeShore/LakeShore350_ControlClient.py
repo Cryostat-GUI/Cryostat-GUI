@@ -335,7 +335,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         )
         # the lone '1' here is the output
 
-    @pyqtSlot()
+    @pyqtSlot(int)
     @ExceptionHandling
     def setInput(self, Input_value):
         """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
@@ -368,7 +368,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         """start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
         self.LakeShore.OutputModeCommand(1, 1, self.sensor_values[5], 1)
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     @ExceptionHandling
     def setHeater_Range(self, range_value=None):
         """set Heater Range for Output 1"""
@@ -394,7 +394,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             self.Zone_Rate_value,
         )
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Temp_K(self, value):
         """class method to receive and store the value to set the temperature
         later on, when the command to enforce the value is sent
@@ -408,47 +408,47 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
     #     """
     #     self.Heater_mW_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_LoopP_Param(self, value):
         self.LoopP_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_LoopI_Param(self, value):
         self.LoopI_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_LoopD_Param(self, value):
         self.LoopD_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Ramp_Rate_K(self, value):
         self.Ramp_Rate_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Upper_Bound(self, value):
         self.Upper_Bound_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_ZoneP_Param(self, value):
         self.ZoneP_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_ZoneI_Param(self, value):
         self.ZoneI_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_ZoneD_Param(self, value):
         self.ZoneD_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_ZoneMout(self, value):
         self.Mout_value = value
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     def gettoset_Zone_Range(self, value):
         self.Zone_Range_value = value
 
-    @pyqtSlot()
+    @pyqtSlotfloat()
     def gettoset_Zone_Rate(self, value):
         self.Zone_Rate_value = value
 
