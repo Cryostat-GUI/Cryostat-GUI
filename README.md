@@ -1,4 +1,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ecbee20c7d914f0e8ae2156ec0d0bac5)](https://www.codacy.com/app/bklebel/Cryostat-GUI?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=bklebel/Cryostat-GUI&amp;utm_campaign=Badge_Grade)
+[![DeepSource](https://deepsource.io/gh/Cryostat-GUI/Cryostat-GUI.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/Cryostat-GUI/Cryostat-GUI/?ref=repository-badge)
+[![DeepSource](https://deepsource.io/gh/Cryostat-GUI/Cryostat-GUI.svg/?label=resolved+issues&show_trend=true)](https://deepsource.io/gh/Cryostat-GUI/Cryostat-GUI/?ref=repository-badge)
 
 # Cryostat-GUI
 Software to enforce control over an Oxford Cryostat, as well as measurment devices, at TU Wien
