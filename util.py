@@ -85,8 +85,8 @@ def convert_time_searchable(ts):
 
 def shaping(entry):
     """adjust the shape of data-arrays given to matplotlib,
-    to prevent mismatches
-    possibly this could be avoided with intelligent use of 'zip'
+        to prevent mismatches
+        possibly this could be avoided with intelligent use of 'zip'
     """
     ent0 = deepcopy(np.array(entry[0]))
     ent1 = deepcopy(np.array(entry[1]))
@@ -105,8 +105,8 @@ def shaping(entry):
 
 def shaping_m(entry):
     """adjust the shape of data-arrays given to matplotlib,
-    to prevent mismatches
-    possibly this could be avoided with intelligent use of 'zip'
+        to prevent mismatches
+        possibly this could be avoided with intelligent use of 'zip'
     """
     ent = [deepcopy(np.array(entry[i])) for i in range(len(entry))]
 
@@ -128,16 +128,16 @@ def shaping_m(entry):
 
 def running_thread(worker, info=None, **kwargs):
     """Set up a new Thread, and insert the worker class, which runs in the new thread
-    Args:
-        worker - the class (as a class instance) which should run inside
-        dataname - the name for which a dict entry should be made in the self.data dict,
-                in case the Thread is passing data (e.g. sensors, instrument status...)
-        threadname - the name as which the thread will be listed in self.threads,
-                to be used for e.g. signals
-                listing the thread in self.threads is also important to protect it
-                from garbage collection!
-    Returns:
-        the worker class instance, useful for connecting signals directly
+        Args:
+            worker - the class (as a class instance) which should run inside
+            dataname - the name for which a dict entry should be made in the self.data dict,
+                    in case the Thread is passing data (e.g. sensors, instrument status...)
+            threadname - the name as which the thread will be listed in self.threads,
+                    to be used for e.g. signals
+                    listing the thread in self.threads is also important to protect it
+                    from garbage collection!
+        Returns:
+            the worker class instance, useful for connecting signals directly
     """
 
     thread = QThread()
@@ -270,7 +270,7 @@ class loops_off:
 
 class controls_hardware_disabled:
     """Context manager for disabling all Front panel controls
-    on instruments
+        on instruments
     """
 
     def __init__(self, threads, lock):
@@ -376,7 +376,8 @@ class AbstractEventhandlingThread(AbstractThread):
 
     @pyqtSlot()
     def work(self):
-        """class method which is here so something runs, and starting behaviour is not broken"""
+        """class method which is here so something runs, and starting behaviour is not broken
+        """
         try:
             self.running()
         except AssertionError as assertion:
@@ -924,13 +925,13 @@ class Window_plotting_specification(Window_ui):
 
     def plot_sel_instr(self, livevsdb, GUI_instr, GUI_value, axis, tab):
         """
-        filling the Value column combobox in case the corresponding
-        element of the instrument column combobox was chosen
-        thus:
-             - check for the chosen instrument,
-             - get the data for the new combobox
-             - connect the corresponding second combobox action with
-                 its choosing function
+           filling the Value column combobox in case the corresponding
+           element of the instrument column combobox was chosen
+           thus:
+                - check for the chosen instrument,
+                - get the data for the new combobox
+                - connect the corresponding second combobox action with
+                    its choosing function
         """
 
         instrument_name = GUI_instr.currentText()

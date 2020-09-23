@@ -86,8 +86,8 @@ class AbstractVISADriver(object):
 
     def write(self, command, f=False):
         """
-        low-level communication wrapper for visa.write with Communication Lock,
-        to prevent multiple writes to serial adapter
+            low-level communication wrapper for visa.write with Communication Lock,
+            to prevent multiple writes to serial adapter
         """
         if not f:
             with self._comLock:
@@ -116,7 +116,8 @@ class AbstractVISADriver(object):
 
 
 class AbstractSerialDeviceDriver(AbstractVISADriver):
-    """Abstract Device driver class"""
+    """Abstract Device driver class
+    """
 
     timeouterror = VisaIOError(-1073807339)
 

@@ -13,13 +13,13 @@ from util import ExceptionHandling
 class Keithley2182_Updater(AbstractLoopThread):
     """This is the worker thread, which updates all instrument data of one Keithley 2182 device.
 
-    For each device function, there is a wrapping method,
-    which we can call by a signal, from the main thread. This wrapper sends
-    the corresponding value to the device.
+        For each device function, there is a wrapping method,
+        which we can call by a signal, from the main thread. This wrapper sends
+        the corresponding value to the device.
 
-    The information from the device is collected in regular intervals (method "running"),
-    and subsequently sent to the main thread. It is packed in a dict,
-    the keys of which are displayed in the "sensors" dict in this class.
+        The information from the device is collected in regular intervals (method "running"),
+        and subsequently sent to the main thread. It is packed in a dict,
+        the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sensors = dict(Voltage_V=None)
@@ -50,7 +50,8 @@ class Keithley2182_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def speed_up(self):
-        """increase measurement speed"""
+        """increase measurement speed
+        """
         self.Keithley2182.setRate("FAS")
 
     @pyqtSlot()

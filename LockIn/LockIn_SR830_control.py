@@ -25,7 +25,9 @@ from util import ExceptionHandling
 
 
 class SR830_Updater(AbstractLoopThread):
-    """Updater class to update all instrument data of the SR830"""
+    """Updater class to update all instrument data of the SR830
+
+    """
 
     def __init__(self, InstrumentAddress="", **kwargs):
         """init: get the driver connection to the Lock-In, set up default conf"""
@@ -40,7 +42,8 @@ class SR830_Updater(AbstractLoopThread):
 
     @ExceptionHandling
     def running(self):
-        """Try to extract all current data from the Lock-In, and emit signal, sending the data"""
+        """Try to extract all current data from the Lock-In, and emit signal, sending the data
+        """
 
         data = dict()
         data["Frequency_Hz"] = self.lockin.frequency
