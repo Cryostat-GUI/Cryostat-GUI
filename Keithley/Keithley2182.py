@@ -76,7 +76,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
                     Specify integration rate in seconds:
                        [166.67μsec to 1 sec (60Hz)]
                        [200μsec to 1 sec (50Hz)]
-            """
+        """
         if num is None:
             if value == "FAS":
                 self.go(":SENSe:VOLTage:DC:NPLC 0.1")
@@ -96,45 +96,43 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def FrontAutozeroOn(self):
         """
-            With Front Autozero for the front-end amplifier enabled (which is the default setting), the
-            Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
-            measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
-            This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
-            amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
+        With Front Autozero for the front-end amplifier enabled (which is the default setting), the
+        Model 2182 performs two A/D measurement cycles for each reading. The first one is a normal
+        measurement cycle, and the second one is performed with the polarity of the amplifier reversed.
+        This two-cycle, polarity-reversal measurement technique is used to cancel internal offsets in the
+        amplifier. With Front Autozero disabled, the second A/D measurement cycle is not performed.
         """
         self.go(":SYST:FAZ ON")
 
     def FrontAutozeroOff(self):
-        """See FrontAutoZeroOn
-        """
+        """See FrontAutoZeroOn"""
         self.go(":SYST:FAZ OFF")
 
     def AutozeroOn(self):
         """
-            When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
-            temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
-            However, the zero, gain, and temperature reference points will eventually drift resulting in
-            inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
-            short periods of time.
-            When Autozero is enabled after being off for a long period of time, the internal reference points
-            will not be updated immediately. This will initially result in inaccurate measurements, especially
-            if the ambient temperature has changed by several degrees. A faster update of reference points
-            can be forced by setting a faster integration rate.
+        When Autozero for the second amplifier is disabled, the offset, gain, and internal reference
+        temperature measurements are not performed. This increases measurement speed (a few % at 1PLC).
+        However, the zero, gain, and temperature reference points will eventually drift resulting in
+        inaccurate readings for the input signal. It is recommended that Autozero only be disabled for
+        short periods of time.
+        When Autozero is enabled after being off for a long period of time, the internal reference points
+        will not be updated immediately. This will initially result in inaccurate measurements, especially
+        if the ambient temperature has changed by several degrees. A faster update of reference points
+        can be forced by setting a faster integration rate.
         """
         self.go(":SYST:AZER ON")
 
     def AutozeroOff(self):
-        """See AutoZeroOn
-        """
+        """See AutoZeroOn"""
         self.go(":SYST:AZER OFF")
 
     def AutorangeOn(self):
         """
-            To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
-            autoranging is selected. While autoranging is enabled, the instrument automatically selects the
-            best range to measure the applied signal. Autoranging should not be used when optimum speed
-            is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
-            Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
+        To enable autoranging, press the AUTO key. The AUTO annunciator turns on when
+        autoranging is selected. While autoranging is enabled, the instrument automatically selects the
+        best range to measure the applied signal. Autoranging should not be used when optimum speed
+        is required. Note that the AUTO key has no effect on temperature (TEMP1 and TEMP2).
+        Up-ranging occurs at 120% of range, while down-ranging occurs at 10% of nominal range.
         """
         self.go(":SENS:VOLT:RANG:AUTO ON")
 
@@ -144,36 +142,36 @@ class Keithley2182(AbstractGPIBDeviceDriver):
 
     def more_ACAL(self):
         """Commands Description Default
-            For ACAL:
-                :CALibration CALibration Subsystem:
-                    :UNPRotected
-                    :ACALibration ACAL:
-                    :INITiate Prepare 2182 for ACAL.
-                    :STEP1 Perform full ACAL (100V and 10mV).
-                    :STEP2 Perform low level ACAL (10mV only).
-                    :DONE Exit ACAL (see Note).
-                    :TEMPerature? Read the internal temperature (in °C) at the time
-                            of the last ACAL.
-            :SENSe SENSe Subsystem:
-                :TEMPerature
-                    :RTEMperature? Measure the present internal temperature (in °C).
-            For Front Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :FAZero [state] <b> Enable or disable Front Autozero. ON
-            For Autozero:
-                :SYSTem SYSTem Subsystem:
-                    :AZERo [state] <b> Enable or disable Autozero. ON
-            For LYSNC:
-                :SYSTem SYSTem Subsystem:
-                    :LSYNc [state] <b> Enable or disable line cycle synchronization. OFF
+        For ACAL:
+            :CALibration CALibration Subsystem:
+                :UNPRotected
+                :ACALibration ACAL:
+                :INITiate Prepare 2182 for ACAL.
+                :STEP1 Perform full ACAL (100V and 10mV).
+                :STEP2 Perform low level ACAL (10mV only).
+                :DONE Exit ACAL (see Note).
+                :TEMPerature? Read the internal temperature (in °C) at the time
+                        of the last ACAL.
+        :SENSe SENSe Subsystem:
+            :TEMPerature
+                :RTEMperature? Measure the present internal temperature (in °C).
+        For Front Autozero:
+            :SYSTem SYSTem Subsystem:
+                :FAZero [state] <b> Enable or disable Front Autozero. ON
+        For Autozero:
+            :SYSTem SYSTem Subsystem:
+                :AZERo [state] <b> Enable or disable Autozero. ON
+        For LYSNC:
+            :SYSTem SYSTem Subsystem:
+                :LSYNc [state] <b> Enable or disable line cycle synchronization. OFF
 
-            not necessarily necessary:
-            For Low Charge Injection:
-                :SENSe:VOLTage SENSe Subsystem:
-                    :CHANnel2
-                        :LQMode <b> Enable or disable Low Charge Injection Mode for
-                            Channel 2 (see “Pumpout current (low charge injection
-                            mode)” for details).
+        not necessarily necessary:
+        For Low Charge Injection:
+            :SENSe:VOLTage SENSe Subsystem:
+                :CHANnel2
+                    :LQMode <b> Enable or disable Low Charge Injection Mode for
+                        Channel 2 (see “Pumpout current (low charge injection
+                        mode)” for details).
         """
         pass
 
