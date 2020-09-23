@@ -1681,9 +1681,9 @@ class LakeShore350_bare:
             raise AssertionError(
                 "I_Value parameter must be a float in between 0.001 - 100."
             )
-
+        # self._logger.debug("sending to LS: "+ "RAMP " + "{0:1d},{1:1d},{2:3.2f}".format(output, check_state, rate_value))
         self.go(
-            "RAMP " + "{0:1d},{1:1d},{2:3.2f}".format(output, check_state, rate_value)
+            "RAMP {0:1d},{1:1d},{2:3.2f}".format(output, check_state, rate_value)
         )  # :3.2f properly fromatted?
 
     def ControlSetpointRampParameterQuery(self, output):
@@ -1941,7 +1941,8 @@ class LakeShore350_bare:
             raise AssertionError("Value Parameter must be an integer or float.")
 
         # string formatting
-        self.go("SETP " + "{0:1},{1:4.2f}".format(output, value))
+        # self._logger.debug("sending to LS:" + "SETP {0:1},{1:4.2f}".format(output, value))
+        self.go("SETP {0:1},{1:4.2f}".format(output, value))
 
     def ControlSetpointQuery(self, output):
         """Refer to ControlSetpointCommand for description
