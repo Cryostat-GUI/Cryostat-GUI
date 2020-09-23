@@ -8,7 +8,6 @@ Classes:
 """
 import sys
 import os
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # to be removed once this is packaged!
 
@@ -208,19 +207,16 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.run_finished = False
         # -------------------------------------------------------------------------------------------------------------------------
         self.data["Temp_K"] = self.LakeShore350.ControlSetpointQuery(1)
-        self.data[
-            "Ramp_Rate_Status"
-        ] = self.LakeShore350.ControlSetpointRampParameterQuery(1)[0]
+
+        rampdata = self.LakeShore350.ControlSetpointRampParameterQuery(1)
+        self.data["Ramp_Rate_Status"] = rampdata[0]
+        self.data["Ramp_Rate"] = rampdata[1]
 
         temp_list = self.LakeShore350.KelvinReadingQuery(0)
         self.data["Sensor_1_K"] = temp_list[0]
         self.data["Sensor_2_K"] = temp_list[1]
         self.data["Sensor_3_K"] = temp_list[2]
         self.data["Sensor_4_K"] = temp_list[3]
-        ramp_rate = self.LakeShore350.ControlSetpointRampParameterQuery(1)[1]
-        self.data["Ramp_Rate"] = (
-            ramp_rate if self.Temp_K_value > self.data["Temp_K"] else -ramp_rate
-        )
 
         temp_list3 = self.LakeShore350.SensorUnitsInputReadingQuery(0)
         self.data["Sensor_1_Ohm"] = temp_list3[0]
@@ -243,8 +239,9 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.data["Loop_P_Param"] = temp_list2[0]
         self.data["Loop_I_Param"] = temp_list2[1]
         self.data["Loop_D_Param"] = temp_list2[2]
-        self.data["OutputMode"] = self.LakeShore350.OutputModeQuery(1)[1]
-        self.data["Input_Sensor"] = self.LakeShore350.OutputModeQuery(1)[1]
+        output = self.LakeShore350.OutputModeQuery(1)
+        self.data["OutputMode"] = output[0]
+        self.data["Input_Sensor"] = output[1]
 
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
@@ -299,37 +296,49 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
                  start=start,
                  end=end,
                  SweepRate=SweepRate)
+            Ramp does not work if the preferred units are Sensor units (in comparison to Kelvin or Celsius)
+            in this case no ramp is performed, and the setpoint is reached immediately
 
         """
+        self._logger.debug(f'tempcommand: {tempdict}')
         self.Temp_K_value = tempdict['setTemp']
         self.Ramp_status_internal = int(tempdict["isSweep"])
         self.Ramp_Rate_value = tempdict["SweepRate"]
 
         if tempdict["isSweep"]:
+            self._logger.debug('starting sweep')
             setpoint_now = self.LakeShore350.ControlSetpointQuery(1)
+            self._logger.debug('setpoint now: %f', setpoint_now)
             if "start" in tempdict:
-                starting = tempdict["start"]
+                if tempdict["start"]:
+                    starting = tempdict["start"]
+                else:
+                    starting = setpoint_now
             else:
                 starting = setpoint_now
             start = setpoint_now if tempdict["isSweepStartCurrent"] else starting
+            self._logger.debug('start now: %f', start)
             self.LakeShore350.ControlSetpointCommand(1, start)
+            self._logger.debug('sweep control: status: %f, rate: %f', self.Ramp_status_internal, self.Ramp_Rate_value)
             self.LakeShore350.ControlSetpointRampParameterCommand(
                 1, self.Ramp_status_internal, self.Ramp_Rate_value
             )
+            self._logger.debug('sending final setpoint: %f', tempdict["end"])
             self.LakeShore350.ControlSetpointCommand(1, tempdict["end"])
 
         else:
-            self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
+            self._logger.debug('no sweep, setting temp to %f', self.Temp_K_value)
             self.LakeShore350.ControlSetpointRampParameterCommand(
                 1, self.Ramp_status_internal, self.Ramp_Rate_value
             )
+            self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
 
         # if Temp_K is not None:
         #     self.Temp_K_value = Temp_K
-        self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
-        self.LakeShore350.ControlSetpointRampParameterCommand(
-            1, self.Ramp_status_internal, self.Ramp_Rate_value
-        )
+        # self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
+        # self.LakeShore350.ControlSetpointRampParameterCommand(
+        #     1, self.Ramp_status_internal, self.Ramp_Rate_value
+        # )
 
     @ExceptionHandling
     def read_Temperatures(self):
@@ -605,6 +614,9 @@ class LakeShoreGUI(AbstractMainApp, Window_trayService_ui):
                 rampstatus = getInfodata.LakeShore350.ControlSetpointRampParameterQuery(output=1)
                 self.tempcontrol_values["Sweep_status_software"] = bool(rampstatus[0])
                 self.tempcontrol_values["SweepRate"] = rampstatus[1]
+                self.checkRamp_Status.setChecked(bool(rampstatus[0]))
+                self.spinSetRamp_Kpmin.setValue(rampstatus[1])
+                self.spinSetTemp_K.setValue(temp)
 
             getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
