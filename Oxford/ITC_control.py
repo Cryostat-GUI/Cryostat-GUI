@@ -91,10 +91,10 @@ class ITC_Updater(AbstractLoopThread):
     def running(self):
         """Try to extract all current data from the ITC, and emit signal, sending the data
 
-            self.delay2 should be at at least 0.4 to ensure relatively error-free communication
-            with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
-            with any other PC, so errors which come back are "caught", or communication is set up
-            in a way no errors occur)
+        self.delay2 should be at at least 0.4 to ensure relatively error-free communication
+        with ITC over serial RS-232 connection. (this worked on Benjamin's PC, to be checked
+        with any other PC, so errors which come back are "caught", or communication is set up
+        in a way no errors occur)
 
         """
 
@@ -315,9 +315,7 @@ class ITC_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setTemperature(self):
-        """set Temperature of the instrument
-
-        """
+        """set Temperature of the instrument"""
         with self.lock:
             self.checksweep()
             if not self.sweep_running:
@@ -351,7 +349,7 @@ class ITC_Updater(AbstractLoopThread):
     def setProportional(self):
         """set Proportional of the instrument
 
-            prop: Proportional band, in steps of 0.0001K.
+        prop: Proportional band, in steps of 0.0001K.
         """
         self.ITC.setProportional(self.set_prop)
 
@@ -360,8 +358,8 @@ class ITC_Updater(AbstractLoopThread):
     def setIntegral(self):
         """set Integral of the instrument
 
-            integral: Integral action time, in steps of 0.1 minute.
-                        Ranges from 0 to 140 minutes.
+        integral: Integral action time, in steps of 0.1 minute.
+                    Ranges from 0 to 140 minutes.
         """
         self.ITC.setIntegral(self.set_integral)
 
@@ -370,8 +368,8 @@ class ITC_Updater(AbstractLoopThread):
     def setDerivative(self):
         """set Derivative of the instrument
 
-            derivative: Derivative action time.
-            Ranges from 0 to 273 minutes.
+        derivative: Derivative action time.
+        Ranges from 0 to 273 minutes.
         """
         self.ITC.setDerivative(self.set_derivative)
 
@@ -380,8 +378,8 @@ class ITC_Updater(AbstractLoopThread):
     def setHeaterSensor(self, value):
         """set HeaterSensor of the instrument
 
-            sensor: Should be 1, 2, or 3, corresponding to
-            the heater on the front panel.
+        sensor: Should be 1, 2, or 3, corresponding to
+        the heater on the front panel.
         """
         self.set_sensor = value
         self.ITC.setHeaterSensor(self.set_sensor)
@@ -391,9 +389,9 @@ class ITC_Updater(AbstractLoopThread):
     def setHeaterOutput(self):
         """set HeaterOutput of the instrument
 
-            heater_output: Sets the percent of the maximum
-                        heater output in units of 0.1%.
-                        Min: 0. Max: 999.
+        heater_output: Sets the percent of the maximum
+                    heater output in units of 0.1%.
+                    Min: 0. Max: 999.
         """
         self.ITC.setHeaterOutput(self.set_heater_output)
 
@@ -402,9 +400,9 @@ class ITC_Updater(AbstractLoopThread):
     def setGasOutput(self):
         """set GasOutput of the instrument
 
-            gas_output: Sets the percent of the maximum gas
-                    output in units of 1%.
-                    Min: 0. Max: 99.
+        gas_output: Sets the percent of the maximum gas
+                output in units of 1%.
+                Min: 0. Max: 99.
         """
         self.ITC.setGasOutput(self.set_gas_output)
 
