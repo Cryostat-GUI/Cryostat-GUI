@@ -116,9 +116,9 @@ class ILM_Updater(AbstractLoopThread):
     def setProbingSpeed(self, speed, channel=1):
         """set probing speed for a specific channel
 
-            for fast probing, speed = 1
-            for slow probing, speed = 0
-            this comes from the order in the comboBox in the GUI
+        for fast probing, speed = 1
+        for slow probing, speed = 0
+        this comes from the order in the comboBox in the GUI
         """
         if speed == 1:
             self.ILM.setFast(channel)

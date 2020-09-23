@@ -107,7 +107,7 @@ class ilm211(AbstractSerialDeviceDriver):
 
     def getStatus(self):
         """query status of the machine,
-            interprete it, and return it
+        interprete it, and return it
         """
 
         status = self.query("X")

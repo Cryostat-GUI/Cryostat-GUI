@@ -19,16 +19,16 @@ from util import ExceptionHandling
 class LakeShore350_Updater(AbstractLoopThread):
     """Updater class for the LakeShore350 Temperature controller
 
-        For each Lakeshore350 function there is a wrapping method,
-        which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device.
+    For each Lakeshore350 function there is a wrapping method,
+    which we can call by a signal, from the main thread. This wrapper sends
+    the corresponding value to the device.
 
-        There is a second method for all wrappers, which accepts
-        the corresponding value, and stores it, so it can be sent upon acknowledgment
+    There is a second method for all wrappers, which accepts
+    the corresponding value, and stores it, so it can be sent upon acknowledgment
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently sent to the main thread. It is packed in a dict,
+    the keys of which are displayed in the "sensors" dict in this class.
     """
 
     sensors = dict(
@@ -154,8 +154,7 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @ExceptionHandling
     def configSensor(self):
-        """configures sensor inputs to Cerox
-        """
+        """configures sensor inputs to Cerox"""
         for i in ["A", "B", "C", "D"]:
             self.LakeShore350.InputTypeParameterCommand(i, 3, 1, 0, 1, 1, 0)
 
@@ -175,16 +174,14 @@ class LakeShore350_Updater(AbstractLoopThread):
 
     @ExceptionHandling
     def configTempLimit(self):
-        """sets temperature limit
-        """
+        """sets temperature limit"""
         for i in ["A", "B", "C", "D"]:
             self.LakeShore350.TemperatureLimitCommand(i, 400.0)
 
     @pyqtSlot()
     @ExceptionHandling
     def setTemp_K(self):
-        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
-        """
+        """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature."""
         self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
         self.LakeShore350.ControlSetpointRampParameterCommand(
             1, self.Ramp_status_internal, self.Ramp_Rate_value
@@ -228,8 +225,7 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def setInput(self, Input_value):
-        """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
-        """
+        """(1,1,value,1) configure Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
         self.LakeShore350.OutputModeCommand(1, 1, Input_value, 1)
 
     @pyqtSlot()
@@ -265,15 +261,13 @@ class LakeShore350_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def startHeater(self):
-        """start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On.
-        """
+        """start up Heater with Output 1 for Closed Loop PID, using Input "value" and set powerup enable to On."""
         self.LakeShore.OutputModeCommand(1, 1, self.sensor_values[5], 1)
 
     @pyqtSlot()
     @ExceptionHandling
     def setHeater_Range(self):
-        """set Heater Range for Output 1
-        """
+        """set Heater Range for Output 1"""
         self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
 
     @pyqtSlot()
