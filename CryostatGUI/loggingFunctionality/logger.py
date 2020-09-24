@@ -51,24 +51,26 @@ logger = logging.getLogger("CryostatGUI.loggingFunctionality")
 
 
 @singledispatch
-def calculate_timediff(arg):
-    # if verbose:
-    #     print("Let me just say,", end=" ")
-    # print(arg)
+def calculate_timediff(dt):
+    """function 'overloading' for python
+    https://docs.python.org/3/library/functools.html#functools.singledispatch
+    the following functions named _ are all registered to this name,
+    however with different input types.
+    """
     pass
 
 
 @calculate_timediff.register(list)
-def _(dic):
-    return calculate_timediff(dic[-1])
+def _(dt):
+    return calculate_timediff(dt[-1])
 
 
 @calculate_timediff.register(str)
-def _(dic):
+def _(dt):
     try:
         timediff = (
             datetime.strptime(
-                dic, "%Y-%m-%d %H:%M:%S.%f"
+                dt, "%Y-%m-%d %H:%M:%S.%f"
             )
             - datetime.now()
         ).total_seconds()
@@ -76,7 +78,7 @@ def _(dic):
         if "does not match format" in err.args[0]:
             timediff = (
                 datetime.strptime(
-                    dic, "%Y-%m-%d %H:%M:%S"
+                    dt, "%Y-%m-%d %H:%M:%S"
                 )
                 - datetime.now()
             ).total_seconds()
@@ -87,9 +89,9 @@ def _(dic):
 
 
 @calculate_timediff.register(datetime)
-def _(dic):
+def _(dt):
     timediff = (
-        dic - datetime.now()
+        dt - datetime.now()
     ).total_seconds()
     uptodate = abs(timediff) < 10
     return uptodate, timediff
