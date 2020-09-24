@@ -1,5 +1,6 @@
 import sys
 import os
+from functools import singledispatch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSignal
@@ -47,6 +48,53 @@ from pid import PidFileError
 import logging
 
 logger = logging.getLogger("CryostatGUI.loggingFunctionality")
+
+
+@singledispatch
+def calculate_timediff(dt):
+    """function 'overloading' for python
+    https://docs.python.org/3/library/functools.html#functools.singledispatch
+    the following functions named _ are all registered to this name,
+    however with different input types.
+    """
+    pass
+
+
+@calculate_timediff.register(list)
+def _(dt):
+    return calculate_timediff(dt[-1])
+
+
+@calculate_timediff.register(str)
+def _(dt):
+    try:
+        timediff = (
+            datetime.strptime(
+                dt, "%Y-%m-%d %H:%M:%S.%f"
+            )
+            - datetime.now()
+        ).total_seconds()
+    except ValueError as err:
+        if "does not match format" in err.args[0]:
+            timediff = (
+                datetime.strptime(
+                    dt, "%Y-%m-%d %H:%M:%S"
+                )
+                - datetime.now()
+            ).total_seconds()
+        else:
+            raise err
+    uptodate = abs(timediff) < 10
+    return uptodate, timediff
+
+
+@calculate_timediff.register(datetime)
+def _(dt):
+    timediff = (
+        dt - datetime.now()
+    ).total_seconds()
+    uptodate = abs(timediff) < 10
+    return uptodate, timediff
 
 
 def slope_from_timestampX(tmp_):
@@ -659,63 +707,10 @@ class live_Logger_bare:
                         )
                         dic = deepcopy(self.data[instr])
                         dic.update(timedict)
-                        try:
-                            timediff = (
-                                datetime.strptime(
-                                    dic["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-                                )
-                                - datetime.now()
-                            ).total_seconds()
-                        except ValueError as err:
-                            self._logger.error(f"problem parsing time in {dic}")
-                            if "does not match format" in err.args[0]:
-                                try:
-                                    timediff = (
-                                        datetime.strptime(
-                                            dic["realtime"], "%Y-%m-%d %H:%M:%S"
-                                        )
-                                        - datetime.now()
-                                    ).total_seconds()
-                                except ValueError as e:
-                                    raise e
-                            else:
-                                self._logger.exception(err)
-                                timediff = 0
-                        except TypeError:
-                            timediff = (
-                                dic["realtime"] - datetime.now()
-                            ).total_seconds()
-                        uptodate = abs(timediff) < 10
 
-                        # print(times[0])
                         for varkey in dic:
                             # print(instr, varkey)
                             self.data_live[instr][varkey].append(dic[varkey])
-                            # print(instr, varkey)
-                            # print(self.Gauges)
-                            # if uptodate:
-                            #     try:
-                            #         self.Gauges[instr][varkey].set(dic[varkey])
-                            #     except TypeError as err:
-                            #         if not err.args[0].startswith(
-                            #             "float() argument must be a string or a number"
-                            #         ):
-                            #             self._logger.exception(err.args[0])
-                            #         else:
-                            #             # self._logger.debug(err.args[0] + f'instr:
-                            #             # {instr}, varkey: {varkey}')
-                            #             pass
-                            #     except ValueError as err:
-                            #         if not err.args[0].startswith(
-                            #             "could not convert string to float"
-                            #         ):
-                            #             self._logger.exception(err.args[0])
-                            #         else:
-                            #             # self._logger.debug(err.args[0] + f'instr:
-                            #             # {instr}, varkey: {varkey}')
-                            #             pass
-                            # else:
-                            #     self.Gauges[instr][varkey].set(0)
 
                         if self.time_init:
                             times = [
@@ -735,6 +730,7 @@ class live_Logger_bare:
                         if self.count > self.length_list:
                             self.counting = False
                             self.data_live[instr][varkey].pop(0)
+                        uptodate, timediff = calculate_timediff(self.data_live[instr]["realtime"])
                         if uptodate:
                             try:
                                 _val = self.data_live[instr][varkey][-1]
@@ -904,6 +900,7 @@ class live_Logger_bare:
                                         "",
                                     )
         self.initialised = True
+
 
     def setLength(self, length):
         """set the number of measurements the calculation should be conducted over"""
