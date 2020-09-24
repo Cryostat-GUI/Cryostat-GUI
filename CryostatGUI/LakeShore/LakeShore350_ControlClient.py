@@ -301,7 +301,13 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
         """
         self._logger.debug(f'tempcommand: {tempdict}')
-        self.Temp_K_value = tempdict['setTemp']
+        if "end" not in tempdict:
+            self.Temp_K_value = tempdict['setTemp']
+        elif "setTemp" not in tempdict:
+            self._logger.warning("received command to change temperature without final temperature setpoint")
+            return
+        else:
+            self.Temp_K_value = tempdict["end"]
         self.Ramp_status_internal = int(tempdict["isSweep"])
         self.Ramp_Rate_value = tempdict["SweepRate"]
 
@@ -323,8 +329,8 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             self.LakeShore350.ControlSetpointRampParameterCommand(
                 1, self.Ramp_status_internal, self.Ramp_Rate_value
             )
-            self._logger.debug('sending final setpoint: %f', tempdict["end"])
-            self.LakeShore350.ControlSetpointCommand(1, tempdict["end"])
+            self._logger.debug('sending final setpoint: %f', self.Temp_K_value)
+            self.LakeShore350.ControlSetpointCommand(1,self.Temp_K_value)
 
         else:
             self._logger.debug('no sweep, setting temp to %f', self.Temp_K_value)
