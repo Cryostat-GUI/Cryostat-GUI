@@ -83,7 +83,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     def __init__(self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
-        self.interval = 0.5
+        self.interval = 0.15
         self.t = datetime.now()
 
         # here the class instance of the LakeShore should be handed

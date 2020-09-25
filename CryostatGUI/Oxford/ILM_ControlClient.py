@@ -67,7 +67,7 @@ class ILM_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # initial configurations for the hardware device
         self.control_state = 3
-        self.interval = 1
+        self.interval = 0.5
 
         self.setControl()
         # -------------------------------------------------------------------------------------------------------------------------

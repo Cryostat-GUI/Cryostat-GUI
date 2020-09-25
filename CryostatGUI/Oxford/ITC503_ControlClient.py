@@ -84,6 +84,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
+        self.interval = 1.7
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         self.ITC = itc503(InstrumentAddress=InstrumentAddress)
@@ -109,7 +110,6 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.sweep_first = False
 
         self.setControl()
-        self.interval = 1
 
         self.setPIDFile(".\\..\\configurations\\PID_conf\\P1C1.conf")
         self.useAutoPID = True
