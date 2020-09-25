@@ -19,7 +19,7 @@ import pandas as pd
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 from itertools import combinations_with_replacement as comb
-
+from json import loads
 
 from util import AbstractThread
 from util import AbstractEventhandlingThread
@@ -29,6 +29,7 @@ from util import convert_time
 from util import convert_time_searchable
 from util.zmqcomms import zmqquery_dict
 from util.zmqcomms import dictdump
+from util.zmqcomms import enc
 
 import measureSequences as mS
 
@@ -905,7 +906,29 @@ class Sequence_Functions_zmq:
         # self.temp_VTI_offset = probe_Toffset
 
     def commanding(self, ID, message):
-        self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+        # self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+        self.comms_downstream.send_multipart([enc(ID), enc(message)])
+
+    def retrieve_data(self, instr, value):
+        message = enc('?' + dictdump(dict(instr=instr, value=value)))
+        try:
+            self.comms_data.send(message)
+            for _ in range(3):
+                for _ in range(5):
+                    try:
+                        message = loads(self.comms_data.recv(flags=zmq.NOBLOCK))
+                        raise customEx
+                    except zmq.Again:
+                        time.sleep(0.1)
+                time.sleep(2)
+
+            self._logger.warning('got no answer from dataStorage!')
+            raise problemAbort
+        except zmq.ZMQError as e:
+            self._logger.exception(e)
+            raise problemAbort
+        except customEx:
+            return message
 
     def setTemperature(self, temperature: float) -> None:
         """
@@ -923,7 +946,7 @@ class Sequence_Functions_zmq:
         )
         """
         self.commanding(ID=self.tempdefinition[0],dictdump({'setTemp_K': dict(isSweep=False,isSweepStartCurrent=False,setTemp=temperature,)}))
-        self._logger.debug("setting the temp to {}K".format(temperature))
+        self._logger.debug("setting the temp to {}K, no sweep".format(temperature))
 
     # def setField(self, field: float, EndMode: str) -> None:
     #     """
@@ -958,6 +981,80 @@ class Sequence_Functions_zmq:
         # self.devices['general']['message_to_user'].emit(message)
         self.sig_message.emit(message)
         self._logger.warning(f"A message to the user: {message}")
+
+    def scan_T_programSweep(
+        self,
+        start: float,
+        end: float,
+        Nsteps: float,
+        temperatures: list,
+        SweepRate: float,
+        SpacingCode: str = "uniform",
+    ):
+        """
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep of temperatures
+        # """
+        # self.devices["ITC"]["setTemp"].emit(
+        #     dict(
+        #         isSweep=False,
+        #         isSweepStartCurrent=False,
+        #         setTemp=start,
+        #     )
+        # )
+        # self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
+        # self.devices["ITC"]["setTemp"].emit(
+        #     dict(
+        #         isSweep=True,
+        #         isSweepStartCurrent=True,
+        #         # setTemp=setTemp,
+        #         start=start,
+        #         end=end,
+        #         SweepRate=SweepRate,
+        #     )
+        # )
+        self._logger.debug(
+            f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}"
+        )
+        raise NotImplementedError
+
+    def scan_H_programSweep(
+        self,
+        start: float,
+        end: float,
+        Nsteps: float,
+        fields: list,
+        SweepRate: float,
+        EndMode: str,
+        SpacingCode: str = "uniform",
+    ):
+        """
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep for field values
+        """
+        print(
+            f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
+        )
+        raise NotImplementedError
+
+    # def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
+    #     """
+    #         Method to be overriden by a child class
+    #         here, the devices should be programmed to start
+    #         the respective Sweep of positions
+    #     """
+    # self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
+    # Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex},
+    # SpacingCode: {SpacingCode}')
+
+    def setFieldEndMode(self, EndMode: str) -> bool:
+        """Method to be overridden by a child class
+        return bool stating success or failure (optional)
+        """
+        self._logger.debug(f"setFieldEndMode :: EndMode = {EndMode}")
+        raise NotImplementedError
 
 
 class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions):
@@ -1033,88 +1130,6 @@ class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions
                     "An Error occurred! Aborted sequence completely!"
                 )
                 self._logger.error("An Error occurred! Aborted sequence completely!")
-
-    def scan_T_programSweep(
-        self,
-        start: float,
-        end: float,
-        Nsteps: float,
-        temperatures: list,
-        SweepRate: float,
-        SpacingCode: str = "uniform",
-    ):
-        """
-        Method to be overriden by a child class
-        here, the devices should be programmed to start
-        the respective Sweep of temperatures
-        """
-        self.devices["ITC"]["setTemp"].emit(
-            dict(
-                isSweep=False,
-                isSweepStartCurrent=False,
-                setTemp=start,
-            )
-        )
-        self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
-        self.devices["ITC"]["setTemp"].emit(
-            dict(
-                isSweep=True,
-                isSweepStartCurrent=True,
-                # setTemp=setTemp,
-                start=start,
-                end=end,
-                SweepRate=SweepRate,
-            )
-        )
-        self._logger.debug(
-            f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}"
-        )
-
-    def scan_H_programSweep(
-        self,
-        start: float,
-        end: float,
-        Nsteps: float,
-        fields: list,
-        SweepRate: float,
-        EndMode: str,
-        SpacingCode: str = "uniform",
-    ):
-        """
-        Method to be overriden by a child class
-        here, the devices should be programmed to start
-        the respective Sweep for field values
-        """
-        print(
-            f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
-        )
-
-    # def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
-    #     """
-    #         Method to be overriden by a child class
-    #         here, the devices should be programmed to start
-    #         the respective Sweep of positions
-    #     """
-    # self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end},
-    # Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex},
-    # SpacingCode: {SpacingCode}')
-
-    def setFieldEndMode(self, EndMode: str) -> bool:
-        """Method to be overridden by a child class
-        return bool stating success or failure (optional)
-        """
-        self._logger.debug(f"setFieldEndMode :: EndMode = {EndMode}")
-
-    def getTemperature(self) -> float:
-        """Read the temperature
-
-        Method to be overriden by child class
-        implement measuring the temperature used for control
-        returns: temperature as a float
-        """
-        return self.readDataFromList(
-            dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False
-        )
 
     def check_uptodate(self, dataind1: str, Live) -> bool:
 
@@ -1223,6 +1238,17 @@ class Sequence_Thread_zmq(mS.Sequence_runner, AbstractThread, Sequence_Functions
     #     val = np.random.rand() * 4
     #     self._logger.debug(f'getChamber :: returning random value: {val}')
     #     return val
+
+    def getTemperature(self) -> float:
+        """Read the temperature
+
+        Method to be overriden by child class
+        implement measuring the temperature used for control
+        returns: temperature as a float
+        """
+        return self.readDataFromList(
+            dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False
+        )
 
     def checkStable_Temp(
         self, temp: float, direction: int = 0, ApproachMode: str = "Sweep"
