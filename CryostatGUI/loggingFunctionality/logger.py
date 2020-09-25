@@ -901,7 +901,6 @@ class live_Logger_bare:
                                     )
         self.initialised = True
 
-
     def setLength(self, length):
         """set the number of measurements the calculation should be conducted over"""
 
@@ -1009,6 +1008,7 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         data.update(timedict)
         with self.dataLock:
             self.data[ID] = data
+
         present = True
         with self.dataLock_live:
             if ID not in self.data_live:
@@ -1025,13 +1025,8 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                 data = self.data_live[qdict["instr"]][qdict["value"]][-1]
             else:
                 data = self.data[qdict["instr"]][qdict["value"]]
-            timediff = (
-                datetime.strptime(
-                    self.data[qdict["instr"]]["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-                )
-                - datetime.now()
-            ).total_seconds()
-            uptodate = abs(timediff) < 3
+            timediff = calculate_timediff(self.data[qdict["instr"]]["realtime"])
+            uptodate = abs(timediff) < 5
         except KeyError as e:
             return dict(
                 ERROR="KeyError",
