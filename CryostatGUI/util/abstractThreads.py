@@ -274,10 +274,11 @@ class AbstractLoopThread(AbstractThread):
             self.sig_assertion.emit(assertion.args[0])
         finally:
             try:
-                timeToWait = self.interval * 1e3 - timediff(start, end)
+                diff = timediff(start, end)
+                timeToWait = self.interval * 1e3 - diff
                 if timeToWait < 0:
+                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e3, self.interval * 1e3)
                     timeToWait = 0
-                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")
             except NameError:
                 timeToWait = 1e3
             QTimer.singleShot(timeToWait, self.work)
@@ -322,10 +323,11 @@ class AbstractLoopZmqThread(AbstractLoopThread):
         # print('assertion', assertion.args[0])
         finally:
             try:
-                timeToWait = self.interval * 1e3 - timediff(start, end)
+                diff = timediff(start, end)
+                timeToWait = self.interval * 1e3 - diff
                 if timeToWait < 0:
+                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e3, self.interval * 1e3)
                     timeToWait = 0
-                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")                    
             except NameError:
                 timeToWait = 1e3
             QTimer.singleShot(timeToWait, self.work)
@@ -350,10 +352,11 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
             pass
         finally:
             try:
-                timeToWait = self.interval * 1e3 - timediff(start, end)
+                diff = timediff(start, end)
+                timeToWait = self.interval * 1e3 - diff
                 if timeToWait < 0:
+                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e3, self.interval * 1e3)
                     timeToWait = 0
-                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")                    
             except NameError:
                 timeToWait = 1e3
             QTimer.singleShot(timeToWait, self.work)
