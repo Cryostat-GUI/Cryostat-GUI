@@ -14,11 +14,19 @@ from .zmqcomms import zmqClient
 from .zmqcomms import zmqDataStore
 from .livedata import PrometheusGaugeClient
 
+from datetime import datetime as dt
+from datetime import timedelta
+
 
 from visa import VisaIOError
 
 import logging
 from threading import Lock
+
+
+def timediff(start, end):
+    """return timediff of datetime objects in milliseconds"""
+    return (end - start) / timedelta(milliseconds=1)
 
 
 class AbstractApp(QtWidgets.QMainWindow):
@@ -256,14 +264,23 @@ class AbstractLoopThread(AbstractThread):
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
+            start = dt.now()
             with noblockLock(self.lock):
                 self.running()
+            end = dt.now()
         except BlockedError:
             pass
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)
+            try:
+                timeToWait = self.interval * 1e3 - timediff(start, end)
+                if timeToWait < 0:
+                    timeToWait = 0
+                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")
+            except NameError:
+                timeToWait = 1e3
+            QTimer.singleShot(timeToWait, self.work)
 
     def running(self):
         """class method to be overriden """
@@ -289,12 +306,14 @@ class AbstractLoopZmqThread(AbstractLoopThread):
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
+            start = dt.now()
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
                 if self.run_finished:
-                    self._logger.debug("Hardware run finished, sending data upstream!")
+                    # self._logger.debug("Hardware run finished, sending data upstream!")
                     self.send_data_upstream()
+            end = dt.now()
         except BlockedError:
             pass
             # print('blocked')
@@ -302,7 +321,14 @@ class AbstractLoopZmqThread(AbstractLoopThread):
         #     self.sig_assertion.emit(assertion.args[0])
         # print('assertion', assertion.args[0])
         finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)
+            try:
+                timeToWait = self.interval * 1e3 - timediff(start, end)
+                if timeToWait < 0:
+                    timeToWait = 0
+                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")                    
+            except NameError:
+                timeToWait = 1e3
+            QTimer.singleShot(timeToWait, self.work)
 
 
 class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGaugeClient):
@@ -312,16 +338,25 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
+            start = dt.now()
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
                 self.running()
                 if self.run_finished:
                     self.run_prometheus()
                     self.send_data_upstream()
+            end = dt.now()
         except BlockedError:
             pass
         finally:
-            QTimer.singleShot(self.interval * 1e3, self.work)
+            try:
+                timeToWait = self.interval * 1e3 - timediff(start, end)
+                if timeToWait < 0:
+                    timeToWait = 0
+                    self._logger.debug("not waiting between loop iterations, duration of last iteration > waiting time")                    
+            except NameError:
+                timeToWait = 1e3
+            QTimer.singleShot(timeToWait, self.work)
 
 
 class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
