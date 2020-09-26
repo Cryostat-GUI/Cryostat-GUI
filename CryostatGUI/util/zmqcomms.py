@@ -66,7 +66,7 @@ class genericAnswer(Exception):
     pass
 
 
-class customEx(Exception):
+class successExit(Exception):
     pass
 
 
@@ -99,7 +99,7 @@ def zmqquery(socket, query):
         while True:
             try:
                 message = socket.recv(flags=zmq.NOBLOCK)
-                raise customEx
+                raise successExit
             except zmq.Again:
                 time.sleep(0.2)
                 logger.debug("no answer")
@@ -107,7 +107,7 @@ def zmqquery(socket, query):
     except zmq.ZMQError as e:
         logger.exception(e)
         return -1
-    except customEx:
+    except successExit:
         return message
 
 
@@ -121,7 +121,7 @@ def zmqquery_dict(socket, query):
         while True:
             try:
                 message = socket.recv_json(flags=zmq.NOBLOCK)
-                raise customEx
+                raise successExit
             except zmq.Again:
                 time.sleep(0.2)
                 logger.debug("no answer")
@@ -129,7 +129,7 @@ def zmqquery_dict(socket, query):
     except zmq.ZMQError as e:
         logger.exception(e)
         return -1
-    except customEx:
+    except successExit:
         return message
 
 

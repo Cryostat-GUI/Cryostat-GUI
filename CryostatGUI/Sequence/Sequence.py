@@ -917,7 +917,7 @@ class Sequence_Functions_zmq:
                 for _ in range(5):
                     try:
                         message = loads(self.comms_data.recv(flags=zmq.NOBLOCK))
-                        raise customEx
+                        raise successExit
                     except zmq.Again:
                         time.sleep(0.1)
                 time.sleep(2)
@@ -927,7 +927,7 @@ class Sequence_Functions_zmq:
         except zmq.ZMQError as e:
             self._logger.exception(e)
             raise problemAbort
-        except customEx:
+        except successExit:
             return message
 
     def setTemperature(self, temperature: float) -> None:
