@@ -984,7 +984,8 @@ class Sequence_Functions_zmq:
 
     def scan_T_programSweep(
         self,
-        start: float,
+        start: float = None,
+        isSweepStartCurrent: bool,
         end: float,
         Nsteps: float,
         temperatures: list,
@@ -995,29 +996,19 @@ class Sequence_Functions_zmq:
         Method to be overriden by a child class
         here, the devices should be programmed to start
         the respective Sweep of temperatures
-        # """
-        # self.devices["ITC"]["setTemp"].emit(
-        #     dict(
-        #         isSweep=False,
-        #         isSweepStartCurrent=False,
-        #         setTemp=start,
-        #     )
-        # )
-        # self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
-        # self.devices["ITC"]["setTemp"].emit(
-        #     dict(
-        #         isSweep=True,
-        #         isSweepStartCurrent=True,
-        #         # setTemp=setTemp,
-        #         start=start,
-        #         end=end,
-        #         SweepRate=SweepRate,
-        #     )
-        # )
+        """
+        if not isSweepStartCurrent:
+            self.setTemperature(temperature=start)
+            self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
+        self.commanding(ID=self.tempdefinition[0],dictdump({'setTemp_K': 
+            dict(isSweep=True,
+                 isSweepStartCurrent=True,
+                 start=start,
+                 end=end,
+                 SweepRate=SweepRate,)}))
         self._logger.debug(
             f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}"
         )
-        raise NotImplementedError
 
     def scan_H_programSweep(
         self,
