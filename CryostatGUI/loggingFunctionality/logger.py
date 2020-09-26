@@ -51,7 +51,7 @@ logger = logging.getLogger("CryostatGUI.loggingFunctionality")
 
 
 @singledispatch
-def calculate_timediff(dt):
+def calculate_timediff(dt, allowed_delay_s=3):
     """function 'overloading' for python
     https://docs.python.org/3/library/functools.html#functools.singledispatch
     the following functions named _ are all registered to this name,
@@ -61,12 +61,12 @@ def calculate_timediff(dt):
 
 
 @calculate_timediff.register(list)
-def _(dt):
-    return calculate_timediff(dt[-1])
+def _(dt, allowed_delay_s=3):
+    return calculate_timediff(dt[-1], allowed_delay_s)
 
 
 @calculate_timediff.register(str)
-def _(dt):
+def _(dt, allowed_delay_s=3):
     try:
         timediff = (
             datetime.strptime(
@@ -84,16 +84,16 @@ def _(dt):
             ).total_seconds()
         else:
             raise err
-    uptodate = abs(timediff) < 10
+    uptodate = abs(timediff) < allowed_delay_s
     return uptodate, timediff
 
 
 @calculate_timediff.register(datetime)
-def _(dt):
+def _(dt, allowed_delay_s=3):
     timediff = (
         dt - datetime.now()
     ).total_seconds()
-    uptodate = abs(timediff) < 10
+    uptodate = abs(timediff) < allowed_delay_s
     return uptodate, timediff
 
 
@@ -1022,11 +1022,13 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         try:
             live = qdict["live"]
             if live:
-                data = self.data_live[qdict["instr"]][qdict["value"]][-1]
+                with self.dataLock_live:
+                    data = self.data_live[qdict["instr"]][qdict["value"]][-1]
+                    uptodate, timediff = calculate_timediff(self.data_live[qdict["instr"]]["realtime"], allowed_delay_s=3)
             else:
-                data = self.data[qdict["instr"]][qdict["value"]]
-            timediff = calculate_timediff(self.data[qdict["instr"]]["realtime"])
-            uptodate = abs(timediff) < 5
+                with self.dataLock:
+                    data = self.data[qdict["instr"]][qdict["value"]]
+                    uptodate, timediff = calculate_timediff(self.data[qdict["instr"]]["realtime"], allowed_delay_s=3)
         except KeyError as e:
             return dict(
                 ERROR="KeyError",
