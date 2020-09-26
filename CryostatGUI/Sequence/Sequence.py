@@ -30,6 +30,7 @@ from util import convert_time_searchable
 from util.zmqcomms import zmqquery_dict
 from util.zmqcomms import dictdump
 from util.zmqcomms import enc
+from util.zmqcomms import successExit
 
 import measureSequences as mS
 
