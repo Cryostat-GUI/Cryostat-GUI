@@ -11,7 +11,8 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 
 # import sys
-import datetime as dt
+from datetime import datetime as dt
+from datetime import timedelta as dtdelta
 import zmq
 import time
 from copy import deepcopy
@@ -528,7 +529,7 @@ class Sequence_Thread(mS.Sequence_runner, AbstractThread, Sequence_Functions):
         if Live:
             dateentry = dateentry[-1]
 
-        timediff = (dt.datetime.now() - dateentry).total_seconds()
+        timediff = (dt.now() - dateentry).total_seconds()
         uptodate = timediff < 10
         if not uptodate:
             # print('not up to date')
@@ -912,67 +913,54 @@ class Sequence_comms_zmq:
         # self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
-    def retrieve_data(self, instr, value):
-        message = enc('?' + dictdump(dict(instr=instr, value=value)))
+    def retrieve_data_individual(self, dataindicator1, dataindicator2, Live=True):
+        message = enc('?' + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live)))
         try:
             self.comms_data.send(message)
             for _ in range(3):
                 for _ in range(5):
                     try:
                         message = loads(self.comms_data.recv(flags=zmq.NOBLOCK))
+                        if "ERROR" in message:
+                            self._logger.warning("received error from dataStorage: %s -- %s", message["ERROR_message"], message["info"])
+                            raise problemAbort("problem with data retrieval, possibly the requested data is missing")
                         raise successExit
                     except zmq.Again:
                         time.sleep(0.1)
                 time.sleep(2)
 
-            self._logger.warning('got no answer from dataStorage!')
-            raise problemAbort
+            self._logger.warning('got no answer from dataStorage within 6s')
+            # TODO: fallback to querying individual application parts for data
+            raise problemAbort("dataStorage unresponsive, abort")
         except zmq.ZMQError as e:
             self._logger.exception(e)
-            raise problemAbort
+            raise problemAbort("zmq error, no data available, abort")
         except successExit:
             return message
 
-    def check_uptodate(self, dataind1: str, Live) -> bool:
-
-        if Live:
-            data = zmqquery_dict(self.zmq_sSeq, "dataLive")
-        else:
-            data = zmqquery_dict(self.zmq_sSeq, "data")
-        dateentry = data[dataind1]["realtime"]
-        if Live:
-            dateentry = dateentry[-1]
-
-        timediff = (dt.datetime.now() - dateentry).total_seconds()
-        uptodate = timediff < 10
-        if not uptodate:
-            # print('not up to date')
-            self.sig_assertion.emit(
-                f"Sequence: readData: data not sufficiently up to date. ({dataind1}: {timediff})"
-            )
-            self._logger.warning(
-                f"data not sufficiently up to date. ({dataind1}: {timediff})"
-            )
-            time.sleep(1)
-            return False
-        else:
-            return True
-
     @ExceptionHandling
     def readDataFromList(
-        self, dataind1: str, dataind2: str, Live: bool = False
+        self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
-        """retrieve a datapoint from the central list"""
-        gotit = False
+        """retrieve a datapoint from the central list at dataStorage logging"""
         uptodate = False
-        # datalock = self.data_LiveLock if Live else self.dataLock
-        # data = self.data_Live if Live else self.data
-        # print('reading from list')
         try:
-            # TODO: include timeout....and throw error, or sth
+            startdate = dt.now()
             while not uptodate:
                 self.check_running()
-                uptodate = self.check_uptodate(dataind1=dataind1, Live=Live)
+                dataPackage = self.retrieve_data_individual(dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live)
+                uptodate = dataPackage["uptodate"]
+
+                if (dt.now() - startdate) / dtdelta(minutes=1) > 2:
+                    self._logger.error("retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting", dataindicator1, dataindicator2)
+                    # we are not patient anymore
+                    raise problemAbort(f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort")
+                elif (dt.now() - startdate) / dtdelta(seconds=1) > 10:
+                    timediff = dataPackage["timediff"]
+                    self._logger.warning("retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s", dataindicator1, dataindicator2, timediff)
+                    # there might be a problem with the respective device, but we will be patient, for now
+            data = dataPackage["data"]
+            return data
 
         except KeyError as err:
             # print('KeyErr')
@@ -981,32 +969,14 @@ class Sequence_comms_zmq:
             )
             self._logger.error(
                 "no data: {} for request (Live={}) {}: {}".format(
-                    err.args[0], Live, dataind1, dataind2
+                    err.args[0], Live, dataindicator1, dataindicator2
                 )
             )
             self.check_running()
             time.sleep(1)
-            temp = self.readDataFromList(
-                dataind1=dataind1, dataind2=dataind2, Live=Live
+            return self.readDataFromList(
+                dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live
             )
-            gotit = True
-
-        # print('came through')
-        if not gotit:
-            # with datalock:
-            data = zmqquery_dict(self.zmq_sSeq, "data")
-            # print(data)
-            temp = data[dataind1][dataind2]
-        try:
-            self._logger.info(f"received from {dataind1} {dataind2}: {temp}")
-            # temp = float(temp)
-            temp = temp[-1]
-        except TypeError:
-            if Live:
-                self._logger.warning(f"datapoints are not a list: {temp}")
-        except IndexError:
-            self._logger.warning(f"datapoints are maybe an empty list: {temp}")
-        return temp            
 
 
 class Sequence_functionsConvenience:
