@@ -993,6 +993,12 @@ class Sequence_functionsConvenience:
             ]
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+
     @pyqtSlot(dict)
     def storing_thresholds(self, thresholds: dict):
         self.thresholdsconf = thresholds
@@ -1102,6 +1108,12 @@ class Sequence_functionsConvenience:
 
 class Sequence_functionsPersonal:
     """docstring for Sequence_functionsPersonal"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     def setTemperature(self, temperature: float) -> None:
         """set the system temperature to parameter temperature
@@ -1433,6 +1445,9 @@ class Sequence_Thread_zmq(
             # comms_data=comms_data,
             # tempdefinition=tempdefinition,
             **kwargs,
+        )
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
 
         self.__name__ = "runSequence"
