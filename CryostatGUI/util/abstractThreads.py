@@ -8,7 +8,7 @@ from PyQt5.uic import loadUi
 
 from .util_misc import running_thread
 from .util_misc import noblockLock
-from .util_misc import BlockedError
+from .customExceptions import BlockedError
 
 from .zmqcomms import zmqClient
 from .zmqcomms import zmqDataStore
@@ -273,14 +273,7 @@ class AbstractLoopThread(AbstractThread):
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
-            try:
-                diff = timediff(start, end)
-                timeToWait = self.interval * 1e3 - diff
-                if timeToWait < 0:
-                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e-3, self.interval)
-                    timeToWait = 0
-            except NameError:
-                timeToWait = 1e3
+            timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
     def running(self):
@@ -291,6 +284,17 @@ class AbstractLoopThread(AbstractThread):
     def setInterval(self, interval):
         """set the interval between running events in seconds"""
         self.interval = interval
+
+    def calculate_timeToWait(self, start, end):
+        try:
+            diff = timediff(start, end)
+            timeToWait = self.interval * 1e3 - diff
+            if timeToWait < 0:
+                self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e-3, self.interval)
+                timeToWait = 0
+        except NameError:
+            timeToWait = 1e3
+        return timeToWait
 
 
 class AbstractLoopZmqThread(AbstractLoopThread):
@@ -317,19 +321,8 @@ class AbstractLoopZmqThread(AbstractLoopThread):
             end = dt.now()
         except BlockedError:
             pass
-            # print('blocked')
-        # except AssertionError as assertion:
-        #     self.sig_assertion.emit(assertion.args[0])
-        # print('assertion', assertion.args[0])
         finally:
-            try:
-                diff = timediff(start, end)
-                timeToWait = self.interval * 1e3 - diff
-                if timeToWait < 0:
-                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e-3, self.interval)
-                    timeToWait = 0
-            except NameError:
-                timeToWait = 1e3
+            timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
 
@@ -351,14 +344,7 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
         except BlockedError:
             pass
         finally:
-            try:
-                diff = timediff(start, end)
-                timeToWait = self.interval * 1e3 - diff
-                if timeToWait < 0:
-                    self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e-3, self.interval)
-                    timeToWait = 0
-            except NameError:
-                timeToWait = 1e3
+            timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
 

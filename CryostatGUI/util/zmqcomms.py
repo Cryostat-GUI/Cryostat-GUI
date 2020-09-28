@@ -5,7 +5,14 @@ from json import dumps
 from json import decoder
 import functools
 import time
+from datetime import datetime as dt
+from datetime import timedelta as dtdelta
 
+from util import problemAbort
+from util import successExit
+from util import genericAnswer
+
+from util import ExceptionHandling
 # from threading import Thread
 
 # from util import ExceptionHandling
@@ -60,14 +67,6 @@ def HandleJsonException(func):
         #     logger.exception(e)
 
     return wrapper_HandleJsonException
-
-
-class genericAnswer(Exception):
-    pass
-
-
-class successExit(Exception):
-    pass
 
 
 def zmqquery_handle(socket, handlefun):
@@ -131,6 +130,33 @@ def zmqquery_dict(socket, query):
         return -1
     except successExit:
         return message
+
+
+def raiseProblemAbort(_f=None, raising=False):
+    # adapted from https://stackoverflow.com/questions/5929107/decorators-with-parameters#answer-60832711
+    assert callable(_f) or _f is None
+
+    def _decorator(func):
+        """decorating functions which may raise an error internally,
+        re-raising that error if necessary
+        returns a single value if raising=True
+        else it always returns message and error, either of which is None
+        """
+        @functools.wraps(func)
+        def wrapper_raiseProblemAbort(*args, **kwargs):
+            # if inspect.isclass(type(args[0])):
+            message, error = func(*args, **kwargs)
+            if raising:
+                if error:
+                    if isinstance(error, Exception):
+                        raise error
+                    else:
+                        logger.warning("somehow a not-exception object ended up where it should not.")
+                return message
+            else:
+                return message, error
+        return wrapper_raiseProblemAbort
+    return _decorator(_f) if callable(_f) else _decorator
 
 
 class zmqBare:
@@ -310,7 +336,88 @@ class zmqMainControl(zmqBare):
                 pass
 
     def commanding(self, ID, message):
-        self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+        # self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+        self.comms_downstream.send_multipart([enc(ID), enc(message)])
+
+    def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
+        message = enc('?' + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live)))
+        try:
+            self.comms_data.send(message)
+            for _ in range(3):
+                for _ in range(5):
+                    try:
+                        message = dictload(self.comms_data.recv(flags=zmq.NOBLOCK))
+                        if "ERROR" in message:
+                            self._logger.warning("received error from dataStorage: %s -- %s", message["ERROR_message"], message["info"])
+                            raise problemAbort("problem with data retrieval, possibly the requested data is missing")
+                        raise successExit
+                    except zmq.Again:
+                        time.sleep(0.1)
+                time.sleep(2)
+
+            self._logger.warning('got no answer from dataStorage within 6s')
+            # TODO: fallback to querying individual application parts for data
+            raise problemAbort("dataStorage unresponsive, abort")
+        except zmq.ZMQError as e:
+            self._logger.exception(e)
+            # raise problemAbort("")
+            return None, "zmq error, no data available, abort"
+        except successExit:
+            return message, None
+        except problemAbort as e:
+            return None, e
+
+    @ExceptionHandling
+    def _bare_readDataFromList(
+        self, dataindicator1: str, dataindicator2: str, Live: bool = False
+    ) -> float:
+        """retrieve a datapoint from the central list at dataStorage logging"""
+        uptodate = False
+        try:
+            startdate = dt.now()
+            while not uptodate:
+                self.check_running()
+                dataPackage = self.retrieveDataIndividual(dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live)
+                uptodate = dataPackage["uptodate"]
+
+                if (dt.now() - startdate) / dtdelta(minutes=1) > 2:
+                    self._logger.error("retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting", dataindicator1, dataindicator2)
+                    # we are not patient anymore
+                    raise problemAbort(f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort")
+                elif (dt.now() - startdate) / dtdelta(seconds=1) > 10:
+                    timediff = dataPackage["timediff"]
+                    self._logger.warning("retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s", dataindicator1, dataindicator2, timediff)
+                    # there might be a problem with the respective device, but we will be patient, for now
+            data = dataPackage["data"]
+            return data, None  # second value is indicating no error was raised
+
+        except KeyError as err:
+            # print('KeyErr')
+            self.sig_assertion.emit(
+                "Sequence: readData: no data: {}".format(err.args[0])
+            )
+            self._logger.error(
+                "no data: {} for request (Live={}) {}: {}".format(
+                    err.args[0], Live, dataindicator1, dataindicator2
+                )
+            )
+            self.check_running()
+            time.sleep(1)
+            return self.readDataFromList(
+                dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live
+            )
+        except problemAbort as e:
+            return None, e
+
+    @raiseProblemAbort(raising=False)
+    def retrieve_data_individual(self, dataindicator1, dataindicator2, Live=True):
+        return self._bare_retrieveDataIndividual(dataindicator1, dataindicator2, Live)
+
+    @raiseProblemAbort(raising=False)
+    def readDataFromList(
+        self, dataindicator1: str, dataindicator2: str, Live: bool = False
+    ) -> float:
+        return self._bare_readDataFromList(dataindicator1, dataindicator2, live)
 
 
 class zmqDataStore(zmqBare):

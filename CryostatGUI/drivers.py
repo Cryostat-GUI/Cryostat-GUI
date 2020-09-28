@@ -28,27 +28,14 @@ from pyvisa.errors import VisaIOError
 from visa import constants as vconst
 import functools
 
+from util import ApplicationExit
 
 connError = VisaIOError(-1073807194)
 timeouterror = VisaIOError(-1073807339)
 visaIOError = VisaIOError(-1073807298)
 visaNotFoundError = VisaIOError(-1073807343)
 
-# create a logger object for this module
 logger = logging.getLogger("CryoGUI." + __name__)
-
-# logger = logging.getLogger()
-# logger.setLevel(logging.DEBUG)
-# handler = logging.StreamHandler(sys.stderr)
-# handler.setLevel(logging.DEBUG)
-# formatter = logging.Formatter(
-#     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-
-
-# keysight = False
-# ni = False
 
 
 def get_rm(_unused_visalib="ni"):
@@ -87,17 +74,6 @@ def get_rm(_unused_visalib="ni"):
     #     del NI_RESOURCE_MANAGER
     return NI_RESOURCE_MANAGER
     # return rm
-
-
-class ApplicationExit(Exception):
-    """should never be handled, but if raised, crash the application
-    this is intended for use with a service,
-    which will be restarted upon uncontrolled exit
-    Windows:
-        - service
-    Ubuntu:
-        - systemd service
-    """
 
 
 def reopen_connection(se, error, e, trials=10):
@@ -146,32 +122,38 @@ def retrying_call(se, func, args, kwargs, err, trials=3):
 
 
 def HandleVisaException(func):
+    """to be used as decorator of a method of a class
+    this method cannot be a staticmethod, or a classmethod
+    in this sense, self is set as the first argument passed to the respective
+    method, which should always be the instance
+    """
+
     @functools.wraps(func)
     def wrapper_HandleVisaException(*args, **kwargs):
         # if inspect.isclass(type(args[0])):
         # thread = args[0]
         try:
-            se = args[0]
+            self = args[0]
             return func(*args, **kwargs)
 
         except VisaIOError as e:
             if isinstance(e, type(timeouterror)) and e.args == timeouterror.args:
                 try:
-                    return retrying_call(se, func, args, kwargs, e, trials=2)
+                    return retrying_call(self, func, args, kwargs, e, trials=2)
                     # same as return func() above
                 except VisaIOError:
                     return wrapper_HandleVisaException(*args, **kwargs)
             elif isinstance(e, type(connError)) and e.args == connError.args:
-                q = reopen_connection(se, "connection lost", e, trials=3)
+                q = reopen_connection(self, "connection lost", e, trials=3)
             elif isinstance(e, type(visaIOError)) and e.args == visaIOError.args:
-                q = reopen_connection(se, "Visa I/O Error", e, trials=3)
+                q = reopen_connection(self, "Visa I/O Error", e, trials=3)
             elif (
                 isinstance(e, type(visaNotFoundError))
                 and e.args == visaNotFoundError.args
             ):
-                q = reopen_connection(se, "resource not found", e, trials=2)
+                q = reopen_connection(self, "resource not found", e, trials=2)
             else:
-                se._logger.exception(e)
+                self._logger.exception(e)
             try:
                 q
                 if q is None:
@@ -400,32 +382,9 @@ class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
 
 
 if __name__ == "__main__":
-    # logger = logging.getLogger()
-    # logger.setLevel(logging.DEBUG)
-    # handler = logging.StreamHandler(sys.stderr)
-    # handler.setLevel(logging.DEBUG)
-    # formatter = logging.Formatter(
-    #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
-
-    # print('     opening device')
-    # a = AbstractSerialDeviceDriver('ASRL5::INSTR')
-    # print('     opened device')
 
     print("     opening device")
     a = AbstractEthernetDeviceDriver("TCPIP::192.168.2.105::7777::SOCKET")
     print("     opened device")
 
     print(a.query("*IDN?"))
-    # print('     closing device')
-    # a.res_close()
-    # print('     device closed')
-    # a.res_open()
-    # print('     device reopened')
-    # try:
-    #     print(a.query('IDN?'))
-    # except VisaIOError:
-    #     a.clear_buffers()
-    # # time.sleep(4)
-    # print(a.query('IDN?'))
