@@ -50,21 +50,21 @@ def measure_resistance_singlechannel(
     **kwargs
 ):
     """conduct one 'full' measurement of resistance:
-        arguments: dict conf
-            threads = dict of threads running of the mainWindow class
-            threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadname_RES  = name of the (Keithley) Voltage measure thread
-            threadname_CURR  = name of the (Keithley) Current set thread
-            n_measurements  = number of measurements (dual polarity) to be averaged over
-                            default = 1 (no reason to do much more)
-            excitation_current_A = excitation current for the measurement
-        returns: dict data
-            T_mean_K : mean of temperature readings
-                    before and after measurement [K]
-            T_std_K : std of temperature readings
-                    before and after measurement [K]
-            R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
-            R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
+    arguments: dict conf
+        threads = dict of threads running of the mainWindow class
+        threadname_Temp  = name of the (LakeShore) Temperature thread
+        threadname_RES  = name of the (Keithley) Voltage measure thread
+        threadname_CURR  = name of the (Keithley) Current set thread
+        n_measurements  = number of measurements (dual polarity) to be averaged over
+                        default = 1 (no reason to do much more)
+        excitation_current_A = excitation current for the measurement
+    returns: dict data
+        T_mean_K : mean of temperature readings
+                before and after measurement [K]
+        T_std_K : std of temperature readings
+                before and after measurement [K]
+        R_mean_Ohm : mean of all n_measurements resistance measurements [Ohm]
+        R_std_Ohm : std of all n_measurements resistance measurements [Ohm]
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
@@ -125,24 +125,24 @@ def measure_resistance_multichannel(
     **kwargs
 ):
     """conduct one 'full' measurement of resistance:
-        arguments: dict conf
-            threads = dict of threads running of the mainWindow class
-            threadname_Temp  = name of the (LakeShore) Temperature thread
-            threadnames_RES  = list of names of the (Keithley) Voltage measure threads
-            threadnames_CURR  = list of names of the (Keithley) Current set threads
-            n_measurements  = number of measurements (dual polarity) to be averaged over
-                            default = 1 (no reason to do much more)
-            excitation_currents_A = list of excitations currents for the measurement
-        returns: dict data
-            T_mean_K : dict of means of temperature readings
-                    before and after measurement [K]
-            T_std_K : dict of stds of temperature readings
-                    before and after measurement [K]
-            resistances, voltages, currents:
-                dicts with corresponding values for all measurement channels
-            timeseconds: pythons time.time()
-            ReadableTime: Time in %Y-%m-%d %H:%M:%S
-            SearchableTime: Time in %Y%m%d%H%M%S
+    arguments: dict conf
+        threads = dict of threads running of the mainWindow class
+        threadname_Temp  = name of the (LakeShore) Temperature thread
+        threadnames_RES  = list of names of the (Keithley) Voltage measure threads
+        threadnames_CURR  = list of names of the (Keithley) Current set threads
+        n_measurements  = number of measurements (dual polarity) to be averaged over
+                        default = 1 (no reason to do much more)
+        excitation_currents_A = list of excitations currents for the measurement
+    returns: dict data
+        T_mean_K : dict of means of temperature readings
+                before and after measurement [K]
+        T_std_K : dict of stds of temperature readings
+                before and after measurement [K]
+        resistances, voltages, currents:
+            dicts with corresponding values for all measurement channels
+        timeseconds: pythons time.time()
+        ReadableTime: Time in %Y-%m-%d %H:%M:%S
+        SearchableTime: Time in %Y%m%d%H%M%S
     """
     # measured current reversal = 40ms.
     # reversal measured with a DMM 7510 of a 6221 Source (both Keithley)
