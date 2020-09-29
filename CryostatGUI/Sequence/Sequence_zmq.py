@@ -694,7 +694,7 @@ if __name__ == "__main__":
                 parser = mS.Sequence_parser(sequence_file=filename)
                 sequence = parser.data
             else:
-                with open(filename, 'r') as f:
+                with open(filename, "r") as f:
                     sequence = loads(f.read())
             runner = Sequence_Thread_zmq(
                 sequence=sequence,
