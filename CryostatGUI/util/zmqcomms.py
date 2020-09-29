@@ -211,6 +211,9 @@ class zmqClient(zmqBare):
         self.poller.register(self.comms_tcp, zmq.POLLIN)
         self.poller.register(self.comms_downstream, zmq.POLLIN)
 
+        time.sleep(4)
+        # needed for the PUB/SUB sockets to find each other!
+
         self.data = {}
 
     # def work_zmq(self):
@@ -312,6 +315,9 @@ class zmqMainControl(zmqBare):
         self.poller = zmq.Poller()
         self.poller.register(self.comms_tcp, zmq.POLLIN)
         self.poller.register(self.comms_inproc, zmq.POLLIN)
+
+        time.sleep(4)
+        # needed for the PUB/SUB sockets to find each other!
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
@@ -494,6 +500,9 @@ class zmqDataStore(zmqBare):
         self.poller.register(self.comms_upstream, zmq.POLLIN)
         self.poller.register(self.comms_downstream, zmq.POLLIN)
         self.poller.register(self.comms_data, zmq.POLLIN)
+
+        time.sleep(4)
+        # needed for the PUB/SUB sockets to find each other!        
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
