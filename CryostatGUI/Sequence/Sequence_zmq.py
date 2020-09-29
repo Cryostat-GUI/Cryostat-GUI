@@ -109,6 +109,7 @@ class Sequence_functionsConvenience:
 
         param: ApproachMode:
             specifies the mode of approach in the scan this function is called
+            ApproachMode = Sweep: only for sweeps
 
         method should be overriden - possibly some convenience functionality
             will be added in the future
@@ -117,20 +118,20 @@ class Sequence_functionsConvenience:
         if direction == 0 or ApproachMode != "Sweep":
             # no information, temp should really stabilize
 
-            if ApproachMode == "Sweep":
-                # self.sig_assertion.emit(
-                #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-                # self._logger.error(
-                #     'no direction information available in Sweep, cannot check temperature!')
-                raise problemAbort(
-                    "no direction information available in Sweep, cannot check temperature!"
-                )
-                # self.stop()
-                # self.check_running()
+            # if ApproachMode == "Sweep":
+            #     # self.sig_assertion.emit(
+            #     #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
+            #     # self._logger.error(
+            #     #     'no direction information available in Sweep, cannot check temperature!')
+            #     raise problemAbort(
+            #         "no direction information available in Sweep, cannot check temperature!"
+            #     )
+            #     # self.stop()
+            #     # self.check_running()
 
             stable = False
             while not stable:
-                self._logger.debug(f"waiting for stabilized temp: {temp}")
+                self._logger.info(f"waiting for stabilized temp: {temp}")
                 self.check_running()
                 count = 0
 
@@ -188,7 +189,7 @@ class Sequence_functionsConvenience:
                 self._logger.debug(f"temp not yet below {temp}")
                 time.sleep(1)
 
-        self._logger.debug(
+        self._logger.info(
             f"Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
         )
 
@@ -213,6 +214,7 @@ class Sequence_functionsPersonal:
                  SweepRate=SweepRate
             )
         """
+        self._setpoint_temp = temperature
         self.commanding(
             ID=self.tempdefinition[0],
             message=dictdump(
@@ -667,7 +669,7 @@ if __name__ == "__main__":
             logger_3.setLevel(logging.INFO)
 
             logger_4 = logging.getLogger("measureSequences")
-            logger_4.setLevel(logging.WARNING)
+            logger_4.setLevel(logging.DEBUG)
 
             handler = logging.StreamHandler(sys.stdout)
             handler.setLevel(logging.DEBUG)
@@ -679,15 +681,15 @@ if __name__ == "__main__":
             logger.addHandler(handler)
             logger_2.addHandler(handler)
             logger_3.addHandler(handler)
-            logger_4.addHandler(handler)
+            # logger_4.addHandler(handler)
 
-            filename = "seqfiles/measure.json"
+            filename = "seqfiles/testing_setTemp.json"
             thresholdsconf = dict(
-                threshold_T_K=100,
-                threshold_Tmean_K=100,
-                threshold_stderr_rel=100,
-                threshold_relslope_Kpmin=100,
-                threshold_slope_residuals=100,
+                threshold_T_K=0.1,
+                threshold_Tmean_K=0.2,
+                threshold_stderr_rel=5e-4,
+                threshold_relslope_Kpmin=1e-3,
+                threshold_slope_residuals=30,
             )
             tempdefinition = ["ITC", "Sensor_1_calerr_K"]
             parsed = True

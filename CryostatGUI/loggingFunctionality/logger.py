@@ -636,8 +636,8 @@ class live_Logger_bare:
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
         self.mainthread = mainthread
-        self.interval = 1
-        self.length_list = 60
+        self.interval = 0.1
+        self.length_list = 60 * 5 * 2
         self.data = mainthread.data
         self.dataLock = mainthread.dataLock
         self.dataLock_live = mainthread.dataLock_live
@@ -974,6 +974,8 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
+        self.interval = 0.1
+        self.length_list = 60 * 5 * 2
         del self.initialised
 
     def zmq_handle(self):

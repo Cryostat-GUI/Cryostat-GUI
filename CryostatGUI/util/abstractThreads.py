@@ -253,7 +253,7 @@ class AbstractLoopThread(AbstractThread):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.interval = 0.5  # second
+        self.interval = 0.2  # second
         self.lock = Lock()
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
