@@ -207,7 +207,7 @@ class Sequence_functionsPersonal:
                  SweepRate=SweepRate
             )
         """
-        self.commanding(ID=self.tempdefinition[0],dictdump({'setTemp_K': dict(isSweep=False,isSweepStartCurrent=False,setTemp=temperature,)}))
+        self.commanding(ID=self.tempdefinition[0],message=dictdump({'setTemp_K': dict(isSweep=False,isSweepStartCurrent=False,setTemp=temperature,)}))
         self._logger.debug("setting the temp to {}K, no sweep".format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
