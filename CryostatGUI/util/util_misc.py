@@ -58,7 +58,6 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from .customExceptions import BlockedError
 from .customExceptions import ApplicationExit
-from .customExceptions import problemAbort
 
 # from zmqcomms import zmqClient
 # from zmqcomms import zmqDataStore

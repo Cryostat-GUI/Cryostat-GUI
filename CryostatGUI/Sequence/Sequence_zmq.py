@@ -507,7 +507,7 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is purged
         """
-        self._logger.debug(f"chamber_purge :: purging chamber")
+        self._logger.debug("chamber_purge :: purging chamber")
         raise NotImplementedError
 
     def chamber_vent(self):
@@ -515,7 +515,7 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is vented
         """
-        self._logger.debug(f"chamber_vent :: venting chamber")
+        self._logger.debug("chamber_vent :: venting chamber")
         raise NotImplementedError
 
     def chamber_seal(self):
@@ -523,15 +523,15 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is sealed
         """
-        self._logger.debug(f"chamber_seal :: sealing chamber")
+        self._logger.debug("chamber_seal :: sealing chamber")
         raise NotImplementedError
 
     def chamber_continuous(self, action):
         """pump or vent the chamber continuously"""
         if action == "pumping":
-            self._logger.debug(f"chamber_continuous :: pumping continuously")
+            self._logger.debug("chamber_continuous :: pumping continuously")
         if action == "venting":
-            self._logger.debug(f"chamber_continuous :: venting continuously")
+            self._logger.debug("chamber_continuous :: venting continuously")
         raise NotImplementedError
 
     def chamber_high_vacuum(self):
@@ -539,7 +539,7 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is  at high vacuum
         """
-        self._logger.debug(f"chamber_high_vacuum :: bringing the chamber to HV")
+        self._logger.debug("chamber_high_vacuum :: bringing the chamber to HV")
         raise NotImplementedError
 
 
