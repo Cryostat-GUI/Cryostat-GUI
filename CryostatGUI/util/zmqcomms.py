@@ -502,7 +502,7 @@ class zmqDataStore(zmqBare):
         self.poller.register(self.comms_data, zmq.POLLIN)
 
         time.sleep(4)
-        # needed for the PUB/SUB sockets to find each other!        
+        # needed for the PUB/SUB sockets to find each other!
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
