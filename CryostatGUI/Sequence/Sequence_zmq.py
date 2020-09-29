@@ -84,6 +84,7 @@ class Sequence_functionsConvenience:
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
         self.tempdefinition = tempdefinition
+        self.thresholdsconf = thresholdsconf
 
     @pyqtSlot(dict)
     def storing_thresholds(self, thresholds: dict):
@@ -135,23 +136,23 @@ class Sequence_functionsConvenience:
 
                 temperature = self.getTemperature()
                 mean = self.readDataFromList(
-                    dataind1=self.tempdefinition[0],
-                    dataind2=self.tempdefinition[1] + "_calc_ar_mean",
+                    dataindicator1=self.tempdefinition[0],
+                    dataindicator2=self.tempdefinition[1] + "_calc_ar_mean",
                     Live=True,
                 )
                 stderr_rel = self.readDataFromList(
-                    dataind1=self.tempdefinition[0],
-                    dataind2=self.tempdefinition[1] + "_calc_stderr_rel",
+                    dataindicator1=self.tempdefinition[0],
+                    dataindicator2=self.tempdefinition[1] + "_calc_stderr_rel",
                     Live=True,
                 )
                 slope_rel = self.readDataFromList(
-                    dataind1=self.tempdefinition[0],
-                    dataind2=self.tempdefinition[1] + "_calc_slope_rel",
+                    dataindicator1=self.tempdefinition[0],
+                    dataindicator2=self.tempdefinition[1] + "_calc_slope_rel",
                     Live=True,
                 )
                 slope_residuals = self.readDataFromList(
-                    dataind1=self.tempdefinition[0],
-                    dataind2=self.tempdefinition[1] + "_calc_slope_residuals",
+                    dataindicator1=self.tempdefinition[0],
+                    dataindicator2=self.tempdefinition[1] + "_calc_slope_residuals",
                     Live=True,
                 )
 

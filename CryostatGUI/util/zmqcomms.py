@@ -366,8 +366,9 @@ class zmqMainControl(zmqBare):
                             )
                         raise successExit
                     except zmq.Again:
-                        time.sleep(0.1)
-                time.sleep(2)
+                        time.sleep(0.3)
+                self._logger.debug("no answer after 5 trials, sleeping for a while")
+                time.sleep(1)
 
             self._logger.warning("got no answer from dataStorage within 6s")
             # TODO: fallback to querying individual application parts for data
