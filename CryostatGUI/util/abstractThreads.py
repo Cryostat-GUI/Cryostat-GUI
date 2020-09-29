@@ -290,7 +290,11 @@ class AbstractLoopThread(AbstractThread):
             diff = timediff(start, end)
             timeToWait = self.interval * 1e3 - diff
             if timeToWait < 0:
-                self._logger.debug("no wait for loop iteration, len(lastIt) = %f s > wait = %f", diff * 1e-3, self.interval)
+                self._logger.debug(
+                    "no wait for loop iteration, len(lastIt) = %f s > wait = %f",
+                    diff * 1e-3,
+                    self.interval,
+                )
                 timeToWait = 0
         except NameError:
             timeToWait = 1e3

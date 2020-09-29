@@ -191,7 +191,6 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         mainthread.spin_threadinterval.valueChanged.connect(self.setInterval)
 
-
     # @control_checks
     @ExceptionHandling
     def running(self):

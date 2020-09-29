@@ -13,6 +13,7 @@ from .util.customExceptions import successExit
 from .util.customExceptions import genericAnswer
 
 from .util.util_misc import ExceptionHandling
+
 # from threading import Thread
 
 # from util import ExceptionHandling
@@ -142,6 +143,7 @@ def raiseProblemAbort(_f=None, raising=False):
         returns a single value if raising=True
         else it always returns message and error, either of which is None
         """
+
         @functools.wraps(func)
         def wrapper_raiseProblemAbort(*args, **kwargs):
             # if inspect.isclass(type(args[0])):
@@ -151,11 +153,15 @@ def raiseProblemAbort(_f=None, raising=False):
                     if isinstance(error, Exception):
                         raise error
                     else:
-                        logger.warning("somehow a not-exception object ended up where it should not.")
+                        logger.warning(
+                            "somehow a not-exception object ended up where it should not."
+                        )
                 return message
             else:
                 return message, error
+
         return wrapper_raiseProblemAbort
+
     return _decorator(_f) if callable(_f) else _decorator
 
 
@@ -340,7 +346,9 @@ class zmqMainControl(zmqBare):
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
     def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
-        message = enc('?' + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live)))
+        message = enc(
+            "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
+        )
         try:
             self.comms_data.send(message)
             for _ in range(3):
@@ -348,14 +356,20 @@ class zmqMainControl(zmqBare):
                     try:
                         message = dictload(self.comms_data.recv(flags=zmq.NOBLOCK))
                         if "ERROR" in message:
-                            self._logger.warning("received error from dataStorage: %s -- %s", message["ERROR_message"], message["info"])
-                            raise problemAbort("problem with data retrieval, possibly the requested data is missing")
+                            self._logger.warning(
+                                "received error from dataStorage: %s -- %s",
+                                message["ERROR_message"],
+                                message["info"],
+                            )
+                            raise problemAbort(
+                                "problem with data retrieval, possibly the requested data is missing"
+                            )
                         raise successExit
                     except zmq.Again:
                         time.sleep(0.1)
                 time.sleep(2)
 
-            self._logger.warning('got no answer from dataStorage within 6s')
+            self._logger.warning("got no answer from dataStorage within 6s")
             # TODO: fallback to querying individual application parts for data
             raise problemAbort("dataStorage unresponsive, abort")
         except zmq.ZMQError as e:
@@ -377,16 +391,31 @@ class zmqMainControl(zmqBare):
             startdate = dt.now()
             while not uptodate:
                 self.check_running()
-                dataPackage = self.retrieveDataIndividual(dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live)
+                dataPackage = self.retrieveDataIndividual(
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2,
+                    Live=Live,
+                )
                 uptodate = dataPackage["uptodate"]
 
                 if (dt.now() - startdate) / dtdelta(minutes=1) > 2:
-                    self._logger.error("retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting", dataindicator1, dataindicator2)
+                    self._logger.error(
+                        "retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting",
+                        dataindicator1,
+                        dataindicator2,
+                    )
                     # we are not patient anymore
-                    raise problemAbort(f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort")
+                    raise problemAbort(
+                        f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort"
+                    )
                 elif (dt.now() - startdate) / dtdelta(seconds=1) > 10:
                     timediff = dataPackage["timediff"]
-                    self._logger.warning("retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s", dataindicator1, dataindicator2, timediff)
+                    self._logger.warning(
+                        "retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s",
+                        dataindicator1,
+                        dataindicator2,
+                        timediff,
+                    )
                     # there might be a problem with the respective device, but we will be patient, for now
             data = dataPackage["data"]
             return data, None  # second value is indicating no error was raised

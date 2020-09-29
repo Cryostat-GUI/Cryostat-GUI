@@ -69,18 +69,12 @@ def _(dt, allowed_delay_s=3):
 def _(dt, allowed_delay_s=3):
     try:
         timediff = (
-            datetime.strptime(
-                dt, "%Y-%m-%d %H:%M:%S.%f"
-            )
-            - datetime.now()
+            datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f") - datetime.now()
         ).total_seconds()
     except ValueError as err:
         if "does not match format" in err.args[0]:
             timediff = (
-                datetime.strptime(
-                    dt, "%Y-%m-%d %H:%M:%S"
-                )
-                - datetime.now()
+                datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") - datetime.now()
             ).total_seconds()
         else:
             raise err
@@ -90,9 +84,7 @@ def _(dt, allowed_delay_s=3):
 
 @calculate_timediff.register(datetime)
 def _(dt, allowed_delay_s=3):
-    timediff = (
-        dt - datetime.now()
-    ).total_seconds()
+    timediff = (dt - datetime.now()).total_seconds()
     uptodate = abs(timediff) < allowed_delay_s
     return uptodate, timediff
 
@@ -730,7 +722,9 @@ class live_Logger_bare:
                         if self.count > self.length_list:
                             self.counting = False
                             self.data_live[instr][varkey].pop(0)
-                        uptodate, timediff = calculate_timediff(self.data_live[instr]["realtime"])
+                        uptodate, timediff = calculate_timediff(
+                            self.data_live[instr]["realtime"]
+                        )
                         if uptodate:
                             try:
                                 _val = self.data_live[instr][varkey][-1]
@@ -1024,11 +1018,15 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             if live:
                 with self.dataLock_live:
                     data = self.data_live[qdict["instr"]][qdict["value"]][-1]
-                    uptodate, timediff = calculate_timediff(self.data_live[qdict["instr"]]["realtime"], allowed_delay_s=3)
+                    uptodate, timediff = calculate_timediff(
+                        self.data_live[qdict["instr"]]["realtime"], allowed_delay_s=3
+                    )
             else:
                 with self.dataLock:
                     data = self.data[qdict["instr"]][qdict["value"]]
-                    uptodate, timediff = calculate_timediff(self.data[qdict["instr"]]["realtime"], allowed_delay_s=3)
+                    uptodate, timediff = calculate_timediff(
+                        self.data[qdict["instr"]]["realtime"], allowed_delay_s=3
+                    )
         except KeyError as e:
             return dict(
                 ERROR="KeyError",

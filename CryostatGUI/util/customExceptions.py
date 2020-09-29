@@ -1,4 +1,3 @@
-
 class BlockedError(Exception):
     """raised by the contextmanager noblopckLock when a LoopThread is paused"""
 

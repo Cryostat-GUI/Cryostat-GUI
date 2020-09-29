@@ -1,13 +1,17 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
+
 # from PyQt5.QtCore import QTimer
 
 import sys
+
 # import datetime as dt
 # import zmq
 import time
+
 # from copy import deepcopy
 import pandas as pd
+
 # import numpy as np
 # from numpy.polynomial.polynomial import polyfit
 # from itertools import combinations_with_replacement as comb
@@ -19,12 +23,14 @@ from threading import Lock
 
 
 from util import AbstractThread
+
 # from util import AbstractEventhandlingThread
 # from util import loops_off
 # from util import ExceptionHandling
 # from util import convert_time
 # from util import convert_time_searchable
 from util.zmqcomms import dictdump
+
 # from util.zmqcomms import enc
 # from util.zmqcomms import successExit
 from util.zmqcomms import raiseProblemAbort
@@ -35,6 +41,7 @@ import measureSequences as mS
 # from qlistmodel import ScanningN
 
 from Sequence import problemAbort
+
 # from Sequence import AbstractMeasureResistance
 # from Sequence import AbstractMeasureResistanceMultichannel
 
@@ -57,7 +64,9 @@ class Sequence_comms_zmq(zmqMainControl):
 
     @raiseProblemAbort(raising=True)
     def retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
-        return super()._bare_retrieveDataIndividual(dataindicator1, dataindicator2, Live=True)
+        return super()._bare_retrieveDataIndividual(
+            dataindicator1, dataindicator2, Live=True
+        )
 
 
 class Sequence_functionsConvenience:
@@ -68,12 +77,7 @@ class Sequence_functionsConvenience:
         self.readDataFromList()
     """
 
-    def __init__(
-        self,
-        thresholdsconf: dict,
-        tempdefinition: list,
-        **kwargs
-    ):
+    def __init__(self, thresholdsconf: dict, tempdefinition: list, **kwargs):
         super().__init__(*args, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -207,7 +211,18 @@ class Sequence_functionsPersonal:
                  SweepRate=SweepRate
             )
         """
-        self.commanding(ID=self.tempdefinition[0],message=dictdump({'setTemp_K': dict(isSweep=False,isSweepStartCurrent=False,setTemp=temperature,)}))
+        self.commanding(
+            ID=self.tempdefinition[0],
+            message=dictdump(
+                {
+                    "setTemp_K": dict(
+                        isSweep=False,
+                        isSweepStartCurrent=False,
+                        setTemp=temperature,
+                    )
+                }
+            ),
+        )
         self._logger.debug("setting the temp to {}K, no sweep".format(temperature))
 
     def setField(self, field: float, EndMode: str) -> None:
@@ -252,12 +267,20 @@ class Sequence_functionsPersonal:
         if not isSweepStartCurrent:
             self.setTemperature(temperature=start)
             self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
-        self.commanding(ID=self.tempdefinition[0],message=dictdump({'setTemp_K':
-            dict(isSweep=True,
-                 isSweepStartCurrent=True,
-                 start=start,
-                 end=end,
-                 SweepRate=SweepRate,)}))
+        self.commanding(
+            ID=self.tempdefinition[0],
+            message=dictdump(
+                {
+                    "setTemp_K": dict(
+                        isSweep=True,
+                        isSweepStartCurrent=True,
+                        start=start,
+                        end=end,
+                        SweepRate=SweepRate,
+                    )
+                }
+            ),
+        )
         self._logger.debug(
             f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, temps: {temperatures}, Rate: {SweepRate}, SpacingCode: {SpacingCode}"
         )
@@ -283,14 +306,24 @@ class Sequence_functionsPersonal:
         )
         raise NotImplementedError
 
-    def scan_P_programSweep(self, start: float, end: float, Nsteps: float, positions: list, speedindex: float, SpacingCode: str = 'uniform'):
+    def scan_P_programSweep(
+        self,
+        start: float,
+        end: float,
+        Nsteps: float,
+        positions: list,
+        speedindex: float,
+        SpacingCode: str = "uniform",
+    ):
         """
-            Method to be overriden by a child class
-            here, the devices should be programmed to start
-            the respective Sweep of positions
-            TODO: implement for pressure
+        Method to be overriden by a child class
+        here, the devices should be programmed to start
+        the respective Sweep of positions
+        TODO: implement for pressure
         """
-        self._logger.debug(f'scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex}, SpacingCode: {SpacingCode}')
+        self._logger.debug(
+            f"scan_T_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, positions: {positions}, speedindex: {speedindex}, SpacingCode: {SpacingCode}"
+        )
         raise NotImplementedError
 
     def setFieldEndMode(self, EndMode: str) -> bool:
@@ -367,7 +400,9 @@ class Sequence_functionsPersonal:
         )
         raise NotImplementedError
 
-    def checkPosition(self, position: float, direction: int = 0, ApproachMode: str = 'Sweep') -> bool:
+    def checkPosition(
+        self, position: float, direction: int = 0, ApproachMode: str = "Sweep"
+    ) -> bool:
         """check whether the Field has passed a certain value
 
         param: position:
@@ -389,13 +424,17 @@ class Sequence_functionsPersonal:
             will be added in the future
         TODO: implement for pressure
         """
-        self._logger.debug(f'checkPosition :: position: {position} is stable!, ApproachMode = {ApproachMode}, direction = {direction}')
+        self._logger.debug(
+            f"checkPosition :: position: {position} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+        )
         raise NotImplementedError
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
         self._logger.debug("going into safe shutdown mode")
-        self._logger.warning("no commands specified for shutdown mode, leaving everything 'as is'")
+        self._logger.warning(
+            "no commands specified for shutdown mode, leaving everything 'as is'"
+        )
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity
@@ -461,7 +500,7 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is purged
         """
-        self._logger.debug(f'chamber_purge :: purging chamber')
+        self._logger.debug(f"chamber_purge :: purging chamber")
         raise NotImplementedError
 
     def chamber_vent(self):
@@ -469,7 +508,7 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is vented
         """
-        self._logger.debug(f'chamber_vent :: venting chamber')
+        self._logger.debug(f"chamber_vent :: venting chamber")
         raise NotImplementedError
 
     def chamber_seal(self):
@@ -477,15 +516,15 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is sealed
         """
-        self._logger.debug(f'chamber_seal :: sealing chamber')
+        self._logger.debug(f"chamber_seal :: sealing chamber")
         raise NotImplementedError
 
     def chamber_continuous(self, action):
         """pump or vent the chamber continuously"""
-        if action == 'pumping':
-            self._logger.debug(f'chamber_continuous :: pumping continuously')
-        if action == 'venting':
-            self._logger.debug(f'chamber_continuous :: venting continuously')
+        if action == "pumping":
+            self._logger.debug(f"chamber_continuous :: pumping continuously")
+        if action == "venting":
+            self._logger.debug(f"chamber_continuous :: venting continuously")
         raise NotImplementedError
 
     def chamber_high_vacuum(self):
@@ -493,17 +532,17 @@ class Sequence_functionsPersonal_chamberrelated:
 
         must block until the chamber is  at high vacuum
         """
-        self._logger.debug(f'chamber_high_vacuum :: bringing the chamber to HV')
+        self._logger.debug(f"chamber_high_vacuum :: bringing the chamber to HV")
         raise NotImplementedError
 
 
 class Sequence_Thread_zmq(
-            mS.Sequence_runner,
-            AbstractThread,
-            Sequence_functionsConvenience,
-            Sequence_functionsPersonal,
-            Sequence_comms_zmq,
-    ):
+    mS.Sequence_runner,
+    AbstractThread,
+    Sequence_functionsConvenience,
+    Sequence_functionsPersonal,
+    Sequence_comms_zmq,
+):
     """docstring for Sequence_Thread"""
 
     # sig_aborted = pyqtSignal()
@@ -537,7 +576,7 @@ class Sequence_Thread_zmq(
         # print('data from main:' ,zmqquery(self.zmq_sSeq, 'data'))
         try:
             with PidFile("zmqLogger"):
-                msg = 'zmqLogger is not running, no data available, aborting'
+                msg = "zmqLogger is not running, no data available, aborting"
                 self._logger.error(msg)
                 self.sig_finished.emit(msg)
                 return
@@ -640,7 +679,7 @@ if __name__ == "__main__":
                 threshold_stderr_rel=100,
                 threshold_relslope_Kpmin=100,
                 threshold_slope_residuals=100,
-                )
+            )
             tempdefinition = [b"ITC", "Sensor_1_calerr_K"]
             parsed = True
             if not parsed:
@@ -652,7 +691,7 @@ if __name__ == "__main__":
                 sequence=sequence,
                 thresholdsconf=thresholdsconf,
                 tempdefinition=tempdefinition,
-                )
+            )
 
             runner.work()
     except PidFileError:
