@@ -446,7 +446,7 @@ class zmqMainControl(zmqBare):
     def readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
-        return self._bare_readDataFromList(dataindicator1, dataindicator2, live)
+        return self._bare_readDataFromList(dataindicator1, dataindicator2, Live)
 
 
 class zmqDataStore(zmqBare):

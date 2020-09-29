@@ -61,7 +61,7 @@ class Sequence_comms_zmq(zmqMainControl):
     def readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
-        return super()._bare_readDataFromList(dataindicator1, dataindicator2, live)
+        return super()._bare_readDataFromList(dataindicator1, dataindicator2, Live)
 
     @raiseProblemAbort(raising=True)
     def retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
@@ -79,7 +79,7 @@ class Sequence_functionsConvenience:
     """
 
     def __init__(self, thresholdsconf: dict, tempdefinition: list, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -248,7 +248,10 @@ class Sequence_functionsPersonal:
         self._logger.debug(
             f"setting the position to {position}, speedindex = {speedindex}"
         )
-        raise NotImplementedError
+        self._logger.debug(
+            "Not Implemented!"
+        )        
+        # raise NotImplementedError
 
     def scan_T_programSweep(
         self,
@@ -369,7 +372,7 @@ class Sequence_functionsPersonal:
         returns: temperature as a float
         """
         return self.readDataFromList(
-            dataind1=self.tempdefinition[0], dataind2=self.tempdefinition[1], Live=False
+            dataindicator1=self.tempdefinition[0], dataindicator2=self.tempdefinition[1], Live=False
         )
 
     def checkField(
@@ -538,11 +541,11 @@ class Sequence_functionsPersonal_chamberrelated:
 
 
 class Sequence_Thread_zmq(
-    mS.Sequence_runner,
-    AbstractThread,
     Sequence_functionsConvenience,
     Sequence_functionsPersonal,
     Sequence_comms_zmq,
+    mS.Sequence_runner,
+    AbstractThread,
 ):
     """docstring for Sequence_Thread"""
 
@@ -662,6 +665,9 @@ if __name__ == "__main__":
             logger_3 = logging.getLogger("PyQt5")
             logger_3.setLevel(logging.INFO)
 
+            logger_4 = logging.getLogger("measureSequences")
+            logger_4.setLevel(logging.WARNING)
+
             handler = logging.StreamHandler(sys.stdout)
             handler.setLevel(logging.DEBUG)
             formatter = logging.Formatter(
@@ -672,8 +678,9 @@ if __name__ == "__main__":
             logger.addHandler(handler)
             logger_2.addHandler(handler)
             logger_3.addHandler(handler)
+            logger_4.addHandler(handler)
 
-            filename = "seqfiles/measure.seq"
+            filename = "seqfiles/measure.json"
             thresholdsconf = dict(
                 threshold_T_K=100,
                 threshold_Tmean_K=100,
@@ -681,8 +688,8 @@ if __name__ == "__main__":
                 threshold_relslope_Kpmin=100,
                 threshold_slope_residuals=100,
             )
-            tempdefinition = [b"ITC", "Sensor_1_calerr_K"]
-            parsed = False
+            tempdefinition = ["ITC", "Sensor_1_calerr_K"]
+            parsed = True
             if not parsed:
                 parser = mS.Sequence_parser(sequence_file=filename)
                 sequence = parser.data
@@ -693,6 +700,7 @@ if __name__ == "__main__":
                 sequence=sequence,
                 thresholdsconf=thresholdsconf,
                 tempdefinition=tempdefinition,
+                python_default_path="Sequence/",
             )
 
             runner.work()
