@@ -344,10 +344,10 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
                 if self.run_finished:
                     self.run_prometheus()
                     self.send_data_upstream()
-            end = dt.now()
         except BlockedError:
             pass
         finally:
+            end = dt.now()
             timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
