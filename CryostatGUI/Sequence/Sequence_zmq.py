@@ -30,6 +30,7 @@ from util import AbstractThread
 # from util import convert_time
 # from util import convert_time_searchable
 from util.zmqcomms import dictdump
+from json import loads
 
 # from util.zmqcomms import enc
 # from util.zmqcomms import successExit
@@ -672,7 +673,7 @@ if __name__ == "__main__":
             logger_2.addHandler(handler)
             logger_3.addHandler(handler)
 
-            filename = ""
+            filename = "seqfiles/measure.seq"
             thresholdsconf = dict(
                 threshold_T_K=100,
                 threshold_Tmean_K=100,
@@ -681,12 +682,13 @@ if __name__ == "__main__":
                 threshold_slope_residuals=100,
             )
             tempdefinition = [b"ITC", "Sensor_1_calerr_K"]
-            parsed = True
+            parsed = False
             if not parsed:
                 parser = mS.Sequence_parser(sequence_file=filename)
                 sequence = parser.data
             else:
-                sequence = loads(filename)
+                with open(filename, 'r') as f:
+                    sequence = loads(f.read())
             runner = Sequence_Thread_zmq(
                 sequence=sequence,
                 thresholdsconf=thresholdsconf,
