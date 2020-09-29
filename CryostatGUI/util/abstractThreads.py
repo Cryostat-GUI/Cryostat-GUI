@@ -267,12 +267,12 @@ class AbstractLoopThread(AbstractThread):
             start = dt.now()
             with noblockLock(self.lock):
                 self.running()
-            end = dt.now()
         except BlockedError:
             pass
         except AssertionError as assertion:
             self.sig_assertion.emit(assertion.args[0])
         finally:
+            end = dt.now()
             timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
@@ -290,11 +290,11 @@ class AbstractLoopThread(AbstractThread):
             diff = timediff(start, end)
             timeToWait = self.interval * 1e3 - diff
             if timeToWait < 0:
-                self._logger.debug(
-                    "no wait for loop iteration, len(lastIt) = %f s > wait = %f",
-                    diff * 1e-3,
-                    self.interval,
-                )
+                # self._logger.debug(
+                #     "no wait for loop iteration, len(lastIt) = %f s > wait = %f",
+                #     diff * 1e-3,
+                #     self.interval,
+                # )
                 timeToWait = 0
         except NameError:
             timeToWait = 1e3
@@ -322,10 +322,10 @@ class AbstractLoopZmqThread(AbstractLoopThread):
                 if self.run_finished:
                     # self._logger.debug("Hardware run finished, sending data upstream!")
                     self.send_data_upstream()
-            end = dt.now()
         except BlockedError:
             pass
         finally:
+            end = dt.now()
             timeToWait = self.calculate_timeToWait(start, end)
             QTimer.singleShot(timeToWait, self.work)
 
