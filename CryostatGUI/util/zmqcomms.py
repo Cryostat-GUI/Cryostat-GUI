@@ -8,11 +8,11 @@ import time
 from datetime import datetime as dt
 from datetime import timedelta as dtdelta
 
-from .util.customExceptions import problemAbort
-from .util.customExceptions import successExit
-from .util.customExceptions import genericAnswer
+from .customExceptions import problemAbort
+from .customExceptions import successExit
+from .customExceptions import genericAnswer
 
-from .util.util_misc import ExceptionHandling
+from .util_misc import ExceptionHandling
 
 # from threading import Thread
 
