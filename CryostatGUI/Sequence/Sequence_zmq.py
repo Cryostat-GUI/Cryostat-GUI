@@ -248,9 +248,7 @@ class Sequence_functionsPersonal:
         self._logger.debug(
             f"setting the position to {position}, speedindex = {speedindex}"
         )
-        self._logger.debug(
-            "Not Implemented!"
-        )        
+        self._logger.debug("Not Implemented!")
         # raise NotImplementedError
 
     def scan_T_programSweep(
@@ -372,7 +370,9 @@ class Sequence_functionsPersonal:
         returns: temperature as a float
         """
         return self.readDataFromList(
-            dataindicator1=self.tempdefinition[0], dataindicator2=self.tempdefinition[1], Live=False
+            dataindicator1=self.tempdefinition[0],
+            dataindicator2=self.tempdefinition[1],
+            Live=False,
         )
 
     def checkField(
