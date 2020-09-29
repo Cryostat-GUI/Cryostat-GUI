@@ -1,32 +1,32 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtCore import QTimer
+# from PyQt5.QtCore import QTimer
 
 import sys
-import datetime as dt
-import zmq
+# import datetime as dt
+# import zmq
 import time
-from copy import deepcopy
+# from copy import deepcopy
 import pandas as pd
-import numpy as np
-from numpy.polynomial.polynomial import polyfit
-from itertools import combinations_with_replacement as comb
+# import numpy as np
+# from numpy.polynomial.polynomial import polyfit
+# from itertools import combinations_with_replacement as comb
 
 
-from datetime import datetime as dt
-from datetime import timedelta as dtdelta
+# from datetime import datetime as dt
+# from datetime import timedelta as dtdelta
 from threading import Lock
 
 
 from util import AbstractThread
-from util import AbstractEventhandlingThread
-from util import loops_off
-from util import ExceptionHandling
-from util import convert_time
-from util import convert_time_searchable
+# from util import AbstractEventhandlingThread
+# from util import loops_off
+# from util import ExceptionHandling
+# from util import convert_time
+# from util import convert_time_searchable
 from util.zmqcomms import dictdump
-from util.zmqcomms import enc
-from util.zmqcomms import successExit
+# from util.zmqcomms import enc
+# from util.zmqcomms import successExit
 from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 
@@ -35,8 +35,8 @@ import measureSequences as mS
 # from qlistmodel import ScanningN
 
 from Sequence import problemAbort
-from Sequence import AbstractMeasureResistance
-from Sequence import AbstractMeasureResistanceMultichannel
+# from Sequence import AbstractMeasureResistance
+# from Sequence import AbstractMeasureResistanceMultichannel
 
 from pid import PidFile
 from pid import PidFileError
@@ -237,11 +237,11 @@ class Sequence_functionsPersonal:
     def scan_T_programSweep(
         self,
         start: float = None,
-        isSweepStartCurrent: bool,
-        end: float,
-        Nsteps: float,
-        temperatures: list,
-        SweepRate: float,
+        isSweepStartCurrent: bool = False,
+        end: float = None,
+        Nsteps: float = None,
+        temperatures: list = None,
+        SweepRate: float = None,
         SpacingCode: str = "uniform",
     ):
         """
@@ -252,7 +252,7 @@ class Sequence_functionsPersonal:
         if not isSweepStartCurrent:
             self.setTemperature(temperature=start)
             self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
-        self.commanding(ID=self.tempdefinition[0],dictdump({'setTemp_K': 
+        self.commanding(ID=self.tempdefinition[0],message=dictdump({'setTemp_K':
             dict(isSweep=True,
                  isSweepStartCurrent=True,
                  start=start,
