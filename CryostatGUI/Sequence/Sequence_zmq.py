@@ -1,45 +1,19 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 
-# from PyQt5.QtCore import QTimer
-
 import sys
-
-# import datetime as dt
-# import zmq
 import time
-
-# from copy import deepcopy
 import pandas as pd
 
-# import numpy as np
-# from numpy.polynomial.polynomial import polyfit
-# from itertools import combinations_with_replacement as comb
-
-
-# from datetime import datetime as dt
-# from datetime import timedelta as dtdelta
 from threading import Lock
-
-
-from util import AbstractThread
-
-# from util import AbstractEventhandlingThread
-# from util import loops_off
-# from util import ExceptionHandling
-# from util import convert_time
-# from util import convert_time_searchable
-from util.zmqcomms import dictdump
 from json import loads
 
-# from util.zmqcomms import enc
-# from util.zmqcomms import successExit
+from util import AbstractThread
+from util.zmqcomms import dictdump
 from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 
 import measureSequences as mS
-
-# from qlistmodel import ScanningN
 
 from Sequence import problemAbort
 
