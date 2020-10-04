@@ -145,7 +145,9 @@ class Sequence_functionsConvenience:
             temperature = 0
             stable_values = []
             while not stable:
-                self._logger.info(f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}")
+                self._logger.info(
+                    f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}"
+                )
                 stable_values = []
                 self.check_running()
 
@@ -194,13 +196,17 @@ class Sequence_functionsConvenience:
             # temp should be rising, all temps above 'temp' are fine
             while self.getTemperature() < temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet above {temp} (current: {temperature:.3f})")
+                self._logger.debug(
+                    f"temp not yet above {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
             while self.getTemperature() > temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet below {temp} (current: {temperature:.3f})")
+                self._logger.debug(
+                    f"temp not yet below {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
 
         self._logger.info(
@@ -691,7 +697,9 @@ if __name__ == "__main__":
             logger_4 = logging.getLogger("measureSequences")
             logger_4.setLevel(logging.DEBUG)
 
-            handler_debug = logging.FileHandler(filename='Logs/Sequence_logs.log', mode='a')
+            handler_debug = logging.FileHandler(
+                filename="Logs/Sequence_logs.log", mode="a"
+            )
             handler_debug.setLevel(logging.DEBUG)
             formatter_debug = logging.Formatter(
                 "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"

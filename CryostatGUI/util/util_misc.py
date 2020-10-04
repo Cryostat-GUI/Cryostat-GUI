@@ -68,7 +68,6 @@ from .customExceptions import ApplicationExit
 
 
 class CustomStreamHandler(logging.StreamHandler):
-
     def __init__(self, levelno, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.levelno = levelno
