@@ -94,7 +94,12 @@ class Sequence_functionsConvenience:
         self.thresholdsconf = thresholds
 
     def checkStable_Temp(
-        self, temp: float, direction: int = 0, ApproachMode: str = "Sweep", weak=False, sensortype='control'
+        self,
+        temp: float,
+        direction: int = 0,
+        ApproachMode: str = "Sweep",
+        weak=False,
+        sensortype="control",
     ) -> bool:
         """wait for the temperature to stabilize
 
