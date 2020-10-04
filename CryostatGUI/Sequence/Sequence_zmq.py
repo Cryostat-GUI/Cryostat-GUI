@@ -86,6 +86,9 @@ class Sequence_functionsConvenience:
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
         self.tempdefinition = tempdefinition
+        # dict of two lists/tuples:
+        #   'control'  &   'sample'
+        # TODO: implement behavior
         self.thresholdsconf = thresholdsconf
 
     @pyqtSlot(dict)
@@ -93,7 +96,12 @@ class Sequence_functionsConvenience:
         self.thresholdsconf = thresholds
 
     def checkStable_Temp(
-        self, temp: float, direction: int = 0, ApproachMode: str = "Sweep"
+        self,
+        temp: float,
+        direction: int = 0,
+        ApproachMode: str = "Sweep",
+        weak=False,
+        sensortype="control",
     ) -> bool:
         """wait for the temperature to stabilize
 
@@ -112,6 +120,18 @@ class Sequence_functionsConvenience:
         param: ApproachMode:
             specifies the mode of approach in the scan this function is called
             ApproachMode = Sweep: only for sweeps
+
+        param: weak:
+            TODO: implement behavior
+            if True, do not check for distance to the temperature,
+            bot only for slope and residuals and mean stderr
+
+        param: sensortype:
+            TODO: implement behaivor
+            indicates which sensor from the tempdefinition to use:
+                sensortype = 'control': self.tempdefinition['control']
+                sensortype = 'sample': self.tempdefinition['sample']
+                sensortype = 'both': check for stability in both values
 
         method should be overriden - possibly some convenience functionality
             will be added in the future

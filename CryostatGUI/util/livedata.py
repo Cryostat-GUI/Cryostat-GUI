@@ -2,27 +2,6 @@ import logging
 from prometheus_client import start_http_server
 from prometheus_client import Gauge
 
-# from prometheus_client.exposition import REGISTRY
-# from prometheus_client.exposition import make_wsgi_app
-# from prometheus_client.exposition import make_server
-# from prometheus_client.exposition import ThreadingWSGIServer
-# from prometheus_client.exposition import _SilentHandler
-# import threading
-
-
-# def start_wsgi_server(port, addr='', registry=REGISTRY):
-#     """Starts a WSGI server for prometheus metrics as a daemon thread."""
-#     app = make_wsgi_app(registry)
-#     httpd = make_server(addr, port, app, ThreadingWSGIServer, handler_class=_SilentHandler)
-#     t = threading.Thread(target=httpd.serve_forever)
-#     t.daemon = True
-#     t.start()
-#     return t, httpd
-
-
-# start_http_server_custom = start_wsgi_server
-# start_http_server = start_http_server_custom
-
 
 class PrometheusGaugeClient:
     """docstring for PrometheusGaugedclient"""
@@ -72,7 +51,6 @@ class PrometheusGaugeClient:
         for variablekey in self.data:
             try:
                 self._gauges[variablekey].set(self.data[variablekey])
-                # self.Gauges[instr][varkey].set(dic[varkey])
             except TypeError as err:
                 if not err.args[0].startswith(
                     "float() argument must be a string or a number"
@@ -81,11 +59,13 @@ class PrometheusGaugeClient:
                 else:
                     # self._logger.debug(err.args[0] + f'instr:
                     # {instr}, varkey: {varkey}')
-                    pass
+                    # pass
+                    raise err
             except ValueError as err:
                 if not err.args[0].startswith("could not convert string to float"):
                     self._logger.exception(err.args[0])
                 else:
                     # self._logger.debug(err.args[0] + f'instr:
                     # {instr}, varkey: {varkey}')
-                    pass
+                    # pass
+                    raise err
