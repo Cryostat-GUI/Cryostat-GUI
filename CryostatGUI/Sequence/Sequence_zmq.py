@@ -13,6 +13,8 @@ from util.zmqcomms import dictdump
 from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 
+from util.util_misc import CustomStreamHandler
+
 import measureSequences as mS
 
 from Sequence import problemAbort
@@ -68,7 +70,12 @@ class Sequence_functionsConvenience:
         self.thresholdsconf = thresholds
 
     def checkStable_Temp(
-        self, temp: float, direction: int = 0, ApproachMode: str = "Sweep", weak=False, sensortype='control'
+        self,
+        temp: float,
+        direction: int = 0,
+        ApproachMode: str = "Sweep",
+        weak=False,
+        sensortype="control",
     ) -> bool:
         """wait for the temperature to stabilize
 
@@ -107,22 +114,16 @@ class Sequence_functionsConvenience:
         if direction == 0 or ApproachMode != "Sweep":
             # no information, temp should really stabilize
 
-            # if ApproachMode == "Sweep":
-            #     # self.sig_assertion.emit(
-            #     #     'Sequence: checkStable_Temp: no direction information available in Sweep, cannot check!')
-            #     # self._logger.error(
-            #     #     'no direction information available in Sweep, cannot check temperature!')
-            #     raise problemAbort(
-            #         "no direction information available in Sweep, cannot check temperature!"
-            #     )
-            #     # self.stop()
-            #     # self.check_running()
-
             stable = False
+            # count = None
+            temperature = 0
+            stable_values = []
             while not stable:
-                self._logger.info(f"waiting for stabilized temp: {temp}")
+                self._logger.info(
+                    f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}"
+                )
+                stable_values = []
                 self.check_running()
-                count = 0
 
                 temperature = self.getTemperature()
                 mean = self.readDataFromList(
@@ -147,20 +148,20 @@ class Sequence_functionsConvenience:
                 )
 
                 if abs(temperature - temp) < self.thresholdsconf["threshold_T_K"]:
-                    count += 1
+                    stable_values.append("T_K")
                 if abs(mean - temp) < self.thresholdsconf["threshold_Tmean_K"]:
-                    count += 1
+                    stable_values.append("Tmean_K")
                 if abs(stderr_rel) < self.thresholdsconf["threshold_stderr_rel"]:
-                    count += 1
+                    stable_values.append("stderr_rel")
                 if abs(slope_rel) < self.thresholdsconf["threshold_relslope_Kpmin"]:
-                    count += 1
+                    stable_values.append("relslope_Kpmin")
                 if (
                     abs(slope_residuals)
                     < self.thresholdsconf["threshold_slope_residuals"]
                 ):
-                    count += 1
+                    stable_values.append("slope_residuals")
 
-                if count >= 5:
+                if len(stable_values) >= 5:
                     stable = True
                 else:
                     time.sleep(1)
@@ -169,13 +170,17 @@ class Sequence_functionsConvenience:
             # temp should be rising, all temps above 'temp' are fine
             while self.getTemperature() < temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet above {temp}")
+                self._logger.debug(
+                    f"temp not yet above {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
             while self.getTemperature() > temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet below {temp}")
+                self._logger.debug(
+                    f"temp not yet below {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
 
         self._logger.info(
@@ -532,11 +537,17 @@ class Sequence_functionsPersonal_chamberrelated:
         raise NotImplementedError
 
 
-class Sequence_Thread_zmq(
+class Sequence_logic(
     Sequence_functionsConvenience,
     Sequence_functionsPersonal,
-    Sequence_comms_zmq,
     mS.Sequence_runner,
+):
+    pass
+
+
+class Sequence_Thread_zmq(
+    Sequence_logic,
+    Sequence_comms_zmq,
     AbstractThread,
 ):
     """docstring for Sequence_Thread"""
@@ -660,17 +671,28 @@ if __name__ == "__main__":
             logger_4 = logging.getLogger("measureSequences")
             logger_4.setLevel(logging.DEBUG)
 
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter(
+            handler_debug = logging.FileHandler(
+                filename="Logs/Sequence_logs.log", mode="a"
+            )
+            handler_debug.setLevel(logging.DEBUG)
+            formatter_debug = logging.Formatter(
                 "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
             )
-            handler.setFormatter(formatter)
+            handler_debug.setFormatter(formatter_debug)
 
-            logger.addHandler(handler)
-            logger_2.addHandler(handler)
-            logger_3.addHandler(handler)
-            # logger_4.addHandler(handler)
+            handler_info = CustomStreamHandler(logging.INFO, sys.stdout)
+            handler_info.setLevel(logging.INFO)
+            formatter_info = logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s"
+            )
+            handler_info.setFormatter(formatter_info)
+
+            logger.addHandler(handler_debug)
+            logger.addHandler(handler_info)
+            logger_2.addHandler(handler_debug)
+            logger_3.addHandler(handler_debug)
+            logger_4.addHandler(handler_debug)
+            logger_4.addHandler(handler_info)
 
             filename = "seqfiles/testing_setTemp.json"
             thresholdsconf = dict(

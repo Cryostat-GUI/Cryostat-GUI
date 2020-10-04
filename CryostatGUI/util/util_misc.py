@@ -67,6 +67,17 @@ from .customExceptions import ApplicationExit
 # from loggingFunctionality.sqlBaseFunctions import SQLiteHandler
 
 
+class CustomStreamHandler(logging.StreamHandler):
+    def __init__(self, levelno, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.levelno = levelno
+
+    def emit(self, record):
+        if not record.levelno == self.levelno:
+            return
+        logging.StreamHandler.emit(self, record)
+
+
 def convert_time_date(ts):
     """converts timestamps from time.time() into date string"""
     return dt.fromtimestamp(ts).strftime("%d%m%Y")
