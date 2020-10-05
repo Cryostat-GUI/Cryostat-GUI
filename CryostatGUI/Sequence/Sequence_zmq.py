@@ -159,7 +159,9 @@ class Sequence_functionsConvenience:
                 ):
                     stable_values.append("slope_residuals")
 
-                self._logger.info(f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}")
+                self._logger.info(
+                    f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}"
+                )
 
                 if len(stable_values) >= 5:
                     stable = True
