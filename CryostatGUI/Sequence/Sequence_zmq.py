@@ -145,7 +145,6 @@ class Sequence_functionsConvenience:
             temperature = 0
             stable_values = []
             while not stable:
-                self._logger.info(f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}")
                 stable_values = []
                 self.check_running()
 
@@ -184,6 +183,8 @@ class Sequence_functionsConvenience:
                     < self.thresholdsconf["threshold_slope_residuals"]
                 ):
                     stable_values.append("slope_residuals")
+
+                self._logger.info(f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}")
 
                 if len(stable_values) >= 5:
                     stable = True
@@ -716,7 +717,7 @@ if __name__ == "__main__":
             thresholdsconf = dict(
                 threshold_T_K=0.1,
                 threshold_Tmean_K=0.2,
-                threshold_stderr_rel=5e-4,
+                threshold_stderr_rel=1e-5,
                 threshold_relslope_Kpmin=1e-3,
                 threshold_slope_residuals=30,
             )
