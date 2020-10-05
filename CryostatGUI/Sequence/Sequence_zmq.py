@@ -1,47 +1,21 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 
-# from PyQt5.QtCore import QTimer
-
 import sys
-
-# import datetime as dt
-# import zmq
 import time
-
-# from copy import deepcopy
 import pandas as pd
 
-# import numpy as np
-# from numpy.polynomial.polynomial import polyfit
-# from itertools import combinations_with_replacement as comb
-
-
-# from datetime import datetime as dt
-# from datetime import timedelta as dtdelta
 from threading import Lock
-
-
-from util import AbstractThread
-
-# from util import AbstractEventhandlingThread
-# from util import loops_off
-# from util import ExceptionHandling
-# from util import convert_time
-# from util import convert_time_searchable
-from util.zmqcomms import dictdump
 from json import loads
 
-# from util.zmqcomms import enc
-# from util.zmqcomms import successExit
+from util import AbstractThread
+from util.zmqcomms import dictdump
 from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 
 from util.util_misc import CustomStreamHandler
 
 import measureSequences as mS
-
-# from qlistmodel import ScanningN
 
 from Sequence import problemAbort
 
@@ -145,6 +119,7 @@ class Sequence_functionsConvenience:
             temperature = 0
             stable_values = []
             while not stable:
+
                 stable_values = []
                 self.check_running()
 
@@ -195,13 +170,17 @@ class Sequence_functionsConvenience:
             # temp should be rising, all temps above 'temp' are fine
             while self.getTemperature() < temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet above {temp} (current: {temperature:.3f})")
+                self._logger.debug(
+                    f"temp not yet above {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
             while self.getTemperature() > temp:
                 self.check_running()
-                self._logger.debug(f"temp not yet below {temp} (current: {temperature:.3f})")
+                self._logger.debug(
+                    f"temp not yet below {temp} (current: {temperature:.3f})"
+                )
                 time.sleep(1)
 
         self._logger.info(
@@ -692,7 +671,9 @@ if __name__ == "__main__":
             logger_4 = logging.getLogger("measureSequences")
             logger_4.setLevel(logging.DEBUG)
 
-            handler_debug = logging.FileHandler(filename='Logs/Sequence_logs.log', mode='a')
+            handler_debug = logging.FileHandler(
+                filename="Logs/Sequence_logs.log", mode="a"
+            )
             handler_debug.setLevel(logging.DEBUG)
             formatter_debug = logging.Formatter(
                 "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
