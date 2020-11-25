@@ -132,7 +132,6 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
             mainthread.sig_sendConfTemp.connect(self.setTemperature)
             mainthread.sig_stopSweep.connect(self.stopSweep)
 
-
             # -------------------------------------------------------------------------------------------------------------------------
 
             # def change_gas(self):
@@ -628,8 +627,8 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 
-    # @pyqtSlot(int)
-    # def gettoset_Control(self, value):
+        # @pyqtSlot(int)
+        # def gettoset_Control(self, value):
         """receive and store the value to set the Control status"""
         self.control_state = value
 

@@ -87,6 +87,7 @@ class Timerthread(Thread):
 
 class Timerthread_Clients(zmqClient, PrometheusGaugeClient, Timerthread):
     """docstring for Timerthread_Clients"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.run_finished = False
@@ -95,13 +96,13 @@ class Timerthread_Clients(zmqClient, PrometheusGaugeClient, Timerthread):
         )
 
     def work(self):
-        self.zmq_handle()                  # inherited from zmqClient
+        self.zmq_handle()  # inherited from zmqClient
         with noblockLock(self.lock):
             self.running()
             if self.run_finished:
-                self.run_prometheus()      # inherited from PrometheusGaugeClient
+                self.run_prometheus()  # inherited from PrometheusGaugeClient
                 self.send_data_upstream()  # inherited from zmqClient
-        
+
 
 class AbstractApp(QtWidgets.QMainWindow):
     """docstring for AbstractApp"""

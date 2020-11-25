@@ -165,7 +165,9 @@ def HandleVisaException(func):
         except AttributeError as e:
             if e.args[0].endswith("'_visa_resource'"):
                 self._logger.exception(e)
-                raise ApplicationExit("something bad happened here, possibly could not restore visa")
+                raise ApplicationExit(
+                    "something bad happened here, possibly could not restore visa"
+                )
             else:
                 raise e
 
@@ -224,7 +226,7 @@ class AbstractVISADriver:
                 self._instrumentaddress
             )
         except VisaIOError:
-            self._logger.error('could not open visa resource, trying again')
+            self._logger.error("could not open visa resource, trying again")
             self._visa_resource = self._resource_manager.open_resource(
                 self._instrumentaddress
             )
