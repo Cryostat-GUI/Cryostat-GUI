@@ -481,7 +481,7 @@ class Sequence_functionsPersonal:
         self.datafile = datafile
         if mode == "w":
             with open(datafile, "w") as f:
-                f.write("\n")
+                f.write("")
         self._logger.debug(f" change the datafile to: {datafile}, with mode {mode}.")
 
 
