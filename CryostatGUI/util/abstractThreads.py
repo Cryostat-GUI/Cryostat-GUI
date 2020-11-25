@@ -6,6 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.uic import loadUi
 
+from threading import Thread
+from threading import Event
+
 from .util_misc import running_thread
 from .util_misc import noblockLock
 from .customExceptions import BlockedError
@@ -28,6 +31,77 @@ def timediff(start, end):
     """return timediff of datetime objects in milliseconds"""
     return (end - start) / timedelta(milliseconds=1)
 
+
+class Timerthread(Thread):
+    def __init__(self, event=None, interval=0.5, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+        self.interval = interval
+        self.interval_now = 0
+        self.lock = Lock()
+        if event is None:
+            self.stopped = Event()
+        else:
+            self.stopped = event
+
+    def run(self):
+        self._logger.debug("entering the working loop")
+        while not self.stopped.is_set():
+            self.stopped.wait(self.interval_now)
+            # self._logger.debug("not stopped, running")
+            # print(f"my thread is working hard! {self.counter}")
+            try:
+                start = dt.now()
+                self.work()
+            except BlockedError:
+                pass
+            finally:
+                end = dt.now()
+                self.interval_now = self.calculate_timeToWait(start, end)
+
+    def running(self):
+        """to be implemented by child class!"""
+        raise NotImplementedError
+
+    def calculate_timeToWait(self, start, end):
+        try:
+            diff = timediff(start, end)
+            timeToWait = self.interval * 1e0 - diff
+            if timeToWait < 0:
+                # self._logger.debug(
+                #     "no wait for loop iteration, len(lastIt) = %f s > wait = %f",
+                #     diff * 1e-3,
+                #     self.interval,
+                # )
+                timeToWait = 0
+        except NameError:
+            timeToWait = 1e3
+        # print("calculated time to wait:", timeToWait)
+        return timeToWait
+
+    def work(self):
+        raise NotImplementedError
+
+
+class Timerthread_Clients(zmqClient, PrometheusGaugeClient, Timerthread):
+    """docstring for Timerthread_Clients"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.run_finished = False
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
+
+    def work(self):
+        self.zmq_handle()                  # inherited from zmqClient
+        with noblockLock(self.lock):
+            self.running()
+            if self.run_finished:
+                self.run_prometheus()      # inherited from PrometheusGaugeClient
+                self.send_data_upstream()  # inherited from zmqClient
+        
 
 class AbstractApp(QtWidgets.QMainWindow):
     """docstring for AbstractApp"""
@@ -147,7 +221,7 @@ class AbstractMainApp(AbstractApp):
 
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
-        self.softwarecontrol_timer.start(100)
+        self.softwarecontrol_timer.start(1000)
 
         self.controls_Lock = Lock()
         self.threads = dict(Lock=Lock())
