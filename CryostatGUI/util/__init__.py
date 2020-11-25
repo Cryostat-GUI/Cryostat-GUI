@@ -25,6 +25,7 @@ from .abstractThreads import AbstractLoopZmqThread
 from .abstractThreads import AbstractLoopThreadClient
 from .abstractThreads import AbstractLoopThreadDataStore
 from .abstractThreads import AbstractEventhandlingThread
+from .abstractThreads import Timerthread_Clients
 
 from .zmqcomms import enc
 from .zmqcomms import dec

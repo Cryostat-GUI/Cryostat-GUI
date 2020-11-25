@@ -122,7 +122,8 @@ def retrying_call(se, func, args, kwargs, err, trials=3):
 
 
 def HandleVisaException(func):
-    """to be used as decorator of a method of a class
+    """Handle Visa Exceptions
+    to be used as decorator of a method of a class
     this method cannot be a staticmethod, or a classmethod
     in this sense, self is set as the first argument passed to the respective
     method, which should always be the instance
@@ -161,6 +162,14 @@ def HandleVisaException(func):
                 return wrapper_HandleVisaException(*args, **kwargs)
             except NameError:
                 raise ApplicationExit("something bad happened here")
+        except AttributeError as e:
+            if e.args[0].endswith("'_visa_resource'"):
+                self._logger.exception(e)
+                raise ApplicationExit(
+                    "something bad happened here, possibly could not restore visa"
+                )
+            else:
+                raise e
 
     return wrapper_HandleVisaException
 
@@ -208,6 +217,7 @@ class AbstractVISADriver:
         del self._resource_manager.visalib
         del self._resource_manager
         del self._visa_resource
+        time.sleep(0.5)
 
     def res_open(self):
         self._resource_manager = get_rm(self.visalib_kw)
@@ -216,6 +226,7 @@ class AbstractVISADriver:
                 self._instrumentaddress
             )
         except VisaIOError:
+            self._logger.error("could not open visa resource, trying again")
             self._visa_resource = self._resource_manager.open_resource(
                 self._instrumentaddress
             )

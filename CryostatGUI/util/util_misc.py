@@ -446,30 +446,31 @@ class Window_trayService_ui(QtWidgets.QWidget):
             self.pyqt_sysTray.show()
             return True
         else:
+            # self._logger.info(event)
             return super().event(event)
 
-    def closeEvent(self, event):
-        reply = QtWidgets.QMessageBox.question(
-            self,
-            "Message",
-            "Are you sure to quit this application?\n\n"
-            + "'Yes'    will kill me, possible interaction with hardware will be lost\n"
-            + "'No'     will minimize me to the Tray\n"
-            + "'Cancel' will do....nothing",
-            QtWidgets.QMessageBox.Yes
-            | QtWidgets.QMessageBox.No
-            | QtWidgets.QMessageBox.Cancel,
-            QtWidgets.QMessageBox.Cancel,
-        )
+    # def closeEvent(self, event):
+    #     reply = QtWidgets.QMessageBox.question(
+    #         self,
+    #         "Message",
+    #         "Are you sure to quit this application?\n\n"
+    #         + "'Yes'    will kill me, possible interaction with hardware will be lost\n"
+    #         + "'No'     will minimize me to the Tray\n"
+    #         + "'Cancel' will do....nothing",
+    #         QtWidgets.QMessageBox.Yes
+    #         | QtWidgets.QMessageBox.No
+    #         | QtWidgets.QMessageBox.Cancel,
+    #         QtWidgets.QMessageBox.Cancel,
+    #     )
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            event.accept()
-        elif reply == QtWidgets.QMessageBox.Cancel:
-            event.ignore()
-        else:
-            self.pyqt_sysTray.show()
-            self.hide()
-            event.ignore()
+    #     if reply == QtWidgets.QMessageBox.Yes:
+    #         event.accept()
+    #     elif reply == QtWidgets.QMessageBox.Cancel:
+    #         event.ignore()
+    #     else:
+    #         self.pyqt_sysTray.show()
+    #         self.hide()
+    #         event.ignore()
 
     def restore_window(self, reason):
         if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
