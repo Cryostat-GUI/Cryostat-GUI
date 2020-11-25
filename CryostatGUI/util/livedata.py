@@ -59,13 +59,13 @@ class PrometheusGaugeClient:
                 else:
                     # self._logger.debug(err.args[0] + f'instr:
                     # {instr}, varkey: {varkey}')
-                    # pass
-                    raise err
+                    pass
+                    # raise err
             except ValueError as err:
                 if not err.args[0].startswith("could not convert string to float"):
                     self._logger.exception(err.args[0])
                 else:
                     # self._logger.debug(err.args[0] + f'instr:
                     # {instr}, varkey: {varkey}')
-                    # pass
-                    raise err
+                    pass
+                    # raise err

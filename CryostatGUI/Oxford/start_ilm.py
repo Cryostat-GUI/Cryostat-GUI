@@ -38,10 +38,15 @@ if __name__ == "__main__":
                 InstrumentAddress="ASRL5::INSTR",
                 prometheus_port=8002,
             )
-            form.show()
-            # print('date: ', dt.datetime.now(),
-            #       '\nstartup time: ', time.time() - a)
-            sys.exit(app.exec_())
+            try:
+                form.show()
+                # print('date: ', dt.datetime.now(),
+                #       '\nstartup time: ', time.time() - a)
+                exit = app.exec_()
+            except KeyboardInterrupt:
+                print("shutting down: ", exit)
+                # sys.exit(-500)
+            # sys.exit(exit)
     except PidFileError:
         print("Program already running! \nShutting down now!\n")
         sys.exit()

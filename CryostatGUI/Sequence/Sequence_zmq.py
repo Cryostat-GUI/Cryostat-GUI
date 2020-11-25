@@ -694,9 +694,10 @@ if __name__ == "__main__":
             logger_2.addHandler(handler_debug)
             logger_3.addHandler(handler_debug)
             logger_4.addHandler(handler_debug)
-            logger_4.addHandler(handler_info)
+            # logger_4.addHandler(handler_info)
 
-            filename = "seqfiles/testing_setTemp.json"
+            # filename = "seqfiles/testing_setTemp.json"
+            filename = "seqfiles/setTemp_300.json"
             thresholdsconf = dict(
                 threshold_T_K=0.1,
                 threshold_Tmean_K=0.2,

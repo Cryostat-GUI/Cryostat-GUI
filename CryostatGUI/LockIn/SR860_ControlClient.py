@@ -32,7 +32,8 @@ if __name__ == "__main__":
 
             # Sr860_InstrumentAddress = 'GPIB::4::INSTR'
             # Sr860_InstrumentAddress = 'TCPIP::192.168.2.104::1865::SOCKET'
-            Sr860_InstrumentAddress = "TCPIP::192.168.2.104::INSTR"
+            # Sr860_InstrumentAddress = "TCPIP::192.168.2.104::INSTR"
+            Sr860_InstrumentAddress = "TCPIP::192.168.1.104::INSTR"
 
             app = QtWidgets.QApplication(sys.argv)
             form = SR830GUI(

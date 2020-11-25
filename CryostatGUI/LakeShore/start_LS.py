@@ -29,7 +29,7 @@ if __name__ == "__main__":
             logger_2.addHandler(handler)
             logger_3.addHandler(handler)
 
-            LakeShore_InstrumentAddress = "TCPIP::192.168.2.105::7777::SOCKET"
+            LakeShore_InstrumentAddress = "TCPIP::192.168.1.105::7777::SOCKET"
             app = QtWidgets.QApplication(sys.argv)
             form = LakeShoreGUI(
                 ui_file="LakeShore_main.ui",
