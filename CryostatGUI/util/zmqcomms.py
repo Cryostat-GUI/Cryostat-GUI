@@ -258,7 +258,9 @@ class zmqClient(zmqBare):
                     except AttributeError as e:
                         self._logger.exception(e)
                     except RuntimeError:
-                        self._logger.debug("state change unnecessary, already in state %s", _lo)
+                        self._logger.debug(
+                            "state change unnecessary, already in state %s", _lo
+                        )
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
