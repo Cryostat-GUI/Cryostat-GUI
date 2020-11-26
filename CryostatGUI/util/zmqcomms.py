@@ -251,14 +251,12 @@ class zmqClient(zmqBare):
                     try:
                         if "lock" in command_dict:
                             self.lock.acquire()
-                            _lo = "locked"
                         elif "unlock" in command_dict:
                             self.lock.release()
-                            _lo = "unlocked"
                     except AttributeError as e:
                         self._logger.exception(e)
-                    except RuntimeError:
-                        self._logger.debug("state change unnecessary, already in state %s", _lo)
+                    except RuntimeError as e:
+                        self._logger.exception(e)
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
