@@ -374,7 +374,7 @@ class AbstractModernVISADriver(AbstractVISADriver):
 
 class AbstractGPIBDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""
-
+    _device_specifics = {}
 
 class AbstractEthernetDeviceDriver(AbstractModernVISADriver):
     """docstring for Instrument_GPIB"""
