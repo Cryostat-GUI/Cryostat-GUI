@@ -260,9 +260,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         # Example:
-        self.Keithley2182 = Keithley2182(
-            InstrumentAddress=InstrumentAddress
-        )
+        self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
 
         # -------------------------------------------------------------------------------------------------------------------------
 
