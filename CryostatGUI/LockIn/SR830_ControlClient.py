@@ -78,23 +78,23 @@ class SR830_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
+        if mainthread is not None:
+            mainthread.spinSetFrequency_Hz.valueChanged.connect(
+                lambda value: self.gettoset_Frequency(value)
+            )
+            mainthread.spinSetFrequency_Hz.editingFinished.connect(self.setFrequency)
 
-        mainthread.spinSetFrequency_Hz.valueChanged.connect(
-            lambda value: self.gettoset_Frequency(value)
-        )
-        mainthread.spinSetFrequency_Hz.editingFinished.connect(self.setFrequency)
+            mainthread.spinSetVoltage_V.valueChanged.connect(
+                lambda value: self.gettoset_Voltage(value)
+            )
+            mainthread.spinSetVoltage_V.editingFinished.connect(self.setVoltage)
 
-        mainthread.spinSetVoltage_V.valueChanged.connect(
-            lambda value: self.gettoset_Voltage(value)
-        )
-        mainthread.spinSetVoltage_V.editingFinished.connect(self.setVoltage)
-
-        mainthread.spinShuntResistance_kOhm.valueChanged.connect(
-            lambda value: self.getShuntResistance(value * 1e3)
-        )
-        mainthread.spinContactResistance_Ohm.valueChanged.connect(
-            lambda value: self.getContactResistance(value)
-        )
+            mainthread.spinShuntResistance_kOhm.valueChanged.connect(
+                lambda value: self.getShuntResistance(value * 1e3)
+            )
+            mainthread.spinContactResistance_Ohm.valueChanged.connect(
+                lambda value: self.getContactResistance(value)
+            )
 
         # -------------------------------------------------------------------------------------------------------------------------
 
