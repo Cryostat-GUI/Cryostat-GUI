@@ -33,7 +33,7 @@ def timediff(start, end):
 
 
 class Timerthread(Thread):
-    def __init__(self, event=None, interval=0.5, *args, **kwargs):
+    def __init__(self, event=None, interval=0.2, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -61,10 +61,6 @@ class Timerthread(Thread):
                 end = dt.now()
                 self.interval_now = self.calculate_timeToWait(start, end)
 
-    def running(self):
-        """to be implemented by child class!"""
-        raise NotImplementedError
-
     def calculate_timeToWait(self, start, end):
         try:
             diff = timediff(start, end)
@@ -80,6 +76,14 @@ class Timerthread(Thread):
             timeToWait = 1e3
         # print("calculated time to wait:", timeToWait)
         return timeToWait
+
+    def setInterval(self, interval):
+        """set the interval between running events in seconds"""
+        self.interval = interval
+
+    def running(self):
+        """to be implemented by child class!"""
+        raise NotImplementedError
 
     def work(self):
         raise NotImplementedError
