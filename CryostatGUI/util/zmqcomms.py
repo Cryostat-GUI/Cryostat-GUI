@@ -455,6 +455,19 @@ class zmqMainControl(zmqBare):
     ) -> float:
         return self._bare_readDataFromList(dataindicator1, dataindicator2, Live)
 
+    def query_device(self, device_id):
+        address_retour = None
+        address = device_id
+
+        data = enc("?")
+        while address_retour != address:
+            self._logger.debug("querying %s for data", address)
+            self.comms_tcp.send_multipart([address, data])
+            time.sleep(0.1)
+            address_retour, message = self.comms_tcp.recv_multipart()
+            self._logger.debug("received data from %s", address_retour)
+        return dictload(dec(message))
+
 
 class zmqDataStore(zmqBare):
     """docstring for zmqDev"""
