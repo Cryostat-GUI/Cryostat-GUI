@@ -21,6 +21,7 @@ from drivers import ApplicationExit
 
 from util import ExceptionHandling
 from util import AbstractLoopThreadClient
+
 # from util import Timerthread_Clients
 from util import Window_trayService_ui
 from util import AbstractMainApp

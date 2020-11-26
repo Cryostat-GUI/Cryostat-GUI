@@ -57,4 +57,4 @@ if __name__ == "__main__":
             sys.exit(app.exec_())
     except PidFileError:
         print("Program already running! \nShutting down now!\n")
-        sys.exit()            
+        sys.exit()
