@@ -15,11 +15,13 @@ from Keithley2182_ControlClient import Keithley2182GUI
 if __name__ == "__main__":
 
     try:
+        prometheus_startport = 8008
         if len(sys.argv) > 1:
-            n = sys.argv[1] if sys.argv[1] != 0 else 1
-            Keithley2182_adress = f"GPIB0::{int(n)+1}::INSTR"
+            n = int(sys.argv[1]) if sys.argv[1] != 0 else 1
         else:
             n = 1
+        Keithley2182_adress = f"GPIB0::{n+1}::INSTR"
+        prometheus_port = prometheus_startport - 1 + n
 
         with PidFile(f"Keithley_{n}"):
             logger = logging.getLogger()
@@ -47,7 +49,7 @@ if __name__ == "__main__":
                 Name=f"Keithley2182_{n}",
                 identity=f"Keithley2182_{n}",
                 InstrumentAddress=Keithley2182_adress,
-                prometheus_port=None,
+                prometheus_port=prometheus_port,
             )
             form.show()
             # print('date: ', dt.datetime.now(),
