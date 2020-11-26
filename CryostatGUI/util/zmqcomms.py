@@ -317,6 +317,7 @@ class zmqMainControl(zmqBare):
         self.poller.register(self.comms_inproc, zmq.POLLIN)
 
         time.sleep(4)
+        self._logger.info("mainControl zmq initialisation finished!")
         # needed for the PUB/SUB sockets to find each other!
 
     def zmq_handle(self):
