@@ -673,6 +673,11 @@ class live_Logger_bare:
             "Range",
             "Setup",
             "calc",
+            "Keithley",
+            "SR830",
+            "SR860",
+            "IPS",
+            "ILM",
         ]
 
         self.pre_init()
@@ -714,7 +719,9 @@ class live_Logger_bare:
                 for instr in self.data_live:
                     for varkey in self.data_live[instr]:
                         for calc in self.calculations:
-                            if all((x not in varkey for x in self.noCalc)):
+                            if all((x not in varkey for x in self.noCalc)) and all(
+                                (x not in instr for x in self.noCalc)
+                            ):
                                 if self.time_init:
                                     self.calculations_perform(
                                         instr, varkey, calc, times
@@ -750,6 +757,7 @@ class live_Logger_bare:
                             # except KeyError as key:
                             #     self._logger.exception(key)
                             except IndexError as err:
+                                self._logger.warning("%s -- %s", instr, varkey)
                                 self._logger.exception(err)
                         else:
                             self.Gauges[instr][varkey].set(0)
@@ -860,7 +868,9 @@ class live_Logger_bare:
                             self._logger.info(
                                 "sth went wrong with registering prometheus Gauges"
                             )
-                        if all((x not in variablekey for x in self.noCalc)):
+                        if all((x not in variablekey for x in self.noCalc)) and all(
+                            (x not in instrument for x in self.noCalc)
+                        ):
                             for calc in self.calculations:
                                 self.data_live[instrument][
                                     "{key}_calc_{c}".format(key=variablekey, c=calc)
