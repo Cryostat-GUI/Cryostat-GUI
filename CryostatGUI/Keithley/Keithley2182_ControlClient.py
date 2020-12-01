@@ -128,7 +128,6 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
             if error[0] == "-213":
                 self.Keithley2182 = Keithley2182(
                     InstrumentAddress=self.save_InstrumentAddress,
-                    comLock=self.save_comLock,
                 )
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
