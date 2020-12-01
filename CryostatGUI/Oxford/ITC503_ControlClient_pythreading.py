@@ -271,13 +271,12 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
         if "setTemp_K" in command:
-            # value in this dictionary must the the required dictionary!
+            # value in this dictionary must the the required dictionary (for this sepcific command)!
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
