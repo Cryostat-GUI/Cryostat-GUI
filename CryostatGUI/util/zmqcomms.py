@@ -200,11 +200,13 @@ class zmqClient(zmqBare):
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE,
+            self.comms_name.encode("ascii"),
         )
         # subscribe to general commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, "general".encode("ascii"),
+            zmq.SUBSCRIBE,
+            "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
