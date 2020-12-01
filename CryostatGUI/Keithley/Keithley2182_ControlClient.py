@@ -139,15 +139,32 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        # if 'setTemp_K' in command:
-        #     self.setTemp_K(command['setTemp_K'])
+        if "measure_Voltage" in command:
+            # self.setTemp_K(command['setTemp_K'])
+            self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        # -------------------------------------------------------------------------------------------------------------------------
+
+    @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        # examples:
+        if "measure_Voltage" in command:
+            # self.setTemp_K(command['setTemp_K'])
+            answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
+        # if 'configTempLimit' in command:
+        #     self.configTempLimit(command['configTempLimit'])
+        answer_dict["OK"] = True
+        return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------------------------------
