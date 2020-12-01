@@ -242,10 +242,14 @@ class zmqClient(zmqBare):
                         answer = enc(dictdump(self.data))
                         self.comms_tcp.send(answer)
 
-                    if dec(msg)[0] == "!":
-                        command_dict = dictload(dec(msg[1]))
+                    elif dec(msg)[0] == "!":
+                        command_dict = dictload(dec(msg)[1:])
                         answer = self.query_on_command(command_dict)
                         self.comms_tcp.send(enc(dictdump(answer)))
+
+                    else:
+                        self._logger.error("received unintelligable message: '%s' ", dec(msg))
+                        self.comms_tcp.send(enc(dictdump({"ERROR": True}) + dec(msg)))
 
             except zmq.Again:
                 pass
@@ -260,8 +264,10 @@ class zmqClient(zmqBare):
 
                     try:
                         if "lock" in command_dict:
+                            self._logger.debug("   locked the loop")
                             self.lock.acquire()
                         elif "unlock" in command_dict:
+                            self._logger.debug("un-locked the loop")
                             self.lock.release()
                     except AttributeError as e:
                         self._logger.exception(e)
@@ -471,14 +477,23 @@ class zmqMainControl(zmqBare):
     ) -> float:
         return self._bare_readDataFromList(dataindicator1, dataindicator2, Live)
 
-    def query_device(self, device_id, noblock=False):
+    def query_device_data(self, device_id, noblock=False):
+        """query data from device directly"""
+        data = "?"
+        return self._query_device(device_id, data, noblock=noblock)
+
+    def query_device_command(self, device_id, command=None, noblock=False):
+        """dictate action and return answer"""
+        data = "!" + dictdump(command)
+        return self._query_device(device_id, data, noblock=noblock)
+
+    def _query_device(self, device_id, msg, noblock):
         address_retour = None
         address = device_id
 
-        data = enc("?")
         while address_retour != address:
-            self._logger.debug("querying %s for data", address)
-            self.comms_tcp.send_multipart([address, data])
+            self._logger.debug("querying %s: %s", address, msg[0])
+            self.comms_tcp.send_multipart([address, enc(msg)])
             if noblock:
                 time.sleep(0.5)
                 address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
