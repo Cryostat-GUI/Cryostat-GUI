@@ -248,7 +248,9 @@ class zmqClient(zmqBare):
                         self.comms_tcp.send(enc(dictdump(answer)))
 
                     else:
-                        self._logger.error("received unintelligable message: '%s' ", dec(msg))
+                        self._logger.error(
+                            "received unintelligable message: '%s' ", dec(msg)
+                        )
                         self.comms_tcp.send(enc(dictdump({"ERROR": True}) + dec(msg)))
 
             except zmq.Again:
