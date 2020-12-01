@@ -198,10 +198,13 @@ class zmqClient(zmqBare):
 
         self.comms_downstream = self._zctx.socket(zmq.SUB)
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
+        # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            # zmq.SUBSCRIBE, b'')
-            zmq.SUBSCRIBE,
-            self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
+        )
+        # subscribe to general commands
+        self.comms_downstream.setsockopt(
+            zmq.SUBSCRIBE, "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -237,6 +240,11 @@ class zmqClient(zmqBare):
                         answer = enc(dictdump(self.data))
                         self.comms_tcp.send(answer)
 
+                    if dec(msg)[0] == "!":
+                        command_dict = dictload(dec(msg[1]))
+                        answer = self.query_on_command(command_dict)
+                        self.comms_tcp.send(enc(dictdump(answer)))
+
             except zmq.Again:
                 pass
         if self.comms_downstream in evts:
@@ -263,6 +271,9 @@ class zmqClient(zmqBare):
                 pass
 
     def act_on_command(self, command: dict) -> None:
+        raise NotImplementedError
+
+    def query_on_command(self, command: dict) -> dict:
         raise NotImplementedError
 
     def send_data_upstream(self):
