@@ -269,7 +269,7 @@ class zmqClient(zmqBare):
                             self._logger.debug(
                                 "setting a new interval: %1.3f",
                                 command_dict["interval"],
-                            )                        
+                            )
                         if "lock" in command_dict:
                             self._logger.debug("   locked the loop")
                             self.lock.acquire()
