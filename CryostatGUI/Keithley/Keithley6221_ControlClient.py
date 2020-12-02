@@ -1,8 +1,8 @@
-"""Module containing a class to run a LakeShore 350 Cryogenic Temperature Controller in a pyqt5 application
+"""Module containing a class to run a Keithley 6221 Current Source in a pyqt5 application
 
 Classes:
-    LakeShore350_ControlClient: a class for interfacing with a LakeShore350 temperature controller
-            inherits from AbstractLoopClient
+    Keithley6221_ControlClient: a class for interfacing with a Keithley 6221 Current Source
+            inherits from AbstractLoopThreadClient
 """
 import sys
 import os
@@ -13,7 +13,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
-from PyQt5 import QtWidgets
+
+# from PyQt5 import QtWidgets
 from copy import deepcopy
 
 
@@ -28,11 +29,13 @@ from datetime import datetime
 from pyvisa.errors import VisaIOError
 import logging
 
+from Keithley.Keithley6221 import Keithley6221
 
-class Template_ControlClient(AbstractLoopThreadClient):
-    """Updater class for the LakeShore350 Temperature controller
 
-    For each Device function there is a wrapping method,
+class Keithley6221_ControlClient(AbstractLoopThreadClient):
+    """Updater class for a hardware device
+
+    For each device function there is a wrapping method,
     which we can call by a signal/by zmq comms. This wrapper sends
     the corresponding value to the device.
 
@@ -45,28 +48,20 @@ class Template_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict(
-        Temp_K=None,
-    )
+    data = {}
 
     def __init__(self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
-
-        # here the class instance of the LakeShore should be handed
         self.__name__ = "DeviceName_control " + InstrumentAddress
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        # try:
-        # print(self.logger, self.logger.name)
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
-        # Example:
-        # self.LakeShore350 = LakeShore350(
-        #     InstrumentAddress=InstrumentAddress, comLock=comLock)
-
+        self.Keithley6221 = Keithley6221(
+            InstrumentAddress=InstrumentAddress,
+        )
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -78,21 +73,23 @@ class Template_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
         # Examples:
+        # if mainthread is not None:
+        #     pass
 
-        # mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
-        # mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
+        #     mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
+        #     mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
-        # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-        # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+        #     mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
+        #     mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
-        # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-        # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+        #     mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
+        #     mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
-        # -------------------------------------------------------------------------------------------------------------------------
+        #     -------------------------------------------------------------------------------------------------------------------------
 
-        mainthread.spin_threadinterval.valueChanged.connect(
-            lambda value: self.setInterval(value)
-        )
+        #     mainthread.spin_threadinterval.valueChanged.connect(
+        #         lambda value: self.setInterval(value)
+        #     )
 
     # @control_checks
     @ExceptionHandling
@@ -129,88 +126,119 @@ class Template_ControlClient(AbstractLoopThreadClient):
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
 
+    @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        # examples:
+        # if "measure_Voltage" in command:
+        #     answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
+        # if 'configTempLimit' in command:
+        #     self.configTempLimit(command['configTempLimit'])
+        answer_dict["OK"] = True
+        return answer_dict
+        # -------------------------------------------------------------------------------------------------------------------------
+
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
     #  hardware communication functions
     # Examples:
 
-    # @ExceptionHandling
-    # def initiating_PID(self):
-    #     temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
-    #     self.LoopP_value = temp_list0[0]
-    #     self.LoopI_value = temp_list0[1]
-    #     self.LoopD_value = temp_list0[2]
+    def getCurrent_A(self):
+        """return currently operated current value"""
+        return self.Current_A_value
 
-    # @ExceptionHandling
-    # def configTempLimit(self, confdict=None):
-    #     """sets temperature limit
-    #     """
-    #     if confdict is None:
-    #         confdict = {key: 400 for key in ['A', 'B', 'C', 'D']}
-    #     for i in ['A', 'B', 'C', 'D']:
-    #         self.LakeShore350.TemperatureLimitCommand(i, 400.)
+    @pyqtSlot()
+    @ExceptionHandling
+    def disable(self):
+        """disable the output current"""
+        self.Keithley6221.disable()
+        self.Current_A_storage = self.Current_A_value
+        # for logging/application running:
+        self.Current_A_value = 0
+        self.OutputOn = self.Keithley6221.getstatus()[0]
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setTemp_K(self, temp=None):
-    #     """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
-    #     """
-    #     if temp is not None:
-    #         self.Temp_K_value = temp
-    #     self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
-    #     self.LakeShore350.ControlSetpointRampParameterCommand(
-    #         1, self.Ramp_status_internal, self.Ramp_Rate_value)
+    @pyqtSlot()
+    @ExceptionHandling
+    def enable(self):
+        """enable the output current"""
+        self.Keithley6221.enable()
+        self.Current_A_value = self.Current_A_storage
+        self.setCurrent_A()
+        self.OutputOn = self.Keithley6221.getstatus()[0]
 
-    # @ExceptionHandling
-    # def read_Temperatures(self):
-    #     sensors = dict()
-    #     sensor_names = ['Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
-    #     temp_list = self.LakeShore350.KelvinReadingQuery(0)
+    @pyqtSlot()
+    @ExceptionHandling
+    def getstatus(self):
+        """retrieve output current status"""
+        return int(self.Keithley6221.getstatus()[0])
 
-    #     for idx, sens in enumerate(sensor_names):
-    #         sensors[sens] = temp_list[idx]
-    #     return sensors
+    @ExceptionHandling
+    def toggle_frontpanel(self, bools, text="In sequence..."):
+        """toggle frontpanel display text"""
+        if bools:
+            self.Keithley6221.enable_frontpanel()
+        else:
+            self.Keithley6221.disable_frontpanel(text)
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopP_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.data[
-    #                                                   'Loop_I_Param'], self.data['Loop_D_Param'])
+    @pyqtSlot()
+    @ExceptionHandling
+    def setCurrent_A(self):
+        """set a previously stored value for the current"""
+        self.Keithley6221.setCurrent(self.Current_A_value)
+        self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopI_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    # 1, self.data['Loop_P_Param'], self.LoopI_value,
-    # self.data['Loop_D_Param'])
+    @pyqtSlot()
+    @ExceptionHandling
+    def setCurrent(self, current: float):
+        """set a pass value for the current"""
+        self.Current_A_value = current
+        self.Current_A_storage = current
+        self.Keithley6221.setCurrent(current)
+        self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
 
-    # @pyqtSlot()
-    # @ExceptionHandling
-    # def setLoopD_Param(self):
-    #     self.LakeShore350.ControlLoopPIDValuesCommand(
-    # 1, self.data['Loop_P_Param'], self.data['Loop_I_Param'],
-    # self.LoopD_value)
+    @pyqtSlot()
+    @ExceptionHandling
+    def setSweep(self):
+        """set a current sweep"""
+        self.Keithley6221.SetupSweet(
+            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value
+        )
+
+    @pyqtSlot()
+    @ExceptionHandling
+    def startSweep(self):
+        """start a current sweep"""
+        self.Keithley6221.StartSweep()
 
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
     # GUI value acceptance functions
     # Examples:
 
-    # @pyqtSlot()
-    # def gettoset_Temp_K(self, value):
-    #     self.Temp_K_value = value
+    @pyqtSlot(float)
+    def gettoset_Current_A(self, value):
+        """store a current value for later usage"""
+        self.Current_A_value = value
+        self.Current_A_storage = value
 
-    # @pyqtSlot()
-    # def gettoset_LoopP_Param(self, value):
-    #     self.LoopP_value = value
+    @pyqtSlot(float)
+    def gettoset_Start_Current(self, value):
+        """store a start current for a sweep"""
+        self.Start_Current_value = value
 
-    # @pyqtSlot()
-    # def gettoset_LoopI_Param(self, value):
-    #     self.LoopI_value = value
+    @pyqtSlot(float)
+    def gettoset_Step_Current(self, value):
+        """store a step current for a sweep"""
+        self.Step_Current_value = value
 
-    # @pyqtSlot()
-    # def gettoset_LoopD_Param(self, value):
-    #     self.LoopD_value = value
+    @pyqtSlot(float)
+    def gettoset_Stop_Current(self, value):
+        """store a stop current for a sweep"""
+        self.Stop_Current_value = value
 
 
 class DeviceGUI(AbstractMainApp, Window_trayService_ui):
@@ -219,19 +247,18 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     sig_arbitrary = pyqtSignal()
     sig_assertion = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
-        self.kwargs = deepcopy(kwargs)
-        del kwargs["identity"]
-        del kwargs["InstrumentAddress"]
-        self._identity = self.kwargs["identity"]
-        self._InstrumentAddress = self.kwargs["InstrumentAddress"]
-        # print('GUI pre')
+    def __init__(
+        self, identity=None, InstrumentAddress=None, prometheus_port=None, **kwargs
+    ):
+        self._identity = identity
+        self._InstrumentAddress = InstrumentAddress
+        self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
         # print('GUI post')
         # loadUi('.\\configurations\\Cryostat GUI.ui', self)
         # self.setupUi(self)
 
-        self.__name__ = "LakeShore_Window"
+        self.__name__ = "Template_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
@@ -246,6 +273,8 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
+                    prometheus_port=self._prometheus_port,
+                    prometheus_name=self._identity,
                 ),
                 "Hardware",
             )
@@ -299,34 +328,46 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
 
 if __name__ == "__main__":
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    logger_2 = logging.getLogger("pyvisa")
-    logger_2.setLevel(logging.INFO)
-    logger_3 = logging.getLogger("PyQt5")
-    logger_3.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    print(
+        "please use the program 'start_XXX.py' to start communicating with this device!"
     )
-    handler.setFormatter(formatter)
 
-    logger.addHandler(handler)
-    logger_2.addHandler(handler)
-    logger_3.addHandler(handler)
+    # from pid import PidFile
+    # from pid import PidFileError
 
-    app = QtWidgets.QApplication(sys.argv)
-    form = DeviceGUI(
-        ui_file="Template_main.ui",
-        Name="Template",
-        identity=b"templ",
-        InstrumentAddress="",
-    )
-    form.show()
-    # print('date: ', dt.datetime.now(),
-    #       '\nstartup time: ', time.time() - a)
-    sys.exit(app.exec_())
+    # try:
+    #     with PidFile("Template"):
+    #         logger = logging.getLogger()
+    #         logger.setLevel(logging.DEBUG)
+
+    #         logger_2 = logging.getLogger("pyvisa")
+    #         logger_2.setLevel(logging.INFO)
+    #         logger_3 = logging.getLogger("PyQt5")
+    #         logger_3.setLevel(logging.INFO)
+
+    #         handler = logging.StreamHandler(sys.stdout)
+    #         handler.setLevel(logging.DEBUG)
+    #         formatter = logging.Formatter(
+    #             "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    #         )
+    #         handler.setFormatter(formatter)
+
+    #         logger.addHandler(handler)
+    #         logger_2.addHandler(handler)
+    #         logger_3.addHandler(handler)
+
+    #         app = QtWidgets.QApplication(sys.argv)
+    #         form = DeviceGUI(
+    #             ui_file="Template_main.ui",
+    #             Name="Template",
+    #             identity=b"templ",
+    #             InstrumentAddress="",
+    #             prometheus_port=None,
+    #         )
+    #         form.show()
+    #         # print('date: ', dt.datetime.now(),
+    #         #       '\nstartup time: ', time.time() - a)
+    #         sys.exit(app.exec_())
+    # except PidFileError:
+    #     print("Program already running! \nShutting down now!\n")
+    #     sys.exit()
