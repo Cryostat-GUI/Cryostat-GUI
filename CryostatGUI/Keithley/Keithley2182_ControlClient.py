@@ -26,7 +26,7 @@ from util import AbstractLoopThreadClient
 from util import Window_trayService_ui
 from util import AbstractMainApp
 
-from datetime import datetime
+from datetime import datetime as dt
 from pyvisa.errors import VisaIOError
 import logging
 
@@ -66,7 +66,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        self.interval = 0.1
+        self.interval = 0.1 * 1e3
         # try:
         # print(self.logger, self.logger.name)
 
@@ -74,7 +74,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # Interface with hardware device
         # Example:
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
-
+        self._startingtime = dt.now()
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -117,21 +117,28 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
 
         self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
-        self.data[
-            "TemperatureInternal_K"
-        ] = self.Keithley2182.measureInternalTemperature()
-        self.data[
-            "TemperaturePresent_K"
-        ] = self.Keithley2182.measurePresentTemperature()
+        if (dt.now() - self._startingtime).seconds > 60:
+            self._startingtime = dt.now()
+            self.data[
+                "TemperatureInternal_K"
+            ] = self.Keithley2182.measureInternalTemperature()
+            self.data[
+                "TemperaturePresent_K"
+            ] = self.Keithley2182.measurePresentTemperature()
 
-        error = self.Keithley2182.query_error()
-        if error[0] != "0":
-            self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
-            if error[0] == "-213":
-                self.Keithley2182 = Keithley2182(
-                    InstrumentAddress=self.save_InstrumentAddress,
-                )
-        self.data["realtime"] = datetime.now()
+            for error in self.Keithley2182.error_gen():
+                if error[0] != "0":
+                    self._logger.error(
+                        "code:%s, message:%s", error[0], error[1].strip('"')
+                    )
+                    if error[0] == "-213":
+                        self.Keithley2182 = Keithley2182(
+                            InstrumentAddress=self.save_InstrumentAddress,
+                        )
+                        self._logger.warning(
+                            "found error -213, re-establishing connection"
+                        )
+        self.data["realtime"] = dt.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -300,36 +307,26 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
 
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
+        gui_elements = [
+            self.textVoltage_V,
+            self.textTempInternal_K,
+            self.textTempPresent_K,
+        ]
+        formats = ["{num:=+13.12f}"] + ["{num:=06.3f}"] * 2
+        keys = ("Voltage_V", "TemperatureInternal_K", "TemperaturePresent_K")
+        for g, f, k in zip(gui_elements, formats, keys):
+            try:
+                g.setText(f.format(num=self.data[k]))
+            except KeyError:
+                pass
 
-        self.textVoltage_V.setText("{num:=+13.12f}".format(num=self.data["Voltage_V"]))
-        self.textTempInternal_K.setText(
-            "{num:=06.3f}".format(num=self.data["TemperatureInternal_K"])
-        )
-        self.textTempPresent_K.setText(
-            "{num:=06.3f}".format(num=self.data["TemperaturePresent_K"])
-        )
-        # Examples:
-
-        # self.progressHeaterOutput_percentage.setValue(
-        #     self.data['Heater_Output_percentage'])
-        # self.lcdHeaterOutput_mW.display(
-        #     self.data['Heater_Output_mW'])
-        # self.lcdSetTemp_K.display(
-        #     self.data['Temp_K'])
-        # # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
-        # self.lcdSetRampRate_Kpmin.display(
-        #     self.data['Ramp_Rate'])
-
-        # self.comboSetInput_Sensor.setCurrentIndex(
-        #     int(self.data['Input_Sensor']) - 1)
-        # self.lcdSensor1_K.display(
-        #     self.data['Sensor_1_K'])
-        # self.lcdSensor2_K.display(
-        #     self.data['Sensor_2_K'])
-        # self.lcdSensor3_K.display(
-        #     self.data['Sensor_3_K'])
-        # self.lcdSensor4_K.display(
-        #     self.data['Sensor_4_K'])
+        # self.textVoltage_V.setText("{num:=+13.12f}".format(num=self.data["Voltage_V"]))
+        # self.textTempInternal_K.setText(
+        #     "{num:=06.3f}".format(num=self.data["TemperatureInternal_K"])
+        # )
+        # self.textTempPresent_K.setText(
+        #     "{num:=06.3f}".format(num=self.data["TemperaturePresent_K"])
+        # )
         # -----------------------------------------------------------------------------------------------------------
 
 
