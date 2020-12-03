@@ -678,6 +678,7 @@ class live_Logger_bare:
             "SR860",
             "IPS",
             "ILM",
+            "thread",
         ]
 
         self.pre_init()
