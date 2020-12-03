@@ -66,7 +66,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        self.interval = 0.1 * 1e3
+        self.interval = 0.1
         # try:
         # print(self.logger, self.logger.name)
 

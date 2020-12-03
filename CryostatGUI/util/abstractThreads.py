@@ -357,13 +357,13 @@ class AbstractLoopThread(AbstractThread):
 
     @pyqtSlot(float)
     def setInterval(self, interval):
-        """set the interval between running events in milliseconds"""
+        """set the interval between running events in seconds"""
         self.interval = interval
 
     def calculate_timeToWait(self, start, end):
         try:
             diff = timediff(start, end)
-            timeToWait = self.interval - diff
+            timeToWait = self.interval * 1e3 - diff
             if timeToWait < 0:
                 # self._logger.debug(
                 #     "no wait for loop iteration, len(lastIt) = %f s > wait = %f",

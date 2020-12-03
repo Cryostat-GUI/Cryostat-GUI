@@ -267,8 +267,8 @@ class zmqClient(zmqBare):
                     try:
                         if "interval" in command_dict:
                             self._logger.debug(
-                                "setting a new interval: %1.3fs",
-                                command_dict["interval"] * 1e-3,
+                                "setting a new interval: %3.3fs",
+                                command_dict["interval"],
                             )
                             self.setInterval(command_dict["interval"])
                         if "lock" in command_dict:
@@ -376,6 +376,7 @@ class zmqMainControl(zmqBare):
 
     def commanding(self, ID, message):
         # self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
+        self._logger.debug("sending command to %s: %s", ID, message)
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
     def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
@@ -497,7 +498,7 @@ class zmqMainControl(zmqBare):
         address = device_id
 
         while address_retour != address:
-            self._logger.debug("querying %s: %s", address, msg[0])
+            self._logger.debug("querying %s: %s", address, msg)
             self.comms_tcp.send_multipart([address, enc(msg)])
             if noblock:
                 time.sleep(0.5)
