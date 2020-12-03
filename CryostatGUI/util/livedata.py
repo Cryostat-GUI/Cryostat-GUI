@@ -69,3 +69,9 @@ class PrometheusGaugeClient:
                     # {instr}, varkey: {varkey}')
                     pass
                     # raise err
+            except KeyError:
+                self._gauges[variablekey] = Gauge(
+                    "CryoGUIservice_{}_{}".format(self._prometheus_name, variablekey),
+                    "no description",
+                )
+                self._gauges[variablekey].set(self.data[variablekey])
