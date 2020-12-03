@@ -33,7 +33,7 @@ def timediff(start, end):
 
 
 class Timerthread(Thread):
-    def __init__(self, event=None, interval=0.2, *args, **kwargs):
+    def __init__(self, event=None, interval=0.5, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -61,6 +61,10 @@ class Timerthread(Thread):
                 end = dt.now()
                 self.interval_now = self.calculate_timeToWait(start, end)
 
+    def running(self):
+        """to be implemented by child class!"""
+        raise NotImplementedError
+
     def calculate_timeToWait(self, start, end):
         try:
             diff = timediff(start, end)
@@ -76,14 +80,6 @@ class Timerthread(Thread):
             timeToWait = 1e3
         # print("calculated time to wait:", timeToWait)
         return timeToWait
-
-    def setInterval(self, interval):
-        """set the interval between running events in seconds"""
-        self.interval = interval
-
-    def running(self):
-        """to be implemented by child class!"""
-        raise NotImplementedError
 
     def work(self):
         raise NotImplementedError
@@ -361,13 +357,13 @@ class AbstractLoopThread(AbstractThread):
 
     @pyqtSlot(float)
     def setInterval(self, interval):
-        """set the interval between running events in seconds"""
+        """set the interval between running events in milliseconds"""
         self.interval = interval
 
     def calculate_timeToWait(self, start, end):
         try:
             diff = timediff(start, end)
-            timeToWait = self.interval * 1e3 - diff
+            timeToWait = self.interval - diff
             if timeToWait < 0:
                 # self._logger.debug(
                 #     "no wait for loop iteration, len(lastIt) = %f s > wait = %f",
@@ -412,14 +408,14 @@ class AbstractLoopZmqThread(AbstractLoopThread):
 class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGaugeClient):
     """docstring for AbstractLoopThreadClient"""
 
-    @pyqtSlot()  # int
+    @pyqtSlot()
     def work(self):
         """class method which is working all the time while the thread is running. """
         try:
             start = dt.now()
             self.zmq_handle()  # inherited later from zmqClient
             with noblockLock(self.lock):
-                self.running()
+                self.run_here()
                 if self.run_finished:
                     self.run_prometheus()
                     self.send_data_upstream()
@@ -428,7 +424,14 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
         finally:
             end = dt.now()
             timeToWait = self.calculate_timeToWait(start, end)
+            # self._logger.debug("waiting: %f", timeToWait)
             QTimer.singleShot(timeToWait, self.work)
+
+    def run_here(self):
+        # self.data = {}
+        self.running()
+        self.data["interval_thread"] = self.interval
+        # self._logger.debug("run a loop")
 
 
 class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):

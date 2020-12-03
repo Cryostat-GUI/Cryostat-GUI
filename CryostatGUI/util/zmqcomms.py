@@ -267,9 +267,10 @@ class zmqClient(zmqBare):
                     try:
                         if "interval" in command_dict:
                             self._logger.debug(
-                                "setting a new interval: %1.3f",
-                                command_dict["interval"],
+                                "setting a new interval: %1.3fs",
+                                command_dict["interval"] * 1e-3,
                             )
+                            self.setInterval(command_dict["interval"])
                         if "lock" in command_dict:
                             self._logger.debug("   locked the loop")
                             self.lock.acquire()
@@ -277,7 +278,6 @@ class zmqClient(zmqBare):
                             self._logger.debug("un-locked the loop")
                             self.lock.release()
 
-                            self.setInterval(command_dict["interval"])
                     except AttributeError as e:
                         self._logger.exception(e)
                     except RuntimeError as e:
@@ -297,11 +297,6 @@ class zmqClient(zmqBare):
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
-
-    def running(self):
-        self.data = {}
-        super().running()
-        self.data["interval_thread"] = self.interval
 
 
 class zmqMainControl(zmqBare):
