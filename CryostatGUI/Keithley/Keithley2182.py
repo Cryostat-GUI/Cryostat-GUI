@@ -270,3 +270,11 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
         return self.query(":SYST:ERR?")
+
+    def error_gen(self):
+        """wrap self.query_error() in a generator"""
+        while True:
+            a = self.query_error()
+            yield a
+            if a[0] == "0":
+                break
