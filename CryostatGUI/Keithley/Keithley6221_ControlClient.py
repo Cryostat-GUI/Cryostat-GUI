@@ -66,8 +66,9 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # initial configurations for the hardware device
-        # Example:
-        # self.initiating_PID()
+        self.Current_A_value = 0
+        self.Current_A_storage = 0  # if power is turned off
+        self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -105,7 +106,13 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
         # example:
-        # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
+        self.data["OutputOn"] = self.getstatus()
+
+        for error in self.Keithley2182.error_gen():
+            if error[0] != "0":
+                self._logger.error(
+                    "code:%s, message:%s", error[0], error[1].strip('"')
+                )
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
