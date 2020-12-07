@@ -52,8 +52,9 @@ logger = logging.getLogger("CryostatGUI.loggingFunctionality")
 
 class InitError(Exception):
     """docstring for InitError"""
+
     pass
-        
+
 
 @singledispatch
 def calculate_timediff(dt, allowed_delay_s=3):
@@ -717,9 +718,15 @@ class live_Logger_bare:
                                 self.data_live[instr][varkey].append(dic[varkey])
                             except KeyError as e:
                                 # if e.args[0].startswith("'interval"):
-                                self._logger.warning("KeyError in %s, %s, run initialisation again", instr, varkey)
+                                self._logger.warning(
+                                    "KeyError in %s, %s, run initialisation again",
+                                    instr,
+                                    varkey,
+                                )
                                 self._logger.exception(e)
-                                raise InitError("Some key did not go through, trying init again")
+                                raise InitError(
+                                    "Some key did not go through, trying init again"
+                                )
                                 # self.initialisation()
                                 # else:
                                 #     raise e
@@ -746,7 +753,9 @@ class live_Logger_bare:
                             try:
                                 self.data_live[instr][varkey].pop(0)
                             except IndexError as e:
-                                self._logger.error("IndexError in %s, %s", instr, varkey)
+                                self._logger.error(
+                                    "IndexError in %s, %s", instr, varkey
+                                )
                                 self._logger.expeption(e)
                         uptodate, timediff = calculate_timediff(
                             self.data_live[instr]["realtime"]
