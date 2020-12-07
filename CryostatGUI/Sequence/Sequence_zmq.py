@@ -302,7 +302,7 @@ class Sequence_functionsPersonal:
         the respective Sweep for field values
         TODO: implement for IPS
         """
-        print(
+        self._logger.debug(
             f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
         )
         raise NotImplementedError
