@@ -50,6 +50,12 @@ import logging
 logger = logging.getLogger("CryostatGUI.loggingFunctionality")
 
 
+class InitError(Exception):
+    """docstring for InitError"""
+
+    pass
+
+
 @singledispatch
 def calculate_timediff(dt, allowed_delay_s=3):
     """function 'overloading' for python
@@ -708,7 +714,22 @@ class live_Logger_bare:
 
                         for varkey in dic:
                             # print(instr, varkey)
-                            self.data_live[instr][varkey].append(dic[varkey])
+                            try:
+                                self.data_live[instr][varkey].append(dic[varkey])
+                            except KeyError as e:
+                                # if e.args[0].startswith("'interval"):
+                                self._logger.warning(
+                                    "KeyError in %s, %s, run initialisation again",
+                                    instr,
+                                    varkey,
+                                )
+                                self._logger.exception(e)
+                                raise InitError(
+                                    "Some key did not go through, trying init again"
+                                )
+                                # self.initialisation()
+                                # else:
+                                #     raise e
 
                         if self.time_init:
                             times = [
@@ -729,7 +750,13 @@ class live_Logger_bare:
                                     )
                         if self.count > self.length_list:
                             self.counting = False
-                            self.data_live[instr][varkey].pop(0)
+                            try:
+                                self.data_live[instr][varkey].pop(0)
+                            except IndexError as e:
+                                self._logger.error(
+                                    "IndexError in %s, %s", instr, varkey
+                                )
+                                self._logger.expeption(e)
                         uptodate, timediff = calculate_timediff(
                             self.data_live[instr]["realtime"]
                         )
@@ -758,8 +785,9 @@ class live_Logger_bare:
                             # except KeyError as key:
                             #     self._logger.exception(key)
                             except IndexError as err:
-                                self._logger.warning("%s -- %s", instr, varkey)
-                                self._logger.exception(err)
+                                if not self._firstRun:
+                                    self._logger.warning("%s -- %s", instr, varkey)
+                                    self._logger.exception(err)
                         else:
                             self.Gauges[instr][varkey].set(0)
 
@@ -769,6 +797,10 @@ class live_Logger_bare:
         except KeyError as key:
             self.sig_assertion.emit("live logger: " + key.args[0])
             self._logger.exception(key)
+        except InitError as init:
+            self._logger.warning("re-doing init for missing keys")
+            self.initialisation()
+            self.running()
         self.time_init = True
         if self.counting:
             self.count += 1
@@ -823,6 +855,7 @@ class live_Logger_bare:
 
     def pre_init(self):
         self.initialised = False
+        self._firstRun = True
 
     def initialisation(self):
         """
