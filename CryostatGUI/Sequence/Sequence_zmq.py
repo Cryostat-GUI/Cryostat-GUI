@@ -221,7 +221,9 @@ class Sequence_functionsPersonal:
             message=dictdump(
                 {
                     "setTemp_K": dict(
-                        isSweep=False, isSweepStartCurrent=False, setTemp=temperature,
+                        isSweep=False,
+                        isSweepStartCurrent=False,
+                        setTemp=temperature,
                     )
                 }
             ),
@@ -543,13 +545,17 @@ class Sequence_functionsPersonal_chamberrelated:
 
 
 class Sequence_logic(
-    Sequence_functionsConvenience, Sequence_functionsPersonal, mS.Sequence_runner,
+    Sequence_functionsConvenience,
+    Sequence_functionsPersonal,
+    mS.Sequence_runner,
 ):
     pass
 
 
 class Sequence_Thread_zmq(
-    Sequence_logic, Sequence_comms_zmq, AbstractThread,
+    Sequence_logic,
+    Sequence_comms_zmq,
+    AbstractThread,
 ):
     """docstring for Sequence_Thread"""
 
