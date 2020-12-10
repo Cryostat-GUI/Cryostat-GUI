@@ -337,7 +337,7 @@ if __name__ == "__main__":
     print(
         "please use the program 'start_XXX.py' to start communicating with this device!"
     )
-    # "TCPIP::192.168.1.106::1394::SOCKET"      
+    # "TCPIP::192.168.1.106::1394::SOCKET"
 
     # from pid import PidFile
     # from pid import PidFileError
