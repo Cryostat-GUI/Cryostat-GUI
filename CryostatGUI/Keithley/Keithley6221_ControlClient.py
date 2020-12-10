@@ -61,6 +61,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # Interface with hardware device
         self.Keithley6221 = Keithley6221(
             InstrumentAddress=InstrumentAddress,
+            read_termination="\n",
         )
         # -------------------------------------------------------------------------------------------------------------------------
 
@@ -274,7 +275,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
 
         try:
             getInfodata = self.running_thread_control(
-                Template_ControlClient(
+                Keithley6221_ControlClient(
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
@@ -336,6 +337,7 @@ if __name__ == "__main__":
     print(
         "please use the program 'start_XXX.py' to start communicating with this device!"
     )
+    # "TCPIP::192.168.1.106::1394::SOCKET"      
 
     # from pid import PidFile
     # from pid import PidFileError
