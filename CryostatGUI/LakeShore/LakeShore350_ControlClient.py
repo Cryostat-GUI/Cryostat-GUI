@@ -288,7 +288,6 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
-
     @ExceptionHandling
     def configSensor(self):
         """configures sensor inputs to Cernox"""

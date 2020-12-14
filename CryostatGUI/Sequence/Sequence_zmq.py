@@ -418,7 +418,10 @@ class Sequence_functionsPersonal:
         """retrieve temperature from device directly"""
         device = self.tempdefinition[sensortype][0]
 
-        answer_dict = self.query_device_command(device_id=device, command=dict(measure_Sensor_K=self.tempdefinition[sensortype][1]))
+        answer_dict = self.query_device_command(
+            device_id=device,
+            command=dict(measure_Sensor_K=self.tempdefinition[sensortype][1]),
+        )
         pass
 
     def checkField(
