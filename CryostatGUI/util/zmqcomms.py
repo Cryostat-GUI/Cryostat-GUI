@@ -420,7 +420,16 @@ class zmqMainControl(zmqBare):
     def _bare_readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
-        """retrieve a datapoint from the central list at dataStorage logging"""
+        """retrieve a datapoint from the central list at dataStorage logging
+
+        check whether the data is up to date (according to dataStorage)
+        if it is not uptodate, check how long we were already checking 
+        data which is present but not up to date indicates the following:
+            the device-driver (ControlClient) was running at some point,
+            but stopped sending data. This could be because it crashed, or
+            because its thread-loop was paused, e.g. for a measurement. 
+
+            TODO: send unlock statement to the device we need data from"""
         uptodate = False
         try:
             startdate = dt.now()
@@ -432,26 +441,27 @@ class zmqMainControl(zmqBare):
                     Live=Live,
                 )
                 uptodate = dataPackage["uptodate"]
-
-                if (dt.now() - startdate) / dtdelta(minutes=1) > 2:
-                    self._logger.error(
-                        "retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting",
-                        dataindicator1,
-                        dataindicator2,
-                    )
-                    # we are not patient anymore
-                    raise problemAbort(
-                        f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort"
-                    )
-                elif (dt.now() - startdate) / dtdelta(seconds=1) > 10:
-                    timediff = dataPackage["timediff"]
-                    self._logger.warning(
-                        "retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s",
-                        dataindicator1,
-                        dataindicator2,
-                        timediff,
-                    )
-                    # there might be a problem with the respective device, but we will be patient, for now
+                if not uptodate:
+                    time.sleep(0.2)
+                    if (dt.now() - startdate) / dtdelta(minutes=1) > 2:
+                        self._logger.error(
+                            "retrieved data %s, %s exists, but after trying for 2min, there is none which is up to date, aborting",
+                            dataindicator1,
+                            dataindicator2,
+                        )
+                        # we are not patient anymore
+                        raise problemAbort(
+                            f"no up-to-date data available for {dataindicator1}, {dataindicator2}, abort"
+                        )
+                    elif (dt.now() - startdate) / dtdelta(seconds=1) > 10:
+                        timediff = dataPackage["timediff"]
+                        self._logger.warning(
+                            "retrieved data %s, %s exists, but is not up to date, timediff: %f s, tried for >10s",
+                            dataindicator1,
+                            dataindicator2,
+                            timediff,
+                        )
+                        # there might be a problem with the respective device, but we will be patient, for now
             data = dataPackage["data"]
             return data, None  # second value is indicating no error was raised
 
@@ -507,6 +517,23 @@ class zmqMainControl(zmqBare):
                 address_retour, message = self.comms_tcp.recv_multipart()
             self._logger.debug("received data from %s", address_retour)
         return dictload(dec(message))
+
+    def _query_device_ensureResult(self, device_id, msg):
+        address_retour = None
+        address = device_id
+
+        while address_retour != address:
+            self._logger.debug("querying (ensureResult) %s: %s", address, msg)
+            self.comms_tcp.send_multipart([address, enc(msg)])
+
+                address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
+            else:
+                address_retour, message = self.comms_tcp.recv_multipart()
+
+
+            self._logger.debug("received data from %s", address_retour)
+        return dictload(dec(message))
+
 
 
 class zmqDataStore(zmqBare):
