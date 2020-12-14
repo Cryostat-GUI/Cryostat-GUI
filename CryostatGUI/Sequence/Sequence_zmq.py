@@ -10,7 +10,7 @@ from json import loads
 
 from util import AbstractThread
 from util.zmqcomms import dictdump
-from util.zmqcomms import raiseProblemAbort
+# from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 
 from util.util_misc import CustomStreamHandler
@@ -38,13 +38,13 @@ class Sequence_comms_zmq(zmqMainControl):
         chan2=dict(V="Keithley2182_2", A="Keithley6221_2"),
     )
 
-    @raiseProblemAbort(raising=True)
+    # @raiseProblemAbort(raising=True)
     def readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
         return super()._bare_readDataFromList(dataindicator1, dataindicator2, Live)
 
-    @raiseProblemAbort(raising=True)
+    # @raiseProblemAbort(raising=True)
     def retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
         return super()._bare_retrieveDataIndividual(
             dataindicator1, dataindicator2, Live=True
@@ -754,7 +754,8 @@ if __name__ == "__main__":
             # logger_4.addHandler(handler_info)
 
             # filename = "seqfiles/testing_setTemp.json"
-            filename = "seqfiles/setTemp_300.json"
+            # filename = "seqfiles/setTemp_300.json"
+            filename = "seqfiles/measure.json"
             thresholdsconf = dict(
                 threshold_T_K=0.1,
                 threshold_Tmean_K=0.2,
@@ -762,7 +763,11 @@ if __name__ == "__main__":
                 threshold_relslope_Kpmin=1e-3,
                 threshold_slope_residuals=30,
             )
-            tempdefinition = ["ITC", "Sensor_1_calerr_K"]
+            tempdefinition = dict(
+                control=["ITC", "Sensor_1_calerr_K"],
+                sample=["ITC", "Sensor_1_calerr_K"],
+                # sample=["LakeShore350", "Sensor_4_K"],
+            )
             parsed = True
             if not parsed:
                 parser = mS.Sequence_parser(sequence_file=filename)
