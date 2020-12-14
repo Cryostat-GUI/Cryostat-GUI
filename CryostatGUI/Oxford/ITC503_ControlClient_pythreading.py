@@ -277,7 +277,11 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         # examples:
         if "setTemp_K" in command:
             # value in this dictionary must the the required dictionary (for this sepcific command)!
+            self._logger.debug("executing command 'setTemp_K': %s", command["setTemp_K"])
             self.setTemperature(command["setTemp_K"])
+        if "setAutoControl" in command:
+            self._logger.debug("executing command 'setAutoControl': %s", command["setAutoControl"])
+            self.setAutoControl(command["setAutoControl"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         # -------------------------------------------------------------------------------------------------------------------------
@@ -496,6 +500,7 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         values["self"] = self
 
         def settingtheTemp(values):
+            self._logger.debug("Setting the Temp according to command: %s", str(values))
             instance = values["self"]
             # stop sweep if it runs
             if "start" in values:
@@ -636,8 +641,18 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
             3: heater auto  , gas auto
 
         """
-        self.set_auto_manual = value
-        self.ITC.setAutoControl(self.set_auto_manual)
+        statusmap = [
+            "heater manual, gas manual",
+            "heater auto  , gas manual",
+            "heater manual, gas auto",
+            "heater auto  , gas auto",
+        ]
+        try:
+            self._logger.debug("setting autocontrol to %s, that means: %s", value, statusmap[int(value)])
+        except IndexError:
+            pass
+        self.data_last["status"]["auto_int"] = value
+        self.ITC.setAutoControl(value)
 
     # @pyqtSlot(int)
     # def gettoset_Control(self, value):
