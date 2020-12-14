@@ -247,7 +247,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.Stop_Current_value = value
 
 
-class DeviceGUI(AbstractMainApp, Window_trayService_ui):
+class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
     """This is the LakeShore GUI Window"""
 
     sig_arbitrary = pyqtSignal()
