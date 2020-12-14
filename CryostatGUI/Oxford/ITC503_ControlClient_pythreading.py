@@ -639,10 +639,10 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 
-        # @pyqtSlot(int)
-        # def gettoset_Control(self, value):
+    # @pyqtSlot(int)
+    # def gettoset_Control(self, value):
         """receive and store the value to set the Control status"""
-        self.control_state = value
+        # self.control_state = value
 
     # @pyqtSlot(float)
     # def gettoset_Temperature(self, value):

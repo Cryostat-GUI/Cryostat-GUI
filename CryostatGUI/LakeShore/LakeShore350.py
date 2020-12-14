@@ -1214,7 +1214,7 @@ class LakeShore350_bare:
 
         # necessary to implement if-else for A,B,C,D or 0?
 
-        answer = self.query("KRDG? " + "{0:1d}".format(input_value))
+        answer = self.query("KRDG? " + "{0:1}".format(input_value))
 
         try:
             answer = [float(x) for x in answer]

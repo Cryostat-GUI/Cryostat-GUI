@@ -275,7 +275,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             if s > 4 or s < 1:
                 answer_dict["OK"] = False
                 answer_dict["Errors"].append("invalid sensor number: {}".format(s))
-            temperature = self.LakeShore350.KelvinReadingQuery(s)
+            temperature = self.LakeShore350.KelvinReadingQuery(s)[0]
             answer_dict[f"Temperature_K"] = temperature
 
         if "measure_Sensor_Ohm" in command:  # value must be the sensor number (1-4)
@@ -283,8 +283,11 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             if s > 4 or s < 1:
                 answer_dict["OK"] = False
                 answer_dict["Errors"].append("invalid sensor number: {}".format(s))
-            temperature = self.LakeShore350.SensorUnitsInputReadingQuery(s)
+            temperature = self.LakeShore350.SensorUnitsInputReadingQuery(s)[0]
             answer_dict[f"Temperature_Ohm"] = temperature
+        if not answer_dict["OK"]:
+            answer_dict["ERROR"] = True
+            answer_dict["ERROR_message"] = str(answer_dict["Errors"])
         return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
