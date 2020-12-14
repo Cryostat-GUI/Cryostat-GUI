@@ -261,6 +261,35 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # TODO: implement more commands
 
     @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        # examples:
+        answer_dict["OK"] = True
+        answer_dict["Errors"] = []
+        if "measure_Sensor_K" in command:  # value must be the sensor number (1-4)
+            s = int(command["measure_Sensor_K"][7])  # take number from 'Sensor_X_K'
+            if s > 4 or s < 1:
+                answer_dict["OK"] = False
+                answer_dict["Errors"].append("invalid sensor number: {}".format(s))
+            temperature = self.LakeShore350.KelvinReadingQuery(s)
+            answer_dict[f"Temperature_K"] = temperature
+
+        if "measure_Sensor_Ohm" in command:  # value must be the sensor number (1-4)
+            s = int(command["measure_Sensor_Ohm"][7])  # take number from 'Sensor_X_Ohm'
+            if s > 4 or s < 1:
+                answer_dict["OK"] = False
+                answer_dict["Errors"].append("invalid sensor number: {}".format(s))
+            temperature = self.LakeShore350.SensorUnitsInputReadingQuery(s)
+            answer_dict[f"Temperature_Ohm"] = temperature
+        return answer_dict
+        # -------------------------------------------------------------------------------------------------------------------------
+
+
+    @ExceptionHandling
     def configSensor(self):
         """configures sensor inputs to Cernox"""
         for i in ["A", "B", "C", "D"]:
