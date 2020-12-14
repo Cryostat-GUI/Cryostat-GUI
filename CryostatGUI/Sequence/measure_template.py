@@ -18,4 +18,3 @@
 #     df.tail(1).to_csv(f, header=f.tell() == 0)
 
 print("Temperature:", self.getTemperature_force(sensortype="sample"))
-

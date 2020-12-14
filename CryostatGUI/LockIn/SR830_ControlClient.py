@@ -170,7 +170,7 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             try:
                 answer_dict["SampleResistance_Ohm"] = X_V / SampleCurrent_A
             except ZeroDivisionError:
-                answer_dict["SampleResistance_Ohm"] = np.NaN            
+                answer_dict["SampleResistance_Ohm"] = np.NaN
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         if not answer_dict["OK"]:
