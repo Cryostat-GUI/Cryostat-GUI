@@ -210,7 +210,9 @@ class Sequence_functionsConvenience:
 
         elif direction == 1:
             # temp should be rising, all temps above 'temp' are fine
-            while self.getTemperature() < temp:
+            temperature = self.getTemperature()
+            while temperature < temp:
+                temperature = self.getTemperature()
                 self.check_running()
                 self._logger.debug(
                     f"temp not yet above {temp} (current: {temperature:.3f})"
@@ -218,7 +220,9 @@ class Sequence_functionsConvenience:
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
-            while self.getTemperature() > temp:
+            temperature = self.getTemperature()
+            while temperature > temp:
+                temperature = self.getTemperature()
                 self.check_running()
                 self._logger.debug(
                     f"temp not yet below {temp} (current: {temperature:.3f})"
@@ -252,7 +256,7 @@ class Sequence_functionsPersonal:
         """
         self._setpoint_temp = temperature
         self.commanding(
-            ID=self.tempdefinition[0],
+            ID=self.tempdefinition["control"][0],
             message=dictdump(
                 {
                     "setTemp_K": dict(
@@ -309,7 +313,7 @@ class Sequence_functionsPersonal:
             self.setTemperature(temperature=start)
             self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
         self.commanding(
-            ID=self.tempdefinition[0],
+            ID=self.tempdefinition["control"][0],
             message=dictdump(
                 {
                     "setTemp_K": dict(
@@ -408,11 +412,13 @@ class Sequence_functionsPersonal:
         implement measuring the temperature used for control
         returns: temperature as a float
         """
-        return self.readDataFromList(
-            dataindicator1=self.tempdefinition[0],
-            dataindicator2=self.tempdefinition[1],
+        answer = self.readDataFromList(
+            dataindicator1=self.tempdefinition["control"][0],
+            dataindicator2=self.tempdefinition["control"][1],
             Live=False,
         )
+        self._logger.debug("received temperature: %s", answer)
+        return answer
 
     def getTemperature_force(self, sensortype) -> float:
         """retrieve temperature from device directly"""
