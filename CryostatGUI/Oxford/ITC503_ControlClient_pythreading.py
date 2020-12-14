@@ -290,7 +290,7 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq tcp, and executed here
         if "measure_Sensor_K" in command:  # value could be the sensor number
-            answer_dict["Sensor_1_K"] = self.ITC.getValue(self.sensors["Sensor_1_K"])
+            answer_dict["Temperature_K"] = self.ITC.getValue(self.sensors["Sensor_1_K"])
         answer_dict["OK"] = True
         return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
@@ -507,7 +507,7 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
             )
             instance.checksweep(stop=True)
             autocontrol = instance.data_last["status"]["auto_int"]
-            instance.ITC.setAutoControl(0)
+            instance.setAutoControl(0)
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
             time.sleep(0.1)
@@ -527,7 +527,7 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
                     instance.ITC.getValue(0)
                 else:
                     instance.ITC.setTemperature(values["setTemp"])
-                instance.ITC.setAutoControl(autocontrol)
+                instance.setAutoControl(autocontrol)
 
         with self.lock_newthread:
             t1 = Thread(target=settingtheTemp, args=(values,))

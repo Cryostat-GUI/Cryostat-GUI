@@ -422,7 +422,7 @@ class Sequence_functionsPersonal:
             device_id=device,
             command=dict(measure_Sensor_K=self.tempdefinition[sensortype][1]),
         )
-        pass
+        return answer_dict["Temperature_K"]
 
     def checkField(
         self, Field: float, direction: int = 0, ApproachMode: str = "Sweep"
@@ -607,6 +607,7 @@ class Sequence_Thread_zmq(
     # sig_aborted = pyqtSignal()
     sig_finished = pyqtSignal(str)
     sig_message = pyqtSignal(str)
+    __name__ = "Sequence_now"
 
     def __init__(
         self,
