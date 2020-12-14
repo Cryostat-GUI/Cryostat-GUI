@@ -138,7 +138,6 @@ class SR830_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
@@ -147,6 +146,37 @@ class SR830_ControlClient(AbstractLoopThreadClient):
         if "setVoltage" in command:
             self.setVoltage(command["setVoltage"])
         # -------------------------------------------------------------------------------------------------------------------------
+
+    @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        answer_dict["OK"] = True
+        answer_dict["Errors"] = []
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        # examples:
+        if "measure_Resistance" in command:
+            with self._comLock:
+                Voltage_V = self.lockin.sine_voltage
+                X_V = self.lockin.x
+
+            # in mili ampers, 50 ohm is the internal resistance of the lockin
+            SampleCurrent_A = Voltage_V / (
+                self.ShuntResistance_Ohm + self.ContactResistance_Ohm + 50
+            )
+
+            try:
+                answer_dict["SampleResistance_Ohm"] = X_V / SampleCurrent_A
+            except ZeroDivisionError:
+                answer_dict["SampleResistance_Ohm"] = np.NaN            
+        # if 'configTempLimit' in command:
+        #     self.configTempLimit(command['configTempLimit'])
+        if not answer_dict["OK"]:
+            answer_dict["ERROR"] = True
+            answer_dict["ERROR_message"] = str(answer_dict["Errors"])
+        return answer_dict
 
     @pyqtSlot()
     @ExceptionHandling
