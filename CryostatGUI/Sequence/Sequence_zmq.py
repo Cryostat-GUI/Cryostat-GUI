@@ -33,6 +33,11 @@ logger = logging.getLogger("CryostatGUI.Sequences_zmq")
 class Sequence_comms_zmq(zmqMainControl):
     """docstring for Sequence_comms_zmq"""
 
+    device_ids = dict(
+        chan1=dict(V="Keithley2182_1", A="Keithley6221_1"),
+        chan2=dict(V="Keithley2182_2", A="Keithley6221_2"),
+    )
+
     @raiseProblemAbort(raising=True)
     def readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
@@ -337,7 +342,7 @@ class Sequence_functionsPersonal:
         the respective Sweep for field values
         TODO: implement for IPS
         """
-        print(
+        self._logger.debug(
             f"scan_H_programSweep :: start: {start}, end: {end}, Nsteps: {Nsteps}, fields: {fields}, Rate: {SweepRate}, SpacingCode: {SpacingCode}, EndMode: {EndMode}"
         )
         raise NotImplementedError

@@ -6,12 +6,13 @@ Provides support for the Keithley 6221 constant current supply
 
 import logging
 from drivers import AbstractGPIBDeviceDriver
+from drivers import AbstractEthernetDeviceDriver
 
 
 # CLASSES #####################################################################
 
 
-class Keithley6221(AbstractGPIBDeviceDriver):
+class Keithley6221_bare(object):
 
     """
     The Keithley 6221 is a single channel constant current supply.
@@ -172,3 +173,21 @@ class Keithley6221(AbstractGPIBDeviceDriver):
             yield a
             if a[0] == "0":
                 break
+
+
+class Keithley6221(AbstractGPIBDeviceDriver, Keithley6221_bare):
+    """docstring for Keithley6221"""
+
+    pass
+
+
+class Keithley6221_ethernet(AbstractEthernetDeviceDriver, Keithley6221_bare):
+    """docstring for Keithley6221"""
+
+    def __init__(self, InstrumentAddress, **kwargs):
+        super().__init__(
+            InstrumentAddress,
+            **kwargs,
+            read_termination="\n",
+            write_termination="\r",
+        )
