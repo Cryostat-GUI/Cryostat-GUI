@@ -1204,10 +1204,13 @@ class LakeShore350_bare:
             Or if all input are queried:
             ['<A value>','<B value>','<C value>','<D value>']
         """
-        if input_value not in [0, "A", "B", "C", "D"]:
+        if input_value not in [0, 1, 2, 3, 4, "A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be the integer 0 or a string in  ['A', 'B', 'C', 'D']."
+                "Input_Value Parameter must be an integer in (0, 1, 2, 3, 4) or a string in  ['A', 'B', 'C', 'D']."
             )
+        namelist = [None, "A", "B", "C", "D"]
+        if input_value in (1, 2, 3, 4):
+            input_value = namelist[input_value]
 
         # necessary to implement if-else for A,B,C,D or 0?
 
@@ -1217,6 +1220,7 @@ class LakeShore350_bare:
             answer = [float(x) for x in answer]
         except TypeError as e:
             self._logger.exception(e)
+            answer = float(answer)
             # raise AssertionError("{}".format(e))
         # self._logger.debug("read temperatures: %s", str(answer))
         return answer
@@ -1971,10 +1975,13 @@ class LakeShore350_bare:
             Or if all input are queried:
             <A value>,<B value>,<C value>,<D value>
         """
-        if input_value not in ["A", "B", "C", "D", 0]:
+        if input_value not in [0, 1, 2, 3, 4, "A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+                "Input_Value Parameter must be an integer in (0, 1, 2, 3, 4) or a string in  ['A', 'B', 'C', 'D']."
             )
+        namelist = [None, "A", "B", "C", "D"]
+        if input_value in (1, 2, 3, 4):
+            input_value = namelist[input_value]
 
         answer = self.query("SRDG? " + "{0:1}".format(input_value))
         try:

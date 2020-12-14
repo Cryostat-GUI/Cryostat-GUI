@@ -82,6 +82,38 @@ class Sequence_functionsConvenience:
         weak=False,
         sensortype="control",
     ) -> bool:
+        if sensortype == "both":
+            self._checkStable_Temp(
+                temp=temp,
+                direction=direction,
+                ApproachMode=ApproachMode,
+                weak=weak,
+                sensortype="control",
+            )
+            self._checkStable_Temp(
+                temp=temp,
+                direction=direction,
+                ApproachMode=ApproachMode,
+                weak=weak,
+                sensortype="sample",
+            )
+        else:
+            self._checkStable_Temp(
+                temp=temp,
+                direction=direction,
+                ApproachMode=ApproachMode,
+                weak=weak,
+                sensortype=sensortype,
+            )
+
+    def _checkStable_Temp(
+        self,
+        temp: float,
+        direction: int = 0,
+        ApproachMode: str = "Sweep",
+        weak=False,
+        sensortype="control",
+    ) -> bool:
         """wait for the temperature to stabilize
 
         param: Temp:
@@ -130,23 +162,26 @@ class Sequence_functionsConvenience:
 
                 temperature = self.getTemperature()
                 mean = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[0],
-                    dataindicator2=self.tempdefinition[1] + "_calc_ar_mean",
+                    dataindicator1=self.tempdefinition[sensortype][0],
+                    dataindicator2=self.tempdefinition[sensortype][1] + "_calc_ar_mean",
                     Live=True,
                 )
                 stderr_rel = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[0],
-                    dataindicator2=self.tempdefinition[1] + "_calc_stderr_rel",
+                    dataindicator1=self.tempdefinition[sensortype][0],
+                    dataindicator2=self.tempdefinition[sensortype][1]
+                    + "_calc_stderr_rel",
                     Live=True,
                 )
                 slope_rel = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[0],
-                    dataindicator2=self.tempdefinition[1] + "_calc_slope_rel",
+                    dataindicator1=self.tempdefinition[sensortype][0],
+                    dataindicator2=self.tempdefinition[sensortype][1]
+                    + "_calc_slope_rel",
                     Live=True,
                 )
                 slope_residuals = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[0],
-                    dataindicator2=self.tempdefinition[1] + "_calc_slope_residuals",
+                    dataindicator1=self.tempdefinition[sensortype][0],
+                    dataindicator2=self.tempdefinition[sensortype][1]
+                    + "_calc_slope_residuals",
                     Live=True,
                 )
 
@@ -378,6 +413,16 @@ class Sequence_functionsPersonal:
             dataindicator2=self.tempdefinition[1],
             Live=False,
         )
+
+    def getTemperature_force(self, sensortype) -> float:
+        """retrieve temperature from device directly"""
+        device = self.tempdefinition[sensortype][0]
+
+        answer_dict = self.query_device_command(
+            device_id=device,
+            command=dict(measure_Sensor_K=self.tempdefinition[sensortype][1]),
+        )
+        pass
 
     def checkField(
         self, Field: float, direction: int = 0, ApproachMode: str = "Sweep"
