@@ -7,6 +7,9 @@ import functools
 import time
 from datetime import datetime as dt
 from datetime import timedelta as dtdelta
+from copy import deepcopy
+
+import uuid
 
 from .customExceptions import problemAbort
 from .customExceptions import successExit
@@ -133,36 +136,36 @@ def zmqquery_dict(socket, query):
         return message
 
 
-def raiseProblemAbort(_f=None, raising=False):
-    # adapted from https://stackoverflow.com/questions/5929107/decorators-with-parameters#answer-60832711
-    assert callable(_f) or _f is None
+# def raiseProblemAbort(_f=None, raising=False):
+#     # adapted from https://stackoverflow.com/questions/5929107/decorators-with-parameters#answer-60832711
+#     assert callable(_f) or _f is None
 
-    def _decorator(func):
-        """decorating functions which may raise an error internally,
-        re-raising that error if necessary
-        returns a single value if raising=True
-        else it always returns message and error, either of which is None
-        """
+#     def _decorator(func):
+#         """decorating functions which may raise an error internally,
+#         re-raising that error if necessary
+#         returns a single value if raising=True
+#         else it always returns message and error, either of which is None
+#         """
 
-        @functools.wraps(func)
-        def wrapper_raiseProblemAbort(*args, **kwargs):
-            # if inspect.isclass(type(args[0])):
-            message, error = func(*args, **kwargs)
-            if raising:
-                if error:
-                    if isinstance(error, Exception):
-                        raise error
-                    else:
-                        logger.warning(
-                            "somehow a not-exception object ended up where it should not."
-                        )
-                return message
-            else:
-                return message, error
+#         @functools.wraps(func)
+#         def wrapper_raiseProblemAbort(*args, **kwargs):
+#             # if inspect.isclass(type(args[0])):
+#             message, error = func(*args, **kwargs)
+#             if raising:
+#                 if error:
+#                     if isinstance(error, Exception):
+#                         raise error
+#                     else:
+#                         logger.warning(
+#                             "somehow a not-exception object ended up where it should not."
+#                         )
+#                 return message
+#             else:
+#                 return message, error
 
-        return wrapper_raiseProblemAbort
+#         return wrapper_raiseProblemAbort
 
-    return _decorator(_f) if callable(_f) else _decorator
+#     return _decorator(_f) if callable(_f) else _decorator
 
 
 class zmqBare:
@@ -239,12 +242,28 @@ class zmqClient(zmqBare):
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
                     if dec(msg)[0] == "?":
                         # answer = retrieve_answer(dec(msg))
-                        answer = enc(dictdump(self.data))
+                        try:
+                            command_dict = dictload(dec(msg)[1:])
+                            answer = deepcopy(self.data)
+                            answer["uuid"] = command_dict["uuid"]
+                        except IndexError:
+                            answer = self.data
+                        answer = enc(dictdump(answer))
                         self.comms_tcp.send(answer)
 
                     elif dec(msg)[0] == "!":
                         command_dict = dictload(dec(msg)[1:])
                         answer = self.query_on_command(command_dict)
+                        try:
+                            answer["uuid"] = command_dict["uuid"]
+                        except KeyError:
+                            pass
+                        except TypeError:
+                            answer = dict(
+                                ERROR=True,
+                                Errors="internal error, check device driver logs",
+                                uuid=command_dict["uuid"],
+                            )
                         self.comms_tcp.send(enc(dictdump(answer)))
 
                     else:
@@ -379,7 +398,9 @@ class zmqMainControl(zmqBare):
         self._logger.debug("sending command to %s: %s", ID, message)
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
-    def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
+    def _bare_retrieveDataIndividual_old(
+        self, dataindicator1, dataindicator2, Live=True
+    ):
         message = enc(
             "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
         )
@@ -416,6 +437,72 @@ class zmqMainControl(zmqBare):
         except problemAbort as e:
             return None, e
 
+    def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
+        message = enc(
+            "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
+        )
+        try:
+            message, _ = self._bare_requestData_retries(
+                message,
+                fun_send=self.comms_data.send,
+                fun_recv=self.comms_data.recv,
+                id_send=None,
+            )
+            return message
+        except zmq.ZMQError as e:
+            self._logger.exception(e)
+            # raise problemAbort("")
+            return None, "zmq error, no data available, abort"
+        # except successExit:
+        #     return message, None
+        except problemAbort as e:
+            return None, e
+
+    def _bare_requestData_retries(
+        self, message, fun_send, fun_recv, id_send=None, retries_n1=5, retries_n2=3
+    ):
+        address_retour = None
+        try:
+            if id_send:
+                fun_send([enc(id_send), enc(message)])
+            else:
+                fun_send(message)
+            time_start = dt.now()
+            for _ in range(retries_n2):
+                for _ in range(retries_n1):
+                    try:
+                        if id_send:
+                            address_retour, msg = fun_recv(flags=zmq.NOBLOCK)
+                            message = dictload(dec(msg))
+                        else:
+                            message = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
+                        if "ERROR" in message:
+                            self._logger.warning(
+                                "received error from data source: %s -- %s",
+                                message["ERROR_message"],
+                                message["info"],
+                            )
+                            raise problemAbort(
+                                "problem with data retrieval, possibly the requested data is missing"
+                            )
+                        raise successExit
+                    except zmq.Again:
+                        time.sleep(0.2)
+                self._logger.debug("no answer after 5 trials, sleeping for a while")
+                time.sleep(1)
+            time_delta = (dt.now() - time_start).seconds
+            self._logger.warning(
+                "got no answer from dataStorage within %.0fs", time_delta
+            )
+            # TODO: fallback to querying individual application parts for data
+            raise problemAbort("data source unresponsive, abort")
+        # except zmq.ZMQError as e:
+        #     self._logger.exception(e)
+        #     # raise problemAbort("")
+        #     return None, None
+        except successExit:
+            return message, address_retour
+
     @ExceptionHandling
     def _bare_readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
@@ -423,11 +510,11 @@ class zmqMainControl(zmqBare):
         """retrieve a datapoint from the central list at dataStorage logging
 
         check whether the data is up to date (according to dataStorage)
-        if it is not uptodate, check how long we were already checking 
+        if it is not uptodate, check how long we were already checking
         data which is present but not up to date indicates the following:
             the device-driver (ControlClient) was running at some point,
             but stopped sending data. This could be because it crashed, or
-            because its thread-loop was paused, e.g. for a measurement. 
+            because its thread-loop was paused, e.g. for a measurement.
 
             TODO: send unlock statement to the device we need data from"""
         uptodate = False
@@ -463,7 +550,7 @@ class zmqMainControl(zmqBare):
                         )
                         # there might be a problem with the respective device, but we will be patient, for now
             data = dataPackage["data"]
-            return data, None  # second value is indicating no error was raised
+            return data  # , None  # second value is indicating no error was raised
 
         except KeyError as err:
             # print('KeyErr')
@@ -480,14 +567,14 @@ class zmqMainControl(zmqBare):
             return self.readDataFromList(
                 dataindicator1=dataindicator1, dataindicator2=dataindicator2, Live=Live
             )
-        except problemAbort as e:
-            return None, e
+        # except problemAbort as e:
+        #     return None, e
 
-    @raiseProblemAbort(raising=False)
-    def retrieve_data_individual(self, dataindicator1, dataindicator2, Live=True):
+    # @raiseProblemAbort(raising=False)
+    def retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
         return self._bare_retrieveDataIndividual(dataindicator1, dataindicator2, Live)
 
-    @raiseProblemAbort(raising=False)
+    # @raiseProblemAbort(raising=False)
     def readDataFromList(
         self, dataindicator1: str, dataindicator2: str, Live: bool = False
     ) -> float:
@@ -495,45 +582,52 @@ class zmqMainControl(zmqBare):
 
     def query_device_data(self, device_id, noblock=False):
         """query data from device directly"""
-        data = "?"
-        return self._query_device(device_id, data, noblock=noblock)
+        uuid_now = uuid.uuid4().hex
+        data = "?" + dictdump({"uuid": uuid_now})
+        return self._query_device_ensureResult(device_id, data, uuid_now)
 
-    def query_device_command(self, device_id, command=None, noblock=False):
+    def query_device_command(self, device_id, command=None):
         """dictate action and return answer"""
+        uuid_now = uuid.uuid4().hex
+        command.update({"uuid": uuid_now})
         data = "!" + dictdump(command)
-        return self._query_device(device_id, data, noblock=noblock)
+        # return self._query_device(device_id, data, noblock=noblock)
+        return self._query_device_ensureResult(device_id, data, uuid_now)
 
-    def _query_device(self, device_id, msg, noblock):
+    # def _query_device(self, device_id, msg, noblock):
+    #     address_retour = None
+    #     address = device_id
+
+    #     while address_retour != address:
+    #         self._logger.debug("querying %s: %s", address, msg)
+    #         self.comms_tcp.send_multipart([address, enc(msg)])
+    #         if noblock:
+    #             time.sleep(0.5)
+    #             address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
+    #         else:
+    #             address_retour, message = self.comms_tcp.recv_multipart()
+    #         self._logger.debug("received data from %s", address_retour)
+    #     return dictload(dec(message))
+
+    def _query_device_ensureResult(self, device_id, msg, uuid_now):
         address_retour = None
         address = device_id
-
-        while address_retour != address:
-            self._logger.debug("querying %s: %s", address, msg)
-            self.comms_tcp.send_multipart([address, enc(msg)])
-            if noblock:
-                time.sleep(0.5)
-                address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
-            else:
-                address_retour, message = self.comms_tcp.recv_multipart()
-            self._logger.debug("received data from %s", address_retour)
-        return dictload(dec(message))
-
-    def _query_device_ensureResult(self, device_id, msg):
-        address_retour = None
-        address = device_id
-
-        while address_retour != address:
-            self._logger.debug("querying (ensureResult) %s: %s", address, msg)
-            self.comms_tcp.send_multipart([address, enc(msg)])
-
-                address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
-            else:
-                address_retour, message = self.comms_tcp.recv_multipart()
-
-
-            self._logger.debug("received data from %s", address_retour)
-        return dictload(dec(message))
-
+        message = {"uuid": ""}
+        while address_retour != address and uuid_now != message["uuid"]:
+            self._logger.debug(
+                "querying (ensureResult) %s, uuid: %s: %s", address, uuid_now, msg
+            )
+            # self.comms_tcp.send_multipart([address, enc(msg)])
+            message, address_retour = self._bare_requestData_retries(
+                message=msg,
+                fun_send=self.comms_tcp.send_multipart,
+                fun_recv=self.comms_tcp.recv_multipart,
+                id_send=address,
+            )
+            self._logger.debug(
+                "received data from %s, uuid: %s", address_retour, message["uuid"]
+            )
+        return message  # dictload(dec(msg)) already done
 
 
 class zmqDataStore(zmqBare):
