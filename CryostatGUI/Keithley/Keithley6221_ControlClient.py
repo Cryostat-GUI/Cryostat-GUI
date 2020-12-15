@@ -231,20 +231,20 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.Current_A_value = value
         self.Current_A_storage = value
 
-    @pyqtSlot(float)
-    def gettoset_Start_Current(self, value):
-        """store a start current for a sweep"""
-        self.Start_Current_value = value
+    # @pyqtSlot(float)
+    # def gettoset_Start_Current(self, value):
+    #     """store a start current for a sweep"""
+    #     self.Start_Current_value = value
 
-    @pyqtSlot(float)
-    def gettoset_Step_Current(self, value):
-        """store a step current for a sweep"""
-        self.Step_Current_value = value
+    # @pyqtSlot(float)
+    # def gettoset_Step_Current(self, value):
+    #     """store a step current for a sweep"""
+    #     self.Step_Current_value = value
 
-    @pyqtSlot(float)
-    def gettoset_Stop_Current(self, value):
-        """store a stop current for a sweep"""
-        self.Stop_Current_value = value
+    # @pyqtSlot(float)
+    # def gettoset_Stop_Current(self, value):
+    #     """store a stop current for a sweep"""
+    #     self.Stop_Current_value = value
 
 
 class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
@@ -335,46 +335,5 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
 
 if __name__ == "__main__":
     print(
-        "please use the program 'start_XXX.py' to start communicating with this device!"
+        "please use the program 'start_Keithley6221.py' to start communicating with this device!"
     )
-    # "TCPIP::192.168.1.106::1394::SOCKET"
-
-    # from pid import PidFile
-    # from pid import PidFileError
-
-    # try:
-    #     with PidFile("Template"):
-    #         logger = logging.getLogger()
-    #         logger.setLevel(logging.DEBUG)
-
-    #         logger_2 = logging.getLogger("pyvisa")
-    #         logger_2.setLevel(logging.INFO)
-    #         logger_3 = logging.getLogger("PyQt5")
-    #         logger_3.setLevel(logging.INFO)
-
-    #         handler = logging.StreamHandler(sys.stdout)
-    #         handler.setLevel(logging.DEBUG)
-    #         formatter = logging.Formatter(
-    #             "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-    #         )
-    #         handler.setFormatter(formatter)
-
-    #         logger.addHandler(handler)
-    #         logger_2.addHandler(handler)
-    #         logger_3.addHandler(handler)
-
-    #         app = QtWidgets.QApplication(sys.argv)
-    #         form = DeviceGUI(
-    #             ui_file="Template_main.ui",
-    #             Name="Template",
-    #             identity=b"templ",
-    #             InstrumentAddress="",
-    #             prometheus_port=None,
-    #         )
-    #         form.show()
-    #         # print('date: ', dt.datetime.now(),
-    #         #       '\nstartup time: ', time.time() - a)
-    #         sys.exit(app.exec_())
-    # except PidFileError:
-    #     print("Program already running! \nShutting down now!\n")
-    #     sys.exit()

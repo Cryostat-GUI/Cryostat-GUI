@@ -332,37 +332,5 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
 
 if __name__ == "__main__":
     print(
-        "please use the program 'start_XXX.py' to start communicating with this device!"
+        "please use the program 'start_Keithley2182.py' to start communicating with this device!"
     )
-    # logger = logging.getLogger()
-    # logger.setLevel(logging.DEBUG)
-
-    # logger_2 = logging.getLogger("pyvisa")
-    # logger_2.setLevel(logging.INFO)
-    # logger_3 = logging.getLogger("PyQt5")
-    # logger_3.setLevel(logging.INFO)
-
-    # handler = logging.StreamHandler(sys.stdout)
-    # handler.setLevel(logging.DEBUG)
-    # formatter = logging.Formatter(
-    #     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-    # )
-    # handler.setFormatter(formatter)
-
-    # logger.addHandler(handler)
-    # logger_2.addHandler(handler)
-    # logger_3.addHandler(handler)
-
-    # app = QtWidgets.QApplication(sys.argv)
-    # Keithley2182_1_adress = "GPIB0::2::INSTR"
-    # form = Keithley2182GUI(
-    #     ui_file="Nanovolt_main.ui",
-    #     Name="Keithley2182_1",
-    #     identity="Keithley2182_1",
-    #     InstrumentAddress=Keithley2182_1_adress,
-    #     prometheus_port=None,
-    # )
-    # form.show()
-    # # print('date: ', dt.datetime.now(),
-    # #       '\nstartup time: ', time.time() - a)
-    # sys.exit(app.exec_())

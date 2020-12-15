@@ -23,7 +23,7 @@ if __name__ == "__main__":
         Keithley2182_adress = f"GPIB0::{n+1}::INSTR"
         prometheus_port = prometheus_startport + n
 
-        with PidFile(f"Keithley_{n}"):
+        with PidFile(f"Keithley1282_{n}"):
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
 
