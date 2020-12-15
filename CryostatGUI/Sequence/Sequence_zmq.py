@@ -22,6 +22,7 @@ import measureSequences as mS
 
 from util import AbstractThread
 from util.zmqcomms import dictdump
+
 # from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 from util.util_misc import CustomStreamHandler
@@ -608,10 +609,7 @@ class Sequence_logic(
 
 
 class Sequence_Thread_zmq(
-    Sequence_logic,
-    Sequence_comms_zmq,
-    AbstractThread,
-    metaclass=classmaker()
+    Sequence_logic, Sequence_comms_zmq, AbstractThread, metaclass=classmaker()
 ):
     """docstring for Sequence_Thread"""
 
