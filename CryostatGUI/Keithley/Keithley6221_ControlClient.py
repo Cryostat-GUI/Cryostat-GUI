@@ -29,7 +29,7 @@ from datetime import datetime
 from pyvisa.errors import VisaIOError
 import logging
 
-from Keithley.Keithley6221 import Keithley6221
+from Keithley.Keithley6221 import Keithley6221_ethernet
 
 
 class Keithley6221_ControlClient(AbstractLoopThreadClient):
@@ -50,42 +50,53 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     # exposable data dictionary
     data = {}
 
-    def __init__(self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs):
-        super().__init__(**kwargs)
-        self.__name__ = "DeviceName_control " + InstrumentAddress
+    def __init__(
+        self, mainthread=None, comLock=None, identity="", InstrumentAddress="", **kwargs
+    ):
+        super().__init__(identity=identity, **kwargs)
+        self.__name__ = "Keithley6221_control " + InstrumentAddress
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
-        self.Keithley6221 = Keithley6221(
+        self.Keithley6221 = Keithley6221_ethernet(
             InstrumentAddress=InstrumentAddress,
-            read_termination="\n",
+            # read_termination="\n",
         )
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
         # initial configurations for the hardware device
         self.Current_A_value = 0
-        self.Current_A_storage = 0  # if power is turned off
+        self.Current_A_storage = 0  # set to zero at powerup
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
+        if self.OutputOn:
+            self.disable()
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
         # Examples:
-        # if mainthread is not None:
-        #     pass
+        if mainthread is not None:
+            self.mainthread = mainthread
 
-        #     mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
-        #     mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
+            mainthread.hardware_IP.setText(InstrumentAddress)
+            mainthread.hardware_id.setText(identity)
 
-        #     mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-        #     mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+            mainthread.spinSetCurrent_mA.valueChanged.connect(
+                lambda value: self.gettoset_Current_A(value * 1e-3)
+            )
+            mainthread.spinSetCurrent_mA.editingFinished.connect(self.setCurrent_A)
 
-        #     mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-        #     mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+            mainthread.pushToggleOut.clicked.connect(self.toggleCurrent)
+
+            # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
+            # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+
+            # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
+            # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
 
         #     -------------------------------------------------------------------------------------------------------------------------
 
@@ -108,8 +119,9 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
         # example:
         self.data["OutputOn"] = self.getstatus()
+        self.data["Current_A"] = self.Current_A_value
 
-        for error in self.Keithley2182.error_gen():
+        for error in self.Keithley6221.error_gen():
             if error[0] != "0":
                 self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
         self.data["realtime"] = datetime.now()
@@ -121,11 +133,24 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
-        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
+        if "set_Current_A" in command:
+            self.logger.debug("setting the current to %f A", command["set_Current_A"])
+            self.setCurrent(command["set_Current_A"])
+        if "set_Output" in command:
+            if int(command["set_Output"]) == 1:
+                self._logger.debug("enabling current")
+                self.enable()
+            elif int(command["set_Output"]) == 0:
+                self._logger.debug("disabling current")
+                self.disable()
+            else:
+                self._logger.warning(
+                    "output must be 0 or 1, I received '%s'", str(command["set_Output"])
+                )
         # if 'setTemp_K' in command:
         #     self.setTemp_K(command['setTemp_K'])
         # if 'configTempLimit' in command:
@@ -140,8 +165,6 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq tcp, and executed here
         # examples:
-        # if "measure_Voltage" in command:
-        #     answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
         answer_dict["OK"] = True
@@ -195,30 +218,42 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     def setCurrent_A(self):
         """set a previously stored value for the current"""
         self.Keithley6221.setCurrent(self.Current_A_value)
-        self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
+        send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
+        self.sig_Infodata.emit(deepcopy(send_dict))
 
-    @pyqtSlot()
+    @pyqtSlot(float)
     @ExceptionHandling
     def setCurrent(self, current: float):
         """set a pass value for the current"""
         self.Current_A_value = current
         self.Current_A_storage = current
         self.Keithley6221.setCurrent(current)
-        self.sig_Infodata.emit(deepcopy(dict(Current_A=self.Current_A_value)))
+        send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
+        self.sig_Infodata.emit(deepcopy(send_dict))
+
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setSweep(self):
+    #     """set a current sweep"""
+    #     self.Keithley6221.SetupSweet(
+    #         self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value
+    #     )
+
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def startSweep(self):
+    #     """start a current sweep"""
+    #     self.Keithley6221.StartSweep()
 
     @pyqtSlot()
     @ExceptionHandling
-    def setSweep(self):
-        """set a current sweep"""
-        self.Keithley6221.SetupSweet(
-            self.Start_Current_value, self.Step_Current_value, self.Stop_Current_value
-        )
-
-    @pyqtSlot()
-    @ExceptionHandling
-    def startSweep(self):
-        """start a current sweep"""
-        self.Keithley6221.StartSweep()
+    def toggleCurrent(self):
+        if self.OutputOn:
+            self.disable()
+            self.mainthread.pushToggleOut.setText("output is OFF")
+        else:
+            self.enable()
+            self.mainthread.pushToggleOut.setText("output is ON")
 
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
@@ -260,11 +295,11 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
-        # print('GUI post')
-        # loadUi('.\\configurations\\Cryostat GUI.ui', self)
-        # self.setupUi(self)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
-        self.__name__ = "Template_Window"
+        self.__name__ = "Keithley6221_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
