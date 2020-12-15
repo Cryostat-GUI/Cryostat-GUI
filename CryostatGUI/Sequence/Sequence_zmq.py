@@ -611,6 +611,7 @@ class Sequence_Thread_zmq(
     Sequence_logic,
     Sequence_comms_zmq,
     AbstractThread,
+    metaclass=classmaker()
 ):
     """docstring for Sequence_Thread"""
 
