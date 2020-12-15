@@ -1,3 +1,5 @@
+## from http://www.phyast.pitt.edu/~micheles/python/metatype.html
+
 import inspect
 import types
 
