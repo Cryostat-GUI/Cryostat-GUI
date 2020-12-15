@@ -104,7 +104,7 @@ p, li { white-space: pre-wrap; }
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
-        <widget class="QDoubleSpinBox" name="spinSetCurrent1_mA">
+        <widget class="QDoubleSpinBox" name="spinSetCurrent_mA">
          <property name="decimals">
           <number>3</number>
          </property>
@@ -133,12 +133,12 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
-        <widget class="QPushButton" name="pushToggleOut_1">
+        <widget class="QPushButton" name="pushToggleOut">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Output ON</string>
+          <string>Output is OFF</string>
          </property>
         </widget>
        </item>
