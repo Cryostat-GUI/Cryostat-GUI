@@ -42,9 +42,11 @@ class Keithley6221_bare(object):
         self.go("SOUR:CLE:IMM")
 
     def enable(self):
+        self._logger.debug("output state enable")
         self.go("OUTPUT:STATE ON")
 
     def disable(self):
+        self._logger.debug("output state disable")
         self.go("OUTPUT:STATE OFF")
 
     def getstatus(self):
@@ -68,7 +70,7 @@ class Keithley6221_bare(object):
             raise AssertionError(
                 "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
             )
-        self._logger.debug("setting current to %d", current_value)
+        self._logger.debug("setting current to %f", current_value)
         self.go("CURR {0:e}".format(current_value))
 
     def configSourceFunctions(self, bias_current=1e-4, compliance=1):
