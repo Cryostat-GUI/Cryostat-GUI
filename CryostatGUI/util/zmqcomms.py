@@ -395,7 +395,11 @@ class zmqMainControl(zmqBare):
 
     def commanding(self, ID, message):
         # self.comms_downstream.send_multipart([ID.encode('asii'), enc(message)])
-        self._logger.debug("sending command to %s: %s", ID, message.replace('\n', ' ').replace('\r', ''))
+        self._logger.debug(
+            "sending command to %s: %s",
+            ID,
+            message.replace("\n", " ").replace("\r", ""),
+        )
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
     def _bare_retrieveDataIndividual_old(
@@ -615,7 +619,10 @@ class zmqMainControl(zmqBare):
         message = {"uuid": ""}
         while address_retour != address and uuid_now != message["uuid"]:
             self._logger.debug(
-                "querying (ensureResult) %s, uuid: %s: %s", address, uuid_now, msg.replace('\n', ' ').replace('\r', '')
+                "querying (ensureResult) %s, uuid: %s: %s",
+                address,
+                uuid_now,
+                msg.replace("\n", " ").replace("\r", ""),
             )
             # self.comms_tcp.send_multipart([address, enc(msg)])
             message, address_retour = self._bare_requestData_retries(
