@@ -3,30 +3,33 @@ from PyQt5.QtCore import pyqtSlot
 
 import sys
 import time
-import pandas as pd
+import logging
 
 from threading import Lock
 from json import loads
 
-from util import AbstractThread
-from util.zmqcomms import dictdump
+from pid import PidFile
+from pid import PidFileError
 
-# from util.zmqcomms import raiseProblemAbort
-from util.zmqcomms import zmqMainControl
+from datetime import datetime as dt
 
-from util.util_misc import CustomStreamHandler
+
+import pandas as pd
+
+from noconflict import classmaker
 
 import measureSequences as mS
 
-from Sequence import problemAbort
+from util import AbstractThread
+from util.zmqcomms import dictdump
+# from util.zmqcomms import raiseProblemAbort
+from util.zmqcomms import zmqMainControl
+from util.util_misc import CustomStreamHandler
+from util import problemAbort
 
 # from Sequence import AbstractMeasureResistance
 # from Sequence import AbstractMeasureResistanceMultichannel
 
-from pid import PidFile
-from pid import PidFileError
-
-import logging
 
 logger = logging.getLogger("CryostatGUI.Sequences_zmq")
 
