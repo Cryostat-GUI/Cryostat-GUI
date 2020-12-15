@@ -487,7 +487,7 @@ class zmqMainControl(zmqBare):
                             )
                         raise successExit
                     except zmq.Again:
-                        time.sleep(0.2)
+                        time.sleep(0.3)
                 self._logger.debug("no answer after 5 trials, sleeping for a while")
                 time.sleep(1)
             time_delta = (dt.now() - time_start).seconds
@@ -586,13 +586,13 @@ class zmqMainControl(zmqBare):
         data = "?" + dictdump({"uuid": uuid_now})
         return self._query_device_ensureResult(device_id, data, uuid_now)
 
-    def query_device_command(self, device_id, command=None):
+    def query_device_command(self, device_id, command=None, **kwargs):
         """dictate action and return answer"""
         uuid_now = uuid.uuid4().hex
         command.update({"uuid": uuid_now})
         data = "!" + dictdump(command)
         # return self._query_device(device_id, data, noblock=noblock)
-        return self._query_device_ensureResult(device_id, data, uuid_now)
+        return self._query_device_ensureResult(device_id, data, uuid_now, **kwargs)
 
     # def _query_device(self, device_id, msg, noblock):
     #     address_retour = None
@@ -609,7 +609,7 @@ class zmqMainControl(zmqBare):
     #         self._logger.debug("received data from %s", address_retour)
     #     return dictload(dec(message))
 
-    def _query_device_ensureResult(self, device_id, msg, uuid_now):
+    def _query_device_ensureResult(self, device_id, msg, uuid_now, **kwargs):
         address_retour = None
         address = device_id
         message = {"uuid": ""}
@@ -623,6 +623,7 @@ class zmqMainControl(zmqBare):
                 fun_send=self.comms_tcp.send_multipart,
                 fun_recv=self.comms_tcp.recv_multipart,
                 id_send=address,
+                **kwargs,
             )
             self._logger.debug(
                 "received data from %s, uuid: %s", address_retour, message["uuid"]
