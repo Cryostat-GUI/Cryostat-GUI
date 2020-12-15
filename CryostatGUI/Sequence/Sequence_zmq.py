@@ -518,7 +518,7 @@ class Sequence_functionsPersonal:
             df = pd.DataFrame(data)
 
         with open(datafile, "a", newline="") as f:
-            df.tail(1).to_csv(f, header=f.tell() == 0)
+            df.tail(1).to_csv(f, header=f.tell() == 0, index=False)
 
         self._logger.debug(f" store the measured data: {data} in the file: {datafile}.")
 
@@ -735,8 +735,9 @@ if __name__ == "__main__":
             logger_4 = logging.getLogger("measureSequences")
             logger_4.setLevel(logging.DEBUG)
 
+            date = dt.now().strftime("%Y%m%d-%H%M%S")
             handler_debug = logging.FileHandler(
-                filename="Logs/Sequence_logs.log", mode="a"
+                filename=f"Logs/Sequence_logs{date}.log", mode="a"
             )
             handler_debug.setLevel(logging.DEBUG)
             formatter_debug = logging.Formatter(
