@@ -188,7 +188,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.Current_A_storage = self.Current_A_value
         # for logging/application running:
         self.Current_A_value = 0
-        self.OutputOn = self.Keithley6221.getstatus()[0]
+        self.OutputOn = int(self.Keithley6221.getstatus()[0])
 
     @pyqtSlot()
     @ExceptionHandling
@@ -197,7 +197,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.Keithley6221.enable()
         self.Current_A_value = self.Current_A_storage
         self.setCurrent_A()
-        self.OutputOn = self.Keithley6221.getstatus()[0]
+        self.OutputOn = int(self.Keithley6221.getstatus()[0])
 
     @pyqtSlot()
     @ExceptionHandling

@@ -761,8 +761,8 @@ if __name__ == "__main__":
             # filename = "seqfiles/setTemp_300.json"
             filename = "seqfiles/measure.json"
             thresholdsconf = dict(
-                threshold_T_K=0.1,
-                threshold_Tmean_K=0.2,
+                threshold_T_K=0.05,
+                threshold_Tmean_K=0.05,
                 threshold_stderr_rel=1e-5,
                 threshold_relslope_Kpmin=1e-3,
                 threshold_slope_residuals=30,

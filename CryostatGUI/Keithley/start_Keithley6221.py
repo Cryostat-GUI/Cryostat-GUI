@@ -21,6 +21,7 @@ if __name__ == "__main__":
         else:
             n = 1
         Keithley6221_adress = f"TCPIP::192.168.1.10{6+n-1}::1394::SOCKET"
+        # f"TCPIP::192.168.1.106::1394::SOCKET"
         prometheus_port = prometheus_startport + n
 
         with PidFile(f"Keithley6221_{n}"):
@@ -44,6 +45,7 @@ if __name__ == "__main__":
             logger_3.addHandler(handler)
 
             app = QtWidgets.QApplication(sys.argv)
+            logger.debug(Keithley6221_adress)
             form = Keithley6221GUI(
                 ui_file="K6221_main.ui",
                 Name=f"Keithley6221_{n}",
