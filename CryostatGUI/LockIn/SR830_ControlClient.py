@@ -145,6 +145,10 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             self.setFrequency(command["setFrequency"])
         if "setVoltage" in command:
             self.setVoltage(command["setVoltage"])
+        if "setShuntResistance" in command:
+            self.getShuntResistance(command["setShuntResistance"])
+        if "setContactResistance" in command:
+            self.getContactResistance(command["setContactResistance"])
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling
@@ -168,6 +172,10 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             )
 
             try:
+                answer_dict["X_V"] = X_V
+                answer_dict["specified_Shunt_Ohm"] = self.ShuntResistance_Ohm
+                answer_dict["specified_Contact_Ohm"] = self.ContactResistance_Ohm
+                answer_dict["SampleCurrent_A"] = SampleCurrent_A
                 answer_dict["SampleResistance_Ohm"] = X_V / SampleCurrent_A
             except ZeroDivisionError:
                 answer_dict["SampleResistance_Ohm"] = np.NaN
