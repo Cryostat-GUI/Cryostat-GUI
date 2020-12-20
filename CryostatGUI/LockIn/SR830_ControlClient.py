@@ -25,7 +25,7 @@ import numpy as np
 from pyvisa.errors import VisaIOError
 import logging
 
-#
+import time
 # import LockIn
 
 from pymeasure.instruments.srs import SR830

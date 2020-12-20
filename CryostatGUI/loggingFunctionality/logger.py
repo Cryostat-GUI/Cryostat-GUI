@@ -679,9 +679,9 @@ class live_Logger_bare:
             "Range",
             "Setup",
             "calc",
-            "Keithley",
-            "SR830",
-            "SR860",
+            "Keithley",  # need to be commented in case stable values are wanted
+            "SR830",  # need to be commented in case stable values are wanted
+            "SR860",  # need to be commented in case stable values are wanted
             "IPS",
             "ILM",
             "thread",

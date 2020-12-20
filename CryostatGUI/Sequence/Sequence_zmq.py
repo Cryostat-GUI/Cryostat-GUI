@@ -476,7 +476,7 @@ class Sequence_functionsPersonal:
             dataindicator2=self.tempdefinition["control"][1],
             Live=False,
         )
-        self._logger.debug("received temperature: %s", answer)
+        # self._logger.debug("received temperature: %s", answer)
         return answer
 
     def getTemperature_force(self, sensortype) -> float:
@@ -596,7 +596,7 @@ class Sequence_functionsPersonal:
         self.datafile = datafile
         if mode == "w":
             with open(datafile, "w") as f:
-                f.write("\n")
+                f.write("")
         self._logger.debug(f" change the datafile to: {datafile}, with mode {mode}.")
 
 
@@ -784,8 +784,8 @@ if __name__ == "__main__":
             logger_3 = logging.getLogger("PyQt5")
             logger_3.setLevel(logging.INFO)
 
-            logger_4 = logging.getLogger("measureSequences")
-            logger_4.setLevel(logging.DEBUG)
+            # logger_4 = logging.getLogger("measureSequences")
+            # logger_4.setLevel(logging.DEBUG)
 
             date = dt.now().strftime("%Y%m%d-%H%M%S")
             handler_debug = logging.FileHandler(
@@ -808,12 +808,14 @@ if __name__ == "__main__":
             logger.addHandler(handler_info)
             logger_2.addHandler(handler_debug)
             logger_3.addHandler(handler_debug)
-            logger_4.addHandler(handler_debug)
+            # logger_4.addHandler(handler_debug)
             # logger_4.addHandler(handler_info)
 
             # filename = "seqfiles/testing_setTemp.json"
             # filename = "seqfiles/setTemp_300.json"
-            filename = "seqfiles/measure.json"
+            # filename = "seqfiles/measure.json"
+            # filename = "seqfiles/measuring_SR860_test2.json"
+            filename = "seqfiles/measuring_SR860_test3.json"
             thresholdsconf = dict(
                 temperature=dict(
                     value=0.1,  # 0.05,  T_K
