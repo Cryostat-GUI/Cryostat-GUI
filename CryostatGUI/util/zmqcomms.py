@@ -521,6 +521,9 @@ class zmqMainControl(zmqBare):
             because its thread-loop was paused, e.g. for a measurement.
 
             TODO: send unlock statement to the device we need data from"""
+        self._logger.debug(
+            "reading data from dataStorage: %s -- %s", dataindicator1, dataindicator2
+        )
         uptodate = False
         try:
             startdate = dt.now()
@@ -554,6 +557,7 @@ class zmqMainControl(zmqBare):
                         )
                         # there might be a problem with the respective device, but we will be patient, for now
             data = dataPackage["data"]
+            self._logger.debug("received data from dataStorage: %s", str(data))
             return data  # , None  # second value is indicating no error was raised
 
         except KeyError as err:

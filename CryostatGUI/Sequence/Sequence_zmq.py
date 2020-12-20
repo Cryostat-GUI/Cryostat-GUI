@@ -84,7 +84,7 @@ class Sequence_functionsConvenience:
         temp: float,
         direction: int = 0,
         ApproachMode: str = "Sweep",
-        weak=False,
+        weak: bool = False,
         sensortype="control",
     ) -> bool:
         if sensortype == "both":
@@ -116,12 +116,12 @@ class Sequence_functionsConvenience:
         temp: float,
         direction: int = 0,
         ApproachMode: str = "Sweep",
-        weak=False,
+        weak: bool = False,
         sensortype="control",
     ) -> bool:
         """wait for the temperature to stabilize
 
-        param: Temp:
+        param: temp:
             the temperature which needs to be arrived to continue
             function must block until the temperature has reached this value!
             (apart from checking whether the sequence qas aborted)
@@ -148,94 +148,148 @@ class Sequence_functionsConvenience:
                 sensortype = 'control': self.tempdefinition['control']
                 sensortype = 'sample': self.tempdefinition['sample']
                 sensortype = 'both': check for stability in both values
-
-        method should be overriden - possibly some convenience functionality
-            will be added in the future
         """
-        self._logger.debug(f"checking for stable temp: {temp}K")
+        return self._checkStable_Value(
+            val=temp,
+            direction=direction,
+            ApproachMode=ApproachMode,
+            weak=False,
+            dataindicator1=self.tempdefinition[sensortype][0],
+            dataindicator2=self.tempdefinition[sensortype][1],
+            value_name="temperature",
+            value_unit="K",
+            getfunc=self.getTemperature,
+            thresholdsconf=self.thresholdsconf["temperature"],
+        )
+
+    def _checkStable_Value(
+        self,
+        val: float,
+        direction: int = 0,
+        ApproachMode: str = "Sweep",
+        weak: bool = False,
+        dataindicator1: str = None,
+        dataindicator2: str = None,
+        value_name: str = "tempearture",
+        value_unit: str = "K",
+        getfunc=None,
+        thresholdsconf=None,
+    ) -> bool:
+        """wait for a value to stabilize
+
+        param: val:
+            the temperature which needs to be arrived to continue
+            function must block until the value has reached this value!
+            (apart from checking whether the sequence has aborted)
+
+        param: direction:
+            indicates whether the 'val' should currently be
+                rising or falling
+                direction =  0: default, no information / non-sweeping
+                direction =  1: value should be rising
+                direction = -1: value should be falling
+
+        param: ApproachMode:
+            specifies the mode of approach in the scan this function is called
+            ApproachMode = Sweep: only for sweeps
+
+        param: weak:
+            TODO: implement behavior
+            if True, do not check for distance to the specified value,
+            but only for slope and residuals and mean stderr
+
+        TODO: change thresholdsconf to variable thing for different values
+        """
+
+        if getfunc is None:
+
+            def getfunc():
+                return self.readDataFromList(
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2,
+                    Live=False,
+                )
+
+        self._logger.debug(f"checking for stable {value_name}: {val}{value_unit}")
         if direction == 0 or ApproachMode != "Sweep":
             # no information, temp should really stabilize
 
             stable = False
             # count = None
-            temperature = 0
+            value_now = 0
             stable_values = []
             while not stable:
 
                 stable_values = []
                 self.check_running()
 
-                temperature = self.getTemperature()
+                value_now = getfunc()
                 mean = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[sensortype][0],
-                    dataindicator2=self.tempdefinition[sensortype][1] + "_calc_ar_mean",
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2 + "_calc_ar_mean",
                     Live=True,
                 )
                 stderr_rel = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[sensortype][0],
-                    dataindicator2=self.tempdefinition[sensortype][1]
-                    + "_calc_stderr_rel",
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2 + "_calc_stderr_rel",
                     Live=True,
                 )
                 slope_rel = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[sensortype][0],
-                    dataindicator2=self.tempdefinition[sensortype][1]
-                    + "_calc_slope_rel",
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2 + "_calc_slope_rel",
                     Live=True,
                 )
                 slope_residuals = self.readDataFromList(
-                    dataindicator1=self.tempdefinition[sensortype][0],
-                    dataindicator2=self.tempdefinition[sensortype][1]
-                    + "_calc_slope_residuals",
+                    dataindicator1=dataindicator1,
+                    dataindicator2=dataindicator2 + "_calc_slope_residuals",
                     Live=True,
                 )
 
-                if abs(temperature - temp) < self.thresholdsconf["threshold_T_K"]:
-                    stable_values.append("T_K")
-                if abs(mean - temp) < self.thresholdsconf["threshold_Tmean_K"]:
-                    stable_values.append("Tmean_K")
-                if abs(stderr_rel) < self.thresholdsconf["threshold_stderr_rel"]:
+                if abs(value_now - val) < thresholdsconf["value"]:
+                    stable_values.append("value")
+                if abs(mean - val) < thresholdsconf["mean"]:
+                    stable_values.append("mean")
+                if abs(stderr_rel) < thresholdsconf["stderr_rel"]:
                     stable_values.append("stderr_rel")
-                if abs(slope_rel) < self.thresholdsconf["threshold_relslope_Kpmin"]:
-                    stable_values.append("relslope_Kpmin")
-                if (
-                    abs(slope_residuals)
-                    < self.thresholdsconf["threshold_slope_residuals"]
-                ):
+                if abs(slope_rel) < thresholdsconf["relslope_Xpmin"]:
+                    stable_values.append("relslope_Xpmin")
+                if abs(slope_residuals) < thresholdsconf["slope_residuals"]:
                     stable_values.append("slope_residuals")
 
                 self._logger.info(
-                    f"waiting for temp: {temp} (current: {temperature:.3f}), indicators ({len(stable_values):d}/5): {stable_values}"
+                    f"waiting for {value_name}: {val:.4f} (current: {value_now:.4f}{value_unit}), indicators ({len(stable_values):d}/5): {stable_values}"
                 )
 
                 if len(stable_values) >= 5:
+                    stable = True
+                elif weak and len(stable_values) == 4 and "value" not in stable_values:
                     stable = True
                 else:
                     time.sleep(1)
 
         elif direction == 1:
             # temp should be rising, all temps above 'temp' are fine
-            temperature = self.getTemperature()
-            while temperature < temp:
-                temperature = self.getTemperature()
+            value_now = getfunc()
+            while value_now < val:
+                value_now = getfunc()
                 self.check_running()
                 self._logger.debug(
-                    f"temp not yet above {temp} (current: {temperature:.3f})"
+                    f"{value_name} not yet above {val} (current: {value_now:.3f})"
                 )
                 time.sleep(1)
         elif direction == -1:
             # temp should be falling, all temps below 'temp' are fine
-            temperature = self.getTemperature()
-            while temperature > temp:
-                temperature = self.getTemperature()
+            value_now = getfunc()
+            while value_now > val:
+                value_now = getfunc()
                 self.check_running()
                 self._logger.debug(
-                    f"temp not yet below {temp} (current: {temperature:.3f})"
+                    f"{value_name} not yet below {val} (current: {value_now:.3f})"
                 )
                 time.sleep(1)
 
         self._logger.info(
-            f"Temperature {temp} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+            f"{value_name} {val} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
         )
 
 
@@ -761,11 +815,13 @@ if __name__ == "__main__":
             # filename = "seqfiles/setTemp_300.json"
             filename = "seqfiles/measure.json"
             thresholdsconf = dict(
-                threshold_T_K=0.05,
-                threshold_Tmean_K=0.05,
-                threshold_stderr_rel=1e-5,
-                threshold_relslope_Kpmin=1e-3,
-                threshold_slope_residuals=30,
+                temperature=dict(
+                    value=0.1,  # 0.05,  T_K
+                    mean=0.2,  # 0.05,   Tmean_K
+                    stderr_rel=1e-5,
+                    relslope_Xpmin=1e-3,  # _Kpmin
+                    slope_residuals=30,
+                ),
             )
             tempdefinition = dict(
                 control=["ITC", "Sensor_1_calerr_K"],
