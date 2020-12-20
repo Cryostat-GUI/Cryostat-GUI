@@ -334,7 +334,6 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
             self.getInfodata.Keithley6221.res_close()
             super().closeEvent(event)
 
-
     @pyqtSlot(dict)
     def updateGUI(self, data):
         """
