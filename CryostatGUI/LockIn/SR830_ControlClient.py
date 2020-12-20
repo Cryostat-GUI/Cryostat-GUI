@@ -251,7 +251,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
     def run_Hardware(self):
         """start/stop the Lockin thread"""
         try:
-            getInfodata = self.running_thread_control(
+            self.getInfodata = self.running_thread_control(
                 SR830_ControlClient(
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
@@ -266,7 +266,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
             # InstrumentAddress=self._InstrumentAddress, mainthread=self,
             # identity=self._identity), 'Hardware', )
 
-            getInfodata.sig_Infodata.connect(self.updateGUI)
+            self.getInfodata.sig_Infodata.connect(self.updateGUI)
             # getInfodata.sig_visaerror.connect(self.printing)
             # getInfodata.sig_assertion.connect(self.printing)
             # getInfodata.sig_visaerror.connect(self.show_error_general)
@@ -278,6 +278,14 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
             # self.show_error_general('running: {}'.format(e))
             self._logger.exception(e)
             raise ApplicationExit("Could not connect to Hardware!")
+
+    def closeEvent(self, event):
+        while not self.getInfodata.run_finished:
+            time.sleep(0.1)
+        # with self.getInfodata.lock:
+        self.getInfodata.lock.acquire()
+        del self.getInfodata.lockin
+        super().closeEvent(event)
 
     @pyqtSlot(dict)
     def updateGUI(self, data):

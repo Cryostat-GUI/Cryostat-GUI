@@ -16,7 +16,7 @@ from PyQt5.QtCore import QTimer
 
 # from PyQt5 import QtWidgets
 from copy import deepcopy
-
+import time
 
 from drivers import ApplicationExit
 
@@ -309,7 +309,7 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
         """start/stop the LakeShore350 thread"""
 
         try:
-            getInfodata = self.running_thread_control(
+            self.getInfodata = self.running_thread_control(
                 Keithley6221_ControlClient(
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
@@ -320,12 +320,20 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
                 "Hardware",
             )
 
-            getInfodata.sig_Infodata.connect(self.updateGUI)
+            self.getInfodata.sig_Infodata.connect(self.updateGUI)
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
             self.logger_personal.exception(e)
             raise ApplicationExit("Could not connect to Hardware!")
+
+    def closeEvent(self, event):
+        while not self.getInfodata.run_finished:
+            time.sleep(0.1)
+        with self.getInfodata.lock:
+            self.getInfodata.Keithley6221.res_close()
+            super().closeEvent(event)
+
 
     @pyqtSlot(dict)
     def updateGUI(self, data):

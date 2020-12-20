@@ -212,22 +212,25 @@ class AbstractVISADriver:
 
     def res_close(self):
         self._visa_resource.close()
+        time.sleep(0.1)
         self._resource_manager.close()
+        time.sleep(0.1)
         self._resource_manager.visalib._registry.clear()
+        time.sleep(0.1)
         del self._resource_manager.visalib
         del self._resource_manager
         del self._visa_resource
-        time.sleep(0.5)
+        time.sleep(0.1)
 
     def res_open(self):
         self._resource_manager = get_rm(self.visalib_kw)
         try:
-            self._visa_resource = self._resource_manager.open_resource(
+            self._visa_resource = self._resource_manager.get_instrument(
                 self._instrumentaddress
             )
         except VisaIOError:
             self._logger.error("could not open visa resource, trying again")
-            self._visa_resource = self._resource_manager.open_resource(
+            self._visa_resource = self._resource_manager.get_instrument(
                 self._instrumentaddress
             )
         self.initialise_device_specifics(**self._device_specifics)
