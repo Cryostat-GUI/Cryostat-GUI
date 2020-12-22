@@ -192,7 +192,7 @@ class ips120(AbstractSerialDeviceDriver):
 
         TODO: check for sanity:
         - manual says field is set in mT (0.001 T)
-        - plarity is set manually, NOT by setting negative field setpoint
+        - polarity is set manually, NOT by setting negative field setpoint
         """
         MAX_FIELD = 8
         if not abs(field) < MAX_FIELD:
