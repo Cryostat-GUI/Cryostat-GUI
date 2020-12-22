@@ -288,6 +288,9 @@ class AbstractVISADriver:
             # time.sleep(self.delay)
         return answer
 
+    def __del__(self):
+        self.res_close()
+
 
 class AbstractSerialDeviceDriver(AbstractVISADriver):
     """Abstract Device driver class"""
