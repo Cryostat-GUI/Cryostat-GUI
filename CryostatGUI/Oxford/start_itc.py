@@ -54,7 +54,7 @@ if __name__ == "__main__":
                     while workingThread.is_alive():
                         # workingThread.join(0.01)
                         time.sleep(0.01)
-                except:
+                finally:
                     logger.warning(f"exception occured, trying to shut down gracefully")
                     stopEvent.set()
                     # logger.info("just set the event, trying to join now")
