@@ -237,18 +237,28 @@ def measure_resistance_multichannel(
 
 
 def AbstractMeasureResistance(
-    channel_current, channel_voltage, exc_curr, iv_characteristic
+    channel_current,
+    channel_voltage,
+    exc_curr,
+    iv_characteristic,
+    current_reversal_time=0.06,
 ):
     """Abstract logic for resistance measurement"""
     currents = []
     voltages = []
     resistance = {}
-    for current_base in iv_characteristic:
-        for currentfactor in [-1, 1]:
+    for currentfactor in [-1, 1]:
+        if currentfactor == 1:
+            iv_char = reversed(iv_characteristic)
+        else:
+            iv_char = iv_characteristic
+        for current_base in iv_char:
             current = exc_curr * currentfactor * current_base
             currents.append(current)
             channel_current.setCurrent(current)
-            voltage = channel_voltage.read_Voltage()
+            # waiting for current to stabilize
+            time.sleep(current_reversal_time)
+            voltage = channel_voltage.readVoltage()
             voltages.append(voltage)
     c, stats = polyfit(currents, voltages, deg=1, full=True)
     resistance["coeff"] = c[1]
