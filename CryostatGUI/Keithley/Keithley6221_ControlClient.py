@@ -332,7 +332,7 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
-            self.logger_personal.exception(e)
+            self._logger.exception(e)
             raise ApplicationExit("Could not connect to Hardware!")
 
     def closeEvent(self, event):
