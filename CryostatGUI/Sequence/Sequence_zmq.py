@@ -28,7 +28,7 @@ from util.zmqcomms import zmqMainControl
 from util.util_misc import CustomStreamHandler
 from util import problemAbort
 
-# from Sequence import AbstractMeasureResistance
+from Sequence import AbstractMeasureResistance
 # from Sequence import AbstractMeasureResistanceMultichannel
 
 
