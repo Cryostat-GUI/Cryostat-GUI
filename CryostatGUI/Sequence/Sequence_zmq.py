@@ -29,6 +29,7 @@ from util.util_misc import CustomStreamHandler
 from util import problemAbort
 
 from Sequence import AbstractMeasureResistance
+
 # from Sequence import AbstractMeasureResistanceMultichannel
 
 
@@ -568,7 +569,9 @@ class Sequence_functionsPersonal:
     def measuring_store_data(self, data: dict, datafile: str) -> None:
         """Store measured data"""
         if not all(isinstance(data[key], list) for key in data):
-            df = pd.DataFrame({key: [data[key]] for key in data if not isinstance(data[key], list)})
+            df = pd.DataFrame(
+                {key: [data[key]] for key in data if not isinstance(data[key], list)}
+            )
         else:
             df = pd.DataFrame(data)
 
