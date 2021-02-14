@@ -29,7 +29,8 @@ from datetime import datetime
 from pyvisa.errors import VisaIOError
 import logging
 
-from Keithley.Keithley6221 import Keithley6221_ethernet
+# from Keithley.Keithley6221 import Keithley6221_ethernet
+from pymeasure.instruments.keithley import Keithley6221
 
 
 class Keithley6221_ControlClient(AbstractLoopThreadClient):
@@ -61,19 +62,22 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
-        self.Keithley6221 = Keithley6221_ethernet(
-            InstrumentAddress=InstrumentAddress,
-            # read_termination="\n",
+        self.Keithley6221 = Keithley6221(
+            InstrumentAddress,
+            read_termination="\n",
         )
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
         # initial configurations for the hardware device
-        self.Current_A_value = 0
-        self.Current_A_storage = 0  # set to zero at powerup
+        self.Current_A_storage = self.Keithley6221.source_current
         self.OutputOn = self.getstatus()  # 0 == OFF, 1 == ON
         if self.OutputOn:
-            self.disable()
+            self.Current_A_value = self.Current_A_storage
+        else:
+            self.Current_A_value = 0
+        # if self.OutputOn:
+        #     self.disable()
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -119,11 +123,13 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
         # example:
         self.data["OutputOn"] = self.getstatus()
+        self.Current_A_value = self.Keithley6221.source_current
         self.data["Current_A"] = self.Current_A_value
 
-        for error in self.Keithley6221.error_gen():
-            if error[0] != "0":
-                self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
+        # for error in self.Keithley6221.error_gen():
+        #     if error[0] != "0":
+        #         self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
+        self.Keithley6221.check_errors()  # pymeasure writing errors to pymeasure log
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
@@ -193,40 +199,37 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def disable(self):
         """disable the output current"""
-        self.Keithley6221.disable()
+        self.Keithley6221.source_enabled = False
         self.Current_A_storage = self.Current_A_value
         # for logging/application running:
         self.Current_A_value = 0
-        self.OutputOn = int(self.Keithley6221.getstatus()[0])
+        self.OutputOn = self.Keithley6221.source_enabled
 
     @pyqtSlot()
     @ExceptionHandling
     def enable(self):
         """enable the output current"""
-        self.Keithley6221.enable()
-        self.Current_A_value = self.Current_A_storage
+        self.Keithley6221.source_enabled = True
+        self.Current_A_value = self.Keithley6221.source_current
         self.setCurrent_A()
-        self.OutputOn = int(self.Keithley6221.getstatus()[0])
+        self.OutputOn = self.Keithley6221.source_enabled
 
     @pyqtSlot()
     @ExceptionHandling
     def getstatus(self):
         """retrieve output current status"""
-        return int(self.Keithley6221.getstatus()[0])
+        return int(self.Keithley6221.source_enabled)
 
     @ExceptionHandling
-    def toggle_frontpanel(self, bools, text="In sequence..."):
+    def toggle_frontpanel(self, bools, text=None):
         """toggle frontpanel display text"""
-        if bools:
-            self.Keithley6221.enable_frontpanel()
-        else:
-            self.Keithley6221.disable_frontpanel(text)
+        self.Keithley6221.display_enabled = bools
 
     @pyqtSlot()
     @ExceptionHandling
     def setCurrent_A(self):
         """set a previously stored value for the current"""
-        self.Keithley6221.setCurrent(self.Current_A_value)
+        self.Keithley6221.source_current = self.Current_A_value
         send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
         self.sig_Infodata.emit(deepcopy(send_dict))
 
@@ -237,7 +240,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         if self.getstatus():
             self.Current_A_value = current
         self.Current_A_storage = current
-        self.Keithley6221.setCurrent(current)
+        self.Keithley6221.source_current = current
         send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
         self.sig_Infodata.emit(deepcopy(send_dict))
 
@@ -258,6 +261,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     @pyqtSlot()
     @ExceptionHandling
     def toggleCurrent(self):
+        self.OutputOn = self.getstatus()
         if self.OutputOn:
             self.disable()
             self.mainthread.pushToggleOut.setText("output is OFF")
@@ -341,7 +345,7 @@ class Keithley6221GUI(AbstractMainApp, Window_trayService_ui):
         while not self.getInfodata.run_finished:
             time.sleep(0.1)
         with self.getInfodata.lock:
-            self.getInfodata.Keithley6221.res_close()
+            del self.getInfodata.Keithley6221
             super().closeEvent(event)
 
     @pyqtSlot(dict)
