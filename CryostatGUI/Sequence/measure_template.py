@@ -1,13 +1,16 @@
 """Documentation for usable functions in measuring scripts, to be injected by a user"""
 # import pandas as pd
 
-print("MEASURING -- MEASURING -- MEASURING")
+self._logger.info("MEASURING -- MEASURING -- MEASURING")
 
 t1 = self.getTemperature_force(sensortype="sample")
 # rho, I, V = AbstractMeasureResistance()
 
 res = self.query_device_command(
-    "SR860_1", command={"measure_Resistance": None}, retries_n1=10, retries_n2=5
+    "SR860_1",
+    command={"measure_Resistance": None},
+    retries_n1=10,
+    retries_n2=5
 )
 
 t2 = self.getTemperature_force(sensortype="sample")

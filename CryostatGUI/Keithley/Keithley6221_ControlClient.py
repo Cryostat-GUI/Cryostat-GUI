@@ -96,12 +96,6 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
 
             mainthread.pushToggleOut.clicked.connect(self.toggleCurrent)
 
-            # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-            # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
-
-            # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-            # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
-
         #     -------------------------------------------------------------------------------------------------------------------------
 
         #     mainthread.spin_threadinterval.valueChanged.connect(
