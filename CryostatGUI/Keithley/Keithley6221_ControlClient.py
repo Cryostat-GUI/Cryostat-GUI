@@ -167,12 +167,17 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # examples:
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
-        self.act_on_command(command)
-        answer_dict.update(
-            dict(Current_A=self.Current_A_storage, OutputOn=self.getstatus())
-        )
-        answer_dict["OK"] = True
-        return answer_dict
+        try:
+            self.act_on_command(command)
+            answer_dict.update(
+                dict(
+                    Current_A=self.Keithley6221.source_current,
+                    OutputOn=self.getstatus(),
+                )
+            )
+            answer_dict["OK"] = True
+        finally:
+            return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------------------------------

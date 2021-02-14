@@ -166,13 +166,15 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq tcp, and executed here
         # examples:
-        if "measure_Voltage" in command:
-            # self.setTemp_K(command['setTemp_K'])
-            answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
-        # if 'configTempLimit' in command:
-        #     self.configTempLimit(command['configTempLimit'])
-        answer_dict["OK"] = True
-        return answer_dict
+        try:
+            if "measure_Voltage" in command:
+                # self.setTemp_K(command['setTemp_K'])
+                answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
+            # if 'configTempLimit' in command:
+            #     self.configTempLimit(command['configTempLimit'])
+            answer_dict["OK"] = True
+        finally:
+            return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------------------------------
