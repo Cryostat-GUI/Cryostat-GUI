@@ -1,8 +1,9 @@
 """Documentation for usable functions in measuring scripts, to be injected by a user"""
+from Sequence_abstract_measurements import AbstractMeasureResistance
+from util.misc import loops_off_zmq
 
 self._logger.info("DC MEAS - -------------   START  ---------------------------------------")
 
-from Sequence_abstract_measurements import AbstractMeasureResistance
 
 """ defining classes for channels for DC measurement  """
 
@@ -70,6 +71,7 @@ class Keithley_Voltage_Channel(object):
 k6221_1 = Keithley_Source_Channel(control=self, device_id="Keithley6221_2")
 k2182_1 = Keithley_Voltage_Channel(control=self, device_id="Keithley2182_1")
 
+loop_stop_devices = ["Keithley6221_2", "Keithley2182_1", "LakeShore350", "ITC"]
 
 """defining the dc resistance characteristic.
     With exc_curr = 5, and iv_characteristic = [1, 0.5],
@@ -79,27 +81,29 @@ k2182_1 = Keithley_Voltage_Channel(control=self, device_id="Keithley2182_1")
 exc_curr = 5e-3
 iv_characteristic = [1, 0.5]
 # ----------------------------------------------------------------------------------------
+stop_loops = loops_off_zmq(control=self, devices=loop_stop_devices)
 
 
-self._logger.info("DC MEAS - measuring DC with %s and %s", k6221_1, k2182_1)
+with stop_loops:
+    self._logger.info("DC MEAS - measuring DC with %s and %s", k6221_1, k2182_1)
 
-# first temperature measurement, before measuring
-self._logger.debug("DC MEAS - measuring first temperature")
-t1 = self.getTemperature_force(sensortype="sample")
+    # first temperature measurement, before measuring
+    self._logger.debug("DC MEAS - measuring first temperature")
+    t1 = self.getTemperature_force(sensortype="sample")
 
-# dc measurement as defined in the called function
-# in sublime text editor, klick on the function and press F12 to see the code
-self._logger.debug("DC MEAS - measuring resistance")
-rho, currents, voltages = AbstractMeasureResistance(
-    channel_current=k6221_1,
-    channel_voltage=k2182_1,
-    exc_curr=exc_curr,
-    iv_characteristic=iv_characteristic,
-)
+    # dc measurement as defined in the called function
+    # in sublime text editor, klick on the function and press F12 to see the code
+    self._logger.debug("DC MEAS - measuring resistance")
+    rho, currents, voltages = AbstractMeasureResistance(
+        channel_current=k6221_1,
+        channel_voltage=k2182_1,
+        exc_curr=exc_curr,
+        iv_characteristic=iv_characteristic,
+    )
 
-# second temperature measurement, after measuring
-self._logger.debug("DC MEAS - measuring second temperature")
-t2 = self.getTemperature_force(sensortype="sample")
+    # second temperature measurement, after measuring
+    self._logger.debug("DC MEAS - measuring second temperature")
+    t2 = self.getTemperature_force(sensortype="sample")
 
 
 self._logger.debug("DC MEAS - building data")

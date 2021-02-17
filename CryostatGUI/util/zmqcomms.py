@@ -168,6 +168,32 @@ def zmqquery_dict(socket, query):
 #     return _decorator(_f) if callable(_f) else _decorator
 
 
+class loops_off_zmq:
+    """Context manager for disabling all AbstractLoopThread loops through zmq comms"""
+
+    def __init__(self, control, devices):
+        self.devices = devices
+        self.control = control
+
+    def __enter__(self, *args, **kwargs):
+        for dev in self.devices:
+            # self.control.commanding(
+            #     dev, dictdump({"lock": None}),
+            # )
+            self.control.query_device_command(
+                dev, dictdump({"unlock": None}),
+            )            
+
+    def __exit__(self, *args, **kwargs):
+        for dev in self.devices:
+            # self.control.commanding(
+            #     dev, dictdump({"lock": None}),
+            # )
+            self.control.query_device_command(
+                dev, dictdump({"unlock": None}),
+            )            
+
+
 class zmqBare:
     """docstring for zmqBare"""
 
@@ -203,13 +229,11 @@ class zmqClient(zmqBare):
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE,
-            self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
         )
         # subscribe to general commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE,
-            "general".encode("ascii"),
+            zmq.SUBSCRIBE, "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -233,6 +257,25 @@ class zmqClient(zmqBare):
     #     except KeyboardInterrupt:
     #         pass
 
+    def act_on_general(self, command_dict):
+        try:
+            if "interval" in command_dict:
+                self._logger.debug(
+                    "setting a new interval: %3.3fs", command_dict["interval"],
+                )
+                self.setInterval(command_dict["interval"])
+            if "lock" in command_dict:
+                self._logger.debug("   locked the loop")
+                self.lock.acquire()
+            elif "unlock" in command_dict:
+                self._logger.debug("un-locked the loop")
+                self.lock.release()
+
+        except AttributeError as e:
+            self._logger.exception(e)
+        except RuntimeError as e:
+            self._logger.exception(e)
+
     # @ExceptionHandling
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
@@ -253,6 +296,7 @@ class zmqClient(zmqBare):
 
                     elif dec(msg)[0] == "!":
                         command_dict = dictload(dec(msg)[1:])
+                        self.act_on_general(command_dict)
                         answer = self.query_on_command(command_dict)
                         try:
                             answer["uuid"] = command_dict["uuid"]
@@ -282,25 +326,7 @@ class zmqClient(zmqBare):
                     self._logger.info(
                         "received command from downstream: %s", command_dict
                     )
-
-                    try:
-                        if "interval" in command_dict:
-                            self._logger.debug(
-                                "setting a new interval: %3.3fs",
-                                command_dict["interval"],
-                            )
-                            self.setInterval(command_dict["interval"])
-                        if "lock" in command_dict:
-                            self._logger.debug("   locked the loop")
-                            self.lock.acquire()
-                        elif "unlock" in command_dict:
-                            self._logger.debug("un-locked the loop")
-                            self.lock.release()
-
-                    except AttributeError as e:
-                        self._logger.exception(e)
-                    except RuntimeError as e:
-                        self._logger.exception(e)
+                    self.act_on_general(command_dict)
                     self.act_on_command(command_dict)
                     # act on commands!
             except zmq.Again:
