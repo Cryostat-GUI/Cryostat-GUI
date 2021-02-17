@@ -181,8 +181,9 @@ class loops_off_zmq:
             #     dev, dictdump({"lock": None}),
             # )
             self.control.query_device_command(
-                dev, dictdump({"unlock": None}),
-            )            
+                dev,
+                dictdump({"unlock": None}),
+            )
 
     def __exit__(self, *args, **kwargs):
         for dev in self.devices:
@@ -190,8 +191,9 @@ class loops_off_zmq:
             #     dev, dictdump({"lock": None}),
             # )
             self.control.query_device_command(
-                dev, dictdump({"unlock": None}),
-            )            
+                dev,
+                dictdump({"unlock": None}),
+            )
 
 
 class zmqBare:
@@ -229,11 +231,13 @@ class zmqClient(zmqBare):
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE,
+            self.comms_name.encode("ascii"),
         )
         # subscribe to general commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, "general".encode("ascii"),
+            zmq.SUBSCRIBE,
+            "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -261,7 +265,8 @@ class zmqClient(zmqBare):
         try:
             if "interval" in command_dict:
                 self._logger.debug(
-                    "setting a new interval: %3.3fs", command_dict["interval"],
+                    "setting a new interval: %3.3fs",
+                    command_dict["interval"],
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
