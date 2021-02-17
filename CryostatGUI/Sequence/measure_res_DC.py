@@ -1,6 +1,6 @@
 """Documentation for usable functions in measuring scripts, to be injected by a user"""
 from Sequence_abstract_measurements import AbstractMeasureResistance
-from util.misc import loops_off_zmq
+from util.zmqcomms import loops_off_zmq
 
 self._logger.info(
     "DC MEAS - -------------   START  ---------------------------------------"
