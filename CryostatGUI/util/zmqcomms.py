@@ -181,8 +181,8 @@ class loops_off_zmq:
             #     dev, dictdump({"lock": None}),
             # )
             self.control.query_device_command(
-                dev, dictdump({"unlock": None}),
-            )            
+                dev, command={"unlock": None},
+            )
 
     def __exit__(self, *args, **kwargs):
         for dev in self.devices:
@@ -190,8 +190,8 @@ class loops_off_zmq:
             #     dev, dictdump({"lock": None}),
             # )
             self.control.query_device_command(
-                dev, dictdump({"unlock": None}),
-            )            
+                dev, command={"unlock": None},
+            )
 
 
 class zmqBare:
