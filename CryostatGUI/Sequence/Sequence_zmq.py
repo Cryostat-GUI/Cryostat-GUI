@@ -28,7 +28,7 @@ from util.zmqcomms import zmqMainControl
 from util.util_misc import CustomStreamHandler
 from util import problemAbort
 
-from Sequence import AbstractMeasureResistance
+from Sequence_abstract_measurements import AbstractMeasureResistance
 
 # from Sequence import AbstractMeasureResistanceMultichannel
 
@@ -818,14 +818,15 @@ if __name__ == "__main__":
             # filename = "seqfiles/setTemp_300.json"
             # filename = "seqfiles/measure.json"
             # filename = "seqfiles/measuring_SR860_test2.json"
-            filename = "seqfiles/measuring_SR860_test3.json"
+            # filename = "seqfiles/measuring_SR860_test3.json"
+            filename = "seqfiles/measuring_DC_test1.json"
             thresholdsconf = dict(
                 temperature=dict(
-                    value=0.1,  # 0.05,  T_K
-                    mean=0.2,  # 0.05,   Tmean_K
-                    stderr_rel=1e-5,
-                    relslope_Xpmin=1e-3,  # _Kpmin
-                    slope_residuals=30,
+                    value=0.3,           # 0.1, # 0.05,  T_K
+                    mean=10,            # 0.2,  # 0.05,   Tmean_K
+                    stderr_rel=1e-1,   # 1e-5,
+                    relslope_Xpmin=1e-0,  # 1e-3,  # _Kpmin
+                    slope_residuals=30e4,   # 30,
                 ),
             )
             tempdefinition = dict(

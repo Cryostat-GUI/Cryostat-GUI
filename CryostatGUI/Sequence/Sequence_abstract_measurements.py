@@ -28,11 +28,13 @@ def AbstractMeasureResistance(
         for current_base in iv_char:
             current = exc_curr * currentfactor * current_base
             currents.append(current)
-            channel_current.setCurrent(current)
+            channel_current.current = current
+            channel_current.enabled = True
             # waiting for current to stabilize
             sleep(current_reversal_time)
-            voltage = channel_voltage.readVoltage()
+            voltage = channel_voltage.voltage
             voltages.append(voltage)
+    channel_current.enabled = False
     c, stats = polyfit(currents, voltages, deg=1, full=True)
     resistance["coeff"] = c[1]
     resistance["residuals"] = stats[0][0]
