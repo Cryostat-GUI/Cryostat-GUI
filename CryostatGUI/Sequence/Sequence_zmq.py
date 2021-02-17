@@ -822,11 +822,11 @@ if __name__ == "__main__":
             filename = "seqfiles/measuring_DC_test1.json"
             thresholdsconf = dict(
                 temperature=dict(
-                    value=0.3,           # 0.1, # 0.05,  T_K
-                    mean=10,            # 0.2,  # 0.05,   Tmean_K
-                    stderr_rel=1e-1,   # 1e-5,
+                    value=0.3,  # 0.1, # 0.05,  T_K
+                    mean=10,  # 0.2,  # 0.05,   Tmean_K
+                    stderr_rel=1e-1,  # 1e-5,
                     relslope_Xpmin=1e-0,  # 1e-3,  # _Kpmin
-                    slope_residuals=30e4,   # 30,
+                    slope_residuals=30e4,  # 30,
                 ),
             )
             tempdefinition = dict(

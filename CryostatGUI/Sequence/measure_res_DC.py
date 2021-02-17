@@ -2,7 +2,9 @@
 from Sequence_abstract_measurements import AbstractMeasureResistance
 from util.misc import loops_off_zmq
 
-self._logger.info("DC MEAS - -------------   START  ---------------------------------------")
+self._logger.info(
+    "DC MEAS - -------------   START  ---------------------------------------"
+)
 
 
 """ defining classes for channels for DC measurement  """
@@ -137,4 +139,6 @@ self.measuring_store_data(data=d, datafile=self.datafile)
 
 # print("Temperature:", self.getTemperature_force(sensortype="sample"))
 
-self._logger.info("DC MEAS - -------------   STOP  ---------------------------------------")
+self._logger.info(
+    "DC MEAS - -------------   STOP  ---------------------------------------"
+)
