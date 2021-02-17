@@ -20,8 +20,10 @@ if __name__ == "__main__":
             n = int(sys.argv[1]) if sys.argv[1] != 0 else 1
         else:
             n = 1
-        Keithley6221_adress = f"TCPIP::192.168.1.10{6+n-1}::1394::SOCKET"
+        # Keithley6221_adress = f"TCPIP::192.168.1.10{6+n-1}::1394::SOCKET"
         # f"TCPIP::192.168.1.106::1394::SOCKET"
+        # f"GPIB0::{n+1}::INSTR"
+        Keithley6221_adress = f"GPIB0::{5+n-1}::INSTR"
         prometheus_port = prometheus_startport + n
 
         with PidFile(f"Keithley6221_{n}"):
