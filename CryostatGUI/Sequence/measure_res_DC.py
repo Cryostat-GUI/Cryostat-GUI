@@ -1,6 +1,8 @@
 """Documentation for usable functions in measuring scripts, to be injected by a user"""
 
-self._logger.info("DC MEAS - -------------   START  ---------------------------------------")
+self._logger.info(
+    "DC MEAS - -------------   START  ---------------------------------------"
+)
 
 from Sequence_abstract_measurements import AbstractMeasureResistance
 
@@ -133,4 +135,6 @@ self.measuring_store_data(data=d, datafile=self.datafile)
 
 # print("Temperature:", self.getTemperature_force(sensortype="sample"))
 
-self._logger.info("DC MEAS - -------------   STOP  ---------------------------------------")
+self._logger.info(
+    "DC MEAS - -------------   STOP  ---------------------------------------"
+)
