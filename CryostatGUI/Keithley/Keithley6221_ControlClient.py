@@ -138,7 +138,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # commands are received via zmq downstream, and executed here
         # examples:
         if "set_Current_A" in command:
-            self.logger.debug("setting the current to %.5f A", command["set_Current_A"])
+            self._logger.debug("setting the current to %.5f A", command["set_Current_A"])
             self.setCurrent(command["set_Current_A"])
         if "set_Output" in command:
             if int(command["set_Output"]) == 1:
