@@ -20,6 +20,7 @@ def AbstractMeasureResistance(
     currents = []
     voltages = []
     resistance = {}
+    first = True
     for currentfactor in [-1, 1]:
         if currentfactor == 1:
             iv_char = reversed(iv_characteristic)
@@ -29,7 +30,9 @@ def AbstractMeasureResistance(
             current = exc_curr * currentfactor * current_base
             currents.append(current)
             channel_current.current = current
-            channel_current.enabled = True
+            if first:
+                channel_current.enabled = True
+                first = False
             # waiting for current to stabilize
             sleep(current_reversal_time)
             voltage = channel_voltage.voltage
