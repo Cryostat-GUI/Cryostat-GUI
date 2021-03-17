@@ -180,9 +180,9 @@ class loops_off_zmq:
             # self.control.commanding(
             #     dev, dictdump({"lock": None}),
             # )
+            self.control._logger.debug("locking device %s", dev)
             self.control.query_device_command(
-                dev,
-                command={"unlock": None},
+                dev, command={"lock": None},
             )
 
     def __exit__(self, *args, **kwargs):
@@ -190,9 +190,9 @@ class loops_off_zmq:
             # self.control.commanding(
             #     dev, dictdump({"lock": None}),
             # )
+            self.control._logger.debug("unlocking device %s", dev)
             self.control.query_device_command(
-                dev,
-                command={"unlock": None},
+                dev, command={"unlock": None},
             )
 
 
