@@ -351,6 +351,7 @@ class zmqClient(zmqBare):
         raise NotImplementedError
 
     def send_data_upstream(self):
+        self.data["realtime"] = dt.now()
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
