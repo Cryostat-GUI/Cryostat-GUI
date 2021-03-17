@@ -55,6 +55,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self, mainthread=None, comLock=None, identity="", InstrumentAddress="", **kwargs
     ):
         super().__init__(identity=identity, **kwargs)
+        self.interval = 0.15
         self.__name__ = "Keithley6221_control " + InstrumentAddress
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
