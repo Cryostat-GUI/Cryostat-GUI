@@ -116,7 +116,8 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
         # example:
-        self.data["OutputOn"] = self.getstatus()
+        self.OutputOn = self.getstatus()
+        self.data["OutputOn"] = self.OutputOn
         self.Current_A_value = self.Keithley6221.source_current
         self.data["Current_A"] = self.Current_A_value
 
@@ -129,6 +130,14 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
         # data is being sent by the zmqClient class automatically
+
+    def sending_upstream(self):
+        self.data = {}
+        self.data["OutputOn"] = self.OutputOn
+        self.data["Current_A"] = self.Current_A_storage
+        self.set_gauges()
+        self.sig_Infodata.emit(deepcopy(self.data))
+        super().send_data_upstream()
 
     @ExceptionHandling
     def act_on_command(self, command):
@@ -153,6 +162,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
                 self._logger.warning(
                     "output must be 0 or 1, I received '%s'", str(command["set_Output"])
                 )
+        self.sending_upstream()
         # if 'setTemp_K' in command:
         #     self.setTemp_K(command['setTemp_K'])
         # if 'configTempLimit' in command:
@@ -178,6 +188,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
                 )
             )
             answer_dict["OK"] = True
+
         finally:
             return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
@@ -199,16 +210,19 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.Current_A_storage = self.Current_A_value
         # for logging/application running:
         self.Current_A_value = 0
-        self.OutputOn = self.Keithley6221.source_enabled
+        # self.OutputOn = self.Keithley6221.source_enabled
+        self.OutputOn = False
 
     @pyqtSlot()
     @ExceptionHandling
     def enable(self):
         """enable the output current"""
         self.Keithley6221.source_enabled = True
-        self.Current_A_value = self.Keithley6221.source_current
-        self.setCurrent_A()
-        self.OutputOn = self.Keithley6221.source_enabled
+        # self.Current_A_value = self.Keithley6221.source_current
+        self.Current_A_value = self.Current_A_storage
+        # self.setCurrent_A()
+        # self.OutputOn = self.Keithley6221.source_enabled
+        self.OutputOn = True
 
     @pyqtSlot()
     @ExceptionHandling
@@ -226,8 +240,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
     def setCurrent_A(self):
         """set a previously stored value for the current"""
         self.Keithley6221.source_current = self.Current_A_value
-        send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
-        self.sig_Infodata.emit(deepcopy(send_dict))
+        self.sending_upstream()
 
     @pyqtSlot(float)
     @ExceptionHandling
@@ -237,8 +250,7 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
             self.Current_A_value = current
         self.Current_A_storage = current
         self.Keithley6221.source_current = current
-        send_dict = dict(Current_A=self.Current_A_value, OutputOn=self.getstatus())
-        self.sig_Infodata.emit(deepcopy(send_dict))
+        self.sending_upstream()
 
     # @pyqtSlot()
     # @ExceptionHandling
@@ -260,10 +272,13 @@ class Keithley6221_ControlClient(AbstractLoopThreadClient):
         self.OutputOn = self.getstatus()
         if self.OutputOn:
             self.disable()
+            self.OutputOn = False
             self.mainthread.pushToggleOut.setText("output is OFF")
         else:
             self.enable()
+            self.OutputOn = True
             self.mainthread.pushToggleOut.setText("output is ON")
+        self.sending_upstream()
 
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
