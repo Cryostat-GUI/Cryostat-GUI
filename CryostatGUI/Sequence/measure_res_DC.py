@@ -23,6 +23,7 @@ class Keithley_Source_Channel:
 
     @current.setter
     def current(self, current):
+        self.control._logger.debug("setting current to %s", current)
         self._current = current
         self.control.query_device_command(
             self.id,
@@ -37,6 +38,7 @@ class Keithley_Source_Channel:
 
     @enabled.setter
     def enabled(self, bools):
+        self.control._logger.debug("toggle enable current: %s", bools)
         self._enabled = bools
         self.control.query_device_command(
             self.id,
@@ -79,6 +81,7 @@ loop_stop_devices = ["Keithley6221_2", "Keithley2182_1", "LakeShore350", "ITC"]
     With exc_curr = 5, and iv_characteristic = [1, 0.5],
     the excitation currents in use are:
         -5, -2.5, 2.5, 5
+    excitation currents are in Ampere
 """
 exc_curr = 5e-3
 iv_characteristic = [1, 0.5]
