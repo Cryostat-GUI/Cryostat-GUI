@@ -797,7 +797,7 @@ class live_Logger_bare:
         except KeyError as key:
             self.sig_assertion.emit("live logger: " + key.args[0])
             self._logger.exception(key)
-        except InitError as init:
+        except InitError:  # as init:
             self._logger.warning("re-doing init for missing keys")
             self.initialisation()
             self.running()
