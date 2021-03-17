@@ -473,8 +473,14 @@ class zmqMainControl(zmqBare):
             return None, e
 
     def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
+        uuid_now = uuid.uuid4().hex
         message = enc(
-            "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
+            "?"
+            + dictdump(
+                dict(
+                    instr=dataindicator1, value=dataindicator2, live=Live, uuid=uuid_now
+                )
+            )
         )
         try:
             message, _ = self._bare_requestData_retries(
@@ -482,6 +488,7 @@ class zmqMainControl(zmqBare):
                 fun_send=self.comms_data.send,
                 fun_recv=self.comms_data.recv,
                 id_send=None,
+                uuid=uuid_now
             )
             return message
         except zmq.ZMQError as e:
@@ -494,49 +501,71 @@ class zmqMainControl(zmqBare):
             return None, e
 
     def _bare_requestData_retries(
-        self, message, fun_send, fun_recv, id_send=None, retries_n1=5, retries_n2=3
+        self,
+        message,
+        fun_send,
+        fun_recv,
+        id_send=None,
+        retries_n1=10,
+        retries_n2=5,
+        uuid=None,
     ):
         address_retour = None
-        try:
-            if id_send:
-                fun_send([enc(id_send), enc(message)])
-            else:
-                fun_send(message)
-            time_start = dt.now()
-            for _ in range(retries_n2):
-                for _ in range(retries_n1):
-                    try:
-                        if id_send:
-                            address_retour, msg = fun_recv(flags=zmq.NOBLOCK)
-                            message = dictload(dec(msg))
-                        else:
-                            message = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
-                        if "ERROR" in message:
-                            self._logger.warning(
-                                "received error from data source: %s -- %s",
-                                message["ERROR_message"],
-                                message["info"],
-                            )
-                            raise problemAbort(
-                                "problem with data retrieval, possibly the requested data is missing"
-                            )
-                        raise successExit
-                    except zmq.Again:
-                        time.sleep(0.3)
-                self._logger.debug("no answer after 5 trials, sleeping for a while")
-                time.sleep(1)
-            time_delta = (dt.now() - time_start).seconds
-            self._logger.warning(
-                "got no answer from dataStorage within %.0fs", time_delta
-            )
-            # TODO: fallback to querying individual application parts for data
-            raise problemAbort("data source unresponsive, abort")
-        # except zmq.ZMQError as e:
-        #     self._logger.exception(e)
-        #     # raise problemAbort("")
-        #     return None, None
-        except successExit:
-            return message, address_retour
+        if id_send:
+            fun_send([enc(id_send), enc(message)])
+        else:
+            fun_send(message)
+
+        time_start = dt.now()
+        uuid_back = ""
+
+        while uuid != uuid_back:
+            try:
+                for _ in range(retries_n2):
+                    for _ in range(retries_n1):
+                        try:
+                            if id_send:
+                                address_retour, msg = fun_recv(flags=zmq.NOBLOCK)
+                                answer = dictload(dec(msg))
+                            else:
+                                answer = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
+                            self._logger.debug("received answer, comparing uuids: forward: %s, back: %s", uuid, uuid_back)
+                            if "ERROR" in answer:
+                                self._logger.warning(
+                                    "received error from data source: %s -- %s",
+                                    answer["ERROR_message"],
+                                    answer["info"],
+                                )
+                                try:
+                                    if message['retry'] is True:
+                                        self._logger.info("retry in error is True, requesting again")
+                                        answer, address_retour = self._bare_requestData_retries(message, fun_send, fun_recv, id_send, retries_n1, retries_n2, uuid)
+                                    else:
+                                        self._logger.info("retry in error is False, aborting")
+                                        raise KeyError  # not really the KeyError, but less copying of vode
+                                except KeyError:
+                                    raise problemAbort(
+                                        "problem with data retrieval, possibly the requested data is missing"
+                                    )
+                            uuid_back = answer["uuid"]
+                            raise successExit
+                        except zmq.Again:
+                            time.sleep(0.1)
+                    self._logger.debug("no answer after 5 trials, sleeping for a while")
+                    time.sleep(0.5)
+                time_delta = (dt.now() - time_start).seconds
+                self._logger.warning(
+                    "got no answer from dataStorage within %.0fs", time_delta
+                )
+                raise problemAbort("data source unresponsive, abort")
+            # except zmq.ZMQError as e:
+            #     self._logger.exception(e)
+            #     # raise problemAbort("")
+            #     return None, None
+            except successExit:
+                # self._logger.debug("received answer, comparing uuids: forward: %s, back: %s", uuid, uuid_back)
+                pass
+        return answer, address_retour
 
     @ExceptionHandling
     def _bare_readDataFromList(
@@ -665,6 +694,7 @@ class zmqMainControl(zmqBare):
                 fun_send=self.comms_tcp.send_multipart,
                 fun_recv=self.comms_tcp.recv_multipart,
                 id_send=address,
+                uuid=uuid_now,
                 **kwargs,
             )
             self._logger.debug(
@@ -721,15 +751,40 @@ class zmqDataStore(zmqBare):
         time.sleep(4)
         # needed for the PUB/SUB sockets to find each other!
 
+    def question_to_self(self, msg):
+        if dec(msg)[0] == "?":
+            try:
+                questiondict = dictload(dec(msg)[1:])
+                self._logger.debug("received questiondict: %s", questiondict)
+                answer = self.get_answer(questiondict)
+            except decoder.JSONDecodeError as e:
+                answer = dict(
+                    ERROR="ERROR",
+                    ERROR_message=e.args[0],
+                    info="something went wrong when decoding your json",
+                    retry=False,
+                )
+
+        else:
+            answer = dict(
+                ERROR="ERROR",
+                ERROR_message="",
+                info="I do not know how to handle this request",
+                retry=False,
+            )
+
+        answer["uuid"] = questiondict["uuid"]
+        self._logger.debug("sending answer: %s", answer)
+        return dictdump(answer)
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         if self.comms_tcp in evts:
             try:
                 while True:
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
-                    if dec(msg)[0] == "?":
-                        answer = self.get_answer(msg)
-                        self.comms_tcp.send(enc(answer))
+                    answer = self.question_to_self(msg)
+                    self.comms_tcp.send(enc(answer))
+                    self._logger.debug("sent answer")
                     # do something - most likely hand out data to an asking
                     # process
             except zmq.Again:
@@ -738,19 +793,9 @@ class zmqDataStore(zmqBare):
             try:
                 while True:
                     address, msg = self.comms_data.recv_multipart(zmq.NOBLOCK)
-                    if dec(msg)[0] == "?":
-                        try:
-                            questiondict = dictload(dec(msg)[1:])
-                            answer = dictdump(self.get_answer(questiondict))
-                        except decoder.JSONDecodeError as e:
-                            answer = dictdump(
-                                dict(
-                                    ERROR="ERROR",
-                                    ERROR_message=e.args[0],
-                                    info="something went wrong when decoding your json",
-                                )
-                            )
-                        self.comms_data.send_multipart([address, enc(answer)])
+                    answer = self.question_to_self(msg)
+                    self.comms_data.send_multipart([address, enc(answer)])
+                    self._logger.debug("sent answer to %s", address)
                     # do something - most likely hand out data to an asking
                     # process
             except zmq.Again:

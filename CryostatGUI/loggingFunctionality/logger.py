@@ -1080,6 +1080,18 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                 info="the data you requested is not present in the data,"
                 + "or you sent a faulty question dictionary. "
                 + "Required keys are: 'live': bool, 'instr': str, 'value': str",
+                retry=False,
+            )
+        except IndexError as e:
+            return dict(
+                ERROR="IndexError",
+                ERROR_message=e.args[0],
+                info="It seems there is no data in the live-list for your request,",
+                # + "or you sent a faulty question dictionary. "
+                # + "Required keys are: 'live': bool, 'instr': str, 'value': str",
+                uptodate=False,
+                timediff=np.inf,
+                retry=True,
             )
         adict["data"] = data
         adict["uptodate"] = uptodate
