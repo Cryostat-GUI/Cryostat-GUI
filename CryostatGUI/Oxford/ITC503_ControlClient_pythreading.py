@@ -124,7 +124,7 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
 
         self.data_last = {}
 
-        self.lock_newthread = Lock()
+        self.lock_setTemp = Lock()
 
         if mainthread is not None:
             mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
@@ -505,43 +505,53 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
         values["self"] = self
 
         def settingtheTemp(values):
-            self._logger.debug("Setting the Temp according to command: %s", str(values))
-            instance = values["self"]
-            # stop sweep if it runs
-            if "start" in values:
-                starting = values["start"]
-            else:
-                starting = instance.ITC.getValue(0)
-            start = (
-                instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
-            )
-            instance.checksweep(stop=True)
-            autocontrol = instance.data_last["status"]["auto_int"]
-            instance.setAutoControl(0)
-            while instance.data_last["sweep"]:
-                time.sleep(0.01)
-            time.sleep(0.1)
-
-            # print('sleeping')
-            with instance.lock:
-                if values["isSweep"]:
-                    # set up sweep
-
-                    instance.setSweep(
-                        setpoint_temp=values["end"],
-                        rate=values["SweepRate"],
-                        start=start,
-                    )
-                    instance.ITC.SweepStart()
-                    # whatever this is needed for, does not work without
-                    instance.ITC.getValue(0)
+            with self.lock_setTemp:
+                self._logger.debug("Setting the Temp according to command: %s", str(values))
+                instance = values["self"]  # not sure this is really necessary, self works well with the logging commands
+                # determining which temperature a sweep would start from
+                if "start" in values:
+                    starting = values["start"]
                 else:
-                    instance.ITC.setTemperature(values["setTemp"])
-                instance.setAutoControl(autocontrol)
+                    starting = instance.ITC.getValue(0)
+                start = (
+                    instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
+                )
+                autocontrol = instance.data_last["status"]["auto_int"]
+                try:
+                    self._logger.debug("fully manual control (= no change) during sweep manipulation")
+                    instance.setAutoControl(0)
+                    # stop sweep if it runs
+                    instance.checksweep(stop=True)
+                    while instance.data_last["sweep"]:
+                        time.sleep(0.01)
+                    time.sleep(0.1)
+                    self._logger.debug("sweep stopped, if it was running")
 
-        with self.lock_newthread:
-            t1 = Thread(target=settingtheTemp, args=(values,))
-            t1.start()
+                    # print('sleeping')
+                    # with instance.lock:
+                    instance.lock.acquire()
+                    if values["isSweep"]:
+                        # set up sweep
+
+                        instance.setSweep(
+                            setpoint_temp=values["end"],
+                            rate=values["SweepRate"],
+                            start=start,
+                        )
+                        instance.ITC.SweepStart()
+                        # whatever this is needed for, does not work without
+                        instance.ITC.getValue(0)
+                    else:
+                        instance.ITC.setTemperature(values["setTemp"])
+                finally:
+                    # with instance.lock:
+                    self._logger.debug(f"return to previous control state: {autocontrol}")
+                    instance.setAutoControl(autocontrol)
+                    instance.lock.release()
+
+        # with self.lock_newthread:
+        t1 = Thread(target=settingtheTemp, args=(values,))
+        t1.start()
         # with self.lock:
         #     self.checksweep()
         #     if not self.sweep_running:
