@@ -284,9 +284,11 @@ class zmqClient(zmqBare):
     # @ExceptionHandling
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
+        # self._logger.debug("zmq: handling events")
         if self.comms_tcp in evts:
             try:
                 while True:
+                    # self._logger.debug("zmq: handling tcp")
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
                     if dec(msg)[0] == "?":
                         # answer = retrieve_answer(dec(msg))
@@ -298,6 +300,7 @@ class zmqClient(zmqBare):
                             answer = self.data
                         answer = enc(dictdump(answer))
                         self.comms_tcp.send(answer)
+                        # self._logger.debug("zmq: answered tcp")
 
                     elif dec(msg)[0] == "!":
                         command_dict = dictload(dec(msg)[1:])
@@ -314,18 +317,21 @@ class zmqClient(zmqBare):
                                 uuid=command_dict["uuid"],
                             )
                         self.comms_tcp.send(enc(dictdump(answer)))
+                        # self._logger.debug("zmq: answered tcp")
 
                     else:
                         self._logger.error(
                             "received unintelligable message: '%s' ", dec(msg)
                         )
                         self.comms_tcp.send(enc(dictdump({"ERROR": True}) + dec(msg)))
+                        # self._logger.debug("zmq: answered tcp: ERROR")
 
             except zmq.Again:
                 pass
         if self.comms_downstream in evts:
             try:
                 while True:
+                    # self._logger.debug("zmq: handling downstream")
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
                     command_dict = dictload(dec(msg[1]))
                     self._logger.info(
@@ -333,6 +339,7 @@ class zmqClient(zmqBare):
                     )
                     self.act_on_general(command_dict)
                     self.act_on_command(command_dict)
+                    self._logger.debug("zmq: acted on commands")
                     # act on commands!
             except zmq.Again:
                 pass
