@@ -506,19 +506,27 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
 
         def settingtheTemp(values):
             with self.lock_setTemp:
-                self._logger.debug("Setting the Temp according to command: %s", str(values))
-                instance = values["self"]  # not sure this is really necessary, self works well with the logging commands
+                self._logger.debug(
+                    "Setting the Temp according to command: %s", str(values)
+                )
+                instance = values[
+                    "self"
+                ]  # not sure this is really necessary, self works well with the logging commands
                 # determining which temperature a sweep would start from
                 if "start" in values:
                     starting = values["start"]
                 else:
                     starting = instance.ITC.getValue(0)
                 start = (
-                    instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
+                    instance.ITC.getValue(0)
+                    if values["isSweepStartCurrent"]
+                    else starting
                 )
                 autocontrol = instance.data_last["status"]["auto_int"]
                 try:
-                    self._logger.debug("fully manual control (= no change) during sweep manipulation")
+                    self._logger.debug(
+                        "fully manual control (= no change) during sweep manipulation"
+                    )
                     instance.setAutoControl(0)
                     # stop sweep if it runs
                     instance.checksweep(stop=True)
@@ -545,7 +553,9 @@ class ITC503_ControlClient_pythreading(Timerthread_Clients):
                         instance.ITC.setTemperature(values["setTemp"])
                 finally:
                     # with instance.lock:
-                    self._logger.debug(f"return to previous control state: {autocontrol}")
+                    self._logger.debug(
+                        f"return to previous control state: {autocontrol}"
+                    )
                     instance.setAutoControl(autocontrol)
                     instance.lock.release()
 

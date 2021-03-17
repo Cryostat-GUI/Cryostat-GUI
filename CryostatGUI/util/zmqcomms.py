@@ -182,7 +182,8 @@ class loops_off_zmq:
             # )
             self.control._logger.debug("locking device %s", dev)
             self.control.query_device_command(
-                dev, command={"lock": None},
+                dev,
+                command={"lock": None},
             )
 
     def __exit__(self, *args, **kwargs):
@@ -192,7 +193,8 @@ class loops_off_zmq:
             # )
             self.control._logger.debug("unlocking device %s", dev)
             self.control.query_device_command(
-                dev, command={"unlock": None},
+                dev,
+                command={"unlock": None},
             )
 
 
@@ -231,11 +233,13 @@ class zmqClient(zmqBare):
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE,
+            self.comms_name.encode("ascii"),
         )
         # subscribe to general commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE, "general".encode("ascii"),
+            zmq.SUBSCRIBE,
+            "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -263,7 +267,8 @@ class zmqClient(zmqBare):
         try:
             if "interval" in command_dict:
                 self._logger.debug(
-                    "setting a new interval: %3.3fs", command_dict["interval"],
+                    "setting a new interval: %3.3fs",
+                    command_dict["interval"],
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
@@ -410,7 +415,9 @@ class zmqMainControl(zmqBare):
                     address, message = msg[0], msg[1]
                     # if dec(message)[0] == "?":
                     #     pass
-                    self._logger.warning("received unexpected message from %s: %s", address, message)
+                    self._logger.warning(
+                        "received unexpected message from %s: %s", address, message
+                    )
                     # self.comms_tcp.
                     # do something, most likely this will not be used
                     # extensively
@@ -495,7 +502,7 @@ class zmqMainControl(zmqBare):
                 fun_send=self.comms_data.send,
                 fun_recv=self.comms_data.recv,
                 id_send=None,
-                uuid=uuid_now
+                uuid=uuid_now,
             )
             return message
         except zmq.ZMQError as e:
@@ -536,7 +543,11 @@ class zmqMainControl(zmqBare):
                                 answer = dictload(dec(msg))
                             else:
                                 answer = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
-                            self._logger.debug("received answer, comparing uuids: forward: %s, back: %s", uuid, uuid_back)
+                            self._logger.debug(
+                                "received answer, comparing uuids: forward: %s, back: %s",
+                                uuid,
+                                uuid_back,
+                            )
                             if "ERROR" in answer:
                                 self._logger.warning(
                                     "received error from data source: %s -- %s",
@@ -544,11 +555,26 @@ class zmqMainControl(zmqBare):
                                     answer["info"],
                                 )
                                 try:
-                                    if message['retry'] is True:
-                                        self._logger.info("retry in error is True, requesting again")
-                                        answer, address_retour = self._bare_requestData_retries(message, fun_send, fun_recv, id_send, retries_n1, retries_n2, uuid)
+                                    if message["retry"] is True:
+                                        self._logger.info(
+                                            "retry in error is True, requesting again"
+                                        )
+                                        (
+                                            answer,
+                                            address_retour,
+                                        ) = self._bare_requestData_retries(
+                                            message,
+                                            fun_send,
+                                            fun_recv,
+                                            id_send,
+                                            retries_n1,
+                                            retries_n2,
+                                            uuid,
+                                        )
                                     else:
-                                        self._logger.info("retry in error is False, aborting")
+                                        self._logger.info(
+                                            "retry in error is False, aborting"
+                                        )
                                         raise KeyError  # not really the KeyError, but less copying of vode
                                 except KeyError:
                                     raise problemAbort(
