@@ -231,13 +231,11 @@ class zmqClient(zmqBare):
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE,
-            self.comms_name.encode("ascii"),
+            zmq.SUBSCRIBE, self.comms_name.encode("ascii"),
         )
         # subscribe to general commands
         self.comms_downstream.setsockopt(
-            zmq.SUBSCRIBE,
-            "general".encode("ascii"),
+            zmq.SUBSCRIBE, "general".encode("ascii"),
         )
 
         self.comms_upstream = self._zctx.socket(zmq.PUB)
@@ -265,8 +263,7 @@ class zmqClient(zmqBare):
         try:
             if "interval" in command_dict:
                 self._logger.debug(
-                    "setting a new interval: %3.3fs",
-                    command_dict["interval"],
+                    "setting a new interval: %3.3fs", command_dict["interval"],
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
@@ -411,8 +408,10 @@ class zmqMainControl(zmqBare):
                 while True:
                     msg = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
                     address, message = msg[0], msg[1]
-                    if dec(message)[0] == "?":
-                        pass
+                    # if dec(message)[0] == "?":
+                    #     pass
+                    self._logger.warning("received unexpected message from %s: %s", address, message)
+                    # self.comms_tcp.
                     # do something, most likely this will not be used
                     # extensively
             except zmq.Again:
@@ -502,11 +501,11 @@ class zmqMainControl(zmqBare):
         except zmq.ZMQError as e:
             self._logger.exception(e)
             # raise problemAbort("")
-            return None, "zmq error, no data available, abort"
+            return None  # , "zmq error, no data available, abort"
         # except successExit:
         #     return message, None
-        except problemAbort as e:
-            return None, e
+        # except problemAbort as e:
+        #     return None, e
 
     def _bare_requestData_retries(
         self,
@@ -784,6 +783,7 @@ class zmqDataStore(zmqBare):
         answer["uuid"] = questiondict["uuid"]
         self._logger.debug("sending answer: %s", answer)
         return dictdump(answer)
+
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         if self.comms_tcp in evts:
