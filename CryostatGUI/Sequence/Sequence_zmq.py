@@ -247,16 +247,39 @@ class Sequence_functionsConvenience:
                     Live=True,
                 )
 
-                if abs(value_now - val) < thresholdsconf["value"]:
-                    stable_values.append("value")
-                if abs(mean - val) < thresholdsconf["mean"]:
-                    stable_values.append("mean")
-                if abs(stderr_rel) < thresholdsconf["stderr_rel"]:
-                    stable_values.append("stderr_rel")
-                if abs(slope_rel) < thresholdsconf["relslope_Xpmin"]:
-                    stable_values.append("relslope_Xpmin")
-                if abs(slope_residuals) < thresholdsconf["slope_residuals"]:
-                    stable_values.append("slope_residuals")
+                for ct, (vn, label) in enumerate(
+                    zip(
+                        [value_now, mean, stderr_rel, slope_rel, slope_residuals],
+                        [
+                            "value",
+                            "mean",
+                            "stderr_rel",
+                            "relslope_Xpmin",
+                            "slope_residuals",
+                        ],
+                    )
+                ):
+                    try:
+                        if ct < 2:
+                            compared_value = abs(vn - val)
+                        else:
+                            compared_value = abs(vn)
+                        if compared_value < thresholdsconf[label]:
+                            stable_values.append(label)
+                    except TypeError as e_type:
+                        # self._logger.warning("received wrong type (possibly None): ")
+                        self._logger.exception(e_type)
+                        continue
+                # if abs(value_now - val) < thresholdsconf["value"]:
+                #     stable_values.append("value")
+                # if abs(mean - val) < thresholdsconf["mean"]:
+                #     stable_values.append("mean")
+                # if abs(stderr_rel) < thresholdsconf["stderr_rel"]:
+                #     stable_values.append("stderr_rel")
+                # if abs(slope_rel) < thresholdsconf["relslope_Xpmin"]:
+                #     stable_values.append("relslope_Xpmin")
+                # if abs(slope_residuals) < thresholdsconf["slope_residuals"]:
+                #     stable_values.append("slope_residuals")
 
                 self._logger.info(
                     f"waiting for {value_name}: {val:.4f} (current: {value_now:.4f}{value_unit}), indicators ({len(stable_values):d}/5): {stable_values}"
