@@ -286,7 +286,7 @@ class zmqClient(zmqBare):
     # @ExceptionHandling
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
-        # self._logger.debug("zmq: handling events")
+        self._logger.debug("zmq: handling events")
         if self.comms_tcp in evts:
             try:
                 while True:
@@ -543,6 +543,7 @@ class zmqMainControl(zmqBare):
                                 answer = dictload(dec(msg))
                             else:
                                 answer = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
+                            uuid_back = answer["uuid"]
                             self._logger.debug(
                                 "received answer, comparing uuids: forward: %s, back: %s",
                                 uuid,
@@ -580,7 +581,6 @@ class zmqMainControl(zmqBare):
                                     raise problemAbort(
                                         "problem with data retrieval, possibly the requested data is missing"
                                     )
-                            uuid_back = answer["uuid"]
                             raise successExit
                         except zmq.Again:
                             time.sleep(0.1)
