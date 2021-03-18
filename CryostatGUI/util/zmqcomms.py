@@ -555,7 +555,7 @@ class zmqMainControl(zmqBare):
                                     answer["info"],
                                 )
                                 try:
-                                    if message["retry"] is True:
+                                    if answer["retry"] is True:
                                         self._logger.info(
                                             "retry in error is True, requesting again"
                                         )

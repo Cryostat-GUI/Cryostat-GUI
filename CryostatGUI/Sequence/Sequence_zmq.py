@@ -15,6 +15,7 @@ from datetime import datetime as dt
 
 
 import pandas as pd
+import numpy as np
 
 from noconflict import classmaker
 
@@ -273,6 +274,11 @@ class Sequence_functionsConvenience:
             value_now = getfunc()
             while value_now < val:
                 value_now = getfunc()
+                try:
+                    float(value_now)
+                except TypeError as e_type:
+                    self._logger.exception(e_type)
+                    value_now = -np.inf
                 self.check_running()
                 self._logger.debug(
                     f"{value_name} not yet above {val} (current: {value_now:.3f})"
@@ -283,6 +289,11 @@ class Sequence_functionsConvenience:
             value_now = getfunc()
             while value_now > val:
                 value_now = getfunc()
+                try:
+                    float(value_now)
+                except TypeError as e_type:
+                    self._logger.exception(e_type)
+                    value_now = np.inf
                 self.check_running()
                 self._logger.debug(
                     f"{value_name} not yet below {val} (current: {value_now:.3f})"
