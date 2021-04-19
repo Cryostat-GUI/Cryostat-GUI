@@ -144,7 +144,15 @@ class get_data(AbstractLoopThreadDataStore):
     sig_ilm211 = pyqtSignal(dict)
     sig_itc503 = pyqtSignal(dict)
     sig_ips120 = pyqtSignal(dict)
+    
     sig_state_keithley6221 = pyqtSignal(dict)
+    sig_state_keithley2187 = pyqtSignal(dict)
+    sig_state_sr860 = pyqtSignal(dict)
+    sig_state_sr830 = pyqtSignal(dict)
+    sig_state_lakeshore350 = pyqtSignal(dict)
+    sig_state_ilm211 = pyqtSignal(dict)
+    sig_state_itc503 = pyqtSignal(dict)
+    sig_state_ips120 = pyqtSignal(dict)
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.__name__ = "get_data_mainWindow"
@@ -159,8 +167,24 @@ class get_data(AbstractLoopThreadDataStore):
         self.data_ilm211={}
         self.data_itc503={}
         self.data_ips120={}
+        
         self.crash_keithley6221={}
+        self.crash_keithley2187={}
+        self.crash_sr860={}
+        self.crash_sr830={}
+        self.crash_lakeshore350={}
+        self.crash_ilm211={}
+        self.crash_itc503={}
+        self.crash_ips120={}
+
         self.multipl_keithley=0
+        self.multipl_keithley2187=0
+        self.multipl_sr860=0
+        self.multipl_sr830=0
+        self.multipl_lakeshore350=0
+        self.multipl_ilm211=0
+        self.multipl_itc503=0
+        self.multipl_ips120=0
     def running(self):
         self.run_finished=False
         #print(self.data_main)
@@ -171,37 +195,213 @@ class get_data(AbstractLoopThreadDataStore):
     def store_data(self,ID,data):
         if ID == "SR830_1":
         	self.data_sr830.update(data)
-        	self.sig_sr830.emit(deepcopy(self.data_sr830))
+        	if self.data_sr830["noblock"] == False:
+        		self.sig_sr830.emit(deepcopy(self.data_sr830))
+        		if datetime.datetime.strptime('%s' %self.data_sr830["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_sr830= self.multipl_sr830+1
+        			self.crash_sr830["state"] = "crashed"
+        			self.crash_sr830["noblock"] = 0
+        			self.crash_sr830["multipl"] = self.multipl_sr830
+        			self.sig_state_sr830.emit(self.crash_sr830)
+        			#print("%s" %self.multipl_sr830)
+        		else:
+       				#print("%s"%self.data_sr830)
+       				self.multipl_sr830=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_sr830["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_sr830= self.multipl_sr830+1
+        			self.crash_sr830["state"] = "crashed"
+        			self.crash_sr830["noblock"] = 1
+        			self.crash_sr830["multipl"] = self.multipl_sr830
+        			self.sig_state_sr830.emit(self.crash_sr830)
+        			#print("%s" %self.multipl_sr830)
+        		else:
+       				print("ho")
+       				self.multipl_sr830=0
+        
         if ID == "sr860_1":
         	self.data_sr860.update(data)
-        	self.sig_sr860.emit(deepcopy(self.data_sr860))
+        	if self.data_sr860["noblock"] == False:
+        		self.sig_sr860.emit(deepcopy(self.data_sr860))
+        		if datetime.datetime.strptime('%s' %self.data_sr860["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_sr860= self.multipl_sr860+1
+        			self.crash_sr860["state"] = "crashed"
+        			self.crash_sr860["noblock"] = 0
+        			self.crash_sr860["multipl"] = self.multipl_sr860
+        			self.sig_state_sr860.emit(self.crash_sr860)
+        			#print("%s" %self.multipl_sr860)
+        		else:
+       				#print("%s"%self.data_sr860)
+       				self.multipl_sr860=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_sr860["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_sr860= self.multipl_sr860+1
+        			self.crash_sr860["state"] = "crashed"
+        			self.crash_sr860["noblock"] = 1
+        			self.crash_sr860["multipl"] = self.multipl_sr860
+        			self.sig_state_sr860.emit(self.crash_sr860)
+        			#print("%s" %self.multipl_sr860)
+        		else:
+       				print("ho")
+       				self.multipl_sr860=0
+        
         if ID == "Keithley2182_1":
-        	self.data_keithley2182.update(data)
-        	self.sig_keithley2182.emit(deepcopy(self.data_keithley2182))
+        	self.data_keithley2187.update(data)
+        	if self.data_keithley2187["noblock"] == False:
+        		self.sig_keithley2187.emit(deepcopy(self.data_keithley2187))
+        		if datetime.datetime.strptime('%s' %self.data_keithley2187["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_keithley2187= self.multipl_keithley2187+1
+        			self.crash_keithley2187["state"] = "crashed"
+        			self.crash_keithley2187["noblock"] = 0
+        			self.crash_keithley2187["multipl"] = self.multipl_keithley2187
+        			self.sig_state_keithley2187.emit(self.crash_keithley2187)
+        			#print("%s" %self.multipl_keithley2187)
+        		else:
+       				#print("%s"%self.data_keithley2187)
+       				self.multipl_keithley2187=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_keithley2187["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_keithley2187= self.multipl_keithley2187+1
+        			self.crash_keithley2187["state"] = "crashed"
+        			self.crash_keithley2187["noblock"] = 1
+        			self.crash_keithley2187["multipl"] = self.multipl_keithley2187
+        			self.sig_state_keithley2187.emit(self.crash_keithley2187)
+        			#print("%s" %self.multipl_keithley2187)
+        		else:
+       				print("ho")
+       				self.multipl_keithley2187=0
+        
         if ID == "Keithley6221_1":
         	self.data_keithley6221.update(data)
-        	self.sig_keithley6221.emit(deepcopy(self.data_keithley6221))
-        	if datetime.datetime.strptime('%s' %self.data_keithley6221["time"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
-        		self.multipl_keithley= self.multipl_keithley+1
-        		self.crash_keithley6221["state"] = "crashed"
-        		self.crash_keithley6221["multipl"] = self.multipl_keithley
-        		self.sig_state_keithley6221.emit(self.crash_keithley6221)
-        		print("%s" %self.multipl_keithley)
-        	else:
-       			print("ho")
-       			self.multipl_keithley=0
+        	if self.data_keithley6221["noblock"] == False:
+        		self.sig_keithley6221.emit(deepcopy(self.data_keithley6221))
+        		if datetime.datetime.strptime('%s' %self.data_keithley6221["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_keithley= self.multipl_keithley+1
+        			self.crash_keithley6221["state"] = "crashed"
+        			self.crash_keithley6221["noblock"] = 0
+        			self.crash_keithley6221["multipl"] = self.multipl_keithley
+        			self.sig_state_keithley6221.emit(self.crash_keithley6221)
+        			#print("%s" %self.multipl_keithley)
+        		else:
+       				#print("%s"%self.data_keithley6221)
+       				self.multipl_keithley=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_keithley6221["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_keithley= self.multipl_keithley+1
+        			self.crash_keithley6221["state"] = "crashed"
+        			self.crash_keithley6221["noblock"] = 1
+        			self.crash_keithley6221["multipl"] = self.multipl_keithley
+        			self.sig_state_keithley6221.emit(self.crash_keithley6221)
+        			#print("%s" %self.multipl_keithley)
+        		else:
+       				print("ho")
+       				self.multipl_keithley=0
+        
         if ID == "LakeShore350":
         	self.data_lakeshore350.update(data)
-        	self.sig_lakeshore350.emit(deepcopy(self.data_lakeshore350))
+        	if self.data_lakeshore350["noblock"] == False:
+        		self.sig_lakeshore350.emit(deepcopy(self.data_lakeshore350))
+        		if datetime.datetime.strptime('%s' %self.data_lakeshore350["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_lakeshore350= self.multipl_lakeshore350+1
+        			self.crash_lakeshore350["state"] = "crashed"
+        			self.crash_lakeshore350["noblock"] = 0
+        			self.crash_lakeshore350["multipl"] = self.multipl_lakeshore350
+        			self.sig_state_lakeshore350.emit(self.crash_lakeshore350)
+        			#print("%s" %self.multipl_lakeshore350)
+        		else:
+       				#print("%s"%self.data_lakeshore350)
+       				self.multipl_lakeshore350=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_lakeshore350["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_lakeshore350= self.multipl_lakeshore350+1
+        			self.crash_lakeshore350["state"] = "crashed"
+        			self.crash_lakeshore350["noblock"] = 1
+        			self.crash_lakeshore350["multipl"] = self.multipl_lakeshore350
+        			self.sig_state_lakeshore350.emit(self.crash_lakeshore350)
+        			#print("%s" %self.multipl_lakeshore350)
+        		else:
+       				print("ho")
+       				self.multipl_lakeshore350=0
+                
         if ID == "ILM":
         	self.data_ilm211.update(data)
-        	self.sig_ilm211.emit(deepcopy(self.data_ilm211))
+        	if self.data_ilm211["noblock"] == False:
+        		self.sig_ilm211.emit(deepcopy(self.data_ilm211))
+        		if datetime.datetime.strptime('%s' %self.data_ilm211["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_ilm211= self.multipl_ilm211+1
+        			self.crash_ilm211["state"] = "crashed"
+        			self.crash_ilm211["noblock"] = 0
+        			self.crash_ilm211["multipl"] = self.multipl_ilm211
+        			self.sig_state_ilm211.emit(self.crash_ilm211)
+        			#print("%s" %self.multipl_ilm211)
+        		else:
+       				#print("%s"%self.data_ilm211)
+       				self.multipl_ilm211=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_ilm211["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_ilm211= self.multipl_ilm211+1
+        			self.crash_ilm211["state"] = "crashed"
+        			self.crash_ilm211["noblock"] = 1
+        			self.crash_ilm211["multipl"] = self.multipl_ilm211
+        			self.sig_state_ilm211.emit(self.crash_ilm211)
+        			
+        		else:
+       				print("ho")
+       				self.multipl_ilm211=0
+        
         if ID == "ITC":
         	self.data_itc503.update(data)
-        	self.sig_itc503.emit(deepcopy(self.data_itc503))
+        	if self.data_itc503["noblock"] == False:
+        		self.sig_itc503.emit(deepcopy(self.data_itc503))
+        		if datetime.datetime.strptime('%s' %self.data_itc503["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_itc503= self.multipl_itc503+1
+        			self.crash_itc503["state"] = "crashed"
+        			self.crash_itc503["noblock"] = 0
+        			self.crash_itc503["multipl"] = self.multipl_itc503
+        			self.sig_state_itc503.emit(self.crash_itc503)
+        			
+        		else:
+       				
+       				self.multipl_itc503=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_itc503["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_itc503= self.multipl_itc503+1
+        			self.crash_itc503["state"] = "crashed"
+        			self.crash_itc503["noblock"] = 1
+        			self.crash_itc503["multipl"] = self.multipl_itc503
+        			self.sig_state_itc503.emit(self.crash_itc503)
+        			
+        		else:
+       				print("ho")
+       				self.multipl_itc503=0
+        
         if ID == "IPS":
         	self.data_ips120.update(data)
-        	self.sig_ips120.emit(deepcopy(self.data_ips120))
+        	if self.data_ips120["noblock"] == False:
+        		self.sig_ips120.emit(deepcopy(self.data_ips120))
+        		if datetime.datetime.strptime('%s' %self.data_ips120["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_ips120= self.multipl_ips120+1
+        			self.crash_ips120["state"] = "crashed"
+        			self.crash_ips120["noblock"] = 0
+        			self.crash_ips120["multipl"] = self.multipl_ips120
+        			self.sig_state_ips120.emit(self.crash_ips120)
+        			
+        		else:
+       				
+       				self.multipl_ips120=0
+       		else:
+        		if datetime.datetime.strptime('%s' %self.data_ips120["realtime"], '%Y-%m-%d %H:%M:%S.%f') < dt.now()-datetime.timedelta(minutes=5):
+        			self.multipl_ips120= self.multipl_ips120+1
+        			self.crash_ips120["state"] = "crashed"
+        			self.crash_ips120["noblock"] = 1
+        			self.crash_ips120["multipl"] = self.multipl_ips120
+        			self.sig_state_ips120.emit(self.crash_ips120)
+        			
+        		else:
+       				print("ho")
+       				self.multipl_ips120=0
+        
+        
         else:
         	print("no signal")
 
@@ -265,6 +465,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.sr830_check_state_data = {}
         self.itc503_check_state_data = {}
         self.ilm211_check_state_data = {}
+        self.ips120_check_state_data = {}
         self.sr860_check_state_data = {}
         self.lakeshore350_check_state_data = {}
         self.keithley6221_check_state_data = {} 
@@ -281,7 +482,9 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.data_ilm211={"channel_1_level": 999,"channel_2_level": 999}
         self.data_itc503={"Sensor_1_K": 999,"Sensor_2_K": 999,"Sensor_3_K":999,"Sensor_3_K": 999,"set_temperature": 999,"temperature_error":999,"heater_output_as_voltage": 999,"gas_flow_output": 999,
         "proportional_band": 999,"integral_action_time": 999,"derivative_action_time": 999,"Sensor_1_calerr_K": 999,"heater_output_as_percent": 999, "gas_flow_output": 999,'interval_thread': 999}
-        self.data_ips120={}
+        self.data_ips120={"FIELD_set_point": 999,"FIELD_sweep_rate": 999,"FIELD_output": 999,"measured_magnet_current": 999,"CURRENT_output": 999,"lead_resistance": 999,"persistent_magnet_field": 999,
+        "trip_field": 999,"status_magnet": "","status_current": "","status_activity": "","status_locrem": "","status_switchheater": ""}
+        
         self.ITC_values={}
         self.lakeshore_values={}
 
@@ -314,6 +517,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.initialize_window_LakeShore350()
         self.initialize_window_Keithley6221()
         self.initialize_window_Keithley2182()
+        self.initialize_window_ips()
       
     def show_window_button_pressed(self,window):
         """show and close window when show button is pressed"""
@@ -367,6 +571,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         
         self.get_active_state_lakeshore350= self.running_thread_control(check_active(Instrument='lakeshore350'),'check_state_lakeshore350')
         self.get_active_state_lakeshore350.sig_Infodata.connect(self.update_check_state_lakeshore350)
+        self.get_data.sig_state_lakeshore350.connect(self.crasherror_lakeshore350)
 
         # self.LakeShore350_window.textSensor1_Kpmin.setAlignment(QtAlignRight)
         #connecting buttons in the main Window
@@ -402,7 +607,13 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         #set Interval not implemented in controlClient
         self.LakeShore350_window.spin_threadinterval.valueChanged.connect(lambda value: self.gettoset_Interval_lakeshore350(value))
         self.LakeShore350_window.send_command_spin_threadinterval.clicked.connect(lambda: self.setInterval_lakeshore350())
-
+    
+    def crasherror_lakeshore350(self,data):
+    	self.state_lakeshore350.update(data)
+    	if self.state_lakeshore350["state"]=="crashed":
+    		if self.state_lakeshore350["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_Lakeshore350 crashed")
+    			 self.lakeshore350_main_state.setText("Crashed")
     @pyqtSlot(bool)
     def show_LakeShore350(self, boolean):
         """display/close the ILM data & control window"""
@@ -423,27 +634,30 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
     @pyqtSlot(float)
     @ExceptionHandling
     def fun_setTemp_valcha_lakeshore350(self, value):
-        # self.threads['control_ITC'][0].gettoset_Temperature(value)
+        
         self.lakeshore_values["setTemp"] = value
         self.lakeshore_values["end"] = value
+        self.lakeshore_values["isSweepStartCurrent"] = True
+        self.lakeshore_values["start"] = None
 
     @pyqtSlot(float)
     @ExceptionHandling
     def fun_setRamp_valcha_lakeshore350(self, value):
         self.lakeshore_values["SweepRate"] = value
-        # self.threads['control_ITC'][0].gettoset_sweepRamp(value)
+        
 
     @pyqtSlot(bool)
     @ExceptionHandling
     def fun_checkSweep_toggled_lakeshore350(self, boolean):
         self.lakeshore_values["isSweep"] = boolean
+        
 
     @pyqtSlot()
     @ExceptionHandling
     def fun_sendConfTemp_lakeshore350(self):
     	"""sends command to change conf Temp, sends a dict with all the necessary Information for the setTemp
     	function in the ITC controlClient"""
-    	self.commanding(ID="LakeShore350",message=dictdump({"setInterval" : self.lakeshore_values}))
+    	self.commanding(ID="LakeShore350",message=dictdump({"setTemp_k" : self.lakeshore_values}))
 
     @pyqtSlot()
     @ExceptionHandling
@@ -565,7 +779,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
     	if self.state_keithley6221["state"]=="crashed":
     		if self.state_keithley6221["multipl"]==1:
     			 self.show_error_general("Service CryostatGui_Keithley6221 crashed")
-    			 self.keithley6221_main_state.setText("Running")
+    			 self.keithley6221_main_state.setText("Crashed")
 
 
     def output_keithley6221_clicked(self):
@@ -608,6 +822,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.keithley2182_main_start.clicked["bool"].connect(
             lambda value: self.start_instrument(instrument='keithley2182')
             )
+        self.get_data.sig_state_keithley2187.connect(self.crasherror_keithley2182)
         self.action_show_Keithley.triggered["bool"].connect(
             lambda value: self.show_window(self.keithley6221_window, value)
         )
@@ -625,6 +840,12 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.keithley2182_window.checkBox_Autozero_1.stateChanged.connect(lambda value: self.send_command_autozero_keithley2182(value))
         self.keithley2182_window.checkBox_FrontAutozero_1.stateChanged.connect(lambda value: self.send_command_frontautozero_keithley2182(value))
         self.keithley2182_window.checkBox_Autorange_1.stateChanged.connect(lambda value: self.send_command_autorange_keithley2182(value))
+    def crasherror_keithley2182(self,data):
+    	self.state_keithley2182.update(data)
+    	if self.state_keithley2182["state"]=="crashed":
+    		if self.state_keithley2182["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_Keithley2182 crashed")
+    			 self.keithley2182_main_state.setText("Crashed")
     def send_command_autorange_keithley2182(self, state):
     	"""sends autorange command to the controlClient"""
     	if state == 2:
@@ -672,24 +893,90 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
     #---------------- IPS
     def initialize_window_ips(self):
         """initialize PS Window"""
-        self.IPS_window = Window_ui(ui_file=".\\Oxford\\IPS_control.ui")
+        self.IPS_window = Window_ui(ui_file=".\\Oxford\\IPS_Qwidget.ui")
         self.IPS_window.sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False)
         )
 
-        self.window_SystemsOnline.checkaction_run_IPS.clicked["bool"].connect(
-            self.run_IPS
-        )
+        #self.window_SystemsOnline.checkaction_run_IPS.clicked["bool"].connect(
+        #    self.run_IPS
+        #)
         self.action_show_IPS.triggered["bool"].connect(
             lambda value: self.show_window(self.IPS_window, value)
         )
-        self.get_data.sig_ips120.connect(IPS211_Updater)
+        self.get_data.sig_ips120.connect(self.IPS211_Updater)
+        self.get_data.sig_state_ips120.connect(self.crasherror_ips120)
+        
+        self.get_active_state_ips120 = self.running_thread_control(check_active(Instrument='ips120'),'check_state_ips120')
+        self.get_active_state_ips120.sig_Infodata.connect(self.update_check_state_ips120)
+        self.ips120_main_show.clicked["bool"].connect(
+            lambda value: self.show_window_button_pressed(self.IPS_window)
+        )
+
 
         self.IPS_window.labelStatusMagnet.setText("")
         self.IPS_window.labelStatusCurrent.setText("")
         self.IPS_window.labelStatusActivity.setText("")
         self.IPS_window.labelStatusLocRem.setText("")
         self.IPS_window.labelStatusSwitchHeater.setText("")
+
+        self.IPS_window.spinSetFieldSetPoint.valueChanged.connect(self.gettoset_fieldsetpoint_ips120)
+        self.IPS_window.send_command_spinSetFieldSetPoint.clicked.connect(self.setfieldsetpoint_ips120)
+
+        self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(self.gettoset_fieldsweeprate_ips120)
+        self.IPS_window.send_command_spinSetFieldSweepRate.clicked.connect(self.setfieldsweeprate_ips120)
+
+        self.IPS_window.spinSetFieldSweepRate.valueChanged.connect(self.gettoset_Interval_ips120)
+        self.IPS_window.send_command_spin_threadinterval.clicked.connect(self.setInterval_ips120)
+
+        self.IPS_window.comboSetActivity.activated["int"].connect(lambda value: self.commanding(ID="IPS", message=dictdump({"activity" : value})))
+        self.IPS_window.comboSetSwitchHeater.activated["int"].connect(lambda value: self.commanding(ID="IPS", message=dictdump({"switchheater" : value})))
+    def crasherror_ips120(self,data):
+    	self.state_ips120.update(data)
+    	if self.state_ips120["state"]=="crashed":
+    		if self.state_ips120["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_IPS120 crashed")
+    			 self.ips120_main_state.setText("Crashed")
+    def update_check_state_ips120(self,data):
+    	"""Updates the state Label in the main GUI"""
+    	self.ips120_check_state_data.update(data)
+    	print("update_check")
+    	if "RUNNING" in data["state"]:
+    		self.ips120_main_state.setText("Running")
+    		self.ips120_main_state.setStyleSheet("color:green")
+    	else:
+    		self.ips120_main_state.setText("Not Running")
+    		self.ips120_main_state.setStyleSheet("color:red") 
+    @pyqtSlot()
+    @ExceptionHandling
+    def setfieldsetpoint_ips120(self):
+        """sends command to set FieldSetPoint of the instrument 
+        """
+        self.commanding(ID="IPS", message=dictdump({"setfieldsetpoint" : self.set_fieldsetpoint_ips120}))
+    @pyqtSlot()
+    @ExceptionHandling
+    def setfieldsweeprate_ips120(self):
+        """sends command to set FieldSweepRate of the instrument 
+        """
+        self.commanding(ID="IPS", message=dictdump({"setfieldsweeprate" : self.set_fieldsweeprate_ips120}))  
+    @pyqtSlot()
+    @ExceptionHandling
+    def setInterval_ips120(self):
+        """sends command to set Interval of the instrument 
+        """
+        self.commanding(ID="IPS", message=dictdump({"setInterval" : self.set_interval_ips120})) 
+    @pyqtSlot(float)
+    def gettoset_fieldsetpoint_ips120(self, value):
+    	"""receive and store the value to set the FieldSetPoint"""
+    	self.set_fieldsetpoint_ips120 = value
+    @pyqtSlot(float)
+    def gettoset_fieldsweeprate_ips120(self, value):
+    	"""receive and store the value to set the FieldSweepRate"""
+    	self.set_fieldsweeprate_ips120 = value
+    @pyqtSlot(float)
+    def gettoset_Interval_ips120(self, value):
+    	"""receive and store the value to set the interval"""
+    	self.set_interval_ips120 = value
     @pyqtSlot(dict)
     def IPS211_Updater(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
@@ -704,43 +991,43 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
             # since the command failed in the communication with the device,
             # the last value is retained
             self.IPS_window.lcdFieldSetPoint.display(
-                self.data["IPS"]["FIELD_set_point"]
+                self.data_ips120["FIELD_set_point"]
             )
             self.IPS_window.lcdFieldSweepRate.display(
-                self.data["IPS"]["FIELD_sweep_rate"]
+                self.data_ips120["FIELD_sweep_rate"]
             )
 
-            self.IPS_window.lcdOutputField.display(self.data["IPS"]["FIELD_output"])
+            self.IPS_window.lcdOutputField.display(self.data_ips120["FIELD_output"])
             self.IPS_window.lcdMeasuredMagnetCurrent.display(
-                self.data["IPS"]["measured_magnet_current"]
+                self.data_ips120["measured_magnet_current"]
             )
-            self.IPS_window.lcdOutputCurrent.display(self.data["IPS"]["CURRENT_output"])
+            self.IPS_window.lcdOutputCurrent.display(self.data_ips120["CURRENT_output"])
             # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
             # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
 
             self.IPS_window.lcdLeadResistance.display(
-                self.data["IPS"]["lead_resistance"]
+                self.data_ips120["lead_resistance"]
             )
 
             self.IPS_window.lcdPersistentMagnetField.display(
-                self.data["IPS"]["persistent_magnet_field"]
+                self.data_ips120["persistent_magnet_field"]
             )
-            self.IPS_window.lcdTripField.display(self.data["IPS"]["trip_field"])
+            self.IPS_window.lcdTripField.display(self.data_ips120["trip_field"])
             self.IPS_window.lcdPersistentMagnetCurrent.display(
-                self.data["IPS"]["persistent_magnet_current"]
+                self.data_ips120["persistent_magnet_current"]
             )
-            self.IPS_window.lcdTripCurrent.display(self.data["IPS"]["trip_current"])
+            self.IPS_window.lcdTripCurrent.display(self.data_ips120["trip_current"])
 
-            self.IPS_window.labelStatusMagnet.setText(self.data["IPS"]["status_magnet"])
+            self.IPS_window.labelStatusMagnet.setText(self.data_ips120["status_magnet"])
             self.IPS_window.labelStatusCurrent.setText(
-                self.data["IPS"]["status_current"]
+                self.data_ips120["status_current"]
             )
             self.IPS_window.labelStatusActivity.setText(
-                self.data["IPS"]["status_activity"]
+                self.data_ips120["status_activity"]
             )
-            self.IPS_window.labelStatusLocRem.setText(self.data["IPS"]["status_locrem"])
+            self.IPS_window.labelStatusLocRem.setText(self.data_ips120["status_locrem"])
             self.IPS_window.labelStatusSwitchHeater.setText(
-                self.data["IPS"]["status_switchheater"]
+                self.data_ips120["status_switchheater"]
             )
 
     # ------- ------- ITC  
@@ -755,6 +1042,8 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         #    self.run_ITC
         #)
         self.get_data.sig_itc503.connect(self.ITC503_Updater)
+        self.get_data.sig_state_itc503.connect(self.crasherror_itc503)
+
         self.itc503_main_start.clicked["bool"].connect(
             lambda value: self.start_instrument(instrument='itc503')
             )
@@ -809,6 +1098,12 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         #buttons set Interval is not implemented in Controle client
         self.ITC_window.spin_threadinterval.valueChanged.connect(self.gettoset_Interval_itc503)
         self.ITC_window.send_command_spin_threadinterval.clicked.connect(self.setInterval_itc503)
+    def crasherror_itc503(self,data):
+    	self.state_itc503.update(data)
+    	if self.state_itc503["state"]=="crashed":
+    		if self.state_itc503["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_ITC503 crashed")
+    			 self.itc503_main_state.setText("Crashed")
     @ExceptionHandling
     def window_FileDialogOpen(self, test):
         # print(test)
@@ -832,6 +1127,8 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         # self.threads['control_ITC'][0].gettoset_Temperature(value)
         self.ITC_values["setTemp"] = value
         self.ITC_values["end"] = value
+        self.ITC_values["start"] = None
+        self.ITC_values["isSweepStartCurrent"] = True
 
     @pyqtSlot(float)
     @ExceptionHandling
@@ -1016,6 +1313,8 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
             lambda value: self.start_instrument(instrument='ilm211')
             )
         self.get_data.sig_ilm211.connect(self.ilm211_Updater)
+        self.get_data.sig_state_ilm211.connect(self.crasherror_ilm211)
+
         self.get_active_state_ilm211= self.running_thread_control(check_active(Instrument='ilm211'),'check_state_ilm211')
         self.get_active_state_ilm211.sig_Infodata.connect(self.update_check_state_ilm211)
     def initialize_window_ILM(self):
@@ -1038,6 +1337,12 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         #    self.run_ILM
         #)
         self.action_show_ILM.triggered["bool"].connect(self.show_ILM)
+    def crasherror_ilm211(self,data):
+    	self.state_ilm211.update(data)
+    	if self.state_ilm211["state"]=="crashed":
+    		if self.state_ilm211["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_ILM211 crashed")
+    			 self.ilm211_main_state.setText("Crashed")
     @pyqtSlot()
     @ExceptionHandling
     def set_spinThreadinterval_ilm211(self):
@@ -1105,6 +1410,8 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
             lambda value: self.start_instrument(instrument='sr830')
             )
         self.get_data.sig_sr830.connect(self.SR830_Updater)
+        self.get_data.sig_state_sr830.connect(self.crasherror_sr830)
+
         self.get_active_state_sr830= self.running_thread_control(check_active(Instrument='sr830'),'check_state_sr830')
         self.get_active_state_sr830.sig_Infodata.connect(self.update_check_state_sr830)
 
@@ -1152,6 +1459,12 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
                 )
         )
         self.LockIn_window_sr830.send_command_sample.clicked.connect(lambda: self.setContactResistance_sr830())
+    def crasherror_sr830(self,data):
+    	self.state_sr830.update(data)
+    	if self.state_sr830["state"]=="crashed":
+    		if self.state_sr830["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_sr830 crashed")
+    			 self.sr830_main_state.setText("Crashed")
     def start_instrument_sr830_pressed(self,instrument=None):
         self.instrument= instrument
         p1 = subprocess.run('sc query "CryostatGui_%s" | find "RUNNING"' % self.instrument, capture_output=True, text=True, shell=True)
@@ -1245,6 +1558,8 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
             lambda value: self.start_instrument(instrument='sr860')
             )
         self.get_data.sig_sr860.connect(self.SR860_Updater)
+        self.get_data.sig_state_sr860.connect(self.crasherror_sr860)
+
         self.get_active_state_sr860= self.running_thread_control(check_active(Instrument='sr860'),'check_state_sr860')
         self.get_active_state_sr860.sig_Infodata.connect(self.update_check_state_sr860)
 
@@ -1292,6 +1607,12 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
                 )
         )
         self.LockIn_window_sr860.send_command_sample.clicked.connect(lambda: self.setContactResistance_sr860())
+    def crasherror_sr860(self,data):
+    	self.state_sr860.update(data)
+    	if self.state_sr860["state"]=="crashed":
+    		if self.state_sr860["multipl"]==1:
+    			 self.show_error_general("Service CryostatGui_sr860 crashed")
+    			 self.sr860_main_state.setText("Crashed")
     def update_check_state_sr860(self,data):
         self.sr860_check_state_data.update(data)
         print("update_check")

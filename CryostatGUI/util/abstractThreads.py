@@ -221,7 +221,7 @@ class AbstractMainApp(AbstractApp):
         # print('mainapp post')
 
         self.softwarecontrol_timer = QTimer()
-        self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
+        #self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
         self.softwarecontrol_timer.start(1000)
 
         self.controls_Lock = Lock()
@@ -417,9 +417,10 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
             with noblockLock(self.lock):
                 self.run_here()
                 if self.run_finished:
-                    self.run_prometheus()
+                    #self.run_prometheus()
                     self.send_data_upstream()
         except BlockedError:
+            self.send_noblock_upstream()
             pass
         finally:
             end = dt.now()
