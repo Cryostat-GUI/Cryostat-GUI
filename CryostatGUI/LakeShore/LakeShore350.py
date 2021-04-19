@@ -1,7 +1,5 @@
 """Module containing a class to interface with a LakeShore 350 Cryogenic Temperature Controller
 
-Attributes:
-    logger: a python logger object
 
 Classes:
     LakeShore350: a class for interfacing with a LakeShore350 temperature controller
@@ -14,22 +12,9 @@ from itertools import combinations
 from drivers import AbstractGPIBDeviceDriver
 from drivers import AbstractEthernetDeviceDriver
 
-# create a logger object for this module
-logger = logging.getLogger(__name__)
-# added so that log messages show up in Jupyter notebooks
-logger.addHandler(logging.StreamHandler())
 
-# try:
-#     # the pyvisa manager we'll use to connect to the GPIB resources
-#     resource_manager = visa.ResourceManager(
-#         'C:\\Windows\\System32\\agvisa32.dll')
-# except OSError:
-#     logger.exception(
-#         "\n\tCould not find the VISA library. Is the National Instruments / Agilent VISA driver installed?\n\n")
-
-
-class LakeShore350_bare(object):
-    '''class to interface with a LakeShore350
+class LakeShore350_bare:
+    """class to interface with a LakeShore350
 
     in order to change the self.go() and self.query() commands,
     use inheritance injection:
@@ -39,10 +24,15 @@ class LakeShore350_bare(object):
         self.go()
         self.query()
         self.__init__()
-    '''
+    """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, log=None):
+        if log is None:
+            self._logger = logging.getLogger(
+                "CryoGUI." + __name__ + "." + self.__class__.__name__
+            )
+        else:
+            self._logger = log
 
     # def go(self, command):
     #     """write a command to the instrument"""
@@ -57,7 +47,7 @@ class LakeShore350_bare(object):
         and terminates all pending operations. Clears the interface, but not the controller. The related
         controller command is *RST.
         """
-        self.go('*CLS')
+        self.go("*CLS")
 
     def EventStatusEnableRegisterCommand(self, bit_weighting):
         """Each bit is assigned a bit weighting and represents the enable/disable mask of the corresponding
@@ -74,22 +64,28 @@ class LakeShore350_bare(object):
         :type bit_weighting: int
         """
         weighting_list = [1, 4, 16, 32, 128]
-        sum_list = sum([map(list, combinations(weighting_list, i))
-                        for i in range(len(weighting_list) + 1)], [])
+        sum_list = sum(
+            [
+                map(list, combinations(weighting_list, i))
+                for i in range(len(weighting_list) + 1)
+            ],
+            [],
+        )
         map_list = map(sum, sum_list)  # creates list of all possible sums
 
         if bit_weighting not in map_list:
             raise AssertionError(
-                "Bit_Weighting parameter must be a sum of elements of [0,1,4,16,32,128].")
+                "Bit_Weighting parameter must be a sum of elements of [0,1,4,16,32,128]."
+            )
 
-        self.go('*ESE ' + '{0:3d}'.format(bit_weighting))
+        self.go("*ESE " + "{0:3d}".format(bit_weighting))
 
     def EventStatusEnableRegisterQuery(self):
         """Refer to EventStatusEnableRegisterCommand for description.
 
         :return: sum of the bit weighting for each bit
         """
-        return self.query('*ESE?')
+        return self.query("*ESE?")
 
     def StandardEventStatusRegisterQuery(self):
         """The integer returned represents the sum of the bit weighting of the event flag bits in the
@@ -97,7 +93,7 @@ class LakeShore350_bare(object):
 
         :return: sum of the bit weighting for each desired bit
         """
-        return self.query('*ESR?')
+        return self.query("*ESR?")
 
     def IdentificationQuery(self):
         """Returns information about the device
@@ -109,14 +105,14 @@ class LakeShore350_bare(object):
             <option card serial>    Option card serial number
             <firmware version>      Instrument firmware version
         """
-        return self.query('*IDN?')
+        return self.query("*IDN?")
 
     def OperationCompleteCommand(self):
         """Generates an Operation Complete event in the Event Status Register upon
         completion of all pending selected device operations.
         Send it as the last command in a command string.
         """
-        self.go('*OPC')
+        self.go("*OPC")
 
     def OperationCompleteQuery(self):
         """Places a 1 in the controller output queue upon completion of all pending selected device
@@ -124,12 +120,11 @@ class LakeShore350_bare(object):
 
         :return: 1
         """
-        return self.go('*OPC?')
+        return self.go("*OPC?")
 
     def ResetInstrumentCommand(self):
-        """Sets controller parameters to power-up settings.
-        """
-        self.go('*RST')
+        """Sets controller parameters to power-up settings."""
+        self.go("*RST")
 
     def ServiceRequestEnableRegisterCommand(self, bit_weighting):
         """Each bit has a bit weighting and represents the enable/disable mask of the corresponding
@@ -145,22 +140,28 @@ class LakeShore350_bare(object):
         :type bit_weighting: int
         """
         weighting_list = [16, 64, 128]
-        sum_list = sum([map(list, combinations(weighting_list, i))
-                        for i in range(len(weighting_list) + 1)], [])
+        sum_list = sum(
+            [
+                map(list, combinations(weighting_list, i))
+                for i in range(len(weighting_list) + 1)
+            ],
+            [],
+        )
         map_list = map(sum, sum_list)  # creates list of all possible sums
 
         if bit_weighting not in map_list:
             raise AssertionError(
-                "Bit_Weighting parameter must be an Integer in [16,64,128].")
+                "Bit_Weighting parameter must be an Integer in [16,64,128]."
+            )
 
-        self.go('*SRE ' + '{0:3d}'.format(bit_weighting))
+        self.go("*SRE " + "{0:3d}".format(bit_weighting))
 
     def ServiceRequestEnableRegisterQuery(self):
         """Refer to ServiceRequestEnableRegisterCommand for description.
 
         :return: <bit weighting>
         """
-        return self.query('*SRE?')
+        return self.query("*SRE?")
 
     def StatusByteQuery(self):
         """Acts like a serial poll, but does not reset the register to all zeros. The integer returned
@@ -169,23 +170,33 @@ class LakeShore350_bare(object):
 
         :return: <bit weighting>
         """
-        return self.query('*STB?')
+        return self.query("*STB?")
 
     def SelfTestQuery(self):
         """The Model 350 reports status based on test done at power up.
 
         :return: 0 = 'no errors found' OR 1 = 'errors found'
         """
-        return self.query('*TST?')
+        return self.query("*TST?")
 
     def WaitToContinueCommand(self):
         """Causes the IEEE-488 interface to hold off until all pending operations have been completed.
         This is the same function as the *OPC command, except that it does not set the Operation Complete event
         bit in the Event Status Register.
         """
-        self.go('*WAI*')
+        self.go("*WAI*")
 
-    def InputAlarmParameterCommand(self, input_value, check_state=1, set_high=450, set_low=0, deadband=0, latch_enable=1, audible=1, visible=1):
+    def InputAlarmParameterCommand(
+        self,
+        input_value,
+        check_state=1,
+        set_high=450,
+        set_low=0,
+        deadband=0,
+        latch_enable=1,
+        audible=1,
+        visible=1,
+    ):
         """Configures the alarm parameters for an input_value.
 
         :param input_value: Specifies which input to configure: A - D (D1 - D5 for 3062 option).
@@ -214,44 +225,51 @@ class LakeShore350_bare(object):
         over 270, and latches the alarm when Kelvin reading falls below 270. Alarm condition will cause instrument to
         beep and the front panel Alarm LED to blink.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
         if check_state not in [0, 1]:
-            raise AssertionError(
-                "Check_State parameter must be an integer in [0,1.].")
+            raise AssertionError("Check_State parameter must be an integer in [0,1.].")
 
         if set_high < 0.0:
-            raise AssertionError(
-                "Set_High parameter must be a float greater than 0.")
+            raise AssertionError("Set_High parameter must be a float greater than 0.")
 
         if set_low < 0.0:
-            raise AssertionError(
-                "Set_Low parameter must be a float greater than 0.")
+            raise AssertionError("Set_Low parameter must be a float greater than 0.")
 
         if deadband < 0:
-            raise AssertionError(
-                "Deadband parameter must be a float greater than 0.")
+            raise AssertionError("Deadband parameter must be a float greater than 0.")
 
         if latch_enable not in [0, 1]:
-            raise AssertionError(
-                "Latch_Enable parameter must be an integer in [0,1].")
+            raise AssertionError("Latch_Enable parameter must be an integer in [0,1].")
 
         if audible not in [0, 1]:
-            raise AssertionError(
-                "Audible parameter must be an integer in [0,1.].")
+            raise AssertionError("Audible parameter must be an integer in [0,1.].")
 
         if visible not in [0, 1]:
             raise AssertionError(
-                "LakeShore: Visible parameter must be an integer in [0,1].")
+                "LakeShore: Visible parameter must be an integer in [0,1]."
+            )
 
         if check_state == 0:
-            self.go('ALARM ' + '{0:1},{1:1d}'.format(input_value, check_state))
+            self.go("ALARM " + "{0:1},{1:1d}".format(input_value, check_state))
 
         if check_state == 1:
-            self.go('ALARM ' + '{0:1},{1:1d},{2:4.2f},{3:4.2f},{4:4.2f},{5:1d},{6:1d},{7:1d}'.format(
-                input_value, check_state, set_high, set_low, deadband, latch_enable, audible, visible))
+            self.go(
+                "ALARM "
+                + "{0:1},{1:1d},{2:4.2f},{3:4.2f},{4:4.2f},{5:1d},{6:1d},{7:1d}".format(
+                    input_value,
+                    check_state,
+                    set_high,
+                    set_low,
+                    deadband,
+                    latch_enable,
+                    audible,
+                    visible,
+                )
+            )
 
     def InputAlarmParameterQuery(self, input_value):
         """Refer to InputAlarmParameterCommand for description.
@@ -261,11 +279,12 @@ class LakeShore350_bare(object):
 
         :return: ['<off/on>','<high value>','<low value>','<deadband>','<latch enable>','<audible>','<visible>']
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('ALARM? ' + '{0:1}'.format(input_value))
+        return self.query("ALARM? " + "{0:1}".format(input_value))
 
     def InputAlarmStatusQuery(self, input_value):
         """Returns alarm status whereas 0 = Off and 1 = On.
@@ -275,18 +294,20 @@ class LakeShore350_bare(object):
 
         :return: ['<high state>','<low state>']
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('ALARMST? ' + '{0:1}'.format(input_value))
+        return self.query("ALARMST? " + "{0:1}".format(input_value))
 
     def ResetAlarmStatusCommand(self):
-        """Clears both the high and low status of all alarms, including latching items.
-        """
-        self.go('ALMRST')
+        """Clears both the high and low status of all alarms, including latching items."""
+        self.go("ALMRST")
 
-    def MonitorOutParameterCommand(self, output, input_value, high_value, low_value, polarity, units=1):
+    def MonitorOutParameterCommand(
+        self, output, input_value, high_value, low_value, polarity, units=1
+    ):
         """Use the OUTMODE command to set the output mode to Monitor Out. The <input_value> parameter in the ANALOG
         command is the same as the <input_value> parameter in the OUTMODE command. It is included in the ANALOG command
         for backward compatibility with previous Lake Shore temperature monitors and controllers. The ANALOG com-
@@ -319,50 +340,58 @@ class LakeShore350_bare(object):
             +100% output (+10.0 V) and 0.0 K at 0% output (0.0 V).
         """
         if output not in [3, 4]:
-            raise AssertionError(
-                "Output parameter must be an integer in [3,4].")
+            raise AssertionError("Output parameter must be an integer in [3,4].")
 
         if input_value not in [0, 1, 3, 4]:
             raise AssertionError(
-                "Input_Value Parameter must be an integer in [0,1,3,4].")
+                "Input_Value Parameter must be an integer in [0,1,3,4]."
+            )
 
         if units not in [1, 2, 3]:
-            raise AssertionError(
-                "Units parameter must be an integer in [1,2,3].")
+            raise AssertionError("Units parameter must be an integer in [1,2,3].")
 
         if units == 1:
             if high_value < 0.0:
                 raise AssertionError(
-                    "High_Value parameter is given in Kelvin and must be a float greater than 0.")
+                    "High_Value parameter is given in Kelvin and must be a float greater than 0."
+                )
 
             if low_value < 0.0:
                 raise AssertionError(
-                    "Low_Value parameter is given in Kelvin and must be a float greater than 0.")
+                    "Low_Value parameter is given in Kelvin and must be a float greater than 0."
+                )
 
         if units == 2:
             if not isinstance(high_value, float):
                 raise AssertionError(
-                    "High_Value parameter is given in Celsius and must be a float.")
+                    "High_Value parameter is given in Celsius and must be a float."
+                )
 
             if not isinstance(low_value, float):
                 raise AssertionError(
-                    "Low_Value parameter is given in Celsius and must be a float.")
+                    "Low_Value parameter is given in Celsius and must be a float."
+                )
 
         if units == 3:
             if not isinstance(high_value, float):
                 raise AssertionError(
-                    "High_Value parameter is given in Sensor Units. Check your sensor for valid floats.")
+                    "High_Value parameter is given in Sensor Units. Check your sensor for valid floats."
+                )
 
             if not isinstance(low_value, float):
                 raise AssertionError(
-                    "Low_Value parameter is given in Sensor Units. Check your sensor for valid floats.")
+                    "Low_Value parameter is given in Sensor Units. Check your sensor for valid floats."
+                )
 
         if polarity not in [0, 1]:
-            raise AssertionError(
-                "Poalrity parameter must be an integer in [0,1].")
+            raise AssertionError("Poalrity parameter must be an integer in [0,1].")
 
-        self.go('ANALOG ' + '{0:1d},{1:1d},{2:1d},{3:4.2f},{4:4.2f},{5:1d}'.format(
-            output, input_value, units, high_value, low_value, polarity))
+        self.go(
+            "ANALOG "
+            + "{0:1d},{1:1d},{2:1d},{3:4.2f},{4:4.2f},{5:1d}".format(
+                output, input_value, units, high_value, low_value, polarity
+            )
+        )
 
     def MonitorOutParameterQuery(self, output):
         """Refer to MonitorOutParameterCommand for description.
@@ -373,10 +402,9 @@ class LakeShore350_bare(object):
         :return: ['<input_value>','<units>','<high value>','<low value>','<polarity>']
         """
         if output not in [3, 4]:
-            raise AssertionError(
-                "Output parameter must be an integer in [3,4].")
+            raise AssertionError("Output parameter must be an integer in [3,4].")
 
-        return self.query('ANALOG? ' + '{0:1d}'.format(output))
+        return self.query("ANALOG? " + "{0:1d}".format(output))
 
     def AnalogOutputDataQuery(self, output):
         """Returns the output percentage of the unpowered analog output.
@@ -387,10 +415,9 @@ class LakeShore350_bare(object):
         :return: <output percentage>
         """
         if output not in [3, 4]:
-            raise AssertionError(
-                "Output parameter must be an integer in [3,4].")
+            raise AssertionError("Output parameter must be an integer in [3,4].")
 
-        return self.query('AOUT? ' + '{0:1d}'.format(output))
+        return self.query("AOUT? " + "{0:1d}".format(output))
 
     def AutotuneCommand(self, output, mode):
         """If initial conditions required to Autotune the specified loop are not met, an Autotune
@@ -406,14 +433,12 @@ class LakeShore350_bare(object):
             AT  UNE 2,1 [term] — initiates Autotuning of control loop associated with output 2, in P and I mode.
         """
         if output not in [1, 2, 3, 4]:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if output not in [3, 4]:
-            raise AssertionError(
-                "Mode parameter must be an integer in [0,1,2].")
+            raise AssertionError("Mode parameter must be an integer in [0,1,2].")
 
-        self.go('ATUNE ' + '{0:1d},{1:1d}'.format(output, mode))
+        self.go("ATUNE " + "{0:1d},{1:1d}".format(output, mode))
 
     def DisplayContrastCommand(self, contrast_value):
         """Sets the display contrast for the front panel LCD.
@@ -423,17 +448,18 @@ class LakeShore350_bare(object):
         """
         if 1 > contrast_value > 32:
             raise AssertionError(
-                "Contrast_Value parameter must be an integer in between 1 - 32.")
+                "Contrast_Value parameter must be an integer in between 1 - 32."
+            )
 
         # with or without leading zero?
-        self.go('BRIGT ' + '{0:2d}'.format(contrast_value))
+        self.go("BRIGT " + "{0:2d}".format(contrast_value))
 
     def DisplayContrastQuery(self):
         """Refer to DisplayContrastCommand for description.
 
         :return: <contrast value>
         """
-        return self.query('BRIGT?')
+        return self.query("BRIGT?")
 
     def CelsiusReadingQuery(self, input_value):
         """Returns the Celsius reading for a single input_value or all input_values.
@@ -444,15 +470,16 @@ class LakeShore350_bare(object):
 
         :return: <temp value> Or if all input_values are queried: ['<A value>','<B value>','<C value>','<D value>']
         """
-        if input_value not in [0, 'A', 'B', 'C', 'D']:
+        if input_value not in [0, "A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value parameter must be a string in ['A','B','C','D'] or an integer with the value 0.")
+                "Input_Value parameter must be a string in ['A','B','C','D'] or an integer with the value 0."
+            )
 
-        if input_value in ['A', 'B', 'C', 'D']:
-            return self.query('CRDG? ' + '{0:1}'.format(input_value))
+        if input_value in ["A", "B", "C", "D"]:
+            return self.query("CRDG? " + "{0:1}".format(input_value))
 
         if input_value == 0:
-            return self.query('CRDG? ' + '{0:1d}'.format(input_value))
+            return self.query("CRDG? " + "{0:1d}".format(input_value))
 
     def CurveDeleteCommand(self, curve):
         """
@@ -464,11 +491,14 @@ class LakeShore350_bare(object):
         """
         if 21 > curve > 59:
             raise AssertionError(
-                "Curve parameter is not an integer in between 21 - 59.")
+                "Curve parameter is not an integer in between 21 - 59."
+            )
 
-        self.go('CRVDEL ' + '{0:2d}'.format(curve))
+        self.go("CRVDEL " + "{0:2d}".format(curve))
 
-    def CurveHeaderCommand(self, curve, name, sn, format_value, coefficient, limit_value=375):
+    def CurveHeaderCommand(
+        self, curve, name, sn, format_value, coefficient, limit_value=375
+    ):
         """Configures the user curve header. The coefficient parameter will be calculated auto-
         matically based on the first 2 curve datapoints. It is included as a parameter for com-
         patability with the CRVHDR? query.
@@ -497,30 +527,36 @@ class LakeShore350_bare(object):
         """
         if 21 > curve > 59:
             raise AssertionError(
-                "Curve parameter must be an integer in between 21 - 59.")
+                "Curve parameter must be an integer in between 21 - 59."
+            )
 
         if len(name) > 15:
             raise AssertionError(
-                "Name parameter must be a string with a maximum of 15 characters.")
+                "Name parameter must be a string with a maximum of 15 characters."
+            )
 
         if len(sn) > 10:
             raise AssertionError(
-                "SN parameter must be a string with a maximum of 10 characters.")
+                "SN parameter must be a string with a maximum of 10 characters."
+            )
 
         if format not in [1, 2, 3, 4]:
             raise AssertionError(
-                "Format_Value parameter must be an integer in [1,2,3,4].")
+                "Format_Value parameter must be an integer in [1, 2, 3, 4]."
+            )
 
         if limit_value < 0:
-            raise AssertionError(
-                "Limit_Value parameter must be a positive float.")
+            raise AssertionError("Limit_Value parameter must be a positive float.")
 
         if coefficient not in [1, 2]:
-            raise AssertionError(
-                "Coefficient parameter must be an integer in [1,2].")
+            raise AssertionError("Coefficient parameter must be an integer in [1,2].")
 
-        self.go('CRVHDR' + '{0:2d},{1:15},{2:10},{3:1d},{4:4.2f},{5:1d}'.format(
-            curve, name, sn, format, limit_value, coefficient))
+        self.go(
+            "CRVHDR"
+            + "{0:2d},{1:15},{2:10},{3:1d},{4:4.2f},{5:1d}".format(
+                curve, name, sn, format, limit_value, coefficient
+            )
+        )
 
     def CurveHeaderQuery(self, curve):
         """Refer to CurveHeaderCommand for description.
@@ -532,9 +568,10 @@ class LakeShore350_bare(object):
         """
         if not isinstance(curve, int) or 1 > curve > 59:
             raise AssertionError(
-                "Curve parameter must be an integer in between 1 - 59.")
+                "Curve parameter must be an integer in between 1 - 59."
+            )
 
-        return self.query('CRVHDR?' + '{0:2d}'.format(curve))
+        return self.query("CRVHDR?" + "{0:2d}".format(curve))
 
     def CurveDataPointCommand(self, curve, index, units_value, temp_value):
         """Configures a user curve data point.
@@ -553,22 +590,30 @@ class LakeShore350_bare(object):
         """
         if not 21 > curve > 59:
             raise AssertionError(
-                "Curve parameter must be an integer in between 21 - 59.")
+                "Curve parameter must be an integer in between 21 - 59."
+            )
 
         if not 1 > index > 200:
             raise AssertionError(
-                "Curve parameter must be an integer in between 1 - 200.")
+                "Curve parameter must be an integer in between 1 - 200."
+            )
 
         if not isinstance(units_value, float):  # can be improved?
             raise AssertionError(
-                "Units_Value parameter must be a float with up to 6 digits.")
+                "Units_Value parameter must be a float with up to 6 digits."
+            )
 
         if not isinstance(temp_value, float):  # can be improved?
             raise AssertionError(
-                "Temp_Value parameter must be a float with up to 6 digits.")
+                "Temp_Value parameter must be a float with up to 6 digits."
+            )
 
-        self.go('CRVPT ' + '{0:2d},{1:3d},{2:7.3f},{3:7.3f}'.format(curve,
-                                                                    index, units_value, temp_value))  # improve formatting?
+        self.go(
+            "CRVPT "
+            + "{0:2d},{1:3d},{2:7.3f},{3:7.3f}".format(
+                curve, index, units_value, temp_value
+            )
+        )  # improve formatting?
 
     def CurveDataPointQuery(self, curve, index):
         """Returns a standard or user curve data point.
@@ -582,13 +627,15 @@ class LakeShore350_bare(object):
         """
         if 1 > curve > 59:
             raise AssertionError(
-                "Curve parameter must be an integer in between 1 - 59.")
+                "Curve parameter must be an integer in between 1 - 59."
+            )
 
         if 1 > index > 200:
             raise AssertionError(
-                "Curve parameter must be an integer in between 1 - 200.")
+                "Curve parameter must be an integer in between 1 - 200."
+            )
 
-        return self.query('CRVPT? ' + '{0:2d},{1:3d}'.format(curve, index))
+        return self.query("CRVPT? " + "{0:2d},{1:3d}".format(curve, index))
 
     def FactoryDefaultsCommand(self):
         """Sets all configuration values to factory defaults and resets the instrument.
@@ -610,15 +657,15 @@ class LakeShore350_bare(object):
         :param excitation: Specifies the Diode excitation current: 0 = 10 μA, 1 = 1 mA.
         :type excitation: int
         """
-        if input_value not in ['D2', 'D3', 'D4', 'D5']:
+        if input_value not in ["D2", "D3", "D4", "D5"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in ['D2','D3','D4','D5'].")
+                "Input_Value Parameter must be a string in ['D2','D3','D4','D5']."
+            )
 
         if excitation not in [0, 1]:
-            raise AssertionError(
-                "Excitation parameter must be an integer in [0,1].")
+            raise AssertionError("Excitation parameter must be an integer in [0,1].")
 
-        self.go('DIOCUR ' + '{0:2},{1:1d}'.format(input_value, excitation))
+        self.go("DIOCUR " + "{0:2},{1:1d}".format(input_value, excitation))
 
     def CustomModeDisplayFieldCommand(self, field, input_value, units):
         """This command only applies to the readings displayed in the Custom display mode. All other display
@@ -637,19 +684,17 @@ class LakeShore350_bare(object):
             DISPFLD 2,1,1[term] — displays kelvin reading for input_value A in display field 2 when display mode is set to Custom.
         """
         if 8 < field < 1:
-            raise AssertionError(
-                "Field parameter must be an integer in between 1 - 8.")
+            raise AssertionError("Field parameter must be an integer in between 1 - 8.")
 
         if 8 < input_value < 0:
             raise AssertionError(
-                "Input_Value Parameter must be an integer in between 0 - 8.")
+                "Input_Value Parameter must be an integer in between 0 - 8."
+            )
 
         if 5 < units < 1:
-            raise AssertionError(
-                "Units parameter must be an integer in between 1 - 5.")
+            raise AssertionError("Units parameter must be an integer in between 1 - 5.")
 
-        self.go('DISPFLD ' +
-                '{0:1d},{1:1d},{2:1d}'.format(field, input_value, units))
+        self.go("DISPFLD " + "{0:1d},{1:1d},{2:1d}".format(field, input_value, units))
 
     def CustomModeDisplayFieldQuery(self, field):
         """Refer to CustomModeDisplayFieldCommand for description.
@@ -660,10 +705,9 @@ class LakeShore350_bare(object):
         :return: ['<input_value>','<units>']
         """
         if 8 < field < 1:
-            raise AssertionError(
-                "Field parameter must be an integer in between 1 - 8.")
+            raise AssertionError("Field parameter must be an integer in between 1 - 8.")
 
-        return self.query('ISPFLD? ' + '{0:1d}'.format(field))
+        return self.query("ISPFLD? " + "{0:1d}".format(field))
 
     def DisplaySetupCommand(self, mode, num_fields=2, output_source=1):
         """The <num fields> and <displayed output> commands are ignored in all display modes except for Custom.
@@ -686,31 +730,34 @@ class LakeShore350_bare(object):
             DISPLAY 4,0,1[term] — set display mode to Custom with 2 large display fields, and set custom output display source to Output 1.
         """
         if 10 < mode < 0:
-            raise AssertionError(
-                "Mode parameter must be an integer in between 0 - 10.")
+            raise AssertionError("Mode parameter must be an integer in between 0 - 10.")
 
         if mode == 4:
             if 2 < num_fields < 0:
                 raise AssertionError(
-                    "Num_Fields parameter must be an integer in between 0 - 2.")
+                    "Num_Fields parameter must be an integer in between 0 - 2."
+                )
             if 4 < output_source < 1:
                 raise AssertionError(
-                    "Output_Source parameter must be an integer in between 1 - 4.")
+                    "Output_Source parameter must be an integer in between 1 - 4."
+                )
 
         if mode == 6:
             if 1 < num_fields < 0:
                 raise AssertionError(
-                    "Num_Fields parameter must be an integer in [0,1].")
+                    "Num_Fields parameter must be an integer in [0,1]."
+                )
 
         self.go(
-            'DISPLAY' + '{0:1d},{1:1d},{2:1d}'.format(mode, num_fields, output_source))
+            "DISPLAY" + "{0:1d},{1:1d},{2:1d}".format(mode, num_fields, output_source)
+        )
 
     def DisplaySetupQuery(self):
         """Refer to DisplaySetupCommand for description.
 
         :return: ['<mode>','<num fields>','<output source>']
         """
-        return self.query('DISPLAY?')
+        return self.query("DISPLAY?")
 
     def InputFilterParameterCommand(self, input_value, check_state, points, window):
         """
@@ -727,24 +774,30 @@ class LakeShore350_bare(object):
         Example:
             FILTER B,1,10,2[term] — filter input_value B data through 10 readings with 2% of full scale window.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
         if check_state not in [0, 1]:
-            raise AssertionError(
-                "Check_State parameter must be an integer in [0,1].")
+            raise AssertionError("Check_State parameter must be an integer in [0,1].")
 
         if 64 < points < 2:
             raise AssertionError(
-                "Points parameter must be an integer in between 2 - 64.")
+                "Points parameter must be an integer in between 2 - 64."
+            )
 
         if 10 < window < 1:
             raise AssertionError(
-                "Window parameter must be an integer in between 1 - 10.")
+                "Window parameter must be an integer in between 1 - 10."
+            )
 
         self.go(
-            'FILTER ' + '{0:1},{1:1d},{2:2d},{3:2d}'.format(input_value, check_state, points, window))
+            "FILTER "
+            + "{0:1},{1:1d},{2:2d},{3:2d}".format(
+                input_value, check_state, points, window
+            )
+        )
 
     def InputFilterParameterQuery(self, input_value):
         """Refer to Command for description.
@@ -754,11 +807,12 @@ class LakeShore350_bare(object):
 
         :return: ['<off/on>','<points>','<window>']
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('FILTER?' + '{0:1}'.format(input_value))
+        return self.query("FILTER?" + "{0:1}".format(input_value))
 
     def HeaterOutputQuery(self, output):
         """HTR? is for the Heater Outputs, 1 and 2, only. Use AOUT? for Outputs 3 and 4.
@@ -769,13 +823,14 @@ class LakeShore350_bare(object):
         :return: <heater value> Heater output in percent (%).
         """
         if output not in [1, 2]:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2].")
+            raise AssertionError("Output parameter must be an integer in [1,2].")
 
-        answer = self.query('HTR? ' + '{0:1d}'.format(output))
-        return float(answer[0].strip('+'))
+        answer = self.query("HTR? " + "{0:1d}".format(output))
+        return float(answer[0].strip("+"))
 
-    def HeaterSetupCommand(self, output, heater_resistance, max_current, max_usercurrent, current_or_power):  # set default value
+    def HeaterSetupCommand(
+        self, output, heater_resistance, max_current, max_usercurrent, current_or_power
+    ):  # set default value
         """
         :param output: Specifies which heater output to configure: 1 or 2.
         :type output: int
@@ -797,27 +852,31 @@ class LakeShore350_bare(object):
             has been chosen, and the heater output will be displayed in units of current.
         """
         if output not in [1, 2]:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2].")
+            raise AssertionError("Output parameter must be an integer in [1,2].")
 
         if heater_resistance not in [1, 2]:
             raise AssertionError(
-                "Heater_Resistance parameter must be an integer in [1,2].")
+                "Heater_Resistance parameter must be an integer in [1,2]."
+            )
 
         if 4 < max_current < 0:
             raise AssertionError(
-                "Max_Current parameter must be an integer in between 0 - 4.")
+                "Max_Current parameter must be an integer in between 0 - 4."
+            )
 
         if max_usercurrent < 0:
             raise AssertionError(
-                "Max_Usercurrent parameter must be a float greater than or equal to 0..")
+                "Max_Usercurrent parameter must be a float greater than or equal to 0.."
+            )
 
         if current_or_power not in [1, 2]:
             raise AssertionError(
-                "Current_Or_Power parameter must be an integer in [1,2].")
+                "Current_Or_Power parameter must be an integer in [1,2]."
+            )
 
-        cmd = 'HTRSET {0:1d},{1:1d},{2:1d},{3:3.3f},{4:1d}'.format(
-            output, heater_resistance, max_current, max_usercurrent, current_or_power)
+        cmd = "HTRSET {0:1d},{1:1d},{2:1d},{3:3.3f},{4:1d}".format(
+            output, heater_resistance, max_current, max_usercurrent, current_or_power
+        )
 
         self.go(cmd)  # 3:3.2f correct format?
 
@@ -830,10 +889,9 @@ class LakeShore350_bare(object):
         :return: ['<htr resistance>','<max current>','<max user current>','<current/power>']
         """
         if output not in [1, 2]:
-            raise AssertionError(
-                "Output  must be an integer in [1,2].")
+            raise AssertionError("Output  must be an integer in [1,2].")
 
-        return self.query('HTRSET? ' + '{0:1d}'.format(output))
+        return self.query("HTRSET? " + "{0:1d}".format(output))
 
     def HeaterStatusQuery(self, output):
         """Error condition is cleared upon querying the heater status, except for the heater compliance
@@ -848,10 +906,9 @@ class LakeShore350_bare(object):
 
         """
         if output not in [1, 2]:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2].")
+            raise AssertionError("Output parameter must be an integer in [1,2].")
 
-        return self.query('HTRST? ' + '{0:1d}'.format(output))
+        return self.query("HTRST? " + "{0:1d}".format(output))
 
     def IEEE488InterfaceParameterCommand(self, address):
         """
@@ -863,15 +920,16 @@ class LakeShore350_bare(object):
         """
         if 30 < address < 1:
             raise AssertionError(
-                "Address parameter must be an integer in between 1 - 30.")
+                "Address parameter must be an integer in between 1 - 30."
+            )
 
-        self.go('IEEE ' + '{0:2d}'.format(address))
+        self.go("IEEE " + "{0:2d}".format(address))
 
     def IEEE488InterfaceQuery(self):
         """
         :return: <address>
         """
-        return self.query('IEEE?')
+        return self.query("IEEE?")
 
     def InputCurveNumberCommand(self, input_value, curve_number):
         """Specifies the curve an input uses for temperature conversion.
@@ -886,15 +944,17 @@ class LakeShore350_bare(object):
         Example:
             INCRV A,23[term] — input_value A uses User Curve 23 for temperature conversion.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
         if 59 < curve_number < 0:
             raise AssertionError(
-                "Check_State parameter must be an integer in between 0 - 59.")
+                "Check_State parameter must be an integer in between 0 - 59."
+            )
 
-        self.go('INCRV ' + '{0:1},{1:2d}'.format(input_value, curve_number))
+        self.go("INCRV " + "{0:1},{1:2d}".format(input_value, curve_number))
 
     def InputCurveNumberQuery(self, input_value):
         """
@@ -903,11 +963,12 @@ class LakeShore350_bare(object):
 
         :return: <curve number>
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('INRCV? ' + '{0:1}'.format(input_value))
+        return self.query("INRCV? " + "{0:1}".format(input_value))
 
     def SensorInputNameCommand(self, input_value, name):
         """Be sure to use quotes when sending strings, otherwise characters such as spaces, and other
@@ -924,15 +985,17 @@ class LakeShore350_bare(object):
             INNAME A, “Sample Space”[term] — the string “Sample Space” will appear on the front panel
             display when possible to identify the sensor information being displayed.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "LakeShore: Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "LakeShore: Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
         if not isinstance(name, str) or len(name) > 15:
             raise AssertionError(
-                "LakeShore: Name parameter must be a string with a maximum of 15 characters.")
+                "LakeShore: Name parameter must be a string with a maximum of 15 characters."
+            )
 
-        self.go('INNAME ' + '{0:1},{1:15}'.format(input_value, name))
+        self.go("INNAME " + "{0:1},{1:15}".format(input_value, name))
 
     def SensorInputNameQuery(self, input_value):
         """Refer to SensorInputNameCommand for description.
@@ -942,11 +1005,12 @@ class LakeShore350_bare(object):
 
         :return: <name>
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('INNAME? ' + '{0:1}'.format(input_value))
+        return self.query("INNAME? " + "{0:1}".format(input_value))
 
     def InterfaceSelectCommand(self, interface):
         """The Ethernet interface will attempt to configure itself based on the current configu-
@@ -960,19 +1024,27 @@ class LakeShore350_bare(object):
         :type interface: int
         """
         if interface not in [0, 1, 2]:
-            raise AssertionError(
-                "Interface parameter must be an integer in [0,1,2].")
+            raise AssertionError("Interface parameter must be an integer in [0,1,2].")
 
-        self.go('INTSEL ' + '{0:1}'.format(interface))
+        self.go("INTSEL " + "{0:1}".format(interface))
 
     def InterfaceSelectQuery(self):
         """Refer to InterfaceSelectCommand for description.
 
         :return: <interface>
         """
-        return self.query('INTSEL?')
+        return self.query("INTSEL?")
 
-    def InputTypeParameterCommand(self, input_value, sensor_type, autorange, range_value, compensation=0, units=0, sensor_excitation=0):
+    def InputTypeParameterCommand(
+        self,
+        input_value,
+        sensor_type,
+        autorange,
+        range_value,
+        compensation=0,
+        units=0,
+        sensor_excitation=0,
+    ):
         """The <autorange> parameter does not apply to diode, thermocouple, or capacitance sensor types,
         the <range_value> parameter does not apply to the thermocouple sensor type, the <compensation> parameter
         does not apply to the diode sensor type, and the <sensor excitation> parameter only applies to
@@ -1032,62 +1104,79 @@ class LakeShore350_bare(object):
         Example:
             INTYPE A,3,1,0,1,1,1[term]—sets input_value A sensor type to NTC RTD, autorange on, thermal compensation on, preferred units to kelvin, and sensor excitation to 1 mV.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
         if 5 > sensor_type > 0:
             raise AssertionError(
-                "Sensor_Type parameter must be an integer in [0,1,2,3,4,5].")
+                "Sensor_Type parameter must be an integer in [0,1,2,3,4,5]."
+            )
 
         if sensor_type == 1:
             if range_value not in [0, 1]:
                 raise AssertionError(
-                    "For Diode (Sensor_Type == 1) the Range_Value parameter must be an integer in [0,1].")
+                    "For Diode (Sensor_Type == 1) the Range_Value parameter must be an integer in [0,1]."
+                )
 
         if sensor_type == 2:
             if sensor_excitation != 1:
                 raise AssertionError(
-                    "For PTC RTD (Sensor_Type == 2) the Sensor_Excitation parameter must be an integer with the value 0.")
+                    "For PTC RTD (Sensor_Type == 2) the Sensor_Excitation parameter must be an integer with the value 0."
+                )
             if 6 > range_value > 0:
                 raise AssertionError(
-                    "For PTC RTD (Sensor_Type == 2) the Range_Value parameter must be an integer in between 0 - 6.")
+                    "For PTC RTD (Sensor_Type == 2) the Range_Value parameter must be an integer in between 0 - 6."
+                )
 
         if sensor_type == 3:
             if sensor_excitation not in [0, 1]:
                 raise AssertionError(
-                    "For NTC RTD (Sensor_Type == 3) Sensor_Excitation parameter must be an integer in [0,1].")
+                    "For NTC RTD (Sensor_Type == 3) Sensor_Excitation parameter must be an integer in [0,1]."
+                )
             if sensor_excitation == 0 and 0 > range_value > 8:
                 raise AssertionError(
-                    "For NTC RTD (Sensor_Type == 3) and 1 mV (Sensor_Excitation == 0) the Range_Value parameter must be an integer in between 0 - 8.")
+                    "For NTC RTD (Sensor_Type == 3) and 1 mV (Sensor_Excitation == 0) the Range_Value parameter must be an integer in between 0 - 8."
+                )
             if sensor_excitation == 1 and 0 > range_value > 9:
                 raise AssertionError(
-                    "For NTC RTD (Sensor_Type == 3) and 10 mV (Sensor_Excitation == 1) the Range_Value parameter must be an integer in between 0 - 9.")
+                    "For NTC RTD (Sensor_Type == 3) and 10 mV (Sensor_Excitation == 1) the Range_Value parameter must be an integer in between 0 - 9."
+                )
 
         if sensor_type == 4:
             if range_value != 0:
                 raise AssertionError(
-                    "For Thermocouple (Sensor_Type == 4) the Range_Value parameter must be an integer with value 0.")
+                    "For Thermocouple (Sensor_Type == 4) the Range_Value parameter must be an integer with value 0."
+                )
 
         if sensor_type == 5:
             if range_value not in [0, 1]:
                 raise AssertionError(
-                    "For Capacitance (Sensor_Type == 5) the Range_Value parameter must be an integer in [0,1].")
+                    "For Capacitance (Sensor_Type == 5) the Range_Value parameter must be an integer in [0,1]."
+                )
 
         if autorange not in [0, 1]:
-            raise AssertionError(
-                "Autorange parameter must be an integer in [0,1].")
+            raise AssertionError("Autorange parameter must be an integer in [0,1].")
 
         if compensation not in [0, 1]:
-            raise AssertionError(
-                "Compensation parameter must be an integer in [0,1].")
+            raise AssertionError("Compensation parameter must be an integer in [0,1].")
 
         if units not in [1, 2, 3]:
-            raise AssertionError(
-                "Units parameter must be an integer in [1,2,3].")
+            raise AssertionError("Units parameter must be an integer in [1,2,3].")
 
-        self.go('INTYPE ' + '{0:1},{1:1d},{2:1d},{3:1d},{4:1d},{5:1d},{6:1d}'.format(
-            input_value, sensor_type, autorange, range_value, compensation, units, sensor_excitation))
+        self.go(
+            "INTYPE "
+            + "{0:1},{1:1d},{2:1d},{3:1d},{4:1d},{5:1d},{6:1d}".format(
+                input_value,
+                sensor_type,
+                autorange,
+                range_value,
+                compensation,
+                units,
+                sensor_excitation,
+            )
+        )
 
     def InputTypeParameterQuery(self, input_value):
         """If autorange is on, the returned range parameter is the currently auto-selected range. Refer to InputTypeParameterCommand for description.
@@ -1097,11 +1186,12 @@ class LakeShore350_bare(object):
 
         :return: ['<sensor type>','<autorange>','<range>','<compensation>','<units>','<sensor excitation>']
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A','B','C','D'].")
+                "Input_Value Parameter must be a string in  ['A','B','C','D']."
+            )
 
-        return self.query('INTYPE? ' + '{0:1}'.format(input_value))
+        return self.query("INTYPE? " + "{0:1}".format(input_value))
 
     def KelvinReadingQuery(self, input_value):
         """Returns the Kelvin reading for a single input or all input_values. <input_value> specifies which input(s) to query. 0 = all input.
@@ -1114,16 +1204,25 @@ class LakeShore350_bare(object):
             Or if all input are queried:
             ['<A value>','<B value>','<C value>','<D value>']
         """
-        if input_value not in [0, 'A', 'B', 'C', 'D']:
+        if input_value not in [0, 1, 2, 3, 4, "A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be the integer 0 or a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be an integer in (0, 1, 2, 3, 4) or a string in  ['A', 'B', 'C', 'D']."
+            )
+        namelist = [None, "A", "B", "C", "D"]
+        if input_value in (1, 2, 3, 4):
+            input_value = namelist[input_value]
 
         # necessary to implement if-else for A,B,C,D or 0?
-        answer = self.query('KRDG? ' + '{0:1}'.format(input_value))
+
+        answer = self.query("KRDG? " + "{0:1}".format(input_value))
+
         try:
             answer = [float(x) for x in answer]
         except TypeError as e:
-            raise AssertionError('{}'.format(e))
+            self._logger.exception(e)
+            answer = float(answer)
+            # raise AssertionError("{}".format(e))
+        # self._logger.debug("read temperatures: %s", str(answer))
         return answer
 
     def FrontPanelLEDSCommand(self, check_state):
@@ -1136,17 +1235,16 @@ class LakeShore350_bare(object):
             LED 0[term] — turns all front panel LED functionality off.
         """
         if check_state not in [0, 1]:
-            raise AssertionError(
-                "Check_State parameter must be an integer in [0,1].")
+            raise AssertionError("Check_State parameter must be an integer in [0,1].")
 
-        self.go('LEDS ' + '{0:1d}'.format(check_state))  # LEDS or LED ?
+        self.go("LEDS " + "{0:1d}".format(check_state))  # LEDS or LED ?
 
     def FrontPanelLEDSQuery(self):
         """Refer to FrontPanelLEDSCommand for description.
 
         :return: <off/on>
         """
-        return self.query('LEDS?')
+        return self.query("LEDS?")
 
     def FrontPanelKeyboardLockCommand(self, state, code):
         """Locks out all front panel entries except pressing the All Off key to immediately turn off all heater outputs. Refer to section 4.7.
@@ -1160,21 +1258,21 @@ class LakeShore350_bare(object):
             LOCK 1,123[term] — enables keypad lock and sets the code to 123.
         """
         if state not in [0, 1]:
-            raise AssertionError(
-                "State parameter must be an integer in [0,1].")
+            raise AssertionError("State parameter must be an integer in [0,1].")
 
         if 999 < code < 000:
             raise AssertionError(
-                "Code parameter must be an integer in between 0 - 999.")
+                "Code parameter must be an integer in between 0 - 999."
+            )
 
-        self.go('LOCK ' + '{0:1d},{1:03d}'.format(state, code))
+        self.go("LOCK " + "{0:1d},{1:03d}".format(state, code))
 
     def FrontPanelKeyboardLockQuery(self):
         """Refer to FrontPanelKeyboardLockCommand for description.
 
         :return: ['<state>','<code>']
         """
-        return self.query('LOCK?')
+        return self.query("LOCK?")
 
     def MinimumMaximumDataQuery(self, input_value):
         """Returns the minimum and maximum input data. Also see the RDGST? command.
@@ -1184,16 +1282,16 @@ class LakeShore350_bare(object):
 
         :return: ['<min value>','<max value>']
         """
-        if not isinstance(input_value, str) or input_value not in ['A', 'B', 'C', 'D']:
+        if not isinstance(input_value, str) or input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('MDAT? ' + '{0:1}'.format(input_value))
+        return self.query("MDAT? " + "{0:1}".format(input_value))
 
     def MinimumMaximumFunctionResetCommand(self):
-        """Resets the minimum and maximum data for all inputs.
-        """
-        self.go('MNMXRST')
+        """Resets the minimum and maximum data for all inputs."""
+        self.go("MNMXRST")
 
     def RemoteInterfaceModeCommand(self, mode):
         """
@@ -1204,17 +1302,16 @@ class LakeShore350_bare(object):
             MODE 2[term] — places the Model 350 into remote mode with local lockout.
         """
         if not isinstance(mode, int) or mode not in [0, 1, 2]:
-            raise AssertionError(
-                "Mode parameter must be an integer in [0,1,2].")
+            raise AssertionError("Mode parameter must be an integer in [0,1,2].")
 
-        self.go('MODE ' + '{0:1d}'.format(mode))
+        self.go("MODE " + "{0:1d}".format(mode))
 
     def RemoteInterfaceModeQuery(self):
         """Refer to RemoteInterfaceModeCommand for description.
 
         :return: <mode>[term]
         """
-        return self.query('MODE?')
+        return self.query("MODE?")
 
     def ManualOutputCommand(self, output, value):
         """Manual output only applies to outputs in Closed Loop PID, Zone, or Open Loop modes.
@@ -1228,14 +1325,12 @@ class LakeShore350_bare(object):
             MOUT 1,22.45[term] — Output 1 manual output is 22.45%.
         """
         if output not in [1, 2, 3, 4]:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        if 0. > value > 100.:
-            raise AssertionError(
-                "Value parameter must be a float in between 0 - 100.")
+        if 0.0 > value > 100.0:
+            raise AssertionError("Value parameter must be a float in between 0 - 100.")
 
-        self.go('MOUT ' + '{0:1},{1:3.2f}'.format(output, value))
+        self.go("MOUT " + "{0:1},{1:3.2f}".format(output, value))
 
     def ManualOutputQuery(self, input_value):
         """Refer to ManualOutputCommand for description.
@@ -1247,11 +1342,24 @@ class LakeShore350_bare(object):
         """
         if input_value not in [1, 2, 3, 4]:
             raise AssertionError(
-                "Input_Value Parameter must be an integer in [1,2,3,4].")
+                "Input_Value Parameter must be an integer in [1, 2, 3, 4]."
+            )
 
-        return self.query('MOUT? ' + '{0:1d}'.format(input_value))
+        return self.query("MOUT? " + "{0:1d}".format(input_value))
 
-    def NetworkSettingsCommand(self, dhcp, auto_ip, ip, sub_mask, gateway, pri_dns, sec_dns, pref_host, pref_domain, description):
+    def NetworkSettingsCommand(
+        self,
+        dhcp,
+        auto_ip,
+        ip,
+        sub_mask,
+        gateway,
+        pri_dns,
+        sec_dns,
+        pref_host,
+        pref_domain,
+        description,
+    ):
         """Network Settings Command
         :param dhcp: 0 = DHCP off, 1 = DHCP on.
         :type dhcp: int
@@ -1291,28 +1399,46 @@ class LakeShore350_bare(object):
         """
         if not isinstance(dhcp, int) or dhcp not in [0, 1]:
             raise AssertionError(
-                "LakeShore: DHCP parameter must be an integer in [0,1].")
+                "LakeShore: DHCP parameter must be an integer in [0,1]."
+            )
 
         if not isinstance(auto_ip, int) or auto_ip not in [0, 1]:
             raise AssertionError(
-                "LakeShore: Auto_IP parameter must be an integer in [0,1].")
+                "LakeShore: Auto_IP parameter must be an integer in [0,1]."
+            )
 
         # ADD assertion errors for ip variables
 
         if not isinstance(pref_host, str) or len(pref_host) > 15:
             raise AssertionError(
-                "LakeShore: Pref_Host parameter must be a string with a maximum of 15 characters.")
+                "LakeShore: Pref_Host parameter must be a string with a maximum of 15 characters."
+            )
 
         if not isinstance(pref_domain, str) or len(pref_domain) > 64:
             raise AssertionError(
-                "LakeShore: Pref_Domain parameter must be a string with a maximum of 64 characters.")
+                "LakeShore: Pref_Domain parameter must be a string with a maximum of 64 characters."
+            )
 
         if not isinstance(description, str) or len(description) > 32:
             raise AssertionError(
-                "LakeShore: Description parameter must be a string with a maximum of 32 characters.")
+                "LakeShore: Description parameter must be a string with a maximum of 32 characters."
+            )
 
-        self.go('NET ' + '{0:1},{1:1},{2},{3},{4},{5},{6},{7:15},{8:64},{9:32}'.format(dhcp,
-                                                                                       auto_ip, ip, sub_mask, gateway, pri_dns, sec_dns, pref_host, pref_domain, description))
+        self.go(
+            "NET "
+            + "{0:1},{1:1},{2},{3},{4},{5},{6},{7:15},{8:64},{9:32}".format(
+                dhcp,
+                auto_ip,
+                ip,
+                sub_mask,
+                gateway,
+                pri_dns,
+                sec_dns,
+                pref_host,
+                pref_domain,
+                description,
+            )
+        )
 
     def NetworkSettingsQuery(self):
         """Refer to NetworkSettingsCommand for description.
@@ -1320,7 +1446,7 @@ class LakeShore350_bare(object):
         :return: ['<DHCP>','<AUTO IP>','<IP>','<Sub Mask>','<Gateway>','<Pri DNS>','<Sec DNS>','<Pref Host>','<Pref Domain>','<Description>']
 
         """
-        return self.query('NET?')
+        return self.query("NET?")
 
     def NetworkConfigurationQuery(self):
         """This query returns the configured Ethernet parameters. If the Ethernet interface is not configured then IP,
@@ -1348,7 +1474,7 @@ class LakeShore350_bare(object):
             <actual domain>         Assigned domain
             <mac addr>              Module MAC address.
         """
-        return self.query('NETID?')
+        return self.query("NETID?")
 
     def OperationalStatusQuery(self):
         """The integer returned represents the sum of the bit weighting of the operational status bits.
@@ -1356,7 +1482,7 @@ class LakeShore350_bare(object):
 
         :return: <bit weighting>
         """
-        return self.query('OPST?')
+        return self.query("OPST?")
 
     def OperationalStatusEnableCommand(self, bit_weighting):
         """Each bit has a bit weighting and represents the enable/disable mask of the corresponding operational
@@ -1378,22 +1504,28 @@ class LakeShore350_bare(object):
         :type bit_weighting: int
         """
         weighting_list = [1, 2, 4, 8, 16, 32, 64, 128]
-        sum_list = sum([map(list, combinations(weighting_list, i))
-                        for i in range(len(weighting_list) + 1)], [])
+        sum_list = sum(
+            [
+                map(list, combinations(weighting_list, i))
+                for i in range(len(weighting_list) + 1)
+            ],
+            [],
+        )
         map_list = map(sum, sum_list)  # creates list of all possible sums
 
         if bit_weighting not in map_list:
             raise AssertionError(
-                "Bit_Weighting parameter must be a sum of elements of [0,1,2,4,8,16,32,64,128].")
+                "Bit_Weighting parameter must be a sum of elements of [0,1,2,4,8,16,32,64,128]."
+            )
 
-        self.go('OPSTE ' + '{0:3d}'.format(bit_weighting))
+        self.go("OPSTE " + "{0:3d}".format(bit_weighting))
 
     def OperationalStatusEnableQuery(self):
         """Refer to OperationalStatusEnableCommand for description.
 
         :return: <bit weighting>
         """
-        return self.query('OPSTE?')
+        return self.query("OPSTE?")
 
     def OperationalStatusRegisterQuery(self):
         """The integers returned represent the sum of the bit weighting of the operational status bits.
@@ -1402,7 +1534,7 @@ class LakeShore350_bare(object):
 
         :return: <bit weighting>
         """
-        return self.query('OPSTR?')
+        return self.query("OPSTR?")
 
     def OutputModeCommand(self, output, mode, input_value, powerup_enable):
         """Modes 4 and 5 are only valid for Analog Outputs (3 and 4).
@@ -1435,24 +1567,28 @@ class LakeShore350_bare(object):
             OUTMODE 1,2,1,0[term] — Output 1 configured for Zone control mode, using input A for the control input sensor, and will turn the output off when power is cycled.
         """
 
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0 > mode > 5:
-            raise AssertionError(
-                "Mode parameter must be an integer in [0,1,2,3,4,5].")
+            raise AssertionError("Mode parameter must be an integer in [0,1,2,3,4,5].")
 
         if 0 > input_value > 8:
             raise AssertionError(
-                "Input_Value Parameter must be an integer in [0,1,2,3,4,5,6,7,8].")
+                "Input_Value Parameter must be an integer in [0,1,2,3,4,5,6,7,8]."
+            )
 
         if powerup_enable not in [0, 1]:
             raise AssertionError(
-                "Powerup_Enable parameter must be an integer in [0,1].")
+                "Powerup_Enable parameter must be an integer in [0,1]."
+            )
 
-        self.go('OUTMODE ' + '{0:1d},{1:1d},{2:1d},{3:1d}'.format(output,
-                                                                  mode, input_value, powerup_enable))
+        self.go(
+            "OUTMODE "
+            + "{0:1d},{1:1d},{2:1d},{3:1d}".format(
+                output, mode, input_value, powerup_enable
+            )
+        )
 
     def OutputModeQuery(self, output):
         """Refer to OutputModeCommand for description.
@@ -1462,11 +1598,10 @@ class LakeShore350_bare(object):
 
         :return: ['<mode>','<input_value>','<powerup enable>']
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        answer = self.query('OUTMODE? ' + '{0:1d}'.format(output))
+        answer = self.query("OUTMODE? " + "{0:1d}".format(output))
         return [int(x) for x in answer]
 
     def ControlLoopPIDValuesCommand(self, output, p_value, i_value, d_value):
@@ -1485,24 +1620,30 @@ class LakeShore350_bare(object):
         Example:
             PID 1,10,50,0[term] — Output 1 P is 10, I is 50, and D is 0%.
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        if 0.1 > p_value > 1000.:
+        if 0.1 > p_value > 1000.0:
             raise AssertionError(
-                "P_Value parameter must be a float in between 0.1 - 1000.")
+                "P_Value parameter must be a float in between 0.1 - 1000."
+            )
 
-        if 0.1 > i_value > 1000.:
+        if 0.1 > i_value > 1000.0:
             raise AssertionError(
-                "I_Value parameter must be a float in between 0.1 - 1000.")
+                "I_Value parameter must be a float in between 0.1 - 1000."
+            )
 
         if 0 > d_value > 200:
             raise AssertionError(
-                "D_Value parameter must be an integer in between 0 - 200.")
+                "D_Value parameter must be an integer in between 0 - 200."
+            )
 
         self.go(
-            'PID ' + '{0:1d},{1:4.1f},{2:4.1f},{3:3d}'.format(output, p_value, i_value, d_value))
+            "PID "
+            + "{0:1d},{1:4.1f},{2:4.1f},{3:4.1f}".format(
+                output, p_value, i_value, d_value
+            )
+        )
 
     def ControlLoopPIDValuesQuery(self, output):
         """Refer to ControlLoopPIDValuesCommand for description.
@@ -1512,10 +1653,9 @@ class LakeShore350_bare(object):
 
         :return: ['<P value>','<I value>','<D value>']
         """
-        if 1 > output > 4:  # is this faster than not in?
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
-        answer = self.query('PID? ' + '{0:1d}'.format(output))
+        if output not in (1, 2, 3, 4):  # is this faster than not in?
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
+        answer = self.query("PID? " + "{0:1d}".format(output))
         return [float(x) for x in answer]
 
     def ControlSetpointRampParameterCommand(self, output, check_state, rate_value):
@@ -1535,20 +1675,20 @@ class LakeShore350_bare(object):
         Example:
             RAMP 1,1,10.5[term] — when Output 1 setpoint is changed, ramp the current setpoint to the target setpoint at 10.5 K/minute.
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        if 0 > check_state > 1:
-            raise AssertionError(
-                "Check_State parameter must be an integer in [0,1].")
+        if check_state not in [0, 1]:
+            raise AssertionError("Check_State parameter must be an integer in [0, 1].")
 
-        if 0.001 > rate_value > 100.:
+        if 0.001 > rate_value > 100.0:
             raise AssertionError(
-                "I_Value parameter must be a float in between 0.001 - 100.")
-
-        self.go('RAMP ' + '{0:1d},{1:1d},{2:3.2f}'.format(output,
-                                                          check_state, rate_value))  # :3.2f properly fromatted?
+                "I_Value parameter must be a float in between 0.001 - 100."
+            )
+        # self._logger.debug("sending to LS: "+ "RAMP " + "{0:1d},{1:1d},{2:3.2f}".format(output, check_state, rate_value))
+        self.go(
+            "RAMP {0:1d},{1:1d},{2:3.2f}".format(output, check_state, rate_value)
+        )  # :3.2f properly fromatted?
 
     def ControlSetpointRampParameterQuery(self, output):
         """Refer to ControlSetpointRampParameterCommand for description.
@@ -1558,11 +1698,10 @@ class LakeShore350_bare(object):
 
         :return: ['<off/on>','<rate value>']
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        answer = self.query('RAMP? ' + '{0:1d}'.format(output))
+        answer = self.query("RAMP? " + "{0:1d}".format(output))
         # print(answer, type(answer), type(answer[0]))
         return [float(x) for x in answer]
 
@@ -1574,11 +1713,10 @@ class LakeShore350_bare(object):
 
         :return: <ramp status> 0 = Not ramping, 1 = Setpoint is ramping.
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        return self.query('RAMPST? ' + '{0:1d}'.format(output))
+        return self.query("RAMPST? " + "{0:1d}".format(output))
 
     def HeaterRangeCommand(self, output, range_value):
         """The range setting has no effect if an output is in the Off mode, and does not apply to
@@ -1596,19 +1734,20 @@ class LakeShore350_bare(object):
                                             1 = On
         :type range: int
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 0 > range_value > 5 and 0 < output < 3:
             raise AssertionError(
-                "For Output 1 or 2 the Range_Value parameter must be an integer in between 0 - 5.")
+                "For Output 1 or 2 the Range_Value parameter must be an integer in between 0 - 5."
+            )
 
         if 0 > range_value > 1 and 2 < output < 5:
             raise AssertionError(
-                "For Output 3 or 4 Range_Value parameter must be an integer in [0,1].")
+                "For Output 3 or 4 Range_Value parameter must be an integer in [0,1]."
+            )
 
-        self.go('RANGE ' + '{0:1d},{1:1d}'.format(output, range_value))
+        self.go("RANGE " + "{0:1d},{1:1d}".format(output, range_value))
 
     def HeaterRangeQuery(self, output):
         """Refer to HeaterRangeCommand for Description.
@@ -1618,10 +1757,9 @@ class LakeShore350_bare(object):
 
         :return: <range>
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
-        answer = self.query('RANGE? ' + '{0:1d}'.format(output))
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
+        answer = self.query("RANGE? " + "{0:1d}".format(output))
         return int(answer[0])
 
     def InputReadingStatusQuery(self, input_value):
@@ -1639,11 +1777,12 @@ class LakeShore350_bare(object):
 
         :return: <bit weighting>
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in ['A','B','C','D'].")
+                "Input_Value Parameter must be a string in ['A','B','C','D']."
+            )
 
-        return self.query('RDGST? ' + '{0:1}'.format(input_value))
+        return self.query("RDGST? " + "{0:1}".format(input_value))
 
     def RelayControlParameterCommand(self, relay_number, mode, input_alarm, alarm_type):
         """
@@ -1663,23 +1802,25 @@ class LakeShore350_bare(object):
             RELAY 1,2,B,0[term] – relay 1 activates when input_value B low alarm activates.
         """
         if 1 > relay_number > 2:
-            raise AssertionError(
-                "Relay_Number parameter must be an integer in [1,2].")
+            raise AssertionError("Relay_Number parameter must be an integer in [1,2].")
 
         if 0 > mode > 2:
-            raise AssertionError(
-                "Mode parameter must be an integer in [0,1,2].")
+            raise AssertionError("Mode parameter must be an integer in [0,1,2].")
 
-        if input_alarm not in ['A', 'B', 'C', 'D']:
+        if input_alarm not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Alarm parameter must be a string in  ['A','B','C','D'].")
+                "Input_Alarm parameter must be a string in  ['A','B','C','D']."
+            )
 
         if 0 > alarm_type > 1:
-            raise AssertionError(
-                "Alarm_Type parameter must be an integer in [0,1].")
+            raise AssertionError("Alarm_Type parameter must be an integer in [0,1].")
 
-        self.go('RELAY ' + '{0:1d},{1:1d},{2:1},{3:1d}'.format(
-            relay_number, mode, input_alarm, alarm_type))
+        self.go(
+            "RELAY "
+            + "{0:1d},{1:1d},{2:1},{3:1d}".format(
+                relay_number, mode, input_alarm, alarm_type
+            )
+        )
 
     def RelayControlParameterQuery(self, relay_number):
         """Refer to RelayControlParameterCommand for description.
@@ -1690,10 +1831,9 @@ class LakeShore350_bare(object):
         :return: ['<mode>','<input_value alarm>','<alarm type>']
         """
         if 1 > relay_number > 2:
-            raise AssertionError(
-                "Relay_Number parameter must be an integer in [1,2].")
+            raise AssertionError("Relay_Number parameter must be an integer in [1,2].")
 
-        return self.query('RELAY? ' + '{0:1}'.format(relay_number))
+        return self.query("RELAY? " + "{0:1}".format(relay_number))
 
     def RelayStatusQuery(self, relay_number):
         """
@@ -1703,12 +1843,13 @@ class LakeShore350_bare(object):
         :return: <status> 0 = Off, 1 = On.
         """
         if 1 > relay_number > 2:
-            raise AssertionError(
-                "Relay_Number parameter must be an integer in [1,2].")
+            raise AssertionError("Relay_Number parameter must be an integer in [1,2].")
 
-        return self.query('RELAYST? ' + '{0:1}'.format(relay_number))
+        return self.query("RELAYST? " + "{0:1}".format(relay_number))
 
-    def GeneratSofCalCurveCommand(self, std, dest, sn, t1_value, u1_value, t2_value, u2_value, t3_value, u3_value):
+    def GeneratSofCalCurveCommand(
+        self, std, dest, sn, t1_value, u1_value, t2_value, u2_value, t3_value, u3_value
+    ):
         """Generates a SoftCalTM curve. Refer to Paragraph 5.3.
 
         :param std: Specifies the standard curve from which to generate a SoftCalTM curve. Valid entries: 1, 6, 7.
@@ -1735,43 +1876,54 @@ class LakeShore350_bare(object):
             three-point SoftCalTM curve from standard curve 1 and saves it in user curve 21.
         """
         if std not in [1, 6, 7]:
-            raise AssertionError(
-                "Std parameter must be an integer in [1,6,7].")
+            raise AssertionError("Std parameter must be an integer in [1,6,7].")
 
         if 21 > dest > 59:
-            raise AssertionError(
-                "Dest parameter must be an integer in [0,1,2].")
+            raise AssertionError("Dest parameter must be an integer in [0,1,2].")
 
         if not isinstance(sn, str) or len(sn) > 10:
             raise AssertionError(
-                "Sn parameter must be a string with a maximum of 10 characters.")
+                "Sn parameter must be a string with a maximum of 10 characters."
+            )
 
-        if t1_value < 0.:
-            raise AssertionError(
-                "T1_Value parameter must be a float greater than 0.")
+        if t1_value < 0.0:
+            raise AssertionError("T1_Value parameter must be a float greater than 0.")
 
         if not isinstance(u1_value, float):
             raise AssertionError(
-                "LakeShore:GeneratSofCalCurveCommand U1_Value parameter must be a float")
+                "LakeShore:GeneratSofCalCurveCommand U1_Value parameter must be a float"
+            )
 
-        if t2_value < 0.:
-            raise AssertionError(
-                "T1_Value parameter must be a float greater than 0.")
+        if t2_value < 0.0:
+            raise AssertionError("T1_Value parameter must be a float greater than 0.")
 
         if not isinstance(u2_value, float):
             raise AssertionError(
-                "LakeShore:GeneratSofCalCurveCommand U2_Value parameter must be a float")
+                "LakeShore:GeneratSofCalCurveCommand U2_Value parameter must be a float"
+            )
 
-        if t3_value < 0.:
-            raise AssertionError(
-                "T1_Value parameter must be a float greater than 0.")
+        if t3_value < 0.0:
+            raise AssertionError("T1_Value parameter must be a float greater than 0.")
 
         if not isinstance(u3_value, float):
             raise AssertionError(
-                "LakeShore:GeneratSofCalCurveCommand U3_Value parameter must be a float")
+                "LakeShore:GeneratSofCalCurveCommand U3_Value parameter must be a float"
+            )
 
-        self.go('SCAL ' + '{0:1d},{1:2d},{2:10},{3:4.2f},{4:7},{5:4.2f},{6:7},{7:4.2f},{8:7}'.format(
-            std, dest, sn, t1_value, u1_value, t2_value, u2_value, t3_value, u3_value))
+        self.go(
+            "SCAL "
+            + "{0:1d},{1:2d},{2:10},{3:4.2f},{4:7},{5:4.2f},{6:7},{7:4.2f},{8:7}".format(
+                std,
+                dest,
+                sn,
+                t1_value,
+                u1_value,
+                t2_value,
+                u2_value,
+                t3_value,
+                u3_value,
+            )
+        )
 
     def ControlSetpointCommand(self, output, value):
         """For outputs 3 and 4, setpoint is only valid in Warmup mode. Control settings, that is,
@@ -1786,16 +1938,15 @@ class LakeShore350_bare(object):
         Example:
             SETP 1,122.5[term] — Output 1 setpoint is now 122.5 (based on its units).
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if not isinstance(value, (int, float)):
-            raise AssertionError(
-                "Value Parameter must be an integer or float.")
+            raise AssertionError("Value Parameter must be an integer or float.")
 
         # string formatting
-        self.go('SETP ' + '{0:1},{1:4.2f}'.format(output, value))
+        # self._logger.debug("sending to LS:" + "SETP {0:1},{1:4.2f}".format(output, value))
+        self.go("SETP {0:1},{1:4.2f}".format(output, value))
 
     def ControlSetpointQuery(self, output):
         """Refer to ControlSetpointCommand for description
@@ -1805,11 +1956,10 @@ class LakeShore350_bare(object):
 
         :return: <value>
         """
-        if 1 > output > 4:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+        if output not in (1, 2, 3, 4):
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
-        answer = self.query('SETP? ' + '{0:1d}'.format(output))
+        answer = self.query("SETP? " + "{0:1d}".format(output))
 
         return float(answer[0])
 
@@ -1825,11 +1975,15 @@ class LakeShore350_bare(object):
             Or if all input are queried:
             <A value>,<B value>,<C value>,<D value>
         """
-        if input_value not in ['A', 'B', 'C', 'D', 0]:
+        if input_value not in [0, 1, 2, 3, 4, "A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be an integer in (0, 1, 2, 3, 4) or a string in  ['A', 'B', 'C', 'D']."
+            )
+        namelist = [None, "A", "B", "C", "D"]
+        if input_value in (1, 2, 3, 4):
+            input_value = namelist[input_value]
 
-        answer = self.query('SRDG? ' + '{0:1}'.format(input_value))
+        answer = self.query("SRDG? " + "{0:1}".format(input_value))
         try:
             return [float(x) for x in answer]
         except TypeError:
@@ -1841,7 +1995,7 @@ class LakeShore350_bare(object):
 
         :return: <junction temperature>
         """
-        return self.query('TEMP?')
+        return self.query("TEMP?")
 
     def TemperatureLimitCommand(self, input_value, limit):
         """A temperature limit setting of 0 K turns the temperature limit feature off.
@@ -1858,16 +2012,16 @@ class LakeShore350_bare(object):
             TLIMIT B,450[term] — if the temperature of the sensor on input B exceeds 450 K, all
             control outputs will be turned off.
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        if limit < 0.:
-            raise AssertionError(
-                "Limit parameter must be a float greater than 0.")
+        if limit < 0.0:
+            raise AssertionError("Limit parameter must be a float greater than 0.")
 
         # string formatting
-        self.go('TLIMIT ' + '{0:1},{1:3.2f}'.format(input_value, limit))
+        self.go("TLIMIT " + "{0:1},{1:3.2f}".format(input_value, limit))
 
     def TemperatureLimitQuery(self, input_value):
         """Refer to TemperatureLimitCommand for description.
@@ -1877,11 +2031,12 @@ class LakeShore350_bare(object):
 
         :retun: <limit>
         """
-        if input_value not in ['A', 'B', 'C', 'D']:
+        if input_value not in ["A", "B", "C", "D"]:
             raise AssertionError(
-                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D'].")
+                "Input_Value Parameter must be a string in  ['A', 'B', 'C', 'D']."
+            )
 
-        return self.query('LIMIT? ' + '{0:1}'.format(input_value))
+        return self.query("LIMIT? " + "{0:1}".format(input_value))
 
     def ControlTuningStatusQuery(self):
         """If initial conditions are not met when starting the autotune procedure, causing the
@@ -1902,7 +2057,7 @@ class LakeShore350_bare(object):
                                     If tuning error occurred, stage status represents stage 
                                     that failed.
         """
-        return self.query('UNEST?')
+        return self.query("UNEST?")
 
     def WarmupSupplyParameterCommand(self, output, control, percentage):
         """The Output Mode parameter and the Control Input Parameter must be configured
@@ -1921,19 +2076,19 @@ class LakeShore350_bare(object):
             (50%) output voltage for activating the external power supply.
         """
         if 4 < output < 3:
-            raise AssertionError(
-                "Output parameter must be an integer in [3,4]")
+            raise AssertionError("Output parameter must be an integer in [3,4]")
 
         if 1 < control < 0:
-            raise AssertionError(
-                "Control parameter must be an integer in [0,1].")
+            raise AssertionError("Control parameter must be an integer in [0,1].")
 
-        if 100. < percentage < 0.:
+        if 100.0 < percentage < 0.0:
             raise AssertionError(
-                "Percentage parameter must be a float in between 0 - 100")
+                "Percentage parameter must be a float in between 0 - 100"
+            )
 
         self.go(
-            'WARUMP ' + '{0:1d},{1:2d},{2:3.2f}'.format(output, control, percentage))
+            "WARUMP " + "{0:1d},{1:2d},{2:3.2f}".format(output, control, percentage)
+        )
 
     def WarmupSupplyParameterQuery(self, output):
         """Refer to WarmupSupplyParameterCommand for description.
@@ -1944,10 +2099,9 @@ class LakeShore350_bare(object):
         :return: ['<control>','<percentage>']
         """
         if 4 < output < 3:
-            raise AssertionError(
-                "Output parameter must be an integer in [3,4]")
+            raise AssertionError("Output parameter must be an integer in [3,4]")
 
-        return self.query('WARUMP? ' + '{0:1d}'.format(output))
+        return self.query("WARUMP? " + "{0:1d}".format(output))
 
     def WebsiteLoginParameters(self, username, password):
         """Strings can be sent with or without quotation marks, but to send a string that con-
@@ -1964,13 +2118,15 @@ class LakeShore350_bare(object):
         """
         if not isinstance(username, str) or len(username) > 15:
             raise AssertionError(
-                "Username parameter must be a string with a maximum of 15 characters.")
+                "Username parameter must be a string with a maximum of 15 characters."
+            )
 
         if not isinstance(password, str) or len(password) > 15:
             raise AssertionError(
-                "Password parameter must be a string with a maximum of 15 characters.")
+                "Password parameter must be a string with a maximum of 15 characters."
+            )
 
-        self.go('WEBLOG ' + '{0:15},{1:15}'.format(username, password))
+        self.go("WEBLOG " + "{0:15},{1:15}".format(username, password))
 
     def WebsiteLoginParameterQuery(self):
         """Note that all strings returned by the Model 350 will be padded with spaces to main-
@@ -1978,9 +2134,21 @@ class LakeShore350_bare(object):
 
         :return: ['<username>,<password>]
         """
-        return self.query('WEBLOG?')
+        return self.query("WEBLOG?")
 
-    def ControlLoopZoneTableParameterCommand(self, output, zone, upper_bound, p_value, i_value, d_value, mout_value, range_value, input_value, rate):
+    def ControlLoopZoneTableParameterCommand(
+        self,
+        output,
+        zone,
+        upper_bound,
+        p_value,
+        i_value,
+        d_value,
+        mout_value,
+        range_value,
+        input_value,
+        rate,
+    ):
         """Configures the output zone parameters. Refer to Paragraph 2.9.
 
         :param output: Specifies which heater output to configure: 1 – 4.
@@ -2019,47 +2187,62 @@ class LakeShore350_bare(object):
             P = 10, I = 20, D = 0, a heater range of medium, sensor input B, and aramp rate of 10 K/min.
         """
         if 4 < output < 1:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4].")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4].")
 
         if 10 < zone < 1:
-            raise AssertionError(
-                "Zone parameter must be an integer in between 1 - 10.")
+            raise AssertionError("Zone parameter must be an integer in between 1 - 10.")
 
-        if upper_bound < 0.:
+        if upper_bound < 0.0:
             raise AssertionError(
-                "Upper_Bound parameter must be a float greater than 0.")
+                "Upper_Bound parameter must be a float greater than 0."
+            )
 
         if 1000 < p_value < 0.1:
-            raise AssertionError(
-                "P_Value parameter must be a float greater than 0.1 .")
+            raise AssertionError("P_Value parameter must be a float greater than 0.1 .")
 
         if 1000 < i_value < 0.1:
-            raise AssertionError(
-                "I_Value parameter must be a float greater than 0.1 .")
+            raise AssertionError("I_Value parameter must be a float greater than 0.1 .")
 
-        if 200. < d_value < 0.:
+        if 200.0 < d_value < 0.0:
             raise AssertionError(
-                "D_Value parameter must be a float in between 0 - 200 .")
+                "D_Value parameter must be a float in between 0 - 200 ."
+            )
 
-        if 100. < mout_value < 0.:
+        if 100.0 < mout_value < 0.0:
             raise AssertionError(
-                "Mout_Value parameter must be a float in between 0 - 100.")
+                "Mout_Value parameter must be a float in between 0 - 100."
+            )
 
         if 3 < range_value < 0:
             raise AssertionError(
-                "Range_Value parameter must be an integer in [0,1,2,3].")
+                "Range_Value parameter must be an integer in [0,1,2,3]."
+            )
 
         if 4 < input_value < 0:
             raise AssertionError(
-                "Input_Value parameter must be an integer in [0,1,2,3,4].")
+                "Input_Value parameter must be an integer in [0,1,2,3,4]."
+            )
 
-        if 100. < rate < 0.:
+        if 100.0 < rate < 0.0:
             raise AssertionError(
-                "Rate parameter must be a float in between 0.001 - 100.")
+                "Rate parameter must be a float in between 0.001 - 100."
+            )
 
-        self.go('ZONE ' + '{0:1d},{1:2d},{2:3.2f},{3:3.2f},{4:3.2f},{5:3.2f},{6:3.2f},{7:1d},{8:1d},{9:3.2f}'.format(
-            output, zone, upper_bound, p_value, i_value, d_value, mout_value, range_value, input_value, rate))  # string formatting
+        self.go(
+            "ZONE "
+            + "{0:1d},{1:2d},{2:3.2f},{3:3.2f},{4:3.2f},{5:3.2f},{6:3.2f},{7:1d},{8:1d},{9:3.2f}".format(
+                output,
+                zone,
+                upper_bound,
+                p_value,
+                i_value,
+                d_value,
+                mout_value,
+                range_value,
+                input_value,
+                rate,
+            )
+        )  # string formatting
 
     def OutputZoneTableParameterQuery(self, output, zone):
         """Refer to ControlLoopZoneTableParameterCommand for description.
@@ -2072,25 +2255,39 @@ class LakeShore350_bare(object):
         :return: ['<upper boundary>','<P value>','<I value>','<D value>','<mout value>','<range>','<input_value>','<rate>']
         """
         if 4 < output < 1:
-            raise AssertionError(
-                "Output parameter must be an integer in [1,2,3,4]")
+            raise AssertionError("Output parameter must be an integer in [1, 2, 3, 4]")
 
         if 10 < zone < 1:
-            raise AssertionError(
-                "Zone parameter must be an integer in between 1 - 10.")
-
-        return self.query('ZONE? ' + '{0:1d},{1:2d}'.format(output, zone))
+            raise AssertionError("Zone parameter must be an integer in between 1 - 10.")
+        return self.query("ZONE? " + "{0:1d},{1:2d}".format(output, zone))
 
 
 class LakeShore350(AbstractGPIBDeviceDriver, LakeShore350_bare):
     """docstring for LakeShore350"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
+        )
+        super().__init__(*args, log=self._logger, **kwargs)
 
 
 class LakeShore350_ethernet(AbstractEthernetDeviceDriver, LakeShore350_bare):
     """docstring for LakeShore350"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+        super().__init__(*args, log=None, **kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI."
+            + __name__
+            + "."
+            + self.__class__.__name__
+            + "."
+            + kwargs["InstrumentAddress"]
+        )

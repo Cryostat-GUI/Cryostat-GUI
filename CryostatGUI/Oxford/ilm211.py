@@ -11,6 +11,7 @@ Author(s):
 from pyvisa.errors import VisaIOError
 
 from drivers import AbstractSerialDeviceDriver
+import logging
 
 
 class ilm211(AbstractSerialDeviceDriver):
@@ -18,6 +19,9 @@ class ilm211(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     def setControl(self, state=3):
         """Set the LOCAL / REMOTE control state of the Oxford controller
@@ -55,79 +59,86 @@ class ilm211(AbstractSerialDeviceDriver):
             variable: Index of variable to read.
         """
         if not isinstance(variable, int):
-            raise AssertionError('ILM: getValue: Argument must be integer')
+            raise AssertionError("ILM: getValue: Argument must be integer")
         if variable not in range(0, 11):
-            raise AssertionError(
-                'ILM: getValue: Argument is not a valid number.')
+            raise AssertionError("ILM: getValue: Argument is not a valid number.")
 
         # self.clear_buffers()
 
-        value = self.query('R{}'.format(variable))
+        value = self.query("R{}".format(variable))
         # value = self._visa_resource.read()
-
         try:
-            if value[0] != 'R':
+            if value[0] != "R":
                 try:
                     self.read()
                 except VisaIOError as e_visa:
-                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                    if (
+                        isinstance(e_visa, type(self.timeouterror))
+                        and e_visa.args == self.timeouterror.args
+                    ):
                         pass
                 return self.getValue(variable)
         except TypeError:
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                if (
+                    isinstance(e_visa, type(self.timeouterror))
+                    and e_visa.args == self.timeouterror.args
+                ):
                     pass
             return self.getValue(variable)
 
-        return float(value.strip('R+'))
+        return float(value.strip("R+"))
 
-    def _converting_status_channel(self, i):
+    @staticmethod
+    def _converting_status_channel(i):
         i = int(i)
         if i == 0:
-            return 'not in use'
+            return "not in use"
         elif i == 1:
-            return 'Nitrogen'
+            return "Nitrogen"
         elif i == 2:
-            return 'Helium pulsed'
+            return "Helium pulsed"
         elif i == 3:
-            return 'Helium continuous'
+            return "Helium continuous"
         elif i == 9:
-            return 'Error - probe unplugged'
+            return "Error - probe unplugged"
 
     def getStatus(self):
         """query status of the machine,
-            interprete it, and return it
+        interprete it, and return it
         """
 
-        status = self.query('X')
+        status = self.query("X")
         stat_channel = []
         stat_channel.append(status[5:6])
         stat_channel.append(status[7:8])
         stat_channel.append(status[9:10])
         # TODO: extract information from the hexadecimal numbers
 
-        return [self._converting_status_channel(status[1]),
-                self._converting_status_channel(status[2]),
-                stat_channel[0], stat_channel[1], stat_channel[2]]
+        return [
+            self._converting_status_channel(status[1]),
+            self._converting_status_channel(status[2]),
+            stat_channel[0],
+            stat_channel[1],
+            stat_channel[2],
+        ]
 
     def setSlow(self, channel):
         """put channel 'channel' into slow sample rate"""
         if not isinstance(channel, int):
-            raise AssertionError('ILM: setSlow: Argument must be integer')
+            raise AssertionError("ILM: setSlow: Argument must be integer")
         if channel not in [1, 2]:
-            raise AssertionError(
-                'ILM: setSlow: Argument is not a valid number.')
+            raise AssertionError("ILM: setSlow: Argument is not a valid number.")
 
-        self.write('$S{}'.format(channel))
+        self.write("$S{}".format(channel))
 
     def setFast(self, channel):
         """put channel 'channel' into fast sample rate"""
         if not isinstance(channel, int):
-            raise AssertionError('ILM: setFast: Argument must be integer')
+            raise AssertionError("ILM: setFast: Argument must be integer")
         if channel not in [1, 2]:
-            raise AssertionError(
-                'ILM: setFast: Argument is not a valid number.')
+            raise AssertionError("ILM: setFast: Argument is not a valid number.")
 
-        self.write('$T{}'.format(channel))
+        self.write("$T{}".format(channel))

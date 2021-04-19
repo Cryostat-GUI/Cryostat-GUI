@@ -4,38 +4,15 @@ Provides support for the Keithley 6221 constant current supply
 
 # IMPORTS #####################################################################
 
-# import threading
-# import visa
-
 import logging
-
 from drivers import AbstractGPIBDeviceDriver
+from drivers import AbstractEthernetDeviceDriver
 
-# create a logger object for this module
-logger = logging.getLogger(__name__)
-# added so that log messages show up in Jupyter notebooks
-logger.addHandler(logging.StreamHandler())
-
-# try:
-#     # the pyvisa manager we'll use to connect to the GPIB resources
-#     resource_manager = visa.ResourceManager(
-#         'C:\\Windows\\System32\\agvisa32.dll')
-# except OSError:
-#     logger.exception(
-#         "\n\tCould not find the VISA library. Is the National Instruments VISA driver installed?\n\n")
-
-#from __future__ import absolute_import
-#from __future__ import division
-
-#import quantities as pq
-
-#from Keithley.lib import PowerSupply
-#from Keithley.lib import SCPIInstrument
 
 # CLASSES #####################################################################
 
 
-class Keithley6221(AbstractGPIBDeviceDriver):
+class Keithley6221_bare(object):
 
     """
     The Keithley 6221 is a single channel constant current supply.
@@ -47,6 +24,9 @@ class Keithley6221(AbstractGPIBDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
     # def go(self, command):
     #     return super().go(command)
@@ -59,34 +39,39 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         """
         Set the output current to zero and disable the output.
         """
-        self.go('SOUR:CLE:IMM')
+        self.go("SOUR:CLE:IMM")
 
     def enable(self):
-        self.go('OUTPUT:STATE ON')
+        self._logger.debug("output state enable")
+        self.go("OUTPUT:STATE ON")
 
     def disable(self):
-        self.go('OUTPUT:STATE OFF')
+        self._logger.debug("output state disable")
+        self.go("OUTPUT:STATE OFF")
 
     def getstatus(self):
-        return self.query('OUTPUT:STATE?')
+        return self.query("OUTPUT:STATE?")
 
     def disable_frontpanel(self, text):
+        self._logger.debug("disabling frontpanel, setting to %s", text)
         self.go('DISPlay:TEXT:STATe on; DISPlay:TEXT "measuring..."')
         self.go(f'DISPlay:WINDow2TEXT:STATe on; DISPlay:WINDow2:TEXT "{text}"')
-        self.go('DISPlay:ENABle off')
+        self.go("DISPlay:ENABle off")
 
     def enable_frontpanel(self):
-        self.go('DISPlay:ENABle on')
-        self.go('DISPlay:TEXT:STATe off')
-        self.go(f'DISPlay:WINDow2TEXT:STATe off')
+        self._logger.debug("enabling frontpanel")
+        self.go("DISPlay:ENABle on")
+        self.go("DISPlay:TEXT:STATe off")
+        self.go("DISPlay:WINDow2TEXT:STATe off")
 
     def setCurrent(self, current_value):
-        """Sets Current
-        """
+        """Sets Current"""
         if -0.105 > current_value > 0.105:
             raise AssertionError(
-                "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105")
-        self.go('CURR {0:e}'.format(current_value))
+                "Keithley:InputAlarmParameterCommand: Current_Value parameter must be a float in between -0.105 and 0.105"
+            )
+        self._logger.debug("setting current to %f", current_value)
+        self.go("CURR {0:e}".format(current_value))
 
     def configSourceFunctions(self, bias_current=1e-4, compliance=1):
         """The bias current is the fixed current setting just prior to the start of the sweep.
@@ -95,27 +80,25 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         compliance limit can be set from 0.1V to 105V in 10mV steps. The output will
         not exceed the programmed compliance level.
         """
-        self.go('*RST')
-        self.go('SOUR:CURR ' + '{0:e}'.format(bias_current))
-        self.go('SOUR:CURR:COMP ' + '{0:f}'.format(compliance))
+        self.go("*RST")
+        self.go("SOUR:CURR " + "{0:e}".format(bias_current))
+        self.go("SOUR:CURR:COMP " + "{0:f}".format(compliance))
 
     def setupSweep(self, start_current, stop_current, step_current, delay):
-        """Sets up the Sweep
-        """
-        self.go('OUR:SWE:SPAC LIN')
-        self.go('OUR:CURR:STAR ' + '{0:e}'.format(start_current))
-        self.go('OUR:CURR:STOP ' + '{0:e}'.format(stop_current))
-        self.go('OUR:CURR:STEP ' + '{0:e}'.format(step_current))
-        self.go('OUR:DEL ' + '{0:d}'.format(delay))
-        self.go('OUR:SWE:RANG BEST')
-        self.go('OUR:SWE:COUN 1')
-        self.go('OUR:SWE:CAB OFF')
+        """Sets up the Sweep"""
+        self.go("OUR:SWE:SPAC LIN")
+        self.go("OUR:CURR:STAR " + "{0:e}".format(start_current))
+        self.go("OUR:CURR:STOP " + "{0:e}".format(stop_current))
+        self.go("OUR:CURR:STEP " + "{0:e}".format(step_current))
+        self.go("OUR:DEL " + "{0:d}".format(delay))
+        self.go("OUR:SWE:RANG BEST")
+        self.go("OUR:SWE:COUN 1")
+        self.go("OUR:SWE:CAB OFF")
 
     def startSweep(self):
-        """Starts the Sweep
-        """
-        self.go('SOUR:SWE:ARM')
-        self.go('INIT')
+        """Starts the Sweep"""
+        self.go("SOUR:SWE:ARM")
+        self.go("INIT")
 
     def more(self):
         """
@@ -171,7 +154,9 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         pass
 
     def query_error(self):
-        """As error and status messages occur, they are placed in the Error Queue. This query command
+        """Query error status messages from device
+
+        As error and status messages occur, they are placed in the Error Queue. This query command
         is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
         hold up to ten messages. Each time you read the queue, the “oldest” message is read, and that
         message is then removed from the queue.
@@ -181,17 +166,30 @@ class Keithley6221(AbstractGPIBDeviceDriver):
         The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
         defined messages, and positive (+) numbers are used for Keithley defined messages.
         Appendix B lists the messages."""
-        return self.query(':SYST:ERR?')
+        return self.query(":SYST:ERR?")
 
     def error_gen(self):
-        """As error and status messages occur, they are placed in the Error Queue. This query command
-        is used to read those messages. The Error Queue is a first-in, first-out (FIFO) register that can
-        hold up to ten messages. Each time you read the queue, the “oldest” message is read, and that
-        message is then removed from the queue.
-        If the queue becomes full, the “350, Queue Overflow” message occupies the last memory
-        location in the register. On power-up, the queue is empty. When the Error Queue is empty, the
-        “0, No error” message is placed in the Error Queue.
-        The messages in the queue are preceded by a number. Negative (–) numbers are used for SCPI
-        defined messages, and positive (+) numbers are used for Keithley defined messages.
-        Appendix B lists the messages."""
-        yield self.query(':SYST:ERR?')
+        """wrap self.query_error() in a generator"""
+        while True:
+            a = self.query_error()
+            yield a
+            if a[0] == "0":
+                break
+
+
+class Keithley6221(AbstractGPIBDeviceDriver, Keithley6221_bare):
+    """docstring for Keithley6221"""
+
+    pass
+
+
+class Keithley6221_ethernet(AbstractEthernetDeviceDriver, Keithley6221_bare):
+    """docstring for Keithley6221"""
+
+    def __init__(self, InstrumentAddress, **kwargs):
+        super().__init__(
+            InstrumentAddress,
+            **kwargs,
+            read_termination="\n",
+            write_termination="\r",
+        )

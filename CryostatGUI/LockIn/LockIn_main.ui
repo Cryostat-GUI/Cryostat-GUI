@@ -45,7 +45,7 @@ p, li { white-space: pre-wrap; }
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="groupSettings">
       <property name="title">
        <string>Settings</string>
       </property>

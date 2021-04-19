@@ -10,6 +10,7 @@ Author(s):
 
 from drivers import AbstractSerialDeviceDriver
 from pyvisa.errors import VisaIOError
+import logging
 
 
 class itc503(AbstractSerialDeviceDriver):
@@ -17,6 +18,9 @@ class itc503(AbstractSerialDeviceDriver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
 
         # set the heater voltage limit to be controlled dynamically according to the temperature
         # self.write('$M0')
@@ -53,27 +57,37 @@ class itc503(AbstractSerialDeviceDriver):
                 above base temperature for any system.
         """
         if not isinstance(temperature, (int, float)):
-            raise AssertionError(
-                'ITC: setTemperature: argument must be a number')
+            raise AssertionError("ITC: setTemperature: argument must be a number")
 
-        command = '$T{}'.format(temperature)  # + str(int(1000*temperature))
+        command = "$T{}".format(temperature)  # + str(int(1000*temperature))
         self.write(command)
 
     def getStatus(self, run=True) -> dict:
         """read a general status from the itc 503"""
-        answer = self.query('X')
+        answer = self.query("X")
         # print(answer, run)
-        autoanswer = ['heater man, gas man', 'heater auto, gas man',
-                      'heater man, gas auto', 'heater auto, gas auto']
-        locanswer = ['local locked', 'remote locked',
-                     'local unlocked', 'remote unlocked']
 
-        a = dict(auto=autoanswer[int(answer[3])],
-                 loc_rem=locanswer[int(answer[5])],
-                 auto_int=answer[3],
-                 sweep=answer[7],
-                 sensor_control=answer[9],
-                 autopid=answer[11])
+        autoanswer = [
+            "heater man, gas man",
+            "heater auto, gas man",
+            "heater man, gas auto",
+            "heater auto, gas auto",
+        ]
+        locanswer = [
+            "local locked",
+            "remote locked",
+            "local unlocked",
+            "remote unlocked",
+        ]
+
+        a = dict(
+            auto=autoanswer[int(answer[3])],
+            auto_int=answer[3],
+            loc_rem=locanswer[int(answer[5])],
+            sweep=answer[7],
+            sensor_control=answer[9],
+            autopid=answer[11],
+        )
         # print(a)
         return a
 
@@ -94,41 +108,38 @@ class itc503(AbstractSerialDeviceDriver):
             variable: Index of variable to read.
         """
         if not isinstance(variable, int):
-            raise AssertionError('ITC: getValue: argument must be integer')
+            raise AssertionError("ITC: getValue: argument must be integer")
         if variable not in range(0, 11):
-            raise AssertionError(
-                'ITC: getValue: Argument is not a valid number.')
+            raise AssertionError("ITC: getValue: Argument is not a valid number.")
 
         # clear any buffer by reading, ignoring all timeout errors
         # self.clear_buffers()
         # retrieve value
-        value = self.query('R{}'.format(variable))
+        value = self.query("R{}".format(variable))
         # value = self._visa_resource.read()
 
-        # if value == "" or None:
-        #     try:
-        #         self.read()
-        #     except VisaIOError as e_visa:
-        #         if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
-        #             pass
-        #     return self.getValue(variable)
         try:
-            if value[0] != 'R':
+            if value[0] != "R":
                 try:
                     self.read()
                 except VisaIOError as e_visa:
-                    if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                    if (
+                        isinstance(e_visa, type(self.timeouterror))
+                        and e_visa.args == self.timeouterror.args
+                    ):
                         pass
                 return self.getValue(variable)
         except TypeError:
             try:
                 self.read()
             except VisaIOError as e_visa:
-                if isinstance(e_visa, type(self.timeouterror)) and e_visa.args == self.timeouterror.args:
+                if (
+                    isinstance(e_visa, type(self.timeouterror))
+                    and e_visa.args == self.timeouterror.args
+                ):
                     pass
             return self.getValue(variable)
-
-        return float(value.strip('R+'))
+        return float(value.strip("R+"))
 
     def setProportional(self, prop=0):
         """Sets the proportional band.
@@ -136,8 +147,7 @@ class itc503(AbstractSerialDeviceDriver):
         Args:
             prop: Proportional band, in steps of 0.0001K.
         """
-        self.write('$P{}'.format(prop))
-        return None
+        self.write("$P{}".format(prop))
 
     def setIntegral(self, integral=0):
         """Sets the integral action time.
@@ -146,8 +156,7 @@ class itc503(AbstractSerialDeviceDriver):
             integral: Integral action time, in steps of 0.1 minute.
                         Ranges from 0 to 140 minutes.
         """
-        self.write('$I{}'.format(integral))
-        return None
+        self.write("$I{}".format(integral))
 
     def setDerivative(self, derivative=0):
         """Sets the derivative action time.
@@ -156,8 +165,7 @@ class itc503(AbstractSerialDeviceDriver):
             derivative: Derivative action time.
                         Ranges from 0 to 273 minutes.
         """
-        self.write('$D{}'.format(derivative))
-        return None
+        self.write("$D{}".format(derivative))
 
     def setHeaterSensor(self, sensor=1):
         """Selects the heater sensor.
@@ -168,10 +176,9 @@ class itc503(AbstractSerialDeviceDriver):
         """
 
         if sensor not in [1, 2, 3]:
-            raise AssertionError('ITC: setHeaterSensor: Heater not on list.')
+            raise AssertionError("ITC: setHeaterSensor: Heater not on list.")
 
-        self.write('$H{}'.format(sensor))
-        return None
+        self.write("$H{}".format(sensor))
 
     def setHeaterOutput(self, heater_output=0):
         """Sets the heater output level.
@@ -182,8 +189,7 @@ class itc503(AbstractSerialDeviceDriver):
                         Min: 0. Max: 999.
         """
 
-        self.write('$O{}'.format(heater_output))
-        return None
+        self.write("$O{}".format(heater_output))
 
     def setGasOutput(self, gas_output=0):
         """Sets the gas (needle valve) output level.
@@ -193,8 +199,7 @@ class itc503(AbstractSerialDeviceDriver):
                     output in units of 0.1%.
                     Min: 0. Max: 999.
         """
-        self.write('$G{}'.format(gas_output))
-        return None
+        self.write("$G{}".format(gas_output))
 
     def setAutoControl(self, auto_manual=0):
         """Sets automatic control for heater/gas(needle valve).
@@ -208,7 +213,7 @@ class itc503(AbstractSerialDeviceDriver):
         Args:
             auto_manual: Index for gas/manual.
         """
-        self.write('$A{}'.format(auto_manual))
+        self.write("$A{}".format(auto_manual))
 
     def setSweeps(self, sweep_parameters):
         """Sets the parameters for all sweeps.
@@ -229,19 +234,18 @@ class itc503(AbstractSerialDeviceDriver):
                 sweep table (see _setSweepStep).
         """
         if not isinstance(sweep_parameters, dict):
-            raise AssertionError(
-                'ITC: setSweeps: Input should be a dict (of dicts)!')
+            raise AssertionError("ITC: setSweeps: Input should be a dict (of dicts)!")
         steps = [str(x) for x in range(1, 17)]
         parameters_keys = sweep_parameters.keys()
-        null_parameter = {'set_point': 2,
-                          'sweep_time': 0,
-                          'hold_time': 0}
+        null_parameter = {"set_point": 2, "sweep_time": 0, "hold_time": 0}
         for step in steps:
             if str(step) in parameters_keys:
-                print('changing step: ', step, 'to ', sweep_parameters[step])
+                self._logger.debug(
+                    "changing step: {} to {}".format(step, sweep_parameters[step])
+                )
                 self._setSweepStep(step, sweep_parameters[step])
             else:
-                print('setting step to null_parameter: ', step)
+                self._logger.debug("setting step to null_parameter: {}".format(step))
                 self._setSweepStep(step, null_parameter)
 
     def _setSweepStep(self, sweep_step, sweep_table):
@@ -258,81 +262,80 @@ class itc503(AbstractSerialDeviceDriver):
                 sweep. Keys: set_point, sweep_time, hold_time.
         """
         with self._comLock:
-            step_setting = '$x{}'.format(sweep_step)
+            step_setting = "$x{}".format(sweep_step)
             self.write(step_setting, f=True)
 
-            setpoint_setting = '$s{}'.format(
-                sweep_table['set_point'])
-            sweeptime_setting = '$s{}'.format(
-                                sweep_table['sweep_time'])
-            holdtime_setting = '$s{}'.format(
-                sweep_table['hold_time'])
+            setpoint_setting = "$s{}".format(sweep_table["set_point"])
+            sweeptime_setting = "$s{}".format(sweep_table["sweep_time"])
+            holdtime_setting = "$s{}".format(sweep_table["hold_time"])
             self.write(step_setting, f=True)
-            self.write('$y1', f=True)
+            self.write("$y1", f=True)
             self.write(setpoint_setting, f=True)
 
             self.write(step_setting, f=True)
-            self.write('$y2', f=True)
+            self.write("$y2", f=True)
             self.write(sweeptime_setting, f=True)
 
             self.write(step_setting, f=True)
-            self.write('$y3', f=True)
+            self.write("$y3", f=True)
             self.write(holdtime_setting, f=True)
 
             self._resetSweepTablePointers()
 
     def _resetSweepTablePointers(self):
         """Resets the table pointers to x=0 and y=0 to prevent
-           accidental sweep table changes.
+        accidental sweep table changes.
         """
-        self.write('$x0', f=True)
-        self.write('$y0', f=True)
+        self.write("$x0", f=True)
+        self.write("$y0", f=True)
 
     def SweepStart(self):
         """start the sweep, beginning at the first step in the table"""
-        self.write('$S1')
+        self.write("$S1")
 
     def SweepStartAtPoint(self, point):
         """start walking through the sweep table at a specific point"""
 
         if 32 < point < 2:
             raise AssertionError(
-                'ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)')
-        self.write('$S{}'.format(point))
+                "ITC: SweepStartAtPoint: Sweep-Startpoint out of range (2-32)"
+            )
+        self.write("$S{}".format(point))
 
     def SweepJumpToLast(self):
         """Stop any sweep which is currently running
         meaning to jump to the last part of the sweep"""
-        self.write('$S31')
+        self.write("$S31")
 
     def readSweepTable(self):
         """read the Sweep Table which is stored in the device
-            Not WORKING CURRENTLY
+        Not WORKING CURRENTLY
 
         """
         raise NotImplementedError
-        steps = [str(i) for i in range(1, 17)]
-        stepdict = {key: dict(set_point='not read',
-                              sweep_time='not read',
-                              hold_time='not read') for key in steps}
-        with self._comLock:
-            for step in steps:
-                step_setting = '$x{}'.format(step)
-                self.write(step_setting, f=True)
-                self.write('$y1', f=True)
-                print('written1')
-                try:
-                    stepdict[step]['set_point'] = self.query('r', f=True)
-                except Exception as e:
-                    print(e)
-                print('received 1')
+        # steps = [str(i) for i in range(1, 17)]
+        # stepdict = {
+        #     key: dict(set_point="not read", sweep_time="not read", hold_time="not read")
+        #     for key in steps
+        # }
+        # with self._comLock:
+        #     for step in steps:
+        #         step_setting = "$x{}".format(step)
+        #         self.write(step_setting, f=True)
+        #         self.write("$y1", f=True)
+        #         print("written1")
+        #         try:
+        #             stepdict[step]["set_point"] = self.query("r", f=True)
+        #         except Exception as e:
+        #             print(e)
+        #         print("received 1")
 
-                self.write(step_setting)  # just in cas, f=Truee
-                self.write('$y2', f=True)
-                stepdict[step]['sweep_time'] = self.query('r', f=True)
+        #         self.write(step_setting)  # just in cas, f=Truee
+        #         self.write("$y2", f=True)
+        #         stepdict[step]["sweep_time"] = self.query("r", f=True)
 
-                self.write(step_setting)  # just in cas, f=Truee
-                self.write('$y3', f=True)
-                stepdict[step]['hold_time'] = self.query('r', f=True)
-        print(stepdict)
-        return stepdict
+        #         self.write(step_setting)  # just in cas, f=Truee
+        #         self.write("$y3", f=True)
+        #         stepdict[step]["hold_time"] = self.query("r", f=True)
+        # print(stepdict)
+        # return stepdict

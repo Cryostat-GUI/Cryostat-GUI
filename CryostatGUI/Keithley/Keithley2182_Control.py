@@ -1,5 +1,3 @@
-
-
 from PyQt5.QtCore import pyqtSlot
 
 from Keithley.Keithley2182 import Keithley2182
@@ -17,53 +15,55 @@ import logging
 class Keithley2182_Updater(AbstractLoopThread):
     """This is the worker thread, which updates all instrument data of one Keithley 2182 device.
 
-        For each device function, there is a wrapping method,
-        which we can call by a signal, from the main thread. This wrapper sends
-        the corresponding value to the device.
+    For each device function, there is a wrapping method,
+    which we can call by a signal, from the main thread. This wrapper sends
+    the corresponding value to the device.
 
-        The information from the device is collected in regular intervals (method "running"),
-        and subsequently sent to the main thread. It is packed in a dict,
-        the keys of which are displayed in the "sensors" dict in this class.
+    The information from the device is collected in regular intervals (method "running"),
+    and subsequently sent to the main thread. It is packed in a dict,
+    the keys of which are displayed in the "sensors" dict in this class.
     """
 
-    sensors = dict(
-        Voltage_V=None,
-        Internal_K=None,
-        Present_K=None)
+    sensors = dict(Voltage_V=None, Internal_K=None, Present_K=None)
 
-    def __init__(self, comLock, InstrumentAddress='', log=None, **kwargs):
+    def __init__(self, comLock, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
         self.instr = InstrumentAddress
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.ERROR)
+        self._logger = logging.getLogger(
+            "CryoGUI." + __name__ + "." + self.__class__.__name__
+        )
         self.save_InstrumentAddress = InstrumentAddress
         self.save_comLock = comLock
         # global Keithley
         # K_2182 = reload(Keithley.Keithley2182)
 
         self.Keithley2182 = Keithley2182(
-            InstrumentAddress=InstrumentAddress, comLock=comLock)
-        self.__name__ = 'Keithley2182_Updater ' + InstrumentAddress
+            InstrumentAddress=InstrumentAddress, comLock=comLock
+        )
+        self.__name__ = "Keithley2182_Updater " + InstrumentAddress
 
     # @control_checks
     @ExceptionHandling
     def running(self):
         """Measure Voltage, send the data"""
-        self.sensors['Voltage_V'] = self.Keithley2182.measureVoltage()
-        self.sensors['Internal_K'] = self.Keithley2182.measureInternalTemperature()
-        self.sensors['Present_K'] = self.Keithley2182.measurePresentTemperature()
+        self.sensors["Voltage_V"] = self.Keithley2182.measureVoltage()
+        self.sensors["Internal_K"] = self.Keithley2182.measureInternalTemperature()
+        self.sensors["Present_K"] = self.Keithley2182.measurePresentTemperature()
 
-        self.sensors['realtime'] = datetime.now()
+        self.sensors["realtime"] = datetime.now()
 
         self.sig_Infodata.emit(deepcopy(self.sensors))
 
         error = self.Keithley2182.query_error()
-        if error[0] != '0':
-            self.logger.error('code:{}, message:{}'.format(
-                error[0], error[1].strip('"')))
-            if error[0] == '-213':
+        if error[0] != "0":
+            self._logger.error(
+                "code:{}, message:{}".format(error[0], error[1].strip('"'))
+            )
+            if error[0] == "-213":
                 self.Keithley2182 = Keithley2182(
-                    InstrumentAddress=self.save_InstrumentAddress, comLock=self.save_comLock)
+                    InstrumentAddress=self.save_InstrumentAddress,
+                    comLock=self.save_comLock,
+                )
 
     @pyqtSlot()
     @ExceptionHandling
@@ -74,9 +74,8 @@ class Keithley2182_Updater(AbstractLoopThread):
     @pyqtSlot()
     @ExceptionHandling
     def speed_up(self):
-        """increase measurement speed
-        """
-        self.Keithley2182.setRate('FAS')
+        """increase measurement speed"""
+        self.Keithley2182.setRate("FAS")
 
     @pyqtSlot()
     @ExceptionHandling
