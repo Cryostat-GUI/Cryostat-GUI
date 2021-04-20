@@ -461,7 +461,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
 
         self.controls = ["c"]
         self.threads_tiny = []
-        
+        #dict for the checking state function         
         self.sr830_check_state_data = {}
         self.itc503_check_state_data = {}
         self.ilm211_check_state_data = {}
@@ -470,7 +470,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.lakeshore350_check_state_data = {}
         self.keithley6221_check_state_data = {} 
         self.keithley2182_check_state_data = {}       
-
+        #dict for updating Client GUIS 
         self.data_sr830={'Frequency_Hz': 999, 'Voltage_V': 999, 'X_V': 999, 'Y_V': 999, 'R_V': 999,'Theta_Deg': 999,
         'ShuntResistance_user_Ohm': 999,'SampleResistance_Ohm' : 999,'SampleCurrent_A' : 999,'ContactResistance_user_Ohm': 999,}
         self.data_sr860={'Frequency_Hz': 999, 'Voltage_V': 999, 'X_V': 999, 'Y_V': 999, 'R_V': 999,'Theta_Deg': 999,
@@ -485,6 +485,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.data_ips120={"FIELD_set_point": 999,"FIELD_sweep_rate": 999,"FIELD_output": 999,"measured_magnet_current": 999,"CURRENT_output": 999,"lead_resistance": 999,"persistent_magnet_field": 999,
         "trip_field": 999,"status_magnet": "","status_current": "","status_activity": "","status_locrem": "","status_switchheater": ""}
         
+        #dict which is send to the controlClients for changing Temp
         self.ITC_values={}
         self.lakeshore_values={}
 
@@ -497,9 +498,9 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.dataLock = Lock()
         self.dataLock_live = Lock()
         self.GPIB_comLock = Lock()
-        self.app = app
-        self.identity='sr830'
-        self.command='measure_Resistance'
+        #self.app = app
+        #self.identity='sr830'
+        #self.command='measure_Resistance'
         self.get_data = self.running_thread_control(get_data(),'get data')
         self.get_data.sig_Infodata.connect(self.update_data)
         QTimer.singleShot(0, self.runnning_mainWindow)
@@ -518,6 +519,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.initialize_window_Keithley6221()
         self.initialize_window_Keithley2182()
         self.initialize_window_ips()
+        self.initialize_sequence()
       
     def show_window_button_pressed(self,window):
         """show and close window when show button is pressed"""
@@ -534,6 +536,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.SR860_Updater(self.data)
         #self.start_instument.release()
     def start_instrument(self,instrument=None):
+        """function that starts and stop ControlClient windows services"""
         self.instrument= instrument
         p1 = subprocess.run('sc query "CryostatGui_%s" | find "RUNNING"' % self.instrument, capture_output=True, text=True, shell=True)
         a = p1.stdout
@@ -558,6 +561,13 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         else:
             window.show()
             window.raise_()
+    def initialize_seqence(self):
+        self.pushSequenceRun.clicked.connect(self.start_sequence)
+    def start_sequence(self):
+        """starts the sequence python file not finished!"""
+        subprocess.run("cd path to sequence\n python python name sequence")
+
+
     #--------Lakeshore350
     def initialize_window_LakeShore350(self):
         """initialize LakeShore Window"""
@@ -609,6 +619,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.LakeShore350_window.send_command_spin_threadinterval.clicked.connect(lambda: self.setInterval_lakeshore350())
     
     def crasherror_lakeshore350(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_lakeshore350.update(data)
     	if self.state_lakeshore350["state"]=="crashed":
     		if self.state_lakeshore350["multipl"]==1:
@@ -634,6 +645,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
     @pyqtSlot(float)
     @ExceptionHandling
     def fun_setTemp_valcha_lakeshore350(self, value):
+        """stores data waiting to be send upstream"""
         
         self.lakeshore_values["setTemp"] = value
         self.lakeshore_values["end"] = value
@@ -775,6 +787,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
             lambda value: self.show_window_button_pressed(self.keithley6221_window)
         )
     def crasherror_keithley6221(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_keithley6221.update(data)
     	if self.state_keithley6221["state"]=="crashed":
     		if self.state_keithley6221["multipl"]==1:
@@ -783,6 +796,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
 
 
     def output_keithley6221_clicked(self):
+        """sends command to setOutput"""
     	if self.data_keithley6221["set_Output"] == 1:
     		self.commanding(ID="Keithley6221_1",message=dictdump({"set_Output": 0}))
     	else:
@@ -841,6 +855,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.keithley2182_window.checkBox_FrontAutozero_1.stateChanged.connect(lambda value: self.send_command_frontautozero_keithley2182(value))
         self.keithley2182_window.checkBox_Autorange_1.stateChanged.connect(lambda value: self.send_command_autorange_keithley2182(value))
     def crasherror_keithley2182(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_keithley2182.update(data)
     	if self.state_keithley2182["state"]=="crashed":
     		if self.state_keithley2182["multipl"]==1:
@@ -932,6 +947,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.IPS_window.comboSetActivity.activated["int"].connect(lambda value: self.commanding(ID="IPS", message=dictdump({"activity" : value})))
         self.IPS_window.comboSetSwitchHeater.activated["int"].connect(lambda value: self.commanding(ID="IPS", message=dictdump({"switchheater" : value})))
     def crasherror_ips120(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_ips120.update(data)
     	if self.state_ips120["state"]=="crashed":
     		if self.state_ips120["multipl"]==1:
@@ -1099,6 +1115,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         self.ITC_window.spin_threadinterval.valueChanged.connect(self.gettoset_Interval_itc503)
         self.ITC_window.send_command_spin_threadinterval.clicked.connect(self.setInterval_itc503)
     def crasherror_itc503(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_itc503.update(data)
     	if self.state_itc503["state"]=="crashed":
     		if self.state_itc503["multipl"]==1:
@@ -1338,6 +1355,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         #)
         self.action_show_ILM.triggered["bool"].connect(self.show_ILM)
     def crasherror_ilm211(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_ilm211.update(data)
     	if self.state_ilm211["state"]=="crashed":
     		if self.state_ilm211["multipl"]==1:
@@ -1460,12 +1478,14 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         )
         self.LockIn_window_sr830.send_command_sample.clicked.connect(lambda: self.setContactResistance_sr830())
     def crasherror_sr830(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_sr830.update(data)
     	if self.state_sr830["state"]=="crashed":
     		if self.state_sr830["multipl"]==1:
     			 self.show_error_general("Service CryostatGui_sr830 crashed")
     			 self.sr830_main_state.setText("Crashed")
     def start_instrument_sr830_pressed(self,instrument=None):
+        """starts/stops the sr830 windowsservice"""
         self.instrument= instrument
         p1 = subprocess.run('sc query "CryostatGui_%s" | find "RUNNING"' % self.instrument, capture_output=True, text=True, shell=True)
         a = p1.stdout
@@ -1477,6 +1497,7 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         if p2.returncode!=0:
             self.show_error_general("Couldn´t start or stop service CryostatGui_%s" % self.instrument)  
     def update_check_state_sr830(self,data):
+        """updates the state of the sr830 ControleClient"""
         self.sr830_check_state_data.update(data)
         print("update_check")
         if "RUNNING" in data["state"]:
@@ -1608,12 +1629,14 @@ class mainWindow(AbstractMainApp,Window_ui,zmqMainControl):
         )
         self.LockIn_window_sr860.send_command_sample.clicked.connect(lambda: self.setContactResistance_sr860())
     def crasherror_sr860(self,data):
+        """Function that checks if ControlClient is crashed. state_instrumentname["noblock"] shows if instrument is currently blocked"""
     	self.state_sr860.update(data)
     	if self.state_sr860["state"]=="crashed":
     		if self.state_sr860["multipl"]==1:
     			 self.show_error_general("Service CryostatGui_sr860 crashed")
     			 self.sr860_main_state.setText("Crashed")
     def update_check_state_sr860(self,data):
+        """updates the state of the sr860 windowsservice"""
         self.sr860_check_state_data.update(data)
         print("update_check")
         if "RUNNING" in data["state"]:
