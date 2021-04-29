@@ -246,7 +246,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.data["autocontrol"] = int(self.data_last["status"]["auto_int"])
 
         if self.useAutoPID:
-            self.set_PID(temperature=self.data["Sensor_1_K"])
+            self.set_PID(act)
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
@@ -289,6 +289,13 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.setAutoControl(command["setAutoControl"])
         if "setHeaterSensor" in command:
             self.setHeaterSensor(command["commsetHeaterSensor"])
+        if "ConfloaD" in command:
+            self.setPIDFile(commmand["PIDFile"])
+            self.setCheckAutoPID(command["useAuto"])
+            if command["useAuto"] == 1:
+                self.set_PID(temperature=self.data["Sensor_1_K"])
+
+
 
 
 

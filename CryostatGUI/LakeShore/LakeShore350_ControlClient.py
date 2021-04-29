@@ -266,9 +266,9 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         if "setIntegral" in command:
             self.gettoset_LoopI_Param(command["setIntegral"])
             self.setLoopI_Param()
-        if "setDerivate" in command:
-            self.gettoset_LoopD_Param(command["setDerivate"])
-            self.Loop_D_Param()
+        if "setDerivative" in command:
+            self.gettoset_LoopD_Param(command["setDerivative"])
+            self.setLoopD_Param()
         if "setInput_Sensor" in command:
             self.setInput(command["setInput_Sensor"])
         if "setHeaterOut" in command:
@@ -513,6 +513,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @pyqtSlot(int)
     def gettoset_LoopP_Param(self, value):
+        print("dasssss")
         self.LoopP_value = value
 
     @pyqtSlot(int)

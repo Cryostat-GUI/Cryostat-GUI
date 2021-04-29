@@ -22,7 +22,7 @@ class time(AbstractLoopThreadClient):
     @ExceptionHandling
     def running(self):
         self.run_finished = False
-        self.data['time']=datetime.datetime.now()-datetime.timedelta(minutes=6)
+        self.data['time']=datetime.datetime.now()-datetime.timedelta(minutes=0)
         self.data["Frequency_Hz"] = s.randint(1,10)
         self.data["Voltage_V"] = s.randint(1,10)
         self.data["X_V"] = s.randint(1,10)
@@ -59,7 +59,7 @@ class main_app_time(AbstractMainApp):
         self.running_thread_control(time(                  
                     InstrumentAddress='self._InstrumentAddress',
                     mainthread=None,
-                    identity='Keithley6221_1',
+                    identity='sr830_1',
                     Lockin='self._Lockin',
                     prometheus_port=8006,
                     prometheus_name='sr830_test'

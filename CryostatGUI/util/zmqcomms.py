@@ -287,6 +287,7 @@ class zmqClient(zmqBare):
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         self._logger.debug("zmq: handling events")
+        print("Wass")
         if self.comms_tcp in evts:
             try:
                 while True:
@@ -396,7 +397,7 @@ class zmqMainControl(zmqBare):
         self.comms_data.connect(f"tcp://{ip_data}:{port_data}")
 
         self.comms_downstream = self._zctx.socket(zmq.PUB)
-        self.comms_downstream.connect(f"tcp://127.0.0.1::{port_downstream}")
+        self.comms_downstream.connect(f"tcp://127.0.0.1:{port_downstream}")
 
         self.comms_inproc = self._zctx.socket(zmq.ROUTER)
         self.comms_inproc.identity = b"mainControl"  # id
