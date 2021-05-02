@@ -246,7 +246,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         self.data["autocontrol"] = int(self.data_last["status"]["auto_int"])
 
         if self.useAutoPID:
-            self.set_PID(act)
+            self.set_PID(temperature=self.data["Sensor_1_K"])
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
