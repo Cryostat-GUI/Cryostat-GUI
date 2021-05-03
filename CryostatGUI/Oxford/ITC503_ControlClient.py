@@ -265,6 +265,41 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        if "setDerivative" in command:
+            self.gettoset_Derivative(command["setDerivative"])
+            self.setDerivative()
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
+        if "setIntegral" in command:
+            self.gettoset_Integral(command["setIntegral"])
+            self.setIntegral()
+        if "setProportional" in command:
+            self.gettoset_Proportional(command["setProportional"])
+            self.setProportional()
+        if "setHeaterOutput" in command:
+            self.gettoset_HeaterOutput(command["setHeaterOutput"])
+            self.setHeaterOutput()
+        if "setGasOutput" in command:
+            self.gettoset_GasOutput(command["setGasOutput"])
+            self.setGasOutput()
+        if "gothroughzero" in command:
+            print("not implemented")
+            """Has to be implemented"""
+        if "setAutoControl" in command:
+            self.setAutoControl(command["setAutoControl"])
+        if "setHeaterSensor" in command:
+            self.setHeaterSensor(command["commsetHeaterSensor"])
+        if "ConfloaD" in command:
+            self.setPIDFile(commmand["PIDFile"])
+            self.setCheckAutoPID(command["useAuto"])
+            if command["useAuto"] == 1:
+                self.set_PID(temperature=self.data["Sensor_1_K"])
+
+
+
+
+
+
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling
