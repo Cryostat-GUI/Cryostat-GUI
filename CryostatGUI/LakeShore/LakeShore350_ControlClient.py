@@ -513,7 +513,6 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
     @pyqtSlot(int)
     def gettoset_LoopP_Param(self, value):
-        print("dasssss")
         self.LoopP_value = value
 
     @pyqtSlot(int)
