@@ -214,8 +214,8 @@ class zmqClient(zmqBare):
         ip_maincontrol="localhost",
         ip_data="localhost",
         port_reqp=5556,
-        port_downstream=5557,
-        port_upstream=5558,
+        port_downstream=5561,
+        port_upstream=5560,
         **kwargs,
     ):
         # print('zmqClient')
@@ -287,6 +287,7 @@ class zmqClient(zmqBare):
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
         self._logger.debug("zmq: handling events")
+        print("Wass")
         if self.comms_tcp in evts:
             try:
                 while True:
@@ -353,6 +354,13 @@ class zmqClient(zmqBare):
         raise NotImplementedError
 
     def send_data_upstream(self):
+        self.data["noblock"] = False
+        self.data["realtime"] = dt.now()
+        self.comms_upstream.send_multipart(
+            [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
+        )
+    def send_noblock_upstream(self):
+        self.data["noblock"] = True
         self.data["realtime"] = dt.now()
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
@@ -369,7 +377,7 @@ class zmqMainControl(zmqBare):
         ip_maincontrol="*",
         ip_data="localhost",
         port_reqp=5556,
-        port_downstream=5557,
+        port_downstream=5562,
         # port_upstream=5558,
         port_data=5559,
         **kwargs,
@@ -389,7 +397,7 @@ class zmqMainControl(zmqBare):
         self.comms_data.connect(f"tcp://{ip_data}:{port_data}")
 
         self.comms_downstream = self._zctx.socket(zmq.PUB)
-        self.comms_downstream.bind(f"tcp://{ip_maincontrol}:{port_downstream}")
+        self.comms_downstream.connect(f"tcp://127.0.0.1:{port_downstream}")
 
         self.comms_inproc = self._zctx.socket(zmq.ROUTER)
         self.comms_inproc.identity = b"mainControl"  # id
@@ -747,8 +755,8 @@ class zmqDataStore(zmqBare):
         ip_data="*",
         port_reqp=5556,
         port_downstream=5557,
-        port_upstream=5558,
-        port_data=5559,
+        port_upstream=5559,
+        port_data=5563,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -766,7 +774,7 @@ class zmqDataStore(zmqBare):
         self.comms_data.bind(f"tcp://{ip_data}:{port_data}")
 
         self.comms_upstream = self._zctx.socket(zmq.SUB)
-        self.comms_upstream.bind(f"tcp://{ip_data}:{port_upstream}")
+        self.comms_upstream.connect(f"tcp://127.0.0.1:{port_upstream}")
         self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b"")
 
         self.comms_downstream = self._zctx.socket(zmq.SUB)
