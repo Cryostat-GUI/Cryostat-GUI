@@ -174,7 +174,7 @@ class get_data(AbstractLoopThreadDataStore):
     def store_data(self, ID, data):
         self.data_all.update(data)
         self.data_all["ID"] = ID
-        if self.data_all["noblock"] == False:
+        if self.data_all["noblock"] is False:
             self.sig_all.emit(deepcopy(self.data_all))
             print(self.data_all["ID"])
             if datetime.datetime.strptime(
@@ -317,7 +317,6 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "derivative_action_time": 999,
             "Sensor_1_calerr_K": 999,
             "heater_output_as_percent": 999,
-            "gas_flow_output": 999,
             "interval_thread": 999,
         }
         self.data_ips120 = {
@@ -643,7 +642,6 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_Lakeshore350][
             "window"
         ].sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
-        self.instrument_dict[instrument_Lakeshore350]["multipl"]
         if self.instrument_dict[instrument_Lakeshore350]["shouldthread"] == 0:
             self.instrument_dict[instrument_Lakeshore350][
                 "get_state"
@@ -2375,7 +2373,6 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         )
     def start_instrument_sr830_pressed(self, instrument=None):
         """starts/stops the sr830 windows service"""
-        instrument = instrument
         p1 = subprocess.run(
             'sc query "CryostatGui_%s" | find "RUNNING"' % instrument,
             capture_output=True,
