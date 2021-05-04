@@ -521,18 +521,6 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         if "SR860" in instrument:
             self.initialize_sr860(instrument)
 
-    def runnning_mainWindow(self):
-        """initialize all the windows for main GUi"""
-        self.initialize_sr830()
-        self.initialize_window_Errors()
-        self.initialize_window_ITC()
-        self.initialize_ilm211()
-        self.initialize_sr860()
-        self.initialize_window_LakeShore350()
-        self.initialize_window_Keithley6221()
-        self.initialize_window_Keithley2182()
-        self.initialize_window_ips()
-
     def show_window_button_pressed(self, window):
         """show and close window when show button is pressed"""
         window.show()
