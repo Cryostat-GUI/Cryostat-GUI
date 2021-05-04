@@ -2143,7 +2143,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             ] = self.p2.stdout
             self.instrument_dict[instrument_ilm211]["state_init"][
                 "instrument"
-            ] = self.instrument_dict[instrument_itc503]["ID"]
+            ] = self.instrument_dict[instrument_ilm211]["ID"]
             self.update_check_state_generell(
                 self.instrument_dict[instrument_ilm211]["state_init"]
             )
