@@ -100,6 +100,7 @@ from util import ExceptionHandling
 from util import AbstractMainApp
 from util import AbstractThread
 from util import Window_trayService_ui
+from util import readPID_fromFile
 from util.zmqcomms import zmqquery_handle
 from util.zmqcomms import genericAnswer
 from util.zmqcomms import zmqMainControl
@@ -613,7 +614,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                     self.instrument_dict[data["ID"]]["state"].setText(data["state"])
         else:
             if self.instrument_dict[data["ID"]]["lock"] == 1:
-                instrument_dict[data["ID"]]["state"].setText(data["state"])
+                self.instrument_dict[data["ID"]]["state"].setText(data["state"])
 
     def update_check_state_generell(self, data):
         """Updates the state Label in the main GUI"""
