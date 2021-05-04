@@ -29,7 +29,6 @@
 import time
 
 a = time.time()
-import time as t
 from PyQt5 import QtWidgets, QtGui
 from datetime import datetime as dt
 
@@ -165,7 +164,7 @@ class get_data(AbstractLoopThreadDataStore):
         self.run_finished = False
         # print(self.data_main)
         # self.sig_Infodata.emit(deepcopy(self.data_main))
-        t.sleep(1)
+        time.sleep(1)
 
         self.run_finished = True
 
