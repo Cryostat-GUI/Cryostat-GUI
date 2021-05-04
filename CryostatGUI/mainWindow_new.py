@@ -41,7 +41,6 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QPushButton
-from datetime import datetime as dt2
 import datetime
 
 # from PyQt5.QtWidgets import QtAlignRight
@@ -50,7 +49,6 @@ from PyQt5.uic import loadUi
 import subprocess
 import os
 import sys
-import datetime as dt3
 from threading import Lock
 import numpy as np
 from copy import deepcopy
@@ -107,7 +105,7 @@ from util.zmqcomms import zmqMainControl
 from pid import PidFile
 from pid import PidFileError
 
-errorfile = "Errors\\" + dt3.datetime.now().strftime("%Y%m%d") + ".error"
+errorfile = "Errors\\" + dt.now().strftime("%Y%m%d") + ".error"
 
 
 class check_active(AbstractLoopThread):
@@ -2746,7 +2744,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def show_error_textBrowser(self, text):
         """ append error to Error window"""
         self.Errors_window.textErrors.append(
-            "{} - {}".format(dt3.datetime.now().strftime("%Y-%m-%d  %H:%M:%S.%f"), text)
+            "{} - {}".format(dt.now().strftime("%Y-%m-%d  %H:%M:%S.%f"), text)
         )
         if not self.Errors_window.checkSilence.isChecked():
             self.Errors_window.show()
@@ -2792,6 +2790,6 @@ if __name__ == "__main__":
         prometheus_port=8006,
     )
     form.show()
-    print("date: ", dt3.datetime.now(), "\nstartup time: ", time.time() - a)
+    print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())
