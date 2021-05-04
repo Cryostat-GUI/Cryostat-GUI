@@ -307,7 +307,6 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "Sensor_1_K": 999,
             "Sensor_2_K": 999,
             "Sensor_3_K": 999,
-            "Sensor_3_K": 999,
             "set_temperature": 999,
             "temperature_error": 999,
             "heater_output_as_voltage": 999,
