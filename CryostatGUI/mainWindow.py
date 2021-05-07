@@ -425,7 +425,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.show_error_textBrowser(text)
 
     def show_error_textBrowser(self, text):
-        """ append error to Error window"""
+        """append error to Error window"""
         self.Errors_window.textErrors.append(
             "{} - {}".format(dt.datetime.now().strftime("%Y-%m-%d  %H:%M:%S.%f"), text)
         )
@@ -584,7 +584,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.sigs["Sequence"]["dataLive"].emit(self.data_live)
 
     def Sequence_run(self, sequence: list) -> None:
-        """"""
+        """ """
 
         self.Sequencedata_timer = QTimer()
         self.Sequencedata_timer.timeout.connect(self.Sequence_sendingData)
