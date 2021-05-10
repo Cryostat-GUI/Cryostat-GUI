@@ -316,11 +316,11 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "interval_thread": 999,
         }
         self.data_ips120 = {
-            "FIELD_set_point": 999,
-            "FIELD_sweep_rate": 999,
-            "FIELD_output": 999,
+            "field_set_point": 999,
+            "field_sweep_rate": 999,
+            "output_field": 999,
             "measured_magnet_current": 999,
-            "CURRENT_output": 999,
+            "output_current": 999,
             "lead_resistance": 999,
             "persistent_magnet_field": 999,
             "trip_field": 999,
@@ -1496,22 +1496,22 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 # the last value is retained
                 self.instrument_dict[data["ID"]][
                     "window"
-                ].lcdFieldSetPoint.display(self.data_ips120["FIELD_set_point"])
+                ].lcdFieldSetPoint.display(self.data_ips120["field_set_point"])
                 self.instrument_dict[data["ID"]][
                     "window"
-                ].lcdFieldSweepRate.display(self.data_ips120["FIELD_sweep_rate"])
+                ].lcdFieldSweepRate.display(self.data_ips120["field_sweep_rate"])
 
                 self.instrument_dict[data["ID"]][
                     "window"
-                ].lcdOutputField.display(self.data_ips120["FIELD_output"])
+                ].lcdOutputField.display(self.data_ips120["output_field"])
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].lcdMeasuredMagnetCurrent.display(
-                    self.data_ips120["measured_magnet_current"]
+                    self.data_ips120["magnet_current"]
                 )
                 self.instrument_dict[data["ID"]][
                     "window"
-                ].lcdOutputCurrent.display(self.data_ips120["CURRENT_output"])
+                ].lcdOutputCurrent.display(self.data_ips120["output_current"])
                 # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
                 # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
 
