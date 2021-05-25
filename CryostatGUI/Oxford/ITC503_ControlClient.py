@@ -283,7 +283,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.gettoset_GasOutput(command["setGasOutput"])
             self.setGasOutput()
         if "gothroughzero" in command:
-            print("not implemented")
+            self._logger.warning("go through zero not implemented, command %s has been ignored" % command['gothroughzero'])
             """Has to be implemented"""
         if "setAutoControl" in command:
             self.setAutoControl(command["setAutoControl"])
