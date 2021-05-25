@@ -108,7 +108,7 @@ errorfile = "Errors\\" + dt.now().strftime("%Y%m%d") + ".error"
 
 
 class check_active(AbstractLoopThread):
-    """Makes a Thread that checks if Windowsservice is running """
+    """Thread that checks if Windowsservice is running """
 
     a = "init"
     data = {}
@@ -121,19 +121,14 @@ class check_active(AbstractLoopThread):
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
         self.setInterval(0.2)
-        # self.button=button
         self.instrument = Instrument
         self.test = test
-
-        # p1 = subprocess.run('sc query "CryostatGui_%s" | find "RUNNING"' % instrument, capture_output=True, text=True, shell=True)
-        # self.a = p1.stdout
-        # self.data["state"]=self.a
-        # self.sig_Infodata.emit(deepcopy(self.data))
+        self.prefix = 'Test_CryostatGUI'
 
     def running(self):
 
         p2 = subprocess.run(
-            'sc query "Test_CryostatGui_%s" | find "RUNNING"' % self.instrument,
+            'sc query "%s%s" | find "RUNNING"' % self.prefix % self.instrument,
             capture_output=True,
             text=True,
             shell=True,
@@ -173,7 +168,6 @@ class get_data(AbstractLoopThreadDataStore):
         self.data_all["ID"] = ID
         if self.data_all["noblock"] is False:
             self.sig_all.emit(deepcopy(self.data_all))
-            print(self.data_all["ID"])
             if datetime.datetime.strptime(
                 "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
             ) < dt.now() - datetime.timedelta(minutes=5):
@@ -199,7 +193,6 @@ class get_data(AbstractLoopThreadDataStore):
                 self.crash_all["noblock"] = 1
                 self.crash_all["ID"] = ID
                 self.sig_state_all.emit(self.crash_all)
-        print("runnnfinished")
 class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     error_message_start = {}
     sig_arbitrary = pyqtSignal()
