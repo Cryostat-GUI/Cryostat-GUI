@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+#This broker subscribes to all ControlClients. 
+#If a ControlClient sends a signal the Broker will publish the signal to all applications subscribed to the broker.
 import zmq
 
 
