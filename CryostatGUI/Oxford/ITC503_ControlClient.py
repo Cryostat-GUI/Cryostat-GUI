@@ -292,7 +292,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         if "ConfloaD" in command:
             self.setPIDFile(command["PIDFile"])
             self.setCheckAutoPID(command["useAuto"])
-            if command["useAuto"] == 1:
+            if command["useAuto"]==1:
                 self.set_PID(temperature=self.data["Sensor_1_K"])
 
 
