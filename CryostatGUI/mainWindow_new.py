@@ -129,7 +129,7 @@ class check_active(AbstractLoopThread):
     def running(self):
 
         p2 = subprocess.run(
-            'sc query "%s%s" | find "RUNNING"' % self.prefix % self.instrument,
+            'sc query "%s%s" | find "RUNNING"' % (self.prefix, self.instrument),
             capture_output=True,
             text=True,
             shell=True,
