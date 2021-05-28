@@ -123,7 +123,7 @@ class check_active(AbstractLoopThread):
         self.setInterval(0.2)
         self.instrument = Instrument
         self.test = test
-        self.prefix = 'Test_CryostatGUI'
+        self.prefix = 'Test_CryostatGUI_'
 
     def running(self):
 
@@ -219,6 +219,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     sig_acal_active = pyqtSignal()
     sig_acal_needed = pyqtSignal()
 
+    sig_closing = pyqtSignal()
     def __init__(self, app, Lockin=None, identity=None, prometheus_port=None, **kwargs):
         self._Lockin = Lockin
         self._identity = identity
@@ -2782,6 +2783,6 @@ if __name__ == "__main__":
         prometheus_port=8006,
     )
     form.show()
-    print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
+    # print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())
