@@ -2782,6 +2782,6 @@ if __name__ == "__main__":
         prometheus_port=8006,
     )
     form.show()
-    print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
+    # print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())
