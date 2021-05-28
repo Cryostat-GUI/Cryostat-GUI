@@ -274,14 +274,18 @@ class zmqClient(zmqBare):
             if "lock" in command_dict:
                 self._logger.debug("   locking the loop now")
                 if not self.lock.acquire(blocking=False):
-                    self._logger.warning("tried to lock this loop, but it is locked already! trying again with 10s timeout!")
+                    self._logger.warning(
+                        "tried to lock this loop, but it is locked already! trying again with 10s timeout!"
+                    )
                     self.lock.acquire(timeout=10)
             elif "unlock" in command_dict:
                 self._logger.debug("un-locking the loop now")
                 try:
                     self.lock.release()
                 except RuntimeError:
-                    self._logger.warning("tried to unlock this loop, but it is not locked! no further action taken here!")
+                    self._logger.warning(
+                        "tried to unlock this loop, but it is not locked! no further action taken here!"
+                    )
 
         except AttributeError as e:
             self._logger.exception(e)
@@ -363,6 +367,7 @@ class zmqClient(zmqBare):
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
+
     def send_noblock_upstream(self):
         self.data["noblock"] = True
         self.data["realtime"] = dt.now()
