@@ -240,7 +240,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         self.progressLevelHe.setValue(chan1)
         self.progressLevelN2.setValue(chan2)
 
-        tooltip = u"ILM\nHe: {:.1f}\nN2: {:.1f}".format(chan1, chan2)
+        tooltip = "ILM\nHe: {:.1f}\nN2: {:.1f}".format(chan1, chan2)
         self.pyqt_sysTray.setToolTip(tooltip)
 
         self.lcdLevelHe.display(self.data["channel_1_level"])

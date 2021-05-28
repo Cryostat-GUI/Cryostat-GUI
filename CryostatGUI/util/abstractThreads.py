@@ -297,7 +297,7 @@ class AbstractMainApp(AbstractApp):
 
 
 class AbstractThread(QObject):
-    """Abstract thread class to be used with instruments """
+    """Abstract thread class to be used with instruments"""
 
     sig_assertion = pyqtSignal(str)
     sig_visaerror = pyqtSignal(str)
@@ -315,16 +315,16 @@ class AbstractThread(QObject):
 
     @pyqtSlot()
     def work(self):
-        """class method which is usually started when starting the thread. """
+        """class method which is usually started when starting the thread."""
         raise NotImplementedError
 
     def running(self):
-        """class method to be overriden """
+        """class method to be overriden"""
         raise NotImplementedError
 
 
 class AbstractLoopThread(AbstractThread):
-    """Abstract thread class to be used with instruments """
+    """Abstract thread class to be used with instruments"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -337,7 +337,7 @@ class AbstractLoopThread(AbstractThread):
     @pyqtSlot()  # int
     # @ExceptionHandling  # this is being done with all functions again, still...
     def work(self):
-        """class method which is working all the time while the thread is running. """
+        """class method which is working all the time while the thread is running."""
         try:
             start = dt.now()
             with noblockLock(self.lock):
@@ -352,7 +352,7 @@ class AbstractLoopThread(AbstractThread):
             QTimer.singleShot(timeToWait, self.work)
 
     def running(self):
-        """class method to be overriden """
+        """class method to be overriden"""
         raise NotImplementedError
 
     @pyqtSlot(float)
@@ -377,7 +377,7 @@ class AbstractLoopThread(AbstractThread):
 
 
 class AbstractLoopZmqThread(AbstractLoopThread):
-    """Abstract thread class to be used with instruments """
+    """Abstract thread class to be used with instruments"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -388,7 +388,7 @@ class AbstractLoopZmqThread(AbstractLoopThread):
 
     @pyqtSlot()  # int
     def work(self):
-        """class method which is working all the time while the thread is running. """
+        """class method which is working all the time while the thread is running."""
         try:
             start = dt.now()
             self.zmq_handle()  # inherited later from zmqClient
@@ -410,7 +410,7 @@ class AbstractLoopThreadClient(AbstractLoopZmqThread, zmqClient, PrometheusGauge
 
     @pyqtSlot()
     def work(self):
-        """class method which is working all the time while the thread is running. """
+        """class method which is working all the time while the thread is running."""
         try:
             start = dt.now()
             self.zmq_handle()  # inherited later from zmqClient
@@ -439,7 +439,7 @@ class AbstractLoopThreadDataStore(AbstractLoopZmqThread, zmqDataStore):
 
 
 class AbstractEventhandlingThread(AbstractThread):
-    """Abstract thread class to be used with instruments """
+    """Abstract thread class to be used with instruments"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -460,5 +460,5 @@ class AbstractEventhandlingThread(AbstractThread):
             QTimer.singleShot(self.interval * 1e3, self.work)
 
     def running(self):
-        """empty method to keep thread alive (there is surely a better solution) """
+        """empty method to keep thread alive (there is surely a better solution)"""
         pass
