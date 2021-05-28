@@ -219,6 +219,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     sig_acal_active = pyqtSignal()
     sig_acal_needed = pyqtSignal()
 
+    sig_closing = pyqtSignal()
     def __init__(self, app, Lockin=None, identity=None, prometheus_port=None, **kwargs):
         self._Lockin = Lockin
         self._identity = identity
