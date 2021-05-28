@@ -123,7 +123,7 @@ class check_active(AbstractLoopThread):
         self.setInterval(0.2)
         self.instrument = Instrument
         self.test = test
-        self.prefix = 'Test_CryostatGUI'
+        self.prefix = 'Test_CryostatGUI_'
 
     def running(self):
 
