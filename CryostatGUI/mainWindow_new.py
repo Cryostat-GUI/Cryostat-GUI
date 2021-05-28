@@ -688,7 +688,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # self.action_show_LakeShore350.triggered["bool"].connect(self.show_LakeShore350)
 
         self.LakeShore350_Kpmin = None
-        self.instrument_dict[instrument_Lakeshore350]["values"] = {}
+        self.instrument_dict[instrument_Lakeshore350]["values"] = {"isSweep": False, "SweepRate": 0.0}
         # self.instrument_dict["%s"%instrument_Lakeshore350]["values"]=dict
         # connecting buttons to send commands upstream
 
@@ -1046,6 +1046,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             self.update_check_state_generell(
                 self.instrument_dict[instrument_Keithley6221]["state_init"]
             )
+        self.instrument_dict[instrument_Keithley6221]["spinsetCurrent"] = 0.0
 
         self.instrument_dict[instrument_Keithley6221][
             "window"
@@ -1614,7 +1615,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[instrument_itc503]["state_init"]
             )
         self.instrument_dict[instrument_itc503]["values"] = {
-            "setTemperature": 4,
+            # "setTemperature": 4,
             "SweepRate": 2,
         }
 
