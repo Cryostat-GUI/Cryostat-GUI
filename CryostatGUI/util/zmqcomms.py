@@ -211,8 +211,8 @@ class zmqClient(zmqBare):
         self,
         context=None,
         identity=None,
-        ip_maincontrol="localhost",
-        ip_data="localhost",
+        ip_maincontrol="127.0.0.1",
+        ip_data="127.0.0.1",
         port_reqp=5556,
         port_downstream=5561,
         port_upstream=5560,
@@ -383,7 +383,7 @@ class zmqMainControl(zmqBare):
         port_reqp=5556,
         port_downstream=5562,
         # port_upstream=5558,
-        port_data=5559,
+        port_data=5563,
         **kwargs,
     ):
         super().__init__(**kwargs)
