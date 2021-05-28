@@ -378,7 +378,7 @@ class Window_ui(QtWidgets.QWidget):
     sig_closing = pyqtSignal()
     sig_error = pyqtSignal(str)
 
-    def __init__(self, ui_file=None, **kwargs):
+    def __init__(self, ui_file=None, parent=None, **kwargs):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -390,12 +390,17 @@ class Window_ui(QtWidgets.QWidget):
             loadUi(ui_file, self)
         self.setWindowIcon(QtGui.QIcon("TU-Signet.png"))
 
+        if parent is not None:
+            parent.sig_closing.connect(self.__del__)
+
     def closeEvent(self, event):
         """emit signal that the window is going to be closed and hand event to parent class method"""
         self.sig_closing.emit()
         # event.accept()  # let the window close
         super().closeEvent(event)
 
+    def __del__(self):
+        self.close()
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
