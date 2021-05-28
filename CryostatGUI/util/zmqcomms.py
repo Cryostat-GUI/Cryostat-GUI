@@ -272,11 +272,16 @@ class zmqClient(zmqBare):
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
-                self._logger.debug("   locked the loop")
-                self.lock.acquire()
+                self._logger.debug("   locking the loop now")
+                if not self.lock.acquire(blocking=False):
+                    self._logger.warning("tried to lock this loop, but it is locked already! trying again with 10s timeout!")
+                    self.lock.acquire(timeout=10)
             elif "unlock" in command_dict:
-                self._logger.debug("un-locked the loop")
-                self.lock.release()
+                self._logger.debug("un-locking the loop now")
+                try:
+                    self.lock.release()
+                except RuntimeError:
+                    self._logger.warning("tried to unlock this loop, but it is not locked! no further action taken here!")
 
         except AttributeError as e:
             self._logger.exception(e)
