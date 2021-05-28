@@ -1097,7 +1097,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def gettoset_spinSetCurrent_keithley6221(self, value, instrument_dict):
         """receive and store the value to set the spinCurrent"""
-        instrument_dict["spinsetCurrent"] = value
+        instrument_dict["spinsetCurrent"] = value * 1e-3
 
     def Keithley6221_Updater(self, data):
         """Updater function for the Keithley6221 Window"""
