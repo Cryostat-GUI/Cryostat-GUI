@@ -148,7 +148,8 @@ class get_data(AbstractLoopThreadDataStore):
     sig_state_all = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        # port_data=5563 # -- this port can not be used here!
+        super().__init__(port_data=5570, **kwargs)
         self.__name__ = "get_data_mainWindow"
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
