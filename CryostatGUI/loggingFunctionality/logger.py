@@ -37,7 +37,7 @@ from util import convert_time_date
 from util import AbstractMainApp
 from util import Window_trayService_ui
 
-from saveFileHeaders import headerstring1 as HEADERSTRING
+from loggingFunctionality.saveFileHeaders import headerstring1 as HEADERSTRING
 
 
 from sqlite3 import OperationalError
