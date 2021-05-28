@@ -628,7 +628,7 @@ class Window_plotting_m(Window_ui):
         # self.ax.legend()
 
     def plot(self):
-        """ update the plotted data in-place """
+        """update the plotted data in-place"""
         try:
             with self.lock:
                 for axindex, entry_data in enumerate(self.data):

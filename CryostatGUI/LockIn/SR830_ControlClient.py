@@ -238,7 +238,7 @@ class SR830GUI(AbstractMainApp, Window_trayService_ui):
         identity=None,
         InstrumentAddress=None,
         prometheus_port=None,
-        **kwargs
+        **kwargs,
     ):
         self._identity = identity
         self._InstrumentAddress = InstrumentAddress
