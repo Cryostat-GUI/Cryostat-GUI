@@ -811,78 +811,79 @@ class Sequence_Thread_zmq(
 
 if __name__ == "__main__":
 
-    try:
-        with PidFile("MainControl"):
-            logger = logging.getLogger()
-            logger.setLevel(logging.DEBUG)
+    # try:
+        # with PidFile("MainControl"):
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
-            logger_2 = logging.getLogger("pyvisa")
-            logger_2.setLevel(logging.INFO)
-            logger_3 = logging.getLogger("PyQt5")
-            logger_3.setLevel(logging.INFO)
+    logger_2 = logging.getLogger("pyvisa")
+    logger_2.setLevel(logging.DEBUG)
+    logger_3 = logging.getLogger("PyQt5")
+    logger_3.setLevel(logging.DEBUG)
 
-            # logger_4 = logging.getLogger("measureSequences")
-            # logger_4.setLevel(logging.DEBUG)
+    # logger_4 = logging.getLogger("measureSequences")
+    # logger_4.setLevel(logging.DEBUG)
 
-            date = dt.now().strftime("%Y%m%d-%H%M%S")
-            handler_debug = logging.FileHandler(
-                filename=f"Logs/Sequence_logs{date}.log", mode="a"
-            )
-            handler_debug.setLevel(logging.DEBUG)
-            formatter_debug = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-            )
-            handler_debug.setFormatter(formatter_debug)
+    date = dt.now().strftime("%Y%m%d-%H%M%S")
+    handler_debug = logging.FileHandler(
+        filename=f"Logs/Sequence_logs{date}.log", mode="a"
+    )
+    handler_debug.setLevel(logging.DEBUG)
+    formatter_debug = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
+    handler_debug.setFormatter(formatter_debug)
 
-            handler_info = CustomStreamHandler(logging.INFO, sys.stdout)
-            handler_info.setLevel(logging.INFO)
-            formatter_info = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(message)s"
-            )
-            handler_info.setFormatter(formatter_info)
+    handler_info = CustomStreamHandler(logging.INFO, sys.stdout)
+    handler_info.setLevel(logging.INFO)
+    formatter_info = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s"
+    )
+    handler_info.setFormatter(formatter_info)
 
-            logger.addHandler(handler_debug)
-            logger.addHandler(handler_info)
-            logger_2.addHandler(handler_debug)
-            logger_3.addHandler(handler_debug)
-            # logger_4.addHandler(handler_debug)
-            # logger_4.addHandler(handler_info)
+    logger.addHandler(handler_debug)
+    logger.addHandler(handler_info)
+    logger_2.addHandler(handler_debug)
+    logger_3.addHandler(handler_debug)
+    # logger_4.addHandler(handler_debug)
+    # logger_4.addHandler(handler_info)
 
-            # filename = "seqfiles/testing_setTemp.json"
-            # filename = "seqfiles/setTemp_300.json"
-            # filename = "seqfiles/measure.json"
-            # filename = "seqfiles/measuring_SR860_test2.json"
-            # filename = "seqfiles/measuring_SR860_test3.json"
-            filename = "seqfiles/measuring_DC_test1.json"
-            thresholdsconf = dict(
-                temperature=dict(
-                    value=0.3,  # 0.1, # 0.05,  T_K
-                    mean=10,  # 0.2,  # 0.05,   Tmean_K
-                    stderr_rel=1e-1,  # 1e-5,
-                    relslope_Xpmin=1e-0,  # 1e-3,  # _Kpmin
-                    slope_residuals=30e4,  # 30,
-                ),
-            )
-            tempdefinition = dict(
-                control=["ITC", "Sensor_1_calerr_K"],
-                sample=["ITC", "Sensor_1_calerr_K"],
-                # sample=["LakeShore350", "Sensor_4_K"],
-            )
-            parsed = True
-            if not parsed:
-                parser = mS.Sequence_parser(sequence_file=filename)
-                sequence = parser.data
-            else:
-                with open(filename, "r") as f:
-                    sequence = loads(f.read())
-            runner = Sequence_Thread_zmq(
-                sequence=sequence,
-                thresholdsconf=thresholdsconf,
-                tempdefinition=tempdefinition,
-                python_default_path="Sequence/",
-            )
+    # filename = "seqfiles/testing_setTemp.json"
+    # filename = "seqfiles/setTemp_300.json"
+    # filename = "seqfiles/measure.json"
+    # filename = "seqfiles/measuring_SR860_test2.json"
+    # filename = "seqfiles/measuring_SR860_test3.json"
+    filename = "seqfiles/measuring_DC_test1.json"
+    thresholdsconf = dict(
+        temperature=dict(
+            value=0.3,  # 0.1, # 0.05,  T_K
+            mean=10,  # 0.2,  # 0.05,   Tmean_K
+            stderr_rel=1e-1,  # 1e-5,
+            relslope_Xpmin=1e-0,  # 1e-3,  # _Kpmin
+            slope_residuals=30e4,  # 30,
+        ),
+    )
+    tempdefinition = dict(
+        control=["ITC", "Sensor_1_calerr_K"],
+        sample=["ITC", "Sensor_1_calerr_K"],
+        # sample=["LakeShore350", "Sensor_4_K"],
+    )
+    parsed = True
+    if not parsed:
+        parser = mS.Sequence_parser(sequence_file=filename)
+        sequence = parser.data
+    else:
+        with open(filename, "r") as f:
+            sequence = loads(f.read())
+    print(sequence)
+    runner = Sequence_Thread_zmq(
+        sequence=sequence,
+        thresholdsconf=thresholdsconf,
+        tempdefinition=tempdefinition,
+        python_default_path="Sequence/",
+    )
 
-            runner.work()
-    except PidFileError:
-        print("Program already running! \nShutting down now!\n")
-        sys.exit()
+    runner.work()
+    # except PidFileError:
+    #     print("Program already running! \nShutting down now!\n")
+    #     sys.exit()
