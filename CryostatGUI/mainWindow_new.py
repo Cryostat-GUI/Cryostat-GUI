@@ -630,7 +630,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Lakeshore350
         self.instrument_dict[instrument_Lakeshore350]["window"] = Window_ui(
-            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui"
+            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Lakeshore350][
             "window"
@@ -983,7 +984,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley6221
         self.instrument_dict[instrument_Keithley6221]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K6221_QWidget.ui"
+            ui_file=".\\Keithley\\K6221_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley6221][
             "window"
@@ -1132,7 +1134,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley2182
         self.instrument_dict[instrument_Keithley2182]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K2182_QWidget.ui"
+            ui_file=".\\Keithley\\K2182_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley2182][
             "window"
@@ -1304,7 +1307,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize PS Window"""
         self.instrument_dict[instrument_ips120]["ID"] = instrument_ips120
         self.instrument_dict[instrument_ips120]["window"] = Window_ui(
-            ui_file=".\\Oxford\\IPS_Qwidget.ui"
+            ui_file=".\\Oxford\\IPS_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ips120]["window"].sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False)
@@ -1556,7 +1560,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize ITC Window"""
         self.instrument_dict[instrument_itc503]["ID"] = instrument_itc503
         self.instrument_dict[instrument_itc503]["window"] = Window_ui(
-            ui_file=".\\Oxford\\itc503_Qwidget.ui"
+            ui_file=".\\Oxford\\itc503_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_itc503]["window"].sig_closing.connect(
             lambda: self.action_show_ITC.setChecked(False)
@@ -2142,7 +2147,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_ilm211]["window"] = Window_ui(
-            ui_file=".\\Oxford\\ILM_Qwidget.ui"
+            ui_file=".\\Oxford\\ILM_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ilm211]["window"].sig_closing.connect(
             lambda: self.action_show_ILM.setChecked(False)
@@ -2288,7 +2294,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_sr830]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_sr830]["window"].sig_closing.connect(
             lambda: self.action_show_SR830.setChecked(False)
@@ -2531,7 +2538,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_sr860]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         # self.LockIn_window_sr860.sig_closing.connect(
         #    lambda: self.action_show_SR860.setChecked(False)
@@ -2714,7 +2722,10 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
-        self.Errors_window = Window_ui(ui_file=".\\configurations\\Errors.ui")
+        self.Errors_window = Window_ui(
+            ui_file=".\\configurations\\Errors.ui",
+            parent=self,
+        )
         self.Errors_window.sig_closing.connect(
             lambda: self.action_show_Errors.setChecked(False)
         )
