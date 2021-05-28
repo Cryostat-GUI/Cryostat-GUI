@@ -222,7 +222,7 @@ class AbstractMainApp(AbstractApp):
 
         self.softwarecontrol_timer = QTimer()
         self.softwarecontrol_timer.timeout.connect(self.softwarecontrol_check)
-        self.softwarecontrol_timer.start(1000)
+        # self.softwarecontrol_timer.start(1000)
 
         self.controls_Lock = Lock()
         self.threads = dict(Lock=Lock())
