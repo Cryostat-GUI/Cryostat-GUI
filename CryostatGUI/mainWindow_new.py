@@ -79,6 +79,7 @@ from drivers import ApplicationExit
 # from loggingFunctionality.logger import live_Logger
 # from loggingFunctionality.logger import measurement_Logger
 # from loggingFunctionality.logger import Logger_configuration
+from loggingFunctionality.logger import calculate_timediff
 from util.zmqcomms import dictdump
 from util import loops_off
 from settings import windowSettings
@@ -168,9 +169,10 @@ class get_data(AbstractLoopThreadDataStore):
         self.data_all["ID"] = ID
         if self.data_all["noblock"] is False:
             self.sig_all.emit(deepcopy(self.data_all))
-            if datetime.datetime.strptime(
-                "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-            ) < dt.now() - datetime.timedelta(minutes=5):
+            if not calculate_timediff(self.data_all["realtime"], 60*5):
+            # if datetime.datetime.strptime(
+            #     "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
+            # ) < dt.now() - datetime.timedelta(minutes=5):
                 self.crash_all["state"] = "crashed"
                 self.crash_all["noblock"] = 0
                 self.crash_all["ID"] = ID
@@ -181,9 +183,10 @@ class get_data(AbstractLoopThreadDataStore):
                 self.crash_all["ID"] = ID
                 self.sig_state_all.emit(self.crash_all)
         else:
-            if datetime.datetime.strptime(
-                "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-            ) < dt.now() - datetime.timedelta(minutes=5):
+            if not calculate_timediff(self.data_all["realtime"], 60*5):
+            # if datetime.datetime.strptime(
+            #     "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
+            # ) < dt.now() - datetime.timedelta(minutes=5):
                 self.crash_all["state"] = "crashed"
                 self.crash_all["noblock"] = 1
                 self.crash_all["ID"] = ID
