@@ -219,10 +219,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     sig_acal_active = pyqtSignal()
     sig_acal_needed = pyqtSignal()
 
-    def __init__(self, app, Lockin=None, identity=None, prometheus_port=None, **kwargs):
-        self._Lockin = Lockin
+    def __init__(self, app, identity=None, **kwargs):
         self._identity = identity
-        self.prometheus_port = prometheus_port
         super().__init__(**kwargs)
         loadUi(".\\configurations\\testnew.ui", self)
         # self.setupUi(self)
@@ -2778,8 +2776,6 @@ if __name__ == "__main__":
         app=app,
         ui_file=".\\configurations\\testnew.ui",
         identity="MainWindow_1",
-        Lockin=None,
-        prometheus_port=8006,
     )
     form.show()
     print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
