@@ -28,7 +28,7 @@
 
 import time
 
-a = time.time()
+#a = time.time()
 from PyQt5 import QtWidgets, QtGui
 from datetime import datetime as dt
 
@@ -147,7 +147,7 @@ class get_data(AbstractLoopThreadDataStore):
     sig_state_all = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
-        super().__init__(port_data=5571, **kwargs)
+        super().__init__(port_data=5570, **kwargs)
         self.__name__ = "get_data_mainWindow"
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -214,7 +214,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     sig_closing = pyqtSignal()
 
-    def __init__(self, app,Lockin=None, identity=None, **kwargs):
+    def __init__(self, app, identity=None, **kwargs):
         self._identity = identity
         super().__init__(**kwargs)
         loadUi(".\\configurations\\testnew.ui", self)
@@ -624,7 +624,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Lakeshore350
         self.instrument_dict[instrument_Lakeshore350]["window"] = Window_ui(
-            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui"
+            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Lakeshore350][
             "window"
@@ -946,7 +947,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley6221
         self.instrument_dict[instrument_Keithley6221]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K6221_QWidget.ui"
+            ui_file=".\\Keithley\\K6221_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley6221][
             "window"
@@ -1067,7 +1069,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley2182
         self.instrument_dict[instrument_Keithley2182]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K2182_QWidget.ui"
+            ui_file=".\\Keithley\\K2182_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley2182][
             "window"
@@ -1210,7 +1213,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize PS Window"""
         self.instrument_dict[instrument_ips120]["ID"] = instrument_ips120
         self.instrument_dict[instrument_ips120]["window"] = Window_ui(
-            ui_file=".\\Oxford\\IPS_Qwidget.ui"
+            ui_file=".\\Oxford\\IPS_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ips120]["window"].sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False)
@@ -1435,7 +1439,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize ITC Window"""
         self.instrument_dict[instrument_itc503]["ID"] = instrument_itc503
         self.instrument_dict[instrument_itc503]["window"] = Window_ui(
-            ui_file=".\\Oxford\\itc503_Qwidget.ui"
+            ui_file=".\\Oxford\\itc503_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_itc503]["window"].sig_closing.connect(
             lambda: self.action_show_ITC.setChecked(False)
@@ -1962,7 +1967,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_ilm211]["mulitpl"] = 0
         self.initialize_state_threade(instrument_ilm211)
         self.instrument_dict[instrument_ilm211]["window"] = Window_ui(
-            ui_file=".\\Oxford\\ILM_Qwidget.ui"
+            ui_file=".\\Oxford\\ILM_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ilm211]["window"].sig_closing.connect(
             lambda: self.action_show_ILM.setChecked(False)
@@ -2079,7 +2085,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_sr830]["multipl"] = 0
         self.initialize_state_threade(instrument_sr830)
         self.instrument_dict[instrument_sr830]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_sr830]["window"].sig_closing.connect(
             lambda: self.action_show_SR830.setChecked(False)
@@ -2277,7 +2284,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_sr860]["values"] = {}
 
         self.instrument_dict[instrument_sr860]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         # self.LockIn_window_sr860.sig_closing.connect(
         #    lambda: self.action_show_SR860.setChecked(False)
