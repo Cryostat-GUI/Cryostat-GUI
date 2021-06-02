@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="CryostatGUI",
-    version="0.1.0",
+    version="0.1.1",
     author="Benjamin Klebel",
     author_email="klebel.b@hotmail.com",
     description="Drivers and GUI for control of a cryostat",

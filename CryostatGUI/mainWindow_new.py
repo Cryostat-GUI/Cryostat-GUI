@@ -28,7 +28,7 @@
 
 import time
 
-a = time.time()
+# a = time.time()
 from PyQt5 import QtWidgets, QtGui
 from datetime import datetime as dt
 
@@ -79,6 +79,7 @@ from drivers import ApplicationExit
 # from loggingFunctionality.logger import live_Logger
 # from loggingFunctionality.logger import measurement_Logger
 # from loggingFunctionality.logger import Logger_configuration
+from loggingFunctionality.logger import calculate_timediff
 from util.zmqcomms import dictdump
 from util import loops_off
 from settings import windowSettings
@@ -123,12 +124,12 @@ class check_active(AbstractLoopThread):
         self.setInterval(0.2)
         self.instrument = Instrument
         self.test = test
-        self.prefix = 'Test_CryostatGUI'
+        self.prefix = 'Test_CryostatGUI_'
 
     def running(self):
 
         p2 = subprocess.run(
-            'sc query "%s%s" | find "RUNNING"' % self.prefix % self.instrument,
+            'sc query "%s%s" | find "RUNNING"' % (self.prefix, self.instrument),
             capture_output=True,
             text=True,
             shell=True,
@@ -147,7 +148,8 @@ class get_data(AbstractLoopThreadDataStore):
     sig_state_all = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        # port_data=5563 # -- this port can not be used here!
+        super().__init__(port_data=5570, **kwargs)
         self.__name__ = "get_data_mainWindow"
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
@@ -168,9 +170,10 @@ class get_data(AbstractLoopThreadDataStore):
         self.data_all["ID"] = ID
         if self.data_all["noblock"] is False:
             self.sig_all.emit(deepcopy(self.data_all))
-            if datetime.datetime.strptime(
-                "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-            ) < dt.now() - datetime.timedelta(minutes=5):
+            if not calculate_timediff(self.data_all["realtime"], 60*5):
+            # if datetime.datetime.strptime(
+            #     "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
+            # ) < dt.now() - datetime.timedelta(minutes=5):
                 self.crash_all["state"] = "crashed"
                 self.crash_all["noblock"] = 0
                 self.crash_all["ID"] = ID
@@ -181,9 +184,10 @@ class get_data(AbstractLoopThreadDataStore):
                 self.crash_all["ID"] = ID
                 self.sig_state_all.emit(self.crash_all)
         else:
-            if datetime.datetime.strptime(
-                "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
-            ) < dt.now() - datetime.timedelta(minutes=5):
+            if not calculate_timediff(self.data_all["realtime"], 60*5):
+            # if datetime.datetime.strptime(
+            #     "%s" % self.data_all["realtime"], "%Y-%m-%d %H:%M:%S.%f"
+            # ) < dt.now() - datetime.timedelta(minutes=5):
                 self.crash_all["state"] = "crashed"
                 self.crash_all["noblock"] = 1
                 self.crash_all["ID"] = ID
@@ -218,6 +222,9 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     sig_Sequence_newconf = pyqtSignal(dict)
     sig_acal_active = pyqtSignal()
     sig_acal_needed = pyqtSignal()
+
+
+    sig_closing = pyqtSignal()
 
     def __init__(self, app, identity=None, **kwargs):
         self._identity = identity
@@ -624,7 +631,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Lakeshore350
         self.instrument_dict[instrument_Lakeshore350]["window"] = Window_ui(
-            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui"
+            ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Lakeshore350][
             "window"
@@ -681,7 +689,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # self.action_show_LakeShore350.triggered["bool"].connect(self.show_LakeShore350)
 
         self.LakeShore350_Kpmin = None
-        self.instrument_dict[instrument_Lakeshore350]["values"] = {}
+        self.instrument_dict[instrument_Lakeshore350]["values"] = {"isSweep": False, "SweepRate": 0.0}
         # self.instrument_dict["%s"%instrument_Lakeshore350]["values"]=dict
         # connecting buttons to send commands upstream
 
@@ -977,7 +985,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley6221
         self.instrument_dict[instrument_Keithley6221]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K6221_QWidget.ui"
+            ui_file=".\\Keithley\\K6221_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley6221][
             "window"
@@ -1038,6 +1047,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             self.update_check_state_generell(
                 self.instrument_dict[instrument_Keithley6221]["state_init"]
             )
+        self.instrument_dict[instrument_Keithley6221]["spinsetCurrent"] = 0.0
 
         self.instrument_dict[instrument_Keithley6221][
             "window"
@@ -1089,7 +1099,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def gettoset_spinSetCurrent_keithley6221(self, value, instrument_dict):
         """receive and store the value to set the spinCurrent"""
-        instrument_dict["spinsetCurrent"] = value
+        instrument_dict["spinsetCurrent"] = value * 1e-3
 
     def Keithley6221_Updater(self, data):
         """Updater function for the Keithley6221 Window"""
@@ -1126,7 +1136,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ID"
         ] = instrument_Keithley2182
         self.instrument_dict[instrument_Keithley2182]["window"] = Window_ui(
-            ui_file=".\\Keithley\\K2182_QWidget.ui"
+            ui_file=".\\Keithley\\K2182_QWidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_Keithley2182][
             "window"
@@ -1298,7 +1309,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize PS Window"""
         self.instrument_dict[instrument_ips120]["ID"] = instrument_ips120
         self.instrument_dict[instrument_ips120]["window"] = Window_ui(
-            ui_file=".\\Oxford\\IPS_Qwidget.ui"
+            ui_file=".\\Oxford\\IPS_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ips120]["window"].sig_closing.connect(
             lambda: self.action_show_IPS.setChecked(False)
@@ -1550,7 +1562,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """initialize ITC Window"""
         self.instrument_dict[instrument_itc503]["ID"] = instrument_itc503
         self.instrument_dict[instrument_itc503]["window"] = Window_ui(
-            ui_file=".\\Oxford\\itc503_Qwidget.ui"
+            ui_file=".\\Oxford\\itc503_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_itc503]["window"].sig_closing.connect(
             lambda: self.action_show_ITC.setChecked(False)
@@ -1603,7 +1616,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[instrument_itc503]["state_init"]
             )
         self.instrument_dict[instrument_itc503]["values"] = {
-            "setTemperature": 4,
+            # "setTemperature": 4,
             "SweepRate": 2,
         }
 
@@ -2136,7 +2149,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_ilm211]["window"] = Window_ui(
-            ui_file=".\\Oxford\\ILM_Qwidget.ui"
+            ui_file=".\\Oxford\\ILM_Qwidget.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_ilm211]["window"].sig_closing.connect(
             lambda: self.action_show_ILM.setChecked(False)
@@ -2282,7 +2296,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_sr830]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         self.instrument_dict[instrument_sr830]["window"].sig_closing.connect(
             lambda: self.action_show_SR830.setChecked(False)
@@ -2525,7 +2540,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
 
         self.instrument_dict[instrument_sr860]["window"] = Window_ui(
-            ui_file=".\\LockIn\\LockIn_control.ui"
+            ui_file=".\\LockIn\\LockIn_control.ui",
+            parent=self,
         )
         # self.LockIn_window_sr860.sig_closing.connect(
         #    lambda: self.action_show_SR860.setChecked(False)
@@ -2708,7 +2724,10 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
-        self.Errors_window = Window_ui(ui_file=".\\configurations\\Errors.ui")
+        self.Errors_window = Window_ui(
+            ui_file=".\\configurations\\Errors.ui",
+            parent=self,
+        )
         self.Errors_window.sig_closing.connect(
             lambda: self.action_show_Errors.setChecked(False)
         )
@@ -2778,6 +2797,6 @@ if __name__ == "__main__":
         identity="MainWindow_1",
     )
     form.show()
-    print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
+    # print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())

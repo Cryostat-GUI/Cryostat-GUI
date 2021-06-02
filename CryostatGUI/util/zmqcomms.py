@@ -211,8 +211,8 @@ class zmqClient(zmqBare):
         self,
         context=None,
         identity=None,
-        ip_maincontrol="localhost",
-        ip_data="localhost",
+        ip_maincontrol="127.0.0.1",
+        ip_data="127.0.0.1",
         port_reqp=5556,
         port_downstream=5561,
         port_upstream=5560,
@@ -272,11 +272,20 @@ class zmqClient(zmqBare):
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
-                self._logger.debug("   locked the loop")
-                self.lock.acquire()
+                self._logger.debug("   locking the loop now")
+                if not self.lock.acquire(blocking=False):
+                    self._logger.warning(
+                        "tried to lock this loop, but it is locked already! trying again with 10s timeout!"
+                    )
+                    self.lock.acquire(timeout=10)
             elif "unlock" in command_dict:
-                self._logger.debug("un-locked the loop")
-                self.lock.release()
+                self._logger.debug("un-locking the loop now")
+                try:
+                    self.lock.release()
+                except RuntimeError:
+                    self._logger.warning(
+                        "tried to unlock this loop, but it is not locked! no further action taken here!"
+                    )
 
         except AttributeError as e:
             self._logger.exception(e)
@@ -358,6 +367,7 @@ class zmqClient(zmqBare):
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
+
     def send_noblock_upstream(self):
         self.data["noblock"] = True
         self.data["realtime"] = dt.now()
@@ -378,7 +388,7 @@ class zmqMainControl(zmqBare):
         port_reqp=5556,
         port_downstream=5562,
         # port_upstream=5558,
-        port_data=5559,
+        port_data=5563,
         **kwargs,
     ):
         super().__init__(**kwargs)

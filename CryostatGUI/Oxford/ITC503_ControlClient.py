@@ -301,6 +301,21 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
 
         # -------------------------------------------------------------------------------------------------------------------------
+    
+
+    @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        if "measure_Sensor_K" in command:  # value could be the sensor number
+            answer_dict["Temperature_K"] = self.ITC.getValue(self.sensors["Sensor_1_K"])
+        self.act_on_command(command)
+        answer_dict["OK"] = True
+        return answer_dict
+        # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling
     def setCheckAutoPID(self, boolean):

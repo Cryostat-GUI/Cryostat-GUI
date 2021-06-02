@@ -16,7 +16,7 @@ from pyvisa.errors import VisaIOError
 
 
 class ips120(AbstractSerialDeviceDriver):
-    """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments. """
+    """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments."""
 
     def __init__(self, **kwargs):
         """Connect to an IPS 120-10 at the specified RS232 address
