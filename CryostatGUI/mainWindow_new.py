@@ -2535,10 +2535,9 @@ if __name__ == "__main__":
     form = mainWindow(
         app=app,
         ui_file=".\\configurations\\testnew.ui",
-        identity="MainWindow_1",
-        Lockin=None
+        identity="MainWindow_1"
     )
     form.show()
-    #print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
+    # print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
 
     sys.exit(app.exec_())
