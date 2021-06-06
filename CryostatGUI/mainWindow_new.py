@@ -1032,7 +1032,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def gettoset_spinSetCurrent_keithley6221(self, value, instr):
         """receive and store the value to set the spinCurrent"""
-        instr["spinsetCurrent"]["values"] = value * 1e-3
+        instr["values"]["spinsetCurrent"] = value * 1e-3
 
     def Keithley6221_Updater(self, data):
         """Updater function for the Keithley6221 Window"""
@@ -1348,17 +1348,17 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot(float)
     def gettoset_fieldsetpoint_ips120(self, value, instr):
         """receive and store the value to set the FieldSetPoint"""
-        instr["setfieldsetpoint"]["values"] = value
+        instr["values"]["setfieldsetpoint"] = value
 
     @pyqtSlot(float)
     def gettoset_fieldsweeprate_ips120(self, value, instr):
         """receive and store the value to set the FieldSweepRate"""
-        instr["setfieldsweeprate"]["values"] = value
+        instr["values"]["setfieldsweeprate"] = value
 
     @pyqtSlot(float)
     def gettoset_Interval_ips120(self, value, instr):
         """receive and store the value to set the interval"""
-        instr["setInterval"]["values"] = value
+        instr["values"]["setInterval"] = value
 
     @pyqtSlot(dict)
     def IPS120(self, data):
@@ -1713,12 +1713,12 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot(float)
     def gettoset_GasOutput_itc503(self, value, instr):
         """receive and store the value to set the gas_output"""
-        instr["setGasOutput"]["values"] = value
+        instr["values"]["setGasOutput"] = value
 
     @pyqtSlot(float)
     def gettoset_HeaterOutput_itc503(self, value, instr):
         """receive and store the value to set the heater_output"""
-        instr["setHeaterOutput"]["values"] = value
+        instr["values"]["setHeaterOutput"] = value
 
     @pyqtSlot(bool)
     def send_gas_gothroughzero(self, boolean, instr):
@@ -1863,22 +1863,22 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot(float)
     def gettoset_Proportional_itc503(self, value, instr):
         """receive and store the value to set the proportional (PID)"""
-        instr["setProportional"]["values"] = value
+        instr["values"]["setProportional"] = value
 
     @pyqtSlot(float)
     def gettoset_Integral_itc503(self, value, instr):
         """receive and store the value to set the integral (PID)"""
-        instr["setIntegral"]["values"] = value
+        instr["values"]["setIntegral"] = value
 
     @pyqtSlot(float)
     def gettoset_Derivative_itc503(self, value, instr):
         """receive and store the value to set the derivative (PID)"""
-        instr["setDerivative"]["values"] = value
+        instr["values"]["setDerivative"] = value
 
     @pyqtSlot(float)
     def gettoset_Interval_itc503(self, value, instr):
         """receive and store the value to set the interval"""
-        instr["setInterval"]["values"] = value
+        instr["values"]["setInterval"] = value
     def ITC503_Updater(self, data):
         """
         Calculate the rate of change of Temperature on the sensors [K/min]
@@ -2017,7 +2017,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot()
     def gettoset_spinThreadinterval_ilm211(self, value, instr):
         """saves value for spinThreadinterval"""
-        instr["setInterval"]["values"] = value
+        instr["values"]["setInterval"] = value
     @pyqtSlot(dict)
     def ilm211_Updater(self, data):
         """
@@ -2210,22 +2210,22 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot()
     def gettoset_Frequency_sr830(self, value, instr):
         """receive and store the value to set the frequency"""
-        instr["setFrequency"]["values"] = value
+        instr["values"]["setFrequency"] = value
 
     @pyqtSlot()
     def gettoset_Voltage_sr830(self, value, instr):
         """receive and store the value to set the voltage"""
-        instr["setVoltage"]["values"] = value
+        instr["values"]["setVoltage"] = value
 
     @pyqtSlot()
     def getShuntResistance_sr830(self, value, instr):
         """receive and store the value of the shunt resistance"""
-        instr["setShuntResistance"]["values"] = value
+        instr["values"]["setShuntResistance"] = value
 
     @pyqtSlot()
     def getContactResistance_sr830(self, value, instr):
         """receive and store the value of the samples' contact resistance"""
-        instr["setContactResistance"]["values"] = value
+        instr["values"]["setContactResistance"] = value
 
     @pyqtSlot(dict)
     def SR830_Updater(self, data):
@@ -2409,17 +2409,17 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot()
     def gettoset_Voltage_sr860(self, value, instr):
         """receive and store the value to set the voltage"""
-        instr["setVoltage"]["values"] = value
+        instr["values"]["setVoltage"] = value
 
     @pyqtSlot()
     def getShuntResistance_sr860(self, value, instr):
         """receive and store the value of the shunt resistance"""
-        instr["setShuntResistance"]["values"] = value
+        instr["values"]["setShuntResistance"] = value
 
     @pyqtSlot()
     def getContactResistance_sr860(self, value, instr):
         """receive and store the value of the samples' contact resistance"""
-        instr["setContactResistance"]["values"] = value
+        instr["values"]["setContactResistance"] = value
 
     @pyqtSlot(dict)
     def SR860_Updater(self, data):
