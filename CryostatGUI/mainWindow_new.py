@@ -2380,7 +2380,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot()
     def gettoset_Frequency_sr860(self, value, instr):
         """receive and store the value to set the frequency"""
-        instr["setFrequency"]["values"] = value
+        instr["values"]["setFrequency"] = value
 
     @pyqtSlot()
     @ExceptionHandling
