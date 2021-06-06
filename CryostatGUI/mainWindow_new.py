@@ -1096,7 +1096,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
 
-        self.instrument_dict[instrument_Keithley2182]["values"]
+        self.instrument_dict[instrument_Keithley2182]["values"] = {} 
         self.initialize_state_threade(instrument_Keithley2182)
 
         # all the QCheckboxes
