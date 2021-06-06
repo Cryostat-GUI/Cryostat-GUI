@@ -162,7 +162,7 @@ class get_data(AbstractLoopThreadDataStore):
         time.sleep(1)
 
         self.run_finished = True
-    def check_crash(self, noblock):
+    def check_crash(self, noblock, ID):
     	if not calculate_timediff(self.data_all["realtime"], 60*5):
     		self.crash_all["state"] = "crashed"
     		if noblock is False:
@@ -182,9 +182,9 @@ class get_data(AbstractLoopThreadDataStore):
         self.data_all["ID"] = ID
         if self.data_all["noblock"] is False:
             self.sig_all.emit(deepcopy(self.data_all))
-            self.check_crash(noblock=self.data_all["noblock"])
+            self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID])
         else:
-        	self.check_crash(noblock=self.data_all["noblock"])
+        	self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID])
 
 class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     error_message_start = {}
