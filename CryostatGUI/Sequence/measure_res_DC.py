@@ -72,10 +72,10 @@ class Keithley_Voltage_Channel(object):
 """    USER     PREFERENCES    HERE   """
 
 # defining which instruments are used for the resistance measurement
-k6221_1 = Keithley_Source_Channel(control=self, device_id="Keithley6221_2")
+k6221_1 = Keithley_Source_Channel(control=self, device_id="Keithley6221_1")
 k2182_1 = Keithley_Voltage_Channel(control=self, device_id="Keithley2182_1")
 
-loop_stop_devices = ["Keithley6221_2", "Keithley2182_1", "LakeShore350", "ITC"]
+loop_stop_devices = ["Keithley6221_2", "Keithley2182_1", "LakeShore350", ]
 
 """defining the dc resistance characteristic.
     With exc_curr = 5, and iv_characteristic = [1, 0.5],

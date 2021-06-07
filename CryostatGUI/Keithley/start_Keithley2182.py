@@ -44,6 +44,7 @@ if __name__ == "__main__":
             logger_3.addHandler(handler)
 
             app = QtWidgets.QApplication(sys.argv)
+            logger.debug(Keithley2182_adress)
             form = Keithley2182GUI(
                 ui_file="Nanovolt_main.ui",
                 Name=f"Keithley2182_{n}",

@@ -128,7 +128,7 @@ class check_active(AbstractLoopThread):
     def running(self):
 
         p2 = subprocess.run(
-            'sc query "{0}{1}" | find "RUNNING"'.format(self.prefix,self.instrument),
+            'sc query "{0}{1}" | find "RUNNING"'.format(self.prefix, self.instrument),
             capture_output=True,
             text=True,
             shell=True,
@@ -147,6 +147,7 @@ class get_data(AbstractLoopThreadDataStore):
     sig_state_all = pyqtSignal(dict)
 
     def __init__(self, **kwargs):
+        # port_data=5563 # -- this port can not be used here!
         super().__init__(port_data=5570, **kwargs)
         self.__name__ = "get_data_mainWindow"
         self._logger = logging.getLogger(
@@ -161,20 +162,21 @@ class get_data(AbstractLoopThreadDataStore):
         # self.sig_Infodata.emit(deepcopy(self.data_main))
         time.sleep(1)
         self.run_finished = True
-	def check_crash(self, noblock, ID):
-		if not calculate_timediff(self.data_all["realtime"], 60*5):
-			self.crash_all["state"] = "crashed"
-			if noblock is False:
-				self.crash_all["noblock"] = 0
-			else:
-				self.crash_all["noblock"] = 1
-				self.crash_all["ID"] = ID
-				self.sig_all.emit(self.crash_all)
-		else:
-			self.crash_all["state"] = "running"
-			self.crash_all["noblock"] = 1
-			self.crash_all["ID"] = ID
-			self.sig_state_all.emit(self.crash_all)
+        
+    def check_crash(self, noblock, ID):
+        if not calculate_timediff(self.data_all["realtime"], 60*5):
+            self.crash_all["state"] = "crashed"
+            if noblock is False:
+                self.crash_all["noblock"] = 0
+            else:
+                self.crash_all["noblock"] = 1
+                self.crash_all["ID"] = ID
+                self.sig_all.emit(self.crash_all)
+        else:
+            self.crash_all["state"] = "running"
+            self.crash_all["noblock"] = 1
+            self.crash_all["ID"] = ID
+            self.sig_state_all.emit(self.crash_all)
 
     def store_data(self, ID, data):
         self.data_all.update(data)
@@ -183,7 +185,7 @@ class get_data(AbstractLoopThreadDataStore):
             self.sig_all.emit(deepcopy(self.data_all))
             self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
         else:
-        	self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
+            self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
 
 class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     error_message_start = {}
@@ -290,7 +292,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         ]
         self.ilm211_data_list = ["channel_1_level", "channel_2_level"]
         self.itc503_data_list = [
-        	"Sensor_1_K",
+            "Sensor_1_K",
             "Sensor_2_K",
             "Sensor_3_K",
             "set_temperature",
@@ -305,7 +307,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "interval_thread"
         ]
         self.ips120_data_list = [
-        	"field_set_point",
+            "field_set_point",
             "field_sweep_rate",
             "output_field",
             "measured_magnet_current",
@@ -319,28 +321,28 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "status_locrem",
             "status_switchheater"]
         for key in self.lockin_data_list:
-        	self.data_instruments["sr830_1"][key] = None
-        	self.data_instruments["SR860_1"][key] = None
+            self.data_instruments["sr830_1"][key] = None
+            self.data_instruments["SR860_1"][key] = None
         for key in self.keithley2182_data_list:
-        	self.data_instruments["Keithley2182_1"][key] = None
-        	self.data_instruments["Keithley2182_2"][key] = None
-        	self.data_instruments["Keithley2182_3"][key] = None
+            self.data_instruments["Keithley2182_1"][key] = None
+            self.data_instruments["Keithley2182_2"][key] = None
+            self.data_instruments["Keithley2182_3"][key] = None
         for key in self.keithley6221_data_list:
-        	self.data_instruments["Keithley6221_1"][key] = None
-        	self.data_instruments["Keithley6221_2"][key] = None
+            self.data_instruments["Keithley6221_1"][key] = None
+            self.data_instruments["Keithley6221_2"][key] = None
         for key in self.lakeshore350_data_list:
-        	self.data_instruments["LakeShore350"][key] = None
+            self.data_instruments["LakeShore350"][key] = None
         for key in self.ilm211_data_list:
-        	self.data_instruments["ILM"][key] = None
+            self.data_instruments["ILM"][key] = None
         for key in self.itc503_data_list:
-        	self.data_instruments["ITC"][key] = None
+            self.data_instruments["ITC"][key] = None
         for key in self.ips120_data_list:
-        	self.data_instruments["ips120_1"][key] = None
+            self.data_instruments["ips120_1"][key] = None
 
 
         # Dict in which the Data of all instruments is saved,
         # shouldthread = makes sure that after deleting a row in the main Gui 
-        #				and then add the same row the thread ckeck_state isn't create a second time
+        #               and then add the same row the thread ckeck_state isn't create a second time
         # lock = locks buttones that aren't implemented if the row is deleted
         # multipl = so that not more than 1 error window is create if an instrument crashes   
         self.instrument_dict = {
@@ -430,12 +432,12 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """adds a row with new instrument"""
         self.row_numbers = self.row_numbers + 1
         self.instrument_dict[instrument]["maintext"] = QLabel(
-        	instrument
-        	)
+            instrument
+            )
         self.instrument_dict[instrument]["state"] = QLabel("")
         self.instrument_dict[instrument]["start"] = QPushButton(
-        	"start/stop"
-        	)
+            "start/stop"
+            )
         self.instrument_dict[instrument]["show"] = QPushButton(
                 "show Window"
                 )
@@ -443,30 +445,30 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument]["row"] = self.row_numbers
         self.instrument_dict[instrument]["lock"] = 1
         self.gridLayout_2.addWidget(
-        	self.instrument_dict[instrument]["maintext"],
-        	self.row_numbers,
-        	0,
-        	)
+            self.instrument_dict[instrument]["maintext"],
+            self.row_numbers,
+            0,
+            )
         self.gridLayout_2.addWidget(
-        	self.instrument_dict[instrument]["state"],
-        	self.row_numbers,
-        	1,
-        	)
+            self.instrument_dict[instrument]["state"],
+            self.row_numbers,
+            1,
+            )
         self.gridLayout_2.addWidget(
-        	self.instrument_dict[instrument]["start"],
-        	self.row_numbers,
-        	2,
-        	)
+            self.instrument_dict[instrument]["start"],
+            self.row_numbers,
+            2,
+            )
         self.gridLayout_2.addWidget(
-        	self.instrument_dict[instrument]["show"],
-        	self.row_numbers,
-        	3,
-        	)
+            self.instrument_dict[instrument]["show"],
+            self.row_numbers,
+            3,
+            )
         self.gridLayout_2.addWidget(
-        	self.instrument_dict[instrument]["remote"],
-        	self.row_numbers,
-        	4,
-        	)
+            self.instrument_dict[instrument]["remote"],
+            self.row_numbers,
+            4,
+            )
         self.select_instrument_delete.addItem(instrument)
         self.select_instrument.removeItem(index)
         self.initialize_row(instrument= instrument)
@@ -582,38 +584,38 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                     "color:red"
                 )
     def initialize_state_threade(self, instrument):
-    	#function which checks if it should make a new thread to check instrument state 
-    	if self.instrument_dict[instrument]["shouldthread"] == 0:
-    		self.instrument_dict[instrument][
-    		"get_state"
-    		] = self.running_thread_control(
-    			check_active(
-    				Instrument=self.instrument_dict[instrument]["ID"],
-    				prefix=self.prefix
-    				),
-    			"check_state_%s"
-    			% self.instrument_dict[instrument]["ID"],
-    			)
-    		self.instrument_dict[instrument][
-    		"get_state"
-    		].sig_Infodata.connect(self.update_check_state_generell)
-    	else:
-    		self.p2 = subprocess.run(
-    			'sc query "Test_CryostatGui_%s" | find "RUNNING"'
-    			% self.instrument_dict[instrument]["ID"],
-    			capture_output=True,
-    			text=True,
-    			shell=True,
-    			)
-    		self.instrument_dict[instrument]["state_init"] = {}
-    		self.instrument_dict[instrument]["state_init"][
-    		"state"
-    		] = self.p2.stdout
-    		self.instrument_dict[instrument]["state_init"][
-    		"instrument"
-    		] = self.instrument_dict[instrument]["ID"]
-    		self.update_check_state_generell(
-    			self.instrument_dict[instrument]["state_init"])
+        #function which checks if it should make a new thread to check instrument state 
+        if self.instrument_dict[instrument]["shouldthread"] == 0:
+            self.instrument_dict[instrument][
+            "get_state"
+            ] = self.running_thread_control(
+                check_active(
+                    Instrument=self.instrument_dict[instrument]["ID"],
+                    prefix=self.prefix
+                    ),
+                "check_state_%s"
+                % self.instrument_dict[instrument]["ID"],
+                )
+            self.instrument_dict[instrument][
+            "get_state"
+            ].sig_Infodata.connect(self.update_check_state_generell)
+        else:
+            self.p2 = subprocess.run(
+                'sc query "Test_CryostatGui_%s" | find "RUNNING"'
+                % self.instrument_dict[instrument]["ID"],
+                capture_output=True,
+                text=True,
+                shell=True,
+                )
+            self.instrument_dict[instrument]["state_init"] = {}
+            self.instrument_dict[instrument]["state_init"][
+            "state"
+            ] = self.p2.stdout
+            self.instrument_dict[instrument]["state_init"][
+            "instrument"
+            ] = self.instrument_dict[instrument]["ID"]
+            self.update_check_state_generell(
+                self.instrument_dict[instrument]["state_init"])
 
 
     # --------Lakeshore350
@@ -669,7 +671,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_Lakeshore350][
             "window"
         ].checkRamp_Status.toggled["bool"].connect(
-       			lambda value: self.fun_checkSweep_toggled_lakeshore350(
+                lambda value: self.fun_checkSweep_toggled_lakeshore350(
                 instr=self.instrument_dict[instrument_Lakeshore350],
             )
         )
@@ -2467,7 +2469,10 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def initialize_window_Errors(self):
         """initialize Error Window"""
-        self.Errors_window = Window_ui(ui_file=".\\configurations\\Errors.ui")
+        self.Errors_window = Window_ui(
+            ui_file=".\\configurations\\Errors.ui",
+            parent=self,
+        )
         self.Errors_window.sig_closing.connect(
             lambda: self.action_show_Errors.setChecked(False)
         )
@@ -2534,7 +2539,7 @@ if __name__ == "__main__":
     form = mainWindow(
         app=app,
         ui_file=".\\configurations\\testnew.ui",
-        identity="MainWindow_1"
+        identity="MainWindow_1",
     )
     form.show()
     # print("date: ", dt.now(), "\nstartup time: ", time.time() - a)
