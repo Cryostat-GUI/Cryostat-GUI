@@ -27,6 +27,7 @@ from util.zmqcomms import dictdump
 # from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 from util.util_misc import CustomStreamHandler
+from util.util_misc import calculate_timediff
 from util import problemAbort
 
 from Sequence_abstract_measurements import AbstractMeasureResistance
@@ -88,6 +89,7 @@ class Sequence_functionsConvenience:
         ApproachMode: str = "Sweep",
         weak: bool = False,
         sensortype="control",
+        timeout: float = 0,
     ) -> bool:
         if sensortype == "both":
             self._checkStable_Temp(
@@ -96,6 +98,7 @@ class Sequence_functionsConvenience:
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype="control",
+                timeout=timeout,
             )
             self._checkStable_Temp(
                 temp=temp,
@@ -103,6 +106,7 @@ class Sequence_functionsConvenience:
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype="sample",
+                timeout=timeout,
             )
         else:
             self._checkStable_Temp(
@@ -111,6 +115,7 @@ class Sequence_functionsConvenience:
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype=sensortype,
+                timeout=timeout,
             )
 
     def _checkStable_Temp(
@@ -120,6 +125,7 @@ class Sequence_functionsConvenience:
         ApproachMode: str = "Sweep",
         weak: bool = False,
         sensortype="control",
+        timeout=0,
     ) -> bool:
         """wait for the temperature to stabilize
 
@@ -149,12 +155,21 @@ class Sequence_functionsConvenience:
                 sensortype = 'control': self.tempdefinition['control']
                 sensortype = 'sample': self.tempdefinition['sample']
                 sensortype = 'both': check for stability in both values
+
+        param: timeout:
+            float [s]
+            if timeout is exceeded, blocking behavior of the method is lifted,
+                return value should be False if timeout is exceeded
+                to be used with direction 0
+                if set to 0, timeout is infinite, method blocks until stability
+                is reached
         """
         return self._checkStable_Value(
             val=temp,
             direction=direction,
             ApproachMode=ApproachMode,
             weak=False,
+            timeout=timeout,
             dataindicator1=self.tempdefinition[sensortype][0],
             dataindicator2=self.tempdefinition[sensortype][1],
             value_name="temperature",
@@ -169,6 +184,7 @@ class Sequence_functionsConvenience:
         direction: int = 0,
         ApproachMode: str = "Sweep",
         weak: bool = False,
+        timeout=0,
         dataindicator1: str = None,
         dataindicator2: str = None,
         value_name: str = "tempearture",
@@ -198,6 +214,14 @@ class Sequence_functionsConvenience:
             if True, do not check for distance to the specified value,
             but only for slope and residuals and mean stderr
 
+        param: timeout:
+            float [s]
+            if timeout is exceeded, blocking behavior of the method is lifted,
+                return value should be False if timeout is exceeded
+                to be used with direction 0
+                if set to 0, timeout is infinite, method blocks until stability
+                is reached
+
         TODO: change thresholdsconf to variable thing for different values
         """
 
@@ -211,6 +235,9 @@ class Sequence_functionsConvenience:
                 )
 
         self._logger.debug(f"checking for stable {value_name}: {val}{value_unit}")
+
+        starttime = dt.now()
+
         if direction == 0 or ApproachMode != "Sweep":
             # no information, temp should really stabilize
 
@@ -219,6 +246,12 @@ class Sequence_functionsConvenience:
             value_now = 0
             stable_values = []
             while not stable:
+                if timeout == 0:
+                    pass
+                else:
+                    within_time_window, timediff = calculate_timediff(starttime, float(timeout))
+                    if not within_time_window:
+                        return False
 
                 stable_values = []
                 self.check_running()
@@ -314,6 +347,7 @@ class Sequence_functionsConvenience:
         self._logger.info(
             f"{value_name} {val} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
         )
+        return True
 
 
 class Sequence_functionsPersonal:
