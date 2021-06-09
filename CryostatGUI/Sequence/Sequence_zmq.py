@@ -145,7 +145,6 @@ class Sequence_functionsConvenience:
             bot only for slope and residuals and mean stderr
 
         param: sensortype:
-            TODO: implement behaivor
             indicates which sensor from the tempdefinition to use:
                 sensortype = 'control': self.tempdefinition['control']
                 sensortype = 'sample': self.tempdefinition['sample']
@@ -196,7 +195,6 @@ class Sequence_functionsConvenience:
             ApproachMode = Sweep: only for sweeps
 
         param: weak:
-            TODO: implement behavior
             if True, do not check for distance to the specified value,
             but only for slope and residuals and mean stderr
 
@@ -270,16 +268,6 @@ class Sequence_functionsConvenience:
                         # self._logger.warning("received wrong type (possibly None): ")
                         self._logger.exception(e_type)
                         continue
-                # if abs(value_now - val) < thresholdsconf["value"]:
-                #     stable_values.append("value")
-                # if abs(mean - val) < thresholdsconf["mean"]:
-                #     stable_values.append("mean")
-                # if abs(stderr_rel) < thresholdsconf["stderr_rel"]:
-                #     stable_values.append("stderr_rel")
-                # if abs(slope_rel) < thresholdsconf["relslope_Xpmin"]:
-                #     stable_values.append("relslope_Xpmin")
-                # if abs(slope_residuals) < thresholdsconf["slope_residuals"]:
-                #     stable_values.append("slope_residuals")
 
                 self._logger.info(
                     f"waiting for {value_name}: {val:.4f} (current: {value_now:.4f}{value_unit}), indicators ({len(stable_values):d}/5): {stable_values}"

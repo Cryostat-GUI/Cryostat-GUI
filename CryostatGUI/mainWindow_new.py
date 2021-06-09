@@ -163,7 +163,7 @@ class get_data(AbstractLoopThreadDataStore):
         # self.sig_Infodata.emit(deepcopy(self.data_main))
         time.sleep(1)
         self.run_finished = True
-        
+
     def check_crash(self, noblock, ID):
         uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60*5)
         if not uptodate:
