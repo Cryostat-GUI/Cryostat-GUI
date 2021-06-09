@@ -345,7 +345,7 @@ class Sequence_functionsConvenience:
                 time.sleep(1)
 
         self._logger.info(
-            f"{value_name} {val} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+            f"{value_name} {val} is stable! ({value_now}), ApproachMode = {ApproachMode}, direction = {direction}"
         )
         return True
 
