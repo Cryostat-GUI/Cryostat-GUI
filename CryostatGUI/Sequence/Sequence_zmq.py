@@ -92,7 +92,7 @@ class Sequence_functionsConvenience:
         timeout: float = 0,
     ) -> bool:
         if sensortype == "both":
-            self._checkStable_Temp(
+            r1 = self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
@@ -100,7 +100,7 @@ class Sequence_functionsConvenience:
                 sensortype="control",
                 timeout=timeout,
             )
-            self._checkStable_Temp(
+            r2 = self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
@@ -108,8 +108,11 @@ class Sequence_functionsConvenience:
                 sensortype="sample",
                 timeout=timeout,
             )
+            if r1 and r2:
+                return True
+            return False
         else:
-            self._checkStable_Temp(
+            return self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
