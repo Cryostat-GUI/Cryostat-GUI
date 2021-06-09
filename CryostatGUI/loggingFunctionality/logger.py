@@ -1,6 +1,5 @@
 import sys
 import os
-from functools import singledispatch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSignal
@@ -8,7 +7,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
-import pandas as pd
 import time
 import pickle
 import sqlite3
@@ -37,6 +35,8 @@ from util import convert_time_date
 from util import AbstractMainApp
 from util import Window_trayService_ui
 
+from util import calculate_timediff
+
 from loggingFunctionality.saveFileHeaders import headerstring1 as HEADERSTRING
 
 
@@ -54,59 +54,6 @@ class InitError(Exception):
     """docstring for InitError"""
 
     pass
-
-
-@singledispatch
-def calculate_timediff(dt, allowed_delay_s=3):
-    """function 'overloading' for python
-    https://docs.python.org/3/library/functools.html#functools.singledispatch
-    the following functions named _ are all registered to this name,
-    however with different input types.
-    """
-    pass
-
-
-@calculate_timediff.register(list)
-def _(dt, allowed_delay_s=3):
-    return calculate_timediff(dt[-1], allowed_delay_s)
-
-
-@calculate_timediff.register(str)
-def _(dt, allowed_delay_s=3):
-    try:
-        timediff = (
-            datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f") - datetime.now()
-        ).total_seconds()
-    except ValueError as err:
-        if "does not match format" in err.args[0]:
-            timediff = (
-                datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") - datetime.now()
-            ).total_seconds()
-        else:
-            raise err
-    uptodate = abs(timediff) < allowed_delay_s
-    return uptodate, timediff
-
-
-@calculate_timediff.register(datetime)
-def _(dt, allowed_delay_s=3):
-    timediff = (dt - datetime.now()).total_seconds()
-    uptodate = abs(timediff) < allowed_delay_s
-    return uptodate, timediff
-
-
-def slope_from_timestampX(tmp_):
-    """casting datetime into seconds:
-    dt = pandas series of datetime objects
-    seconds = dt.astype('int64') // 1e9
-
-    """
-    slope = pd.Series(
-        np.gradient(tmp_.values, tmp_.index.astype("int64") // 1e9),
-        tmp_.index,
-        name="slope",
-    )
-    return slope
 
 
 def testing_NaN(variable):

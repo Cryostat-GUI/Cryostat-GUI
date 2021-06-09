@@ -79,8 +79,9 @@ from drivers import ApplicationExit
 # from loggingFunctionality.logger import live_Logger
 # from loggingFunctionality.logger import measurement_Logger
 # from loggingFunctionality.logger import Logger_configuration
-from loggingFunctionality.logger import calculate_timediff
+# from loggingFunctionality.logger import calculate_timediff
 from util.zmqcomms import dictdump
+from util.util_misc import calculate_timediff
 from util import loops_off
 from settings import windowSettings
 from util import BlockedError
