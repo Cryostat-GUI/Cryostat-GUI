@@ -187,11 +187,11 @@ class Sequence_functionsConvenience:
         direction: int = 0,
         ApproachMode: str = "Sweep",
         weak: bool = False,
-        timeout=0,
+        timeout: float = 0,
         dataindicator1: str = None,
         dataindicator2: str = None,
         value_name: str = "tempearture",
-        value_unit: str = "K",
+        value_unit: str = "",
         getfunc=None,
         thresholdsconf=None,
     ) -> bool:
