@@ -234,7 +234,7 @@ class Sequence_functionsConvenience:
                     Live=False,
                 )
 
-        self._logger.debug(f"checking for stable {value_name}: {val}{value_unit}")
+        self._logger.debug(f"checking for stable {value_name}: {val} {value_unit} with mode {ApproachMode}")
 
         starttime = dt.now()
 
@@ -278,16 +278,17 @@ class Sequence_functionsConvenience:
                     Live=True,
                 )
 
+                all_values = [
+                                "value",
+                                "mean",
+                                "stderr_rel",
+                                "relslope_Xpmin",
+                                "slope_residuals",
+                            ]
                 for ct, (vn, label) in enumerate(
                     zip(
                         [value_now, mean, stderr_rel, slope_rel, slope_residuals],
-                        [
-                            "value",
-                            "mean",
-                            "stderr_rel",
-                            "relslope_Xpmin",
-                            "slope_residuals",
-                        ],
+                        all_values,
                     )
                 ):
                     try:
@@ -302,8 +303,11 @@ class Sequence_functionsConvenience:
                         self._logger.exception(e_type)
                         continue
 
+                missing_values = [v_missing for v_missing in all_values if v_missing in stable_values]
                 self._logger.info(
-                    f"waiting for {value_name}: {val:.4f} (current: {value_now:.4f}{value_unit}), indicators ({len(stable_values):d}/5): {stable_values}"
+                    f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, " +
+                    f"indicators ({len(stable_values):d}/5): {stable_values}, " +
+                    f"missing ({len(stable_values):d}/5): {missing_values}"
                 )
 
                 if len(stable_values) >= 5:
