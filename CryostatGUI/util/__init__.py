@@ -17,6 +17,8 @@ from .util_misc import Window_plotting_m
 from .util_misc import Window_plotting_specification
 from .util_misc import dummy
 
+from .util_misc import calculate_timediff
+
 
 from .abstractThreads import AbstractMainApp
 from .abstractThreads import AbstractThread
