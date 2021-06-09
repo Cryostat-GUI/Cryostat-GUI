@@ -165,7 +165,8 @@ class get_data(AbstractLoopThreadDataStore):
         self.run_finished = True
         
     def check_crash(self, noblock, ID):
-        if not calculate_timediff(self.data_all["realtime"], 60*5):
+        uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60*5)
+        if not uptodate:
             self.crash_all["state"] = "crashed"
             if noblock is False:
                 self.crash_all["noblock"] = 0
