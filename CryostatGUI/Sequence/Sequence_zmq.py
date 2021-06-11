@@ -260,26 +260,26 @@ class Sequence_functionsConvenience:
                 self.check_running()
 
                 value_now = getfunc()
-                mean = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_ar_mean",
-                    Live=True,
-                )
-                stderr_rel = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_stderr_rel",
-                    Live=True,
-                )
-                slope_rel = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_slope_rel",
-                    Live=True,
-                )
-                slope_residuals = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_slope_residuals",
-                    Live=True,
-                )
+                qdict = {
+                    "mean": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_ar_mean",
+                    },
+                    "stderr_rel": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_stderr_rel",
+                    },
+                    "relslope_Xpmin": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_slope_rel",
+                    },
+                    "slope_residuals": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_slope_residuals",
+                    },
+                }
+                all_data = self.retrieveDataMultiple(dataindicators=qdict, Live=True)
+                all_data["data"].update({"value": value_now})
 
                 all_values = [
                                 "value",
@@ -288,13 +288,9 @@ class Sequence_functionsConvenience:
                                 "relslope_Xpmin",
                                 "slope_residuals",
                             ]
-                for ct, (vn, label) in enumerate(
-                    zip(
-                        [value_now, mean, stderr_rel, slope_rel, slope_residuals],
-                        all_values,
-                    )
-                ):
+                for ct, label in enumerate(all_values):
                     try:
+                        vn = all_data["data"][label]
                         if ct < 2:
                             compared_value = abs(vn - val)
                         else:
@@ -306,7 +302,7 @@ class Sequence_functionsConvenience:
                         self._logger.exception(e_type)
                         continue
 
-                missing_values = [v_missing for v_missing in all_values if v_missing in stable_values]
+                missing_values = [v_missing for v_missing in all_values if v_missing not in stable_values]
                 self._logger.info(
                     f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, " +
                     f"indicators ({len(stable_values):d}/5): {stable_values}, " +
@@ -315,7 +311,7 @@ class Sequence_functionsConvenience:
 
                 if len(stable_values) >= 5:
                     stable = True
-                elif weak and len(stable_values) == 4 and "value" not in stable_values:
+                elif weak and len(stable_values) >= 3 and all(v_missing in missing_values for v_missing in ("value", "mean")):
                     stable = True
                 else:
                     time.sleep(1)
