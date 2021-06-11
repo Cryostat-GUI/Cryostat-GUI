@@ -463,45 +463,6 @@ class zmqMainControl(zmqBare):
         )
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
-    def _bare_retrieveDataIndividual_old(
-        self, dataindicator1, dataindicator2, Live=True
-    ):
-        message = enc(
-            "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
-        )
-        try:
-            self.comms_data.send(message)
-            for _ in range(3):
-                for _ in range(5):
-                    try:
-                        message = dictload(self.comms_data.recv(flags=zmq.NOBLOCK))
-                        if "ERROR" in message:
-                            self._logger.warning(
-                                "received error from dataStorage: %s -- %s",
-                                message["ERROR_message"],
-                                message["info"],
-                            )
-                            raise problemAbort(
-                                "problem with data retrieval, possibly the requested data is missing"
-                            )
-                        raise successExit
-                    except zmq.Again:
-                        time.sleep(0.3)
-                self._logger.debug("no answer after 5 trials, sleeping for a while")
-                time.sleep(1)
-
-            self._logger.warning("got no answer from dataStorage within 6s")
-            # TODO: fallback to querying individual application parts for data
-            raise problemAbort("dataStorage unresponsive, abort")
-        except zmq.ZMQError as e:
-            self._logger.exception(e)
-            # raise problemAbort("")
-            return None, "zmq error, no data available, abort"
-        except successExit:
-            return message, None
-        except problemAbort as e:
-            return None, e
-
     def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
         uuid_now = uuid.uuid4().hex
         message = enc(
@@ -525,10 +486,35 @@ class zmqMainControl(zmqBare):
             self._logger.exception(e)
             # raise problemAbort("")
             return None  # , "zmq error, no data available, abort"
-        # except successExit:
-        #     return message, None
-        # except problemAbort as e:
-        #     return None, e
+
+    def retrieveDataMultiple(self, dataindicators: dict, Live=True):
+        """dataindicators:
+        dict of dicts:
+            {
+                val1: {"instr": instr1, "value": value1},
+                val2: {"instr": instr2, "value": value2},
+            }
+         """
+        uuid_now = uuid.uuid4().hex
+        message = enc(
+            "?"
+            + dictdump(
+                dict(multiple=dataindicators, live=Live, uuid=uuid_now,)
+                )
+            )
+        try:
+            message, _ = self._bare_requestData_retries(
+                message,
+                fun_send=self.comms_data.send,
+                fun_recv=self.comms_data.recv,
+                id_send=None,
+                uuid=uuid_now,
+            )
+            return message
+        except zmq.ZMQError as e:
+            self._logger.exception(e)
+            # raise problemAbort("")
+            return None  # , "zmq error, no data available, abort"
 
     def _bare_requestData_retries(
         self,
@@ -573,7 +559,7 @@ class zmqMainControl(zmqBare):
                                 )
                                 try:
                                     if answer["retry"] is True:
-                                        self._logger.info(
+                                        self._logger.debug(
                                             "retry in error is True, requesting again"
                                         )
                                         (
@@ -589,7 +575,7 @@ class zmqMainControl(zmqBare):
                                             uuid,
                                         )
                                     else:
-                                        self._logger.info(
+                                        self._logger.debug(
                                             "retry in error is False, aborting"
                                         )
                                         raise KeyError  # not really the KeyError, but less copying of vode

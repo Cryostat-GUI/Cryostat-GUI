@@ -1005,21 +1005,37 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def get_answer(self, qdict):
         self._logger.debug(f"getting answer for {qdict}")
+        allowed_delay_s = 3
         adict = {}
         try:
             live = qdict["live"]
             if live:
-                with self.dataLock_live:
-                    data = self.data_live[qdict["instr"]][qdict["value"]][-1]
-                    uptodate, timediff = calculate_timediff(
-                        self.data_live[qdict["instr"]]["realtime"], allowed_delay_s=3
-                    )
+                locked = self.dataLock_live
+                def taking(value): value[-1]
+                datadict = self.data_live
             else:
-                with self.dataLock:
-                    data = self.data[qdict["instr"]][qdict["value"]]
+                locked = self.dataLock
+                def taking(value): value
+                datadict = self.data
+
+            with locked:
+                if "multiple" in qdict:
+                    data = {}
+                    timediffs = []
+                    for dataindicator_here in qdict["multiple"]:
+                        data[dataindicator_here] = taking(datadict[qdict["multiple"][dataindicator_here]["instr"]][qdict["multiple"][dataindicator_here]["value"]])
+                        _, tdiff = calculate_timediff(datadict[qdict["multiple"][dataindicator_here]["instr"]]["realtime"], allowed_delay_s=allowed_delay_s)
+                        # calculate_timediff will take last of a list by itself, if it is passed a list
+                        timediffs.append(tdiff)
+                    timediff = np.max(timediffs)
+                    uptodate = True if timediff < 3 else False
+                else:
+                    data = taking(datadict[qdict["instr"]][qdict["value"]])
                     uptodate, timediff = calculate_timediff(
-                        self.data[qdict["instr"]]["realtime"], allowed_delay_s=3
+                        datadict[qdict["instr"]]["realtime"], allowed_delay_s=allowed_delay_s
                     )
+                    # calculate_timediff will take last of a list by itself, if it is passed a list
+
         except KeyError as e:
             return dict(
                 ERROR="KeyError",
