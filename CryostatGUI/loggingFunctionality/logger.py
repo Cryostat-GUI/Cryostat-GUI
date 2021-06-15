@@ -1011,11 +1011,17 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             live = qdict["live"]
             if live:
                 locked = self.dataLock_live
-                def taking(value): value[-1]
+
+                def taking(value):
+                    return value[-1]
+
                 datadict = self.data_live
             else:
                 locked = self.dataLock
-                def taking(value): value
+
+                def taking(value):
+                    return value
+
                 datadict = self.data
 
             with locked:
@@ -1023,8 +1029,17 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                     data = {}
                     timediffs = []
                     for dataindicator_here in qdict["multiple"]:
-                        data[dataindicator_here] = taking(datadict[qdict["multiple"][dataindicator_here]["instr"]][qdict["multiple"][dataindicator_here]["value"]])
-                        _, tdiff = calculate_timediff(datadict[qdict["multiple"][dataindicator_here]["instr"]]["realtime"], allowed_delay_s=allowed_delay_s)
+                        data[dataindicator_here] = taking(
+                            datadict[qdict["multiple"][dataindicator_here]["instr"]][
+                                qdict["multiple"][dataindicator_here]["value"]
+                            ]
+                        )
+                        _, tdiff = calculate_timediff(
+                            datadict[qdict["multiple"][dataindicator_here]["instr"]][
+                                "realtime"
+                            ],
+                            allowed_delay_s=allowed_delay_s,
+                        )
                         # calculate_timediff will take last of a list by itself, if it is passed a list
                         timediffs.append(tdiff)
                     timediff = np.max(timediffs)
@@ -1032,7 +1047,8 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
                 else:
                     data = taking(datadict[qdict["instr"]][qdict["value"]])
                     uptodate, timediff = calculate_timediff(
-                        datadict[qdict["instr"]]["realtime"], allowed_delay_s=allowed_delay_s
+                        datadict[qdict["instr"]]["realtime"],
+                        allowed_delay_s=allowed_delay_s,
                     )
                     # calculate_timediff will take last of a list by itself, if it is passed a list
 
