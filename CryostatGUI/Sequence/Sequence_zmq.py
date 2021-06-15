@@ -741,7 +741,7 @@ class Sequence_Thread_zmq(
         # comms_data,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(_ident="sequence", **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
