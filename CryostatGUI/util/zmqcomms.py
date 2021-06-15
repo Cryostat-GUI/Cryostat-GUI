@@ -808,9 +808,11 @@ class zmqDataStore(zmqBare):
             except zmq.Again:
                 pass
         if self.comms_data in evts:
+            self._logger.debug("handling data evt")
             try:
                 while True:
                     address, msg = self.comms_data.recv_multipart(zmq.NOBLOCK)
+                    self._logger.debug("message received: %s, %s", address, msg)
                     answer = self.question_to_self(msg)
                     self.comms_data.send_multipart([address, enc(answer)])
                     self._logger.debug("sent answer to %s", address)
