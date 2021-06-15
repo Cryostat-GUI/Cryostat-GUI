@@ -40,9 +40,9 @@ def main():
 
     logger.debug("starting loop")
     while True:
-        time.sleep(0.0001)
+        time.sleep(0.01)
         evts = dict(poller.poll(zmq.DONTWAIT))
-        logger.warning("handling evts")
+        # logger.debug("handling evts")
 
         if frontend in evts:
             logger.debug("frontend received")
