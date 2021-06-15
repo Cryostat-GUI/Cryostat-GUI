@@ -476,7 +476,7 @@ class zmqMainControl(zmqBare):
             )
         )
         try:
-            message, _ = self._bare_requestData_retries(
+            message = self._bare_requestData_retries(
                 message,
                 fun_send=self.comms_data.send,
                 fun_recv=self.comms_data.recv,
@@ -509,7 +509,7 @@ class zmqMainControl(zmqBare):
             )
         )
         try:
-            message, _ = self._bare_requestData_retries(
+            message = self._bare_requestData_retries(
                 message,
                 fun_send=self.comms_data.send,
                 fun_recv=self.comms_data.recv,
@@ -729,7 +729,7 @@ class zmqDataStore(zmqBare):
         _ident="dataStore",
         ip_maincontrol="localhost",
         ip_data="127.0.0.1",
-        port_reqp=5556,
+        port_reqp_c=5556,
         port_downstream=5557,
         port_upstream=5559,
         port_data=5563,
@@ -743,7 +743,7 @@ class zmqDataStore(zmqBare):
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
         self.comms_tcp.identity = b"dataStore"  # id
-        self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp}")
+        self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp_c}")
 
         self.comms_data = self._zctx.socket(zmq.ROUTER)
         self.comms_data.identity = b"dataStore"  # id
