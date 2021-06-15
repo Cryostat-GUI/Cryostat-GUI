@@ -1011,11 +1011,11 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
             live = qdict["live"]
             if live:
                 locked = self.dataLock_live
-                def taking(value): value[-1]
+                def taking(value): return value[-1]
                 datadict = self.data_live
             else:
                 locked = self.dataLock
-                def taking(value): value
+                def taking(value): return value
                 datadict = self.data
 
             with locked:
