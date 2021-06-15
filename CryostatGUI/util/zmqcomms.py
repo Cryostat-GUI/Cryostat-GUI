@@ -225,10 +225,13 @@ class zmqClient(zmqBare):
         )
         self.comms_name = identity
         self._zctx = context or zmq.Context()
+
+        # setting up dealer-router-dealer through broker comms
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
         self.comms_tcp.identity = "{}".format(identity).encode("ascii")  # id
         self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp}")
 
+        # setting up downstream: commands from mainControl units
         self.comms_downstream = self._zctx.socket(zmq.SUB)
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
@@ -242,6 +245,7 @@ class zmqClient(zmqBare):
             "general".encode("ascii"),
         )
 
+        # setting up upstream, sending data back to whoever is interested
         self.comms_upstream = self._zctx.socket(zmq.PUB)
         self.comms_upstream.connect(f"tcp://{ip_data}:{port_upstream}")
 
@@ -250,18 +254,9 @@ class zmqClient(zmqBare):
         self.poller.register(self.comms_downstream, zmq.POLLIN)
 
         time.sleep(4)
-        # needed for the PUB/SUB sockets to find each other!
+        # sleep needed for the PUB/SUB sockets to find each other!
 
         self.data = {}
-
-    # def work_zmq(self):
-    #     try:
-    #         # self.comms_pub.send_multipart([u'client{}'.format(self.name).encode(
-    #         #     'ascii'), u'comes from client{}'.format(self.name).encode('ascii')])
-    #         # print(f'client {self._name} polling')
-    #         self.zmq_handle()
-    #     except KeyboardInterrupt:
-    #         pass
 
     def act_on_general(self, command_dict):
         try:
@@ -698,21 +693,6 @@ class zmqMainControl(zmqBare):
         data = "!" + dictdump(command)
         # return self._query_device(device_id, data, noblock=noblock)
         return self._query_device_ensureResult(device_id, data, uuid_now, **kwargs)
-
-    # def _query_device(self, device_id, msg, noblock):
-    #     address_retour = None
-    #     address = device_id
-
-    #     while address_retour != address:
-    #         self._logger.debug("querying %s: %s", address, msg)
-    #         self.comms_tcp.send_multipart([address, enc(msg)])
-    #         if noblock:
-    #             time.sleep(0.5)
-    #             address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
-    #         else:
-    #             address_retour, message = self.comms_tcp.recv_multipart()
-    #         self._logger.debug("received data from %s", address_retour)
-    #     return dictload(dec(message))
 
     def _query_device_ensureResult(self, device_id, msg, uuid_now, **kwargs):
         address = device_id
