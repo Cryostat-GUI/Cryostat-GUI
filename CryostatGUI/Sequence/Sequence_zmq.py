@@ -237,7 +237,9 @@ class Sequence_functionsConvenience:
                     Live=False,
                 )
 
-        self._logger.debug(f"checking for stable {value_name}: {val} {value_unit} with mode {ApproachMode}")
+        self._logger.debug(
+            f"checking for stable {value_name}: {val} {value_unit} with mode {ApproachMode}"
+        )
 
         starttime = dt.now()
 
@@ -252,7 +254,9 @@ class Sequence_functionsConvenience:
                 if timeout == 0:
                     pass
                 else:
-                    within_time_window, timediff = calculate_timediff(starttime, float(timeout))
+                    within_time_window, timediff = calculate_timediff(
+                        starttime, float(timeout)
+                    )
                     if not within_time_window:
                         return False
 
@@ -282,12 +286,12 @@ class Sequence_functionsConvenience:
                 all_data["data"].update({"value": value_now})
 
                 all_values = [
-                                "value",
-                                "mean",
-                                "stderr_rel",
-                                "relslope_Xpmin",
-                                "slope_residuals",
-                            ]
+                    "value",
+                    "mean",
+                    "stderr_rel",
+                    "relslope_Xpmin",
+                    "slope_residuals",
+                ]
                 for ct, label in enumerate(all_values):
                     try:
                         vn = all_data["data"][label]
@@ -302,16 +306,26 @@ class Sequence_functionsConvenience:
                         self._logger.exception(e_type)
                         continue
 
-                missing_values = [v_missing for v_missing in all_values if v_missing not in stable_values]
+                missing_values = [
+                    v_missing
+                    for v_missing in all_values
+                    if v_missing not in stable_values
+                ]
                 self._logger.info(
-                    f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, " +
-                    f"indicators ({len(stable_values):d}/5): {stable_values}, " +
-                    f"missing ({len(stable_values):d}/5): {missing_values}"
+                    f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, "
+                    + f"indicators ({len(stable_values):d}/5): {stable_values}, "
+                    + f"missing ({len(stable_values):d}/5): {missing_values}"
                 )
 
                 if len(stable_values) >= 5:
                     stable = True
-                elif weak and len(stable_values) >= 3 and all(v_missing in missing_values for v_missing in ("value", "mean")):
+                elif (
+                    weak
+                    and len(stable_values) >= 3
+                    and all(
+                        v_missing in missing_values for v_missing in ("value", "mean")
+                    )
+                ):
                     stable = True
                 else:
                     time.sleep(1)
@@ -741,7 +755,7 @@ class Sequence_Thread_zmq(
         # comms_data,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(_ident="sequence", **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -837,7 +851,7 @@ class Sequence_Thread_zmq(
 if __name__ == "__main__":
 
     # try:
-        # with PidFile("MainControl"):
+    # with PidFile("MainControl"):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -861,9 +875,7 @@ if __name__ == "__main__":
 
     handler_info = CustomStreamHandler(logging.INFO, sys.stdout)
     handler_info.setLevel(logging.INFO)
-    formatter_info = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s"
-    )
+    formatter_info = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     handler_info.setFormatter(formatter_info)
 
     logger.addHandler(handler_debug)

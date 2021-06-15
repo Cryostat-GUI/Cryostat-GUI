@@ -108,7 +108,9 @@ if __name__ == "__main__":
 
     handler_info = logging.StreamHandler()  # logging.DEBUG, sys.stdout)
     handler_info.setLevel(logging.DEBUG)
-    formatter_info = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    formatter_info = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
     handler_info.setFormatter(formatter_info)
 
     # logger.addHandler(handler_debug)

@@ -496,6 +496,8 @@ class zmqMainControl(zmqBare):
                 val1: {"instr": instr1, "value": value1},
                 val2: {"instr": instr2, "value": value2},
             }
+            TODO: include this in a method which checks whether the data
+            is actually up to date (as is done here in _bare_readDataFromList)
         """
         uuid_now = uuid.uuid4().hex
         message = enc(
@@ -534,8 +536,10 @@ class zmqMainControl(zmqBare):
     ):
         if id_send:
             fun_send([enc(id_send), enc(message)])
+            self._logger.debug("sending message: %s", [enc(id_send), enc(message)])
         else:
             fun_send(message)
+            self._logger.debug("sending message: %s", message)
 
         time_start = dt.now()
         uuid_back = ""
