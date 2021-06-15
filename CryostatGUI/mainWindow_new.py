@@ -28,7 +28,7 @@
 
 import time
 
-#a = time.time()
+# a = time.time()
 from PyQt5 import QtWidgets, QtGui
 from datetime import datetime as dt
 
@@ -110,7 +110,7 @@ errorfile = "Errors\\" + dt.now().strftime("%Y%m%d") + ".error"
 
 
 class check_active(AbstractLoopThread):
-    """Thread that checks if Windowsservice is running """
+    """Thread that checks if Windowsservice is running"""
 
     a = "init"
     data = {}
@@ -144,6 +144,7 @@ class check_active(AbstractLoopThread):
 
 class get_data(AbstractLoopThreadDataStore):
     """Thread that gets data from broker and sends them to mainGui"""
+
     sig_all = pyqtSignal(dict)
     sig_state_all = pyqtSignal(dict)
 
@@ -165,7 +166,7 @@ class get_data(AbstractLoopThreadDataStore):
         self.run_finished = True
 
     def check_crash(self, noblock, ID):
-        uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60*5)
+        uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60 * 5)
         if not uptodate:
             self.crash_all["state"] = "crashed"
             if noblock is False:
@@ -188,6 +189,7 @@ class get_data(AbstractLoopThreadDataStore):
             self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
         else:
             self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
+
 
 class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     error_message_start = {}
@@ -244,7 +246,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ips120_1": {},
             "ILM": {},
             "sr830_1": {},
-            "SR860_1": {}}
+            "SR860_1": {},
+        }
         # dict for updating Client GUIS
         self.data_instruments = {
             "Keithley6221_1": {},
@@ -254,10 +257,10 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "Keithley2182_3": {},
             "LakeShore350": {},
             "ITC": {},
-            "ips120_1": {}, 
+            "ips120_1": {},
             "ILM": {},
             "sr830_1": {},
-            "SR860_1": {}
+            "SR860_1": {},
         }
         self.lockin_data_list = [
             "Frequency_Hz",
@@ -274,7 +277,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.keithley2182_data_list = [
             "TemperatureInternal_K",
             "Voltage_V",
-            "TemperaturePresent_K",]
+            "TemperaturePresent_K",
+        ]
         self.keithley6221_data_list = ["Current_A", "set_Output", "OutputOn"]
         self.lakeshore350_data_list = [
             "Sensor_1_K",
@@ -306,7 +310,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "derivative_action_time",
             "Sensor_1_calerr_K",
             "heater_output_as_percent",
-            "interval_thread"
+            "interval_thread",
         ]
         self.ips120_data_list = [
             "field_set_point",
@@ -321,7 +325,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "status_current",
             "status_activity",
             "status_locrem",
-            "status_switchheater"]
+            "status_switchheater",
+        ]
         for key in self.lockin_data_list:
             self.data_instruments["sr830_1"][key] = None
             self.data_instruments["SR860_1"][key] = None
@@ -341,27 +346,81 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         for key in self.ips120_data_list:
             self.data_instruments["ips120_1"][key] = None
 
-
         # Dict in which the Data of all instruments is saved,
-        # shouldthread = makes sure that after deleting a row in the main Gui 
+        # shouldthread = makes sure that after deleting a row in the main Gui
         #               and then add the same row the thread ckeck_state isn't create a second time
         # lock = locks buttones that aren't implemented if the row is deleted
-        # multipl = so that not more than 1 error window is create if an instrument crashes   
+        # multipl = so that not more than 1 error window is create if an instrument crashes
         self.instrument_dict = {
-            "Keithley6221_1": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Keithley6221_Updater},
-            "Keithley6221_2": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Keithley6221_Updater},
-            "Keithley2182_1": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Keithley2182_Updater},
-            "Keithley2182_2": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Keithley2182_Updater},
-            "Keithley2182_3": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Keithley2182_Updater},
-            "LakeShore350": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.Lakeshore350_Updater},
-            "ITC": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.ITC503_Updater},
-            "ips120_1": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.IPS120},
-            "ILM": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.ilm211_Updater},
-            "sr830_1": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.SR830_Updater},
-            "SR860_1": {"shouldthread": 0, "lock": 0, "multipl": 0,"method_update_gui": self.SR860_Updater},
+            "Keithley6221_1": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Keithley6221_Updater,
+            },
+            "Keithley6221_2": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Keithley6221_Updater,
+            },
+            "Keithley2182_1": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Keithley2182_Updater,
+            },
+            "Keithley2182_2": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Keithley2182_Updater,
+            },
+            "Keithley2182_3": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Keithley2182_Updater,
+            },
+            "LakeShore350": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.Lakeshore350_Updater,
+            },
+            "ITC": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.ITC503_Updater,
+            },
+            "ips120_1": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.IPS120,
+            },
+            "ILM": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.ilm211_Updater,
+            },
+            "sr830_1": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.SR830_Updater,
+            },
+            "SR860_1": {
+                "shouldthread": 0,
+                "lock": 0,
+                "multipl": 0,
+                "method_update_gui": self.SR860_Updater,
+            },
         }
-        self.instruments = self.instrument_dict.keys() 
-        self.prefix='Test_CryostatGUI_'
+        self.instruments = self.instrument_dict.keys()
+        self.prefix = "Test_CryostatGUI_"
         self.logging_bools = {}
         self.logging_running_ITC = False
         self.logging_running_logger = False
@@ -395,16 +454,19 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # QTimer.singleShot(0, self.runnning_mainWindow)
         # QTimer.singleShot(0, self.load_settings_itc503)
         # instrument_text=Record()
+
     def initialize_row_start(self):
         """Initialize all instruments when the Gui is started"""
         while self.select_instrument.currentText() != "":
-            self.add_row(instrument= self.select_instrument.currentText(), index=self.select_instrument.currentIndex())
+            self.add_row(
+                instrument=self.select_instrument.currentText(),
+                index=self.select_instrument.currentIndex(),
+            )
+
     def delete_row(self, instrument, index):
         """deletes instrument row"""
         self.row_numbers_delete = self.instrument_dict[instrument]["row"]
-        self.gridLayout_2.removeWidget(
-            self.instrument_dict[instrument]["maintext"]
-        )
+        self.gridLayout_2.removeWidget(self.instrument_dict[instrument]["maintext"])
         self.instrument_dict[instrument]["maintext"].deleteLater()
         del self.instrument_dict[instrument]["maintext"]
 
@@ -420,9 +482,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument]["show"].deleteLater()
         del self.instrument_dict[instrument]["show"]
 
-        self.gridLayout_2.removeWidget(
-            self.instrument_dict[instrument]["remote"]
-        )
+        self.gridLayout_2.removeWidget(self.instrument_dict[instrument]["remote"])
         self.instrument_dict[instrument]["remote"].deleteLater()
         del self.instrument_dict[instrument]["remote"]
 
@@ -430,19 +490,14 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.select_instrument_delete.removeItem(index)
         self.instrument_dict[instrument]["shouldthread"] = 1
         self.instrument_dict[instrument]["lock"] = 0
+
     def add_row(self, instrument, index):
         """adds a row with new instrument"""
         self.row_numbers = self.row_numbers + 1
-        self.instrument_dict[instrument]["maintext"] = QLabel(
-            instrument
-            )
+        self.instrument_dict[instrument]["maintext"] = QLabel(instrument)
         self.instrument_dict[instrument]["state"] = QLabel("")
-        self.instrument_dict[instrument]["start"] = QPushButton(
-            "start/stop"
-            )
-        self.instrument_dict[instrument]["show"] = QPushButton(
-                "show Window"
-                )
+        self.instrument_dict[instrument]["start"] = QPushButton("start/stop")
+        self.instrument_dict[instrument]["show"] = QPushButton("show Window")
         self.instrument_dict[instrument]["remote"] = QLabel("")
         self.instrument_dict[instrument]["row"] = self.row_numbers
         self.instrument_dict[instrument]["lock"] = 1
@@ -450,30 +505,30 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             self.instrument_dict[instrument]["maintext"],
             self.row_numbers,
             0,
-            )
+        )
         self.gridLayout_2.addWidget(
             self.instrument_dict[instrument]["state"],
             self.row_numbers,
             1,
-            )
+        )
         self.gridLayout_2.addWidget(
             self.instrument_dict[instrument]["start"],
             self.row_numbers,
             2,
-            )
+        )
         self.gridLayout_2.addWidget(
             self.instrument_dict[instrument]["show"],
             self.row_numbers,
             3,
-            )
+        )
         self.gridLayout_2.addWidget(
             self.instrument_dict[instrument]["remote"],
             self.row_numbers,
             4,
-            )
+        )
         self.select_instrument_delete.addItem(instrument)
         self.select_instrument.removeItem(index)
-        self.initialize_row(instrument= instrument)
+        self.initialize_row(instrument=instrument)
 
     def initialize_row(self, instrument):
         """connecting row buttons with functions"""
@@ -507,7 +562,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def start_instrument(self, instrument=None):
         """function that starts and stop ControlClient windows services"""
         p1 = subprocess.run(
-             'sc query "{0}{1}" | find "RUNNING"'.format(self.prefix, instrument),
+            'sc query "{0}{1}" | find "RUNNING"'.format(self.prefix, instrument),
             capture_output=True,
             text=True,
             shell=True,
@@ -564,7 +619,11 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         )
         if data["state"] == "crashed":
             if self.instrument_dict[data["ID"]]["multipl"] == 1:
-                self.show_error_general("Service CryostatGui_{0} crashed".format(self.instrument_dict[data["ID"]]))
+                self.show_error_general(
+                    "Service CryostatGui_{0} crashed".format(
+                        self.instrument_dict[data["ID"]]
+                    )
+                )
                 if self.instrument_dict[data["ID"]]["lock"] == 1:
                     self.instrument_dict[data["ID"]]["state"].setText(data["state"])
         else:
@@ -573,7 +632,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def update_check_state_generell(self, data):
         """Updates the state Label in the main GUI"""
-        #if function prevents error if row doesn't exist
+        # if function prevents error if row doesn't exist
         if self.instrument_dict[data["instrument"]]["lock"] == 1:
             if "RUNNING" in data["state"]:
                 self.instrument_dict[data["instrument"]]["state"].setText("Running")
@@ -585,22 +644,20 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[data["instrument"]]["state"].setStyleSheet(
                     "color:red"
                 )
+
     def initialize_state_threade(self, instrument):
-        #function which checks if it should make a new thread to check instrument state 
+        # function which checks if it should make a new thread to check instrument state
         if self.instrument_dict[instrument]["shouldthread"] == 0:
-            self.instrument_dict[instrument][
-            "get_state"
-            ] = self.running_thread_control(
+            self.instrument_dict[instrument]["get_state"] = self.running_thread_control(
                 check_active(
                     Instrument=self.instrument_dict[instrument]["ID"],
-                    prefix=self.prefix
-                    ),
-                "check_state_%s"
-                % self.instrument_dict[instrument]["ID"],
-                )
-            self.instrument_dict[instrument][
-            "get_state"
-            ].sig_Infodata.connect(self.update_check_state_generell)
+                    prefix=self.prefix,
+                ),
+                "check_state_%s" % self.instrument_dict[instrument]["ID"],
+            )
+            self.instrument_dict[instrument]["get_state"].sig_Infodata.connect(
+                self.update_check_state_generell
+            )
         else:
             self.p2 = subprocess.run(
                 'sc query "Test_CryostatGui_%s" | find "RUNNING"'
@@ -608,45 +665,36 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 capture_output=True,
                 text=True,
                 shell=True,
-                )
+            )
             self.instrument_dict[instrument]["state_init"] = {}
+            self.instrument_dict[instrument]["state_init"]["state"] = self.p2.stdout
             self.instrument_dict[instrument]["state_init"][
-            "state"
-            ] = self.p2.stdout
-            self.instrument_dict[instrument]["state_init"][
-            "instrument"
+                "instrument"
             ] = self.instrument_dict[instrument]["ID"]
             self.update_check_state_generell(
-                self.instrument_dict[instrument]["state_init"])
-
+                self.instrument_dict[instrument]["state_init"]
+            )
 
     # --------Lakeshore350
     def initialize_window_LakeShore350(self, instrument_Lakeshore350):
         """initialize LakeShore Window"""
-        self.instrument_dict[instrument_Lakeshore350][
-            "ID"
-        ] = instrument_Lakeshore350
+        self.instrument_dict[instrument_Lakeshore350]["ID"] = instrument_Lakeshore350
         self.instrument_dict[instrument_Lakeshore350]["window"] = Window_ui(
             ui_file=".\\LakeShore\\lakeShore350_Qwidget.ui",
             parent=self,
         )
-        self.instrument_dict[instrument_Lakeshore350][
-            "window"
-        ].sig_closing.connect(lambda: self.action_show_LakeShore350.setChecked(False))
+        self.instrument_dict[instrument_Lakeshore350]["window"].sig_closing.connect(
+            lambda: self.action_show_LakeShore350.setChecked(False)
+        )
 
         self.initialize_state_threade(instrument_Lakeshore350)
 
-        self.instrument_dict[instrument_Lakeshore350]["start"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Lakeshore350]["start"].clicked["bool"].connect(
             lambda value: self.start_instrument(
-                instrument="%s"
-                % self.instrument_dict[instrument_Lakeshore350]["ID"]
+                instrument="%s" % self.instrument_dict[instrument_Lakeshore350]["ID"]
             )
         )
-        self.instrument_dict[instrument_Lakeshore350]["show"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Lakeshore350]["show"].clicked["bool"].connect(
             lambda value: self.show_window_button_pressed(
                 self.instrument_dict[instrument_Lakeshore350]["window"]
             )
@@ -654,8 +702,11 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # self.action_show_LakeShore350.triggered["bool"].connect(self.show_LakeShore350)
 
         self.LakeShore350_Kpmin = None
-        self.instrument_dict[instrument_Lakeshore350]["values"]={}
-        self.instrument_dict[instrument_Lakeshore350]["values"]["temp"] = {"isSweep": False, "SweepRate": 0.0}
+        self.instrument_dict[instrument_Lakeshore350]["values"] = {}
+        self.instrument_dict[instrument_Lakeshore350]["values"]["temp"] = {
+            "isSweep": False,
+            "SweepRate": 0.0,
+        }
         # self.instrument_dict["%s"%instrument_Lakeshore350]["values"]=dict
         # connecting buttons to send commands upstream
 
@@ -665,15 +716,13 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         ].spinSetTemp_K.valueChanged.connect(
             lambda value: self.fun_setTemp_valcha_lakeshore350(
                 value,
-                instr=self.instrument_dict[instrument_Lakeshore350][
-                    "values"
-                ]["temp"],
+                instr=self.instrument_dict[instrument_Lakeshore350]["values"]["temp"],
             )
         )
         self.instrument_dict[instrument_Lakeshore350][
             "window"
         ].checkRamp_Status.toggled["bool"].connect(
-                lambda value: self.fun_checkSweep_toggled_lakeshore350(
+            lambda value: self.fun_checkSweep_toggled_lakeshore350(
                 instr=self.instrument_dict[instrument_Lakeshore350],
             )
         )
@@ -901,68 +950,64 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             ].progressHeaterOutput_percentage.setValue(
                 self.data_instruments[data["ID"]]["Heater_Output_percentage"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdHeaterOutput_mW.display(self.data_instruments[data["ID"]]["Heater_Output_mW"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetTemp_K.display(self.data_instruments[data["ID"]]["Temp_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdHeaterOutput_mW.display(
+                self.data_instruments[data["ID"]]["Heater_Output_mW"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdSetTemp_K.display(
+                self.data_instruments[data["ID"]]["Temp_K"]
+            )
             # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetRampRate_Kpmin.display(self.data_instruments[data["ID"]]["Ramp_Rate"])
+            self.instrument_dict[data["ID"]]["window"].lcdSetRampRate_Kpmin.display(
+                self.data_instruments[data["ID"]]["Ramp_Rate"]
+            )
 
             self.instrument_dict[data["ID"]][
                 "window"
             ].comboSetInput_Sensor.setCurrentIndex(
                 int(self.data_instruments[data["ID"]]["Input_Sensor"]) - 1
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSensor1_K.display(self.data_instruments[data["ID"]]["Sensor_1_K"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSensor2_K.display(self.data_instruments[data["ID"]]["Sensor_2_K"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSensor3_K.display(self.data_instruments[data["ID"]]["Sensor_3_K"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSensor4_K.display(self.data_instruments[data["ID"]]["Sensor_4_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdSensor1_K.display(
+                self.data_instruments[data["ID"]]["Sensor_1_K"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdSensor2_K.display(
+                self.data_instruments[data["ID"]]["Sensor_2_K"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdSensor3_K.display(
+                self.data_instruments[data["ID"]]["Sensor_3_K"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdSensor4_K.display(
+                self.data_instruments[data["ID"]]["Sensor_4_K"]
+            )
 
             """NEW GUI to display P,I and D Parameters
             """
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdLoopP_Param.display(self.data_instruments[data["ID"]]["Loop_P_Param"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdLoopI_Param.display(self.data_instruments[data["ID"]]["Loop_I_Param"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdLoopD_Param.display(self.data_instruments[data["ID"]]["Loop_D_Param"])
+            self.instrument_dict[data["ID"]]["window"].lcdLoopP_Param.display(
+                self.data_instruments[data["ID"]]["Loop_P_Param"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdLoopI_Param.display(
+                self.data_instruments[data["ID"]]["Loop_I_Param"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdLoopD_Param.display(
+                self.data_instruments[data["ID"]]["Loop_D_Param"]
+            )
 
     # --------Keithleys
     # ---------------Keithley 6221
     def initialize_window_Keithley6221(self, instrument_Keithley6221):
 
-        self.instrument_dict[instrument_Keithley6221][
-            "ID"
-        ] = instrument_Keithley6221
+        self.instrument_dict[instrument_Keithley6221]["ID"] = instrument_Keithley6221
         self.instrument_dict[instrument_Keithley6221]["window"] = Window_ui(
             ui_file=".\\Keithley\\K6221_QWidget.ui",
             parent=self,
         )
-        self.instrument_dict[instrument_Keithley6221][
-            "window"
-        ].sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
+        self.instrument_dict[instrument_Keithley6221]["window"].sig_closing.connect(
+            lambda: self.action_show_Keithley.setChecked(False)
+        )
         self.instrument_dict[instrument_Keithley6221]["multipl"] = 0
-        self.instrument_dict[instrument_Keithley6221][
-            "Data"
-        ] = self.data_instruments["Keithley6221_1"]
-        self.instrument_dict[instrument_Keithley6221]["start"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Keithley6221]["Data"] = self.data_instruments[
+            "Keithley6221_1"
+        ]
+        self.instrument_dict[instrument_Keithley6221]["start"].clicked["bool"].connect(
             lambda value: self.start_instrument(
                 instrument=self.instrument_dict[instrument_Keithley6221]["ID"]
             )
@@ -973,15 +1018,13 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[instrument_Keithley6221]["window"], value
             )
         )
-        self.instrument_dict[instrument_Keithley6221]["show"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Keithley6221]["show"].clicked["bool"].connect(
             lambda value: self.show_window_button_pressed(
                 self.instrument_dict[instrument_Keithley6221]["window"]
             )
         )
 
-        self.instrument_dict[instrument_Keithley6221]["values"]={}
+        self.instrument_dict[instrument_Keithley6221]["values"] = {}
         # self.mdiArea.addSubWindow(self.ITC_window)
         self.initialize_state_threade(instrument_Keithley6221)
 
@@ -1007,23 +1050,18 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 instr=self.instrument_dict[instrument_Keithley6221]
             )
         )
-        self.instrument_dict[instrument_Keithley6221]["show"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Keithley6221]["show"].clicked["bool"].connect(
             lambda value: self.show_window_button_pressed(
                 self.instrument_dict[instrument_Keithley6221]["window"]
             )
         )
+
     def output_keithley6221_clicked(self, instr):
         """sends command to setOutput"""
         if instr["Data"]["OutputOn"] == 1 or instr["Data"]["OutputOn"] == None:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"set_Output": 0})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"set_Output": 0}))
         else:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"set_Output": 1})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"set_Output": 1}))
 
     def set_spinSetCurrent_keithley6221(self, instr):
         """Send command to controleClient to set spinCurrent in mA"""
@@ -1041,9 +1079,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         """Updater function for the Keithley6221 Window"""
         self.data_instruments[data["ID"]].update(data)
         if self.instrument_dict[data["ID"]]["lock"] == 1:
-            self.instrument_dict[data["ID"]]["Data"].update(
-                data
-            )
+            self.instrument_dict[data["ID"]]["Data"].update(data)
 
             """self.instrument_dict[data["ID"]][
                 "window"
@@ -1052,36 +1088,28 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                     "Current_A"
                 ]
             )"""
-            if (
-                self.data_instruments[data["ID"]][
-                    "OutputOn"
-                ]
-                == 1
-            ):
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].pushToggleOut.setText("Output is On")
+            if self.data_instruments[data["ID"]]["OutputOn"] == 1:
+                self.instrument_dict[data["ID"]]["window"].pushToggleOut.setText(
+                    "Output is On"
+                )
             else:
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].pushToggleOut.setText("Output is OFF")
+                self.instrument_dict[data["ID"]]["window"].pushToggleOut.setText(
+                    "Output is OFF"
+                )
+
     # ---------------Keithley 2182
     def initialize_window_Keithley2182(self, instrument_Keithley2182):
 
-        self.instrument_dict[instrument_Keithley2182][
-            "ID"
-        ] = instrument_Keithley2182
+        self.instrument_dict[instrument_Keithley2182]["ID"] = instrument_Keithley2182
         self.instrument_dict[instrument_Keithley2182]["window"] = Window_ui(
             ui_file=".\\Keithley\\K2182_QWidget.ui",
             parent=self,
         )
-        self.instrument_dict[instrument_Keithley2182][
-            "window"
-        ].sig_closing.connect(lambda: self.action_show_Keithley.setChecked(False))
+        self.instrument_dict[instrument_Keithley2182]["window"].sig_closing.connect(
+            lambda: self.action_show_Keithley.setChecked(False)
+        )
         self.instrument_dict[instrument_Keithley2182]["multipl"] = 0
-        self.instrument_dict[instrument_Keithley2182]["start"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Keithley2182]["start"].clicked["bool"].connect(
             lambda value: self.start_instrument(
                 instrument=self.instrument_dict[instrument_Keithley2182]["ID"]
             )
@@ -1091,15 +1119,13 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[instrument_Keithley2182]["ID"], value
             )
         )
-        self.instrument_dict[instrument_Keithley2182]["show"].clicked[
-            "bool"
-        ].connect(
+        self.instrument_dict[instrument_Keithley2182]["show"].clicked["bool"].connect(
             lambda value: self.show_window_button_pressed(
                 self.instrument_dict[instrument_Keithley2182]["window"]
             )
         )
 
-        self.instrument_dict[instrument_Keithley2182]["values"] = {} 
+        self.instrument_dict[instrument_Keithley2182]["values"] = {}
         self.initialize_state_threade(instrument_Keithley2182)
 
         # all the QCheckboxes
@@ -1135,16 +1161,13 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 instr=self.instrument_dict[instrument_Keithley2182],
             )
         )
+
     def send_command_autorange_keithley2182(self, state, instr):
         """sends auto-range command to the controlClient"""
         if state == 2:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Autorange_1": 1})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Autorange_1": 1}))
         else:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Autorange_1": 0})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Autorange_1": 0}))
 
     def send_command_frontautozero_keithley2182(self, state, instr):
         """send fronAutozero command to the controlClient"""
@@ -1162,54 +1185,32 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def send_command_autozero_keithley2182(self, state, instr):
         """sends auto-zero command to the controlClient"""
         if state == 2:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Autozero_1": 1})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Autozero_1": 1}))
         else:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Autozero_1": 0})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Autozero_1": 0}))
 
     def send_command_display_keithley2182(self, state, instr):
         """sends Display command to the controlClient"""
         if state == 2:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Display_1": 1})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Display_1": 1}))
         else:
-            self.commanding(
-                ID=instr["ID"], message=dictdump({"Display_1": 0})
-            )
+            self.commanding(ID=instr["ID"], message=dictdump({"Display_1": 0}))
 
     def Keithley2182_Updater(self, data):
         """Updater function for the Keithley6221 Window"""
         self.data_instruments[data["ID"]].update(data)
         if self.instrument_dict[data["ID"]]["lock"] == 1:
 
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textVoltage_V.setText(
-                "%s"
-                % self.data_instruments[data["ID"]][
-                    "Voltage_V"
-                ]
+            self.instrument_dict[data["ID"]]["window"].textVoltage_V.setText(
+                "%s" % self.data_instruments[data["ID"]]["Voltage_V"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textTempInternal_K.setText(
-                "%s"
-                % self.data_instruments[data["ID"]][
-                    "TemperatureInternal_K"
-                ]
+            self.instrument_dict[data["ID"]]["window"].textTempInternal_K.setText(
+                "%s" % self.data_instruments[data["ID"]]["TemperatureInternal_K"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textTempPresent_K.setText(
-                "%s"
-                % self.data_instruments[data["ID"]][
-                    "TemperaturePresent_K"
-                ]
+            self.instrument_dict[data["ID"]]["window"].textTempPresent_K.setText(
+                "%s" % self.data_instruments[data["ID"]]["TemperaturePresent_K"]
             )
+
     # ------- Oxford Instruments
     # ---------------- IPS
     def initialize_window_ips(self, instrument_ips120):
@@ -1240,20 +1241,14 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
 
-        self.instrument_dict[instrument_ips120]["values"]={}
+        self.instrument_dict[instrument_ips120]["values"] = {}
 
-        self.instrument_dict[instrument_ips120][
-            "window"
-        ].labelStatusMagnet.setText("")
-        self.instrument_dict[instrument_ips120][
-            "window"
-        ].labelStatusCurrent.setText("")
-        self.instrument_dict[instrument_ips120][
-            "window"
-        ].labelStatusActivity.setText("")
-        self.instrument_dict[instrument_ips120][
-            "window"
-        ].labelStatusLocRem.setText("")
+        self.instrument_dict[instrument_ips120]["window"].labelStatusMagnet.setText("")
+        self.instrument_dict[instrument_ips120]["window"].labelStatusCurrent.setText("")
+        self.instrument_dict[instrument_ips120]["window"].labelStatusActivity.setText(
+            ""
+        )
+        self.instrument_dict[instrument_ips120]["window"].labelStatusLocRem.setText("")
         self.instrument_dict[instrument_ips120][
             "window"
         ].labelStatusSwitchHeater.setText("")
@@ -1303,9 +1298,9 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
 
-        self.instrument_dict[instrument_ips120][
-            "window"
-        ].comboSetActivity.activated["int"].connect(
+        self.instrument_dict[instrument_ips120]["window"].comboSetActivity.activated[
+            "int"
+        ].connect(
             lambda value: self.commanding(
                 ID=self.instrument_dict[instrument_ips120]["ID"],
                 message=dictdump({"activity": value}),
@@ -1319,6 +1314,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 message=dictdump({"switchheater": value}),
             )
         )
+
     @pyqtSlot()
     @ExceptionHandling
     def setfieldsetpoint_ips120(self, instr):
@@ -1377,60 +1373,60 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
                 # since the command failed in the communication with the device,
                 # the last value is retained
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdFieldSetPoint.display(self.data_instruments[data["ID"]]["field_set_point"])
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdFieldSweepRate.display(self.data_instruments[data["ID"]]["field_sweep_rate"])
+                self.instrument_dict[data["ID"]]["window"].lcdFieldSetPoint.display(
+                    self.data_instruments[data["ID"]]["field_set_point"]
+                )
+                self.instrument_dict[data["ID"]]["window"].lcdFieldSweepRate.display(
+                    self.data_instruments[data["ID"]]["field_sweep_rate"]
+                )
 
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdOutputField.display(self.data_instruments[data["ID"]]["output_field"])
+                self.instrument_dict[data["ID"]]["window"].lcdOutputField.display(
+                    self.data_instruments[data["ID"]]["output_field"]
+                )
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].lcdMeasuredMagnetCurrent.display(
                     self.data_instruments[data["ID"]]["magnet_current"]
                 )
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdOutputCurrent.display(self.data_instruments[data["ID"]]["output_current"])
+                self.instrument_dict[data["ID"]]["window"].lcdOutputCurrent.display(
+                    self.data_instruments[data["ID"]]["output_current"]
+                )
                 # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_set_point'])
                 # self.IPS_window.lcdXXX.display(self.data['IPS']['CURRENT_sweep_rate'])
 
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdLeadResistance.display(self.data_instruments[data["ID"]]["lead_resistance"])
+                self.instrument_dict[data["ID"]]["window"].lcdLeadResistance.display(
+                    self.data_instruments[data["ID"]]["lead_resistance"]
+                )
 
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].lcdPersistentMagnetField.display(
                     self.data_instruments[data["ID"]]["persistent_magnet_field"]
                 )
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdTripField.display(self.data_instruments[data["ID"]]["trip_field"])
+                self.instrument_dict[data["ID"]]["window"].lcdTripField.display(
+                    self.data_instruments[data["ID"]]["trip_field"]
+                )
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].lcdPersistentMagnetCurrent.display(
                     self.data_instruments[data["ID"]]["persistent_magnet_current"]
                 )
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].lcdTripCurrent.display(self.data_instruments[data["ID"]]["trip_current"])
+                self.instrument_dict[data["ID"]]["window"].lcdTripCurrent.display(
+                    self.data_instruments[data["ID"]]["trip_current"]
+                )
 
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].labelStatusMagnet.setText(self.data_instruments[data["ID"]]["status_magnet"])
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].labelStatusCurrent.setText(self.data_instruments[data["ID"]]["status_current"])
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].labelStatusActivity.setText(self.data_instruments[data["ID"]]["status_activity"])
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].labelStatusLocRem.setText(self.data_instruments[data["ID"]]["status_locrem"])
+                self.instrument_dict[data["ID"]]["window"].labelStatusMagnet.setText(
+                    self.data_instruments[data["ID"]]["status_magnet"]
+                )
+                self.instrument_dict[data["ID"]]["window"].labelStatusCurrent.setText(
+                    self.data_instruments[data["ID"]]["status_current"]
+                )
+                self.instrument_dict[data["ID"]]["window"].labelStatusActivity.setText(
+                    self.data_instruments[data["ID"]]["status_activity"]
+                )
+                self.instrument_dict[data["ID"]]["window"].labelStatusLocRem.setText(
+                    self.data_instruments[data["ID"]]["status_locrem"]
+                )
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].labelStatusSwitchHeater.setText(
@@ -1465,7 +1461,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
         self.initialize_state_threade(instrument_itc503)
-        self.instrument_dict[instrument_itc503]["values"]={}
+        self.instrument_dict[instrument_itc503]["values"] = {}
         self.instrument_dict[instrument_itc503]["values"]["temp"] = {
             "setTemperature": 4,
             "SweepRate": 2,
@@ -1480,9 +1476,9 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 value, instr=self.instrument_dict[instrument_itc503]
             )
         )
-        self.instrument_dict[instrument_itc503][
-            "window"
-        ].checkRamp_Status.toggled["bool"].connect(
+        self.instrument_dict[instrument_itc503]["window"].checkRamp_Status.toggled[
+            "bool"
+        ].connect(
             lambda value: self.fun_checkSweep_toggled(
                 value, instr=self.instrument_dict[instrument_itc503]
             )
@@ -1585,18 +1581,18 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
 
-        self.instrument_dict[instrument_itc503][
-            "window"
-        ].combosetHeatersens.activated["int"].connect(
+        self.instrument_dict[instrument_itc503]["window"].combosetHeatersens.activated[
+            "int"
+        ].connect(
             lambda value: self.commanding(
                 ID=self.self.instrument_dict[instrument_itc503]["ID"],
                 message=dictdump({"setHeaterSensor": value + 1}),
             )
         )
 
-        self.instrument_dict[instrument_itc503][
-            "window"
-        ].combosetAutocontrol.activated["int"].connect(
+        self.instrument_dict[instrument_itc503]["window"].combosetAutocontrol.activated[
+            "int"
+        ].connect(
             lambda value: self.commanding(
                 ID="%s" % self.instrument_dict[instrument_itc503]["ID"],
                 message=dictdump({"setAutoControl": value}),
@@ -1609,9 +1605,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 value, instr=self.instrument_dict[instrument_itc503]
             )
         )
-        self.instrument_dict[instrument_itc503][
-            "window"
-        ].pushConfLoad.clicked.connect(
+        self.instrument_dict[instrument_itc503]["window"].pushConfLoad.clicked.connect(
             lambda value: self.fun_PIDFile_send_itc503(
                 dummy="dummy",
                 instr=self.instrument_dict[instrument_itc503],
@@ -1640,6 +1634,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 instr=self.instrument_dict[instrument_itc503]
             )
         )
+
     @ExceptionHandling
     def window_FileDialogOpen(self, instr):
         fname, __ = QtWidgets.QFileDialog.getOpenFileName(
@@ -1665,18 +1660,14 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             instr["_useAutoPID"] = bool(
                 settings.value("%s_useAutoPID" % instr["ID"], int)
             )
-            instr["_PIDFile"] = settings.value(
-                "%s_PIDFile" % instr["ID"], str
-            )
+            instr["_PIDFile"] = settings.value("%s_PIDFile" % instr["ID"], str)
         except KeyError as e:
             QTimer.singleShot(20 * 1e3, self.load_settings)
             # self.show_error_general(f'could not find a key: {e}')
             self._logger.warning(f"key {e} was not found in the settings")
         del settings
 
-        instr["window"].checkUseAuto.setChecked(
-            instr["_useAutoPID"]
-        )
+        instr["window"].checkUseAuto.setChecked(instr["_useAutoPID"])
         if isinstance(instr["_PIDFile"], str):
             text = instr["_PIDFile"]
         else:
@@ -1745,9 +1736,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def setPIDFile(self, file, instr):
         """reaction to signal: set AutoPID lookup file"""
         instr["PIDFile"] = file
-        instr["PID_configuration"] = readPID_fromFile(
-            instr["PIDFile"]
-        )
+        instr["PID_configuration"] = readPID_fromFile(instr["PIDFile"])
 
     @ExceptionHandling
     def setCheckAutoPID(self, boolean, instr):
@@ -1783,9 +1772,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         )
 
         settings = QSettings("TUW", "CryostatGUI")
-        settings.setValue(
-            "%s_PIDFile" % instr["ID"], instr["_PIDFile"]
-        )
+        settings.setValue("%s_PIDFile" % instr["ID"], instr["_PIDFile"])
         del settings
         self.fun_PIDFile_read(instr=instr)
 
@@ -1883,6 +1870,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def gettoset_Interval_itc503(self, value, instr):
         """receive and store the value to set the interval"""
         instr["values"]["setInterval"] = value
+
     def ITC503_Updater(self, data):
         """
         Calculate the rate of change of Temperature on the sensors [K/min]
@@ -1900,26 +1888,26 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 if self.data[key] is None:
                     self.data[key] = np.nan
             # if not self.data['Sensor_1_K'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_sens1_K.display(self.data_instruments[data["ID"]]["Sensor_1_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_sens1_K.display(
+                self.data_instruments[data["ID"]]["Sensor_1_K"]
+            )
             # if not self.data['Sensor_2_K'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_sens2_K.display(self.data_instruments[data["ID"]]["Sensor_2_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_sens2_K.display(
+                self.data_instruments[data["ID"]]["Sensor_2_K"]
+            )
             # if not self.data['Sensor_3_K'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_sens3_K.display(self.data_instruments[data["ID"]]["Sensor_3_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_sens3_K.display(
+                self.data_instruments[data["ID"]]["Sensor_3_K"]
+            )
 
             # if not self.data['set_temperature'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_set.display(self.data_instruments[data["ID"]]["set_temperature"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_set.display(
+                self.data_instruments[data["ID"]]["set_temperature"]
+            )
             # if not self.data['temperature_error'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_err.display(self.data_instruments[data["ID"]]["temperature_error"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_err.display(
+                self.data_instruments[data["ID"]]["temperature_error"]
+            )
             # if not self.data['heater_output_as_percent'] is None:
             try:
                 self.instrument_dict[data["ID"]][
@@ -1928,35 +1916,35 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                     int(self.data_instruments[data["ID"]]["heater_output_as_percent"])
                 )
                 # if not self.data['gas_flow_output'] is None:
-                self.instrument_dict[data["ID"]][
-                    "window"
-                ].progressNeedleValve.setValue(int(self.data_instruments[data["ID"]]["gas_flow_output"]))
+                self.instrument_dict[data["ID"]]["window"].progressNeedleValve.setValue(
+                    int(self.data_instruments[data["ID"]]["gas_flow_output"])
+                )
             except ValueError:
                 pass
             # if not self.data['heater_output_as_voltage'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdHeaterVoltage.display(self.data_instruments[data["ID"]]["heater_output_as_voltage"])
+            self.instrument_dict[data["ID"]]["window"].lcdHeaterVoltage.display(
+                self.data_instruments[data["ID"]]["heater_output_as_voltage"]
+            )
             # if not self.data['gas_flow_output'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdNeedleValve_percent.display(self.data_instruments[data["ID"]]["gas_flow_output"])
+            self.instrument_dict[data["ID"]]["window"].lcdNeedleValve_percent.display(
+                self.data_instruments[data["ID"]]["gas_flow_output"]
+            )
             # if not self.data['proportional_band'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdProportionalID.display(self.data_instruments[data["ID"]]["proportional_band"])
+            self.instrument_dict[data["ID"]]["window"].lcdProportionalID.display(
+                self.data_instruments[data["ID"]]["proportional_band"]
+            )
             # if not self.data['integral_action_time'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdPIntegrationD.display(self.data_instruments[data["ID"]]["integral_action_time"])
+            self.instrument_dict[data["ID"]]["window"].lcdPIntegrationD.display(
+                self.data_instruments[data["ID"]]["integral_action_time"]
+            )
             # if not self.data['derivative_action_time'] is None:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdPIDerivative.display(self.data_instruments[data["ID"]]["derivative_action_time"])
+            self.instrument_dict[data["ID"]]["window"].lcdPIDerivative.display(
+                self.data_instruments[data["ID"]]["derivative_action_time"]
+            )
 
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdTemp_sens1_calcerr_K.display(self.data_instruments[data["ID"]]["Sensor_1_calerr_K"])
+            self.instrument_dict[data["ID"]]["window"].lcdTemp_sens1_calcerr_K.display(
+                self.data_instruments[data["ID"]]["Sensor_1_calerr_K"]
+            )
 
         # self.ITC_window.combosetAutocontrol.setCurrentIndex(self.data["autocontrol"])
 
@@ -2009,6 +1997,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         #    self.run_ILM
         # )
         # self.action_show_ILM.triggered["bool"].connect(self.show_ILM)
+
     @pyqtSlot()
     @ExceptionHandling
     def set_spinThreadinterval_ilm211(self, instr):
@@ -2022,6 +2011,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     def gettoset_spinThreadinterval_ilm211(self, value, instr):
         """saves value for spinThreadinterval"""
         instr["values"]["setInterval"] = value
+
     @pyqtSlot(dict)
     def ilm211_Updater(self, data):
         """
@@ -2050,22 +2040,18 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 if self.data_instruments[data["ID"]]["channel_2_level"] > 100
                 else self.data_instruments[data["ID"]]["channel_2_level"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].progressLevelHe.setValue(chan1)
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].progressLevelN2.setValue(chan2)
+            self.instrument_dict[data["ID"]]["window"].progressLevelHe.setValue(chan1)
+            self.instrument_dict[data["ID"]]["window"].progressLevelN2.setValue(chan2)
 
             # tooltip = u"ILM\nHe: {:.1f}\nN2: {:.1f}".format(chan1, chan2)
             # self.ILM_window.pyqt_sysTray.setToolTip(tooltip)
 
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdLevelHe.display(self.data_instruments[data["ID"]]["channel_1_level"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdLevelN2.display(self.data_instruments[data["ID"]]["channel_2_level"])
+            self.instrument_dict[data["ID"]]["window"].lcdLevelHe.display(
+                self.data_instruments[data["ID"]]["channel_1_level"]
+            )
+            self.instrument_dict[data["ID"]]["window"].lcdLevelN2.display(
+                self.data_instruments[data["ID"]]["channel_2_level"]
+            )
 
     @pyqtSlot(bool)
     def show_ILM(self, boolean):
@@ -2132,9 +2118,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_sr830][
             "window"
         ].send_command_voltage.clicked.connect(
-            lambda: self.setVoltage_sr830(
-                instr=self.instrument_dict[instrument_sr830]
-            )
+            lambda: self.setVoltage_sr830(instr=self.instrument_dict[instrument_sr830])
         )
 
         self.instrument_dict[instrument_sr830][
@@ -2167,6 +2151,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             )
         )
         self.instrument_dict[instrument_sr830]["values"] = {}
+
     @pyqtSlot()
     @ExceptionHandling
     def setFrequency_sr830(self, instr, f_Hz=None):
@@ -2198,9 +2183,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setContactResistance_sr830(
-        self, instr, ContactResistance_Ohm=None
-    ):
+    def setContactResistance_sr830(self, instr, ContactResistance_Ohm=None):
         """sets contact resistance"""
         self.commanding(
             ID=instr["ID"],
@@ -2241,35 +2224,35 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # since the command failed in the communication with the device,
         # the last value is retained
         if self.instrument_dict[data["ID"]]["lock"] == 1:
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetFrequency_Hz.display(self.data_instruments[data["ID"]]["Frequency_Hz"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetVoltage_V.display(self.data_instruments[data["ID"]]["Voltage_V"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textX_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["X_V"]))
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textSampleCurrent_mA.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["SampleCurrent_mA"])
+            self.instrument_dict[data["ID"]]["window"].lcdSetFrequency_Hz.display(
+                self.data_instruments[data["ID"]]["Frequency_Hz"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textSampleResistance_Ohm.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["SampleResistance_Ohm"])
+            self.instrument_dict[data["ID"]]["window"].lcdSetVoltage_V.display(
+                self.data_instruments[data["ID"]]["Voltage_V"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textY_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["Y_V"]))
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textR_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["R_V"]))
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textTheta_Deg.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["Theta_Deg"])
+            self.instrument_dict[data["ID"]]["window"].textX_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["X_V"])
+            )
+            self.instrument_dict[data["ID"]]["window"].textSampleCurrent_mA.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["SampleCurrent_mA"]
+                )
+            )
+            self.instrument_dict[data["ID"]]["window"].textSampleResistance_Ohm.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["SampleResistance_Ohm"]
+                )
+            )
+            self.instrument_dict[data["ID"]]["window"].textY_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["Y_V"])
+            )
+            self.instrument_dict[data["ID"]]["window"].textR_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["R_V"])
+            )
+            self.instrument_dict[data["ID"]]["window"].textTheta_Deg.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["Theta_Deg"]
+                )
             )
 
     # ----------------sr860-----------------------
@@ -2329,9 +2312,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.instrument_dict[instrument_sr860][
             "window"
         ].send_command_voltage.clicked.connect(
-            lambda: self.setVoltage_sr860(
-                instr=self.instrument_dict[instrument_sr860]
-            )
+            lambda: self.setVoltage_sr860(instr=self.instrument_dict[instrument_sr860])
         )
 
         self.instrument_dict[instrument_sr860][
@@ -2363,6 +2344,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 instr=self.instrument_dict[instrument_sr860]
             )
         )
+
     @pyqtSlot()
     @ExceptionHandling
     def setFrequency_sr860(self, instr, f_Hz=None):
@@ -2399,9 +2381,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     @pyqtSlot()
     @ExceptionHandling
-    def setContactResistance_sr860(
-        self, instr, ContactResistance_Ohm=None
-    ):
+    def setContactResistance_sr860(self, instr, ContactResistance_Ohm=None):
         """sets contact resistance"""
         self.commanding(
             ID=instr["ID"],
@@ -2436,37 +2416,37 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         # the last value is retained
         if self.instrument_dict[data["ID"]]["lock"] == 1:
 
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetFrequency_Hz.display(self.data_instruments[data["ID"]]["Frequency_Hz"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].lcdSetVoltage_V.display(self.data_instruments[data["ID"]]["Voltage_V"])
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textX_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["X_V"]))
-
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textSampleCurrent_mA.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["SampleCurrent_mA"])
+            self.instrument_dict[data["ID"]]["window"].lcdSetFrequency_Hz.display(
+                self.data_instruments[data["ID"]]["Frequency_Hz"]
             )
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textSampleResistance_Ohm.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["SampleResistance_Ohm"])
+            self.instrument_dict[data["ID"]]["window"].lcdSetVoltage_V.display(
+                self.data_instruments[data["ID"]]["Voltage_V"]
+            )
+            self.instrument_dict[data["ID"]]["window"].textX_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["X_V"])
             )
 
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textY_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["Y_V"]))
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textR_V.setText("{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["R_V"]))
-            self.instrument_dict[data["ID"]][
-                "window"
-            ].textTheta_Deg.setText(
-                "{num:=+8.6f}".format(num=self.data_instruments[data["ID"]]["Theta_Deg"])
+            self.instrument_dict[data["ID"]]["window"].textSampleCurrent_mA.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["SampleCurrent_mA"]
+                )
+            )
+            self.instrument_dict[data["ID"]]["window"].textSampleResistance_Ohm.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["SampleResistance_Ohm"]
+                )
+            )
+
+            self.instrument_dict[data["ID"]]["window"].textY_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["Y_V"])
+            )
+            self.instrument_dict[data["ID"]]["window"].textR_V.setText(
+                "{num:=+13.12f}".format(num=self.data_instruments[data["ID"]]["R_V"])
+            )
+            self.instrument_dict[data["ID"]]["window"].textTheta_Deg.setText(
+                "{num:=+8.6f}".format(
+                    num=self.data_instruments[data["ID"]]["Theta_Deg"]
+                )
             )
         # ----------Window_errors--------------
 
@@ -2499,7 +2479,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.show_error_textBrowser(text)
 
     def show_error_textBrowser(self, text):
-        """ append error to Error window"""
+        """append error to Error window"""
         self.Errors_window.textErrors.append(
             "{} - {}".format(dt.now().strftime("%Y-%m-%d  %H:%M:%S.%f"), text)
         )
