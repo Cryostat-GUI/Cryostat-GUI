@@ -1467,8 +1467,9 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         self.initialize_state_threade(instrument_itc503)
         self.instrument_dict[instrument_itc503]["values"]={}
         self.instrument_dict[instrument_itc503]["values"]["temp"] = {
-            #"setTemperature": 4,
+            "setTemperature": 4,
             "SweepRate": 2,
+            "isSweep": False,
         }
 
         # changing the temp buttons
