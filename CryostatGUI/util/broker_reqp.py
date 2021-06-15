@@ -9,8 +9,22 @@ import logging
 import zmq
 import time
 
-from zmqcomms import dec, enc, dictdump
+# from zmqcomms import dec, enc, dictdump
 from json import loads as dictload
+from json import dumps
+
+
+def enc(msg):
+    return "{}".format(msg).encode("utf-8")
+
+
+def dec(msg):
+    return msg.decode("utf-8")
+
+
+def dictdump(d):
+    return dumps(d, indent=4, sort_keys=True, default=str)
+
 
 port_backend = 5556
 port_frontend = 5564
