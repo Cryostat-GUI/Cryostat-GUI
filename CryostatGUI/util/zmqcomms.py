@@ -496,14 +496,18 @@ class zmqMainControl(zmqBare):
                 val1: {"instr": instr1, "value": value1},
                 val2: {"instr": instr2, "value": value2},
             }
-         """
+        """
         uuid_now = uuid.uuid4().hex
         message = enc(
             "?"
             + dictdump(
-                dict(multiple=dataindicators, live=Live, uuid=uuid_now,)
+                dict(
+                    multiple=dataindicators,
+                    live=Live,
+                    uuid=uuid_now,
                 )
             )
+        )
         try:
             message, _ = self._bare_requestData_retries(
                 message,
@@ -712,9 +716,7 @@ class zmqMainControl(zmqBare):
                 uuid=uuid_now,
                 **kwargs,
             )
-            self._logger.debug(
-                "received data uuid: %s", message["uuid"]
-            )
+            self._logger.debug("received data uuid: %s", message["uuid"])
         return message  # dictload(dec(msg)) already done
 
 
