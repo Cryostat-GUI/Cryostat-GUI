@@ -18,13 +18,17 @@ from pyvisa.errors import VisaIOError
 class ips120(AbstractSerialDeviceDriver):
     """Driver class for the Intelligent Power Supply 120-10 from Oxford Instruments."""
 
-    def __init__(self, **kwargs):
+    status_X1 = {"0": "normal", "1": "quenched", "2": "Over Heated", "4": "Warming up", "8": "Fault"}
+    status_X2 = {"0": "on pos volt lim", "1": "on neg volt lim", "2": "out neg volt lim", "4": "Warming up", "8": "out pos volt lim"}
+    status_A = {"0": "Hold", "1": "To Set Point", "2": "To Zero", "4": "Clamped"}
+
+    def __init__(self, *args, **kwargs):
         """Connect to an IPS 120-10 at the specified RS232 address
 
         Args:
             adress(str): RS232 address of the IPS 120-10 (at the local machine)
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -112,7 +116,7 @@ class ips120(AbstractSerialDeviceDriver):
             return self.getValue(variable)
         return float(value.strip("R+"))
 
-    def getStatus(self):
+    def _getStatus(self):
         value = self.query("X")
 
         if value == "" or None:
@@ -120,6 +124,13 @@ class ips120(AbstractSerialDeviceDriver):
         if value[0] != "X":
             raise AssertionError("IPS: getStatus: Bad reply: {}".format(value))
         return value
+
+    def getStatus(self):
+        stat = self._getStatus()
+        status = {}
+        status["system"] = self.status_X1[stat[1]] + ", " + self.status_X2[stat[2]]
+        status["activity"] = self.status_A[stat[4]]
+        return stat, status
 
     def readField(self):
         """Read the current magnetic field in Tesla
