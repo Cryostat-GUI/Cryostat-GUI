@@ -122,7 +122,7 @@ class check_active(AbstractLoopThread):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        self.setInterval(0.2)
+        self.setInterval(1)
         self.instrument = Instrument
         self.prefix = prefix
 
@@ -157,12 +157,13 @@ class get_data(AbstractLoopThreadDataStore):
         )
         self.data_all = {}
         self.crash_all = {}
+        self.interval = 1
 
     def running(self):
         self.run_finished = False
         # print(self.data_main)
         # self.sig_Infodata.emit(deepcopy(self.data_main))
-        time.sleep(1)
+        time.sleep(0.1)
         self.run_finished = True
 
     def check_crash(self, noblock, ID):
