@@ -265,11 +265,11 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
         if "setDerivative" in command:
             self.gettoset_Derivative(command["setDerivative"])
             self.setDerivative()
-        if "setInterval" in command:
-            self.setInterval(command["setInterval"])
         if "setIntegral" in command:
             self.gettoset_Integral(command["setIntegral"])
             self.setIntegral()

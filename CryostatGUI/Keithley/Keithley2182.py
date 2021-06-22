@@ -30,18 +30,20 @@ class Keithley2182(AbstractGPIBDeviceDriver):
     The Keithley 2182 is a nano-voltmeter.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self._logger = logging.getLogger(
             "CryoGUI."
             + __name__
             + "."
             + self.__class__.__name__
             + "."
-            + kwargs["InstrumentAddress"]
+            # + kwargs["InstrumentAddress"]
+            + self._instrumentaddress
         )
 
-        self.setRate(num=3)
+        self.setRate(num=0.1)
         self.go(":INIT:CONT OFF")
 
     def measureInternalTemperature(self):

@@ -27,6 +27,7 @@ from util.zmqcomms import dictdump
 # from util.zmqcomms import raiseProblemAbort
 from util.zmqcomms import zmqMainControl
 from util.util_misc import CustomStreamHandler
+from util.util_misc import calculate_timediff
 from util import problemAbort
 
 from Sequence_abstract_measurements import AbstractMeasureResistance
@@ -88,29 +89,36 @@ class Sequence_functionsConvenience:
         ApproachMode: str = "Sweep",
         weak: bool = False,
         sensortype="control",
+        timeout: float = 0,
     ) -> bool:
         if sensortype == "both":
-            self._checkStable_Temp(
+            r1 = self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype="control",
+                timeout=timeout,
             )
-            self._checkStable_Temp(
+            r2 = self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype="sample",
+                timeout=timeout,
             )
+            if r1 and r2:
+                return True
+            return False
         else:
-            self._checkStable_Temp(
+            return self._checkStable_Temp(
                 temp=temp,
                 direction=direction,
                 ApproachMode=ApproachMode,
                 weak=weak,
                 sensortype=sensortype,
+                timeout=timeout,
             )
 
     def _checkStable_Temp(
@@ -120,6 +128,7 @@ class Sequence_functionsConvenience:
         ApproachMode: str = "Sweep",
         weak: bool = False,
         sensortype="control",
+        timeout=0,
     ) -> bool:
         """wait for the temperature to stabilize
 
@@ -145,17 +154,25 @@ class Sequence_functionsConvenience:
             bot only for slope and residuals and mean stderr
 
         param: sensortype:
-            TODO: implement behaivor
             indicates which sensor from the tempdefinition to use:
                 sensortype = 'control': self.tempdefinition['control']
                 sensortype = 'sample': self.tempdefinition['sample']
                 sensortype = 'both': check for stability in both values
+
+        param: timeout:
+            float [s]
+            if timeout is exceeded, blocking behavior of the method is lifted,
+                return value should be False if timeout is exceeded
+                to be used with direction 0
+                if set to 0, timeout is infinite, method blocks until stability
+                is reached
         """
         return self._checkStable_Value(
             val=temp,
             direction=direction,
             ApproachMode=ApproachMode,
             weak=False,
+            timeout=timeout,
             dataindicator1=self.tempdefinition[sensortype][0],
             dataindicator2=self.tempdefinition[sensortype][1],
             value_name="temperature",
@@ -170,10 +187,11 @@ class Sequence_functionsConvenience:
         direction: int = 0,
         ApproachMode: str = "Sweep",
         weak: bool = False,
+        timeout: float = 0,
         dataindicator1: str = None,
         dataindicator2: str = None,
         value_name: str = "tempearture",
-        value_unit: str = "K",
+        value_unit: str = "",
         getfunc=None,
         thresholdsconf=None,
     ) -> bool:
@@ -196,9 +214,16 @@ class Sequence_functionsConvenience:
             ApproachMode = Sweep: only for sweeps
 
         param: weak:
-            TODO: implement behavior
             if True, do not check for distance to the specified value,
             but only for slope and residuals and mean stderr
+
+        param: timeout:
+            float [s]
+            if timeout is exceeded, blocking behavior of the method is lifted,
+                return value should be False if timeout is exceeded
+                to be used with direction 0
+                if set to 0, timeout is infinite, method blocks until stability
+                is reached
 
         TODO: change thresholdsconf to variable thing for different values
         """
@@ -212,7 +237,12 @@ class Sequence_functionsConvenience:
                     Live=False,
                 )
 
-        self._logger.debug(f"checking for stable {value_name}: {val}{value_unit}")
+        self._logger.debug(
+            f"checking for stable {value_name}: {val} {value_unit} with mode {ApproachMode}"
+        )
+
+        starttime = dt.now()
+
         if direction == 0 or ApproachMode != "Sweep":
             # no information, temp should really stabilize
 
@@ -221,45 +251,50 @@ class Sequence_functionsConvenience:
             value_now = 0
             stable_values = []
             while not stable:
+                if timeout == 0:
+                    pass
+                else:
+                    within_time_window, timediff = calculate_timediff(
+                        starttime, float(timeout)
+                    )
+                    if not within_time_window:
+                        return False
 
                 stable_values = []
                 self.check_running()
 
                 value_now = getfunc()
-                mean = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_ar_mean",
-                    Live=True,
-                )
-                stderr_rel = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_stderr_rel",
-                    Live=True,
-                )
-                slope_rel = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_slope_rel",
-                    Live=True,
-                )
-                slope_residuals = self.readDataFromList(
-                    dataindicator1=dataindicator1,
-                    dataindicator2=dataindicator2 + "_calc_slope_residuals",
-                    Live=True,
-                )
+                qdict = {
+                    "mean": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_ar_mean",
+                    },
+                    "stderr_rel": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_stderr_rel",
+                    },
+                    "relslope_Xpmin": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_slope_rel",
+                    },
+                    "slope_residuals": {
+                        "instr": dataindicator1,
+                        "value": dataindicator2 + "_calc_slope_residuals",
+                    },
+                }
+                all_data = self.retrieveDataMultiple(dataindicators=qdict, Live=True)
+                all_data["data"].update({"value": value_now})
 
-                for ct, (vn, label) in enumerate(
-                    zip(
-                        [value_now, mean, stderr_rel, slope_rel, slope_residuals],
-                        [
-                            "value",
-                            "mean",
-                            "stderr_rel",
-                            "relslope_Xpmin",
-                            "slope_residuals",
-                        ],
-                    )
-                ):
+                all_values = [
+                    "value",
+                    "mean",
+                    "stderr_rel",
+                    "relslope_Xpmin",
+                    "slope_residuals",
+                ]
+                for ct, label in enumerate(all_values):
                     try:
+                        vn = all_data["data"][label]
                         if ct < 2:
                             compared_value = abs(vn - val)
                         else:
@@ -270,24 +305,27 @@ class Sequence_functionsConvenience:
                         # self._logger.warning("received wrong type (possibly None): ")
                         self._logger.exception(e_type)
                         continue
-                # if abs(value_now - val) < thresholdsconf["value"]:
-                #     stable_values.append("value")
-                # if abs(mean - val) < thresholdsconf["mean"]:
-                #     stable_values.append("mean")
-                # if abs(stderr_rel) < thresholdsconf["stderr_rel"]:
-                #     stable_values.append("stderr_rel")
-                # if abs(slope_rel) < thresholdsconf["relslope_Xpmin"]:
-                #     stable_values.append("relslope_Xpmin")
-                # if abs(slope_residuals) < thresholdsconf["slope_residuals"]:
-                #     stable_values.append("slope_residuals")
 
+                missing_values = [
+                    v_missing
+                    for v_missing in all_values
+                    if v_missing not in stable_values
+                ]
                 self._logger.info(
-                    f"waiting for {value_name}: {val:.4f} (current: {value_now:.4f}{value_unit}), indicators ({len(stable_values):d}/5): {stable_values}"
+                    f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, "
+                    + f"indicators ({len(stable_values):d}/5): {stable_values}, "
+                    + f"missing ({len(stable_values):d}/5): {missing_values}"
                 )
 
                 if len(stable_values) >= 5:
                     stable = True
-                elif weak and len(stable_values) == 4 and "value" not in stable_values:
+                elif (
+                    weak
+                    and len(stable_values) >= 3
+                    and all(
+                        v_missing in missing_values for v_missing in ("value", "mean")
+                    )
+                ):
                     stable = True
                 else:
                     time.sleep(1)
@@ -324,8 +362,9 @@ class Sequence_functionsConvenience:
                 time.sleep(1)
 
         self._logger.info(
-            f"{value_name} {val} is stable!, ApproachMode = {ApproachMode}, direction = {direction}"
+            f"{value_name} {val} is stable! ({value_now}), ApproachMode = {ApproachMode}, direction = {direction}"
         )
+        return True
 
 
 class Sequence_functionsPersonal:
@@ -716,7 +755,7 @@ class Sequence_Thread_zmq(
         # comms_data,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(_ident="sequence", **kwargs)
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -812,7 +851,7 @@ class Sequence_Thread_zmq(
 if __name__ == "__main__":
 
     # try:
-        # with PidFile("MainControl"):
+    # with PidFile("MainControl"):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -836,9 +875,7 @@ if __name__ == "__main__":
 
     handler_info = CustomStreamHandler(logging.INFO, sys.stdout)
     handler_info.setLevel(logging.INFO)
-    formatter_info = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s"
-    )
+    formatter_info = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     handler_info.setFormatter(formatter_info)
 
     logger.addHandler(handler_debug)
