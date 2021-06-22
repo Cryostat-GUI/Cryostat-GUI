@@ -633,7 +633,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def update_check_state_generell(self, data):
         """Updates the state Label in the main GUI"""
-        # if function prevents error if row doesn't exist
+        # if function prevents error if instrument row doesn't exist after using the delete row button 
         if self.instrument_dict[data["instrument"]]["lock"] == 1:
             if "RUNNING" in data["state"]:
                 self.instrument_dict[data["instrument"]]["state"].setText("Running")
