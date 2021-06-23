@@ -166,30 +166,22 @@ class get_data(AbstractLoopThreadDataStore):
         time.sleep(0.1)
         self.run_finished = True
 
-    def check_crash(self, noblock, ID):
+    def check_crash(self,  ID):
         uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60 * 5)
         if not uptodate:
             self.crash_all["state"] = "crashed"
-            if noblock is False:
-                self.crash_all["noblock"] = 0
-            else:
-                self.crash_all["noblock"] = 1
-                self.crash_all["ID"] = ID
-                self.sig_all.emit(self.crash_all)
+            self.crash_all["ID"] = ID
+            self.sig_all.emit(self.crash_all)
         else:
             self.crash_all["state"] = "running"
-            self.crash_all["noblock"] = 1
             self.crash_all["ID"] = ID
             self.sig_state_all.emit(self.crash_all)
 
     def store_data(self, ID, data):
         self.data_all.update(data)
         self.data_all["ID"] = ID
-        if self.data_all["noblock"] is False:
-            self.sig_all.emit(deepcopy(self.data_all))
-            self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
-        else:
-            self.check_crash(noblock=self.data_all["noblock"], ID=self.data_all["ID"])
+        self.sig_all.emit(deepcopy(self.data_all))
+        self.check_crash(ID=self.data_all["ID"])
 
 
 class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
