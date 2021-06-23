@@ -369,14 +369,6 @@ class zmqClient(zmqBare):
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
 
-    def send_noblock_upstream(self):
-        self.data["noblock"] = True
-        self.data["realtime"] = dt.now()
-        self.comms_upstream.send_multipart(
-            [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
-        )
-
-
 class zmqMainControl(zmqBare):
     """docstring for zmqDev"""
 
