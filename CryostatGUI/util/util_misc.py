@@ -159,6 +159,7 @@ def slope_from_timestampX(tmp_):
     )
     return slope
 
+
 # def convert_time_realtime_reverse(tstr):
 #     """convert the realtime entry in the database back to a datetime object
 #     Timezones are for now ignored, apart from the note in the database entry"""

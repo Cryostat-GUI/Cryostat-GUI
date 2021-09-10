@@ -369,6 +369,7 @@ class zmqClient(zmqBare):
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
 
+
 class zmqMainControl(zmqBare):
     """docstring for zmqDev"""
 

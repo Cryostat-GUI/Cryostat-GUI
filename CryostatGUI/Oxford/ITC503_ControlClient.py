@@ -283,7 +283,10 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.gettoset_GasOutput(command["setGasOutput"])
             self.setGasOutput()
         if "gothroughzero" in command:
-            self._logger.warning("go through zero not implemented, command %s has been ignored" % command['gothroughzero'])
+            self._logger.warning(
+                "go through zero not implemented, command %s has been ignored"
+                % command["gothroughzero"]
+            )
             """Has to be implemented"""
         if "setAutoControl" in command:
             self.setAutoControl(command["setAutoControl"])
@@ -292,16 +295,10 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         if "ConfloaD" in command:
             self.setPIDFile(command["PIDFile"])
             self.setCheckAutoPID(command["useAuto"])
-            if command["useAuto"]==1:
+            if command["useAuto"] == 1:
                 self.set_PID(temperature=self.data["Sensor_1_K"])
 
-
-
-
-
-
         # -------------------------------------------------------------------------------------------------------------------------
-    
 
     @ExceptionHandling
     def query_on_command(self, command):

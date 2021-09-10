@@ -273,7 +273,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             self.setInput(command["setInput_Sensor"])
         if "setHeaterOut" in command:
             self.setHeater_Range(command["setHeaterOut"])
-        
+
         # TODO: implement more commands
 
     @ExceptionHandling
