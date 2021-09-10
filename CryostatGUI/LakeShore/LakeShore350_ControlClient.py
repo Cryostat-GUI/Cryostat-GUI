@@ -258,6 +258,22 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             self.setTemp_K(command["setTemp_K"])
         if "configTempLimit" in command:
             self.configTempLimit(command["configTempLimit"])
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
+        if "setProportional" in command:
+            self.gettoset_LoopP_Param(command["setProportional"])
+            self.setLoopP_Param()
+        if "setIntegral" in command:
+            self.gettoset_LoopI_Param(command["setIntegral"])
+            self.setLoopI_Param()
+        if "setDerivative" in command:
+            self.gettoset_LoopD_Param(command["setDerivative"])
+            self.setLoopD_Param()
+        if "setInput_Sensor" in command:
+            self.setInput(command["setInput_Sensor"])
+        if "setHeaterOut" in command:
+            self.setHeater_Range(command["setHeaterOut"])
+        
         # TODO: implement more commands
 
     @ExceptionHandling

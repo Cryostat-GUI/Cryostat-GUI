@@ -1,6 +1,5 @@
 import sys
 import os
-from functools import singledispatch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSignal
@@ -8,7 +7,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
 
-import pandas as pd
 import time
 import pickle
 import sqlite3
@@ -37,7 +35,9 @@ from util import convert_time_date
 from util import AbstractMainApp
 from util import Window_trayService_ui
 
-from saveFileHeaders import headerstring1 as HEADERSTRING
+from util import calculate_timediff
+
+from loggingFunctionality.saveFileHeaders import headerstring1 as HEADERSTRING
 
 
 from sqlite3 import OperationalError
@@ -54,59 +54,6 @@ class InitError(Exception):
     """docstring for InitError"""
 
     pass
-
-
-@singledispatch
-def calculate_timediff(dt, allowed_delay_s=3):
-    """function 'overloading' for python
-    https://docs.python.org/3/library/functools.html#functools.singledispatch
-    the following functions named _ are all registered to this name,
-    however with different input types.
-    """
-    pass
-
-
-@calculate_timediff.register(list)
-def _(dt, allowed_delay_s=3):
-    return calculate_timediff(dt[-1], allowed_delay_s)
-
-
-@calculate_timediff.register(str)
-def _(dt, allowed_delay_s=3):
-    try:
-        timediff = (
-            datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f") - datetime.now()
-        ).total_seconds()
-    except ValueError as err:
-        if "does not match format" in err.args[0]:
-            timediff = (
-                datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") - datetime.now()
-            ).total_seconds()
-        else:
-            raise err
-    uptodate = abs(timediff) < allowed_delay_s
-    return uptodate, timediff
-
-
-@calculate_timediff.register(datetime)
-def _(dt, allowed_delay_s=3):
-    timediff = (dt - datetime.now()).total_seconds()
-    uptodate = abs(timediff) < allowed_delay_s
-    return uptodate, timediff
-
-
-def slope_from_timestampX(tmp_):
-    """casting datetime into seconds:
-    dt = pandas series of datetime objects
-    seconds = dt.astype('int64') // 1e9
-
-    """
-    slope = pd.Series(
-        np.gradient(tmp_.values, tmp_.index.astype("int64") // 1e9),
-        tmp_.index,
-        name="slope",
-    )
-    return slope
 
 
 def testing_NaN(variable):
@@ -1058,21 +1005,53 @@ class live_zmqDataStoreLogger(live_Logger_bare, AbstractLoopThreadDataStore):
 
     def get_answer(self, qdict):
         self._logger.debug(f"getting answer for {qdict}")
+        allowed_delay_s = 3
         adict = {}
         try:
             live = qdict["live"]
             if live:
-                with self.dataLock_live:
-                    data = self.data_live[qdict["instr"]][qdict["value"]][-1]
-                    uptodate, timediff = calculate_timediff(
-                        self.data_live[qdict["instr"]]["realtime"], allowed_delay_s=3
-                    )
+                locked = self.dataLock_live
+
+                def taking(value):
+                    return value[-1]
+
+                datadict = self.data_live
             else:
-                with self.dataLock:
-                    data = self.data[qdict["instr"]][qdict["value"]]
+                locked = self.dataLock
+
+                def taking(value):
+                    return value
+
+                datadict = self.data
+
+            with locked:
+                if "multiple" in qdict:
+                    data = {}
+                    timediffs = []
+                    for dataindicator_here in qdict["multiple"]:
+                        data[dataindicator_here] = taking(
+                            datadict[qdict["multiple"][dataindicator_here]["instr"]][
+                                qdict["multiple"][dataindicator_here]["value"]
+                            ]
+                        )
+                        _, tdiff = calculate_timediff(
+                            datadict[qdict["multiple"][dataindicator_here]["instr"]][
+                                "realtime"
+                            ],
+                            allowed_delay_s=allowed_delay_s,
+                        )
+                        # calculate_timediff will take last of a list by itself, if it is passed a list
+                        timediffs.append(tdiff)
+                    timediff = np.max(timediffs)
+                    uptodate = True if timediff < 3 else False
+                else:
+                    data = taking(datadict[qdict["instr"]][qdict["value"]])
                     uptodate, timediff = calculate_timediff(
-                        self.data[qdict["instr"]]["realtime"], allowed_delay_s=3
+                        datadict[qdict["instr"]]["realtime"],
+                        allowed_delay_s=allowed_delay_s,
                     )
+                    # calculate_timediff will take last of a list by itself, if it is passed a list
+
         except KeyError as e:
             return dict(
                 ERROR="KeyError",

@@ -211,11 +211,11 @@ class zmqClient(zmqBare):
         self,
         context=None,
         identity=None,
-        ip_maincontrol="localhost",
-        ip_data="localhost",
+        ip_maincontrol="127.0.0.1",
+        ip_data="127.0.0.1",
         port_reqp=5556,
-        port_downstream=5557,
-        port_upstream=5558,
+        port_downstream=5561,
+        port_upstream=5560,
         **kwargs,
     ):
         # print('zmqClient')
@@ -225,10 +225,13 @@ class zmqClient(zmqBare):
         )
         self.comms_name = identity
         self._zctx = context or zmq.Context()
+
+        # setting up dealer-router-dealer through broker comms
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
         self.comms_tcp.identity = "{}".format(identity).encode("ascii")  # id
         self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp}")
 
+        # setting up downstream: commands from mainControl units
         self.comms_downstream = self._zctx.socket(zmq.SUB)
         self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
         # subscribe to instrument specific commands
@@ -242,6 +245,7 @@ class zmqClient(zmqBare):
             "general".encode("ascii"),
         )
 
+        # setting up upstream, sending data back to whoever is interested
         self.comms_upstream = self._zctx.socket(zmq.PUB)
         self.comms_upstream.connect(f"tcp://{ip_data}:{port_upstream}")
 
@@ -250,18 +254,9 @@ class zmqClient(zmqBare):
         self.poller.register(self.comms_downstream, zmq.POLLIN)
 
         time.sleep(4)
-        # needed for the PUB/SUB sockets to find each other!
+        # sleep needed for the PUB/SUB sockets to find each other!
 
         self.data = {}
-
-    # def work_zmq(self):
-    #     try:
-    #         # self.comms_pub.send_multipart([u'client{}'.format(self.name).encode(
-    #         #     'ascii'), u'comes from client{}'.format(self.name).encode('ascii')])
-    #         # print(f'client {self._name} polling')
-    #         self.zmq_handle()
-    #     except KeyboardInterrupt:
-    #         pass
 
     def act_on_general(self, command_dict):
         try:
@@ -272,11 +267,19 @@ class zmqClient(zmqBare):
                 )
                 self.setInterval(command_dict["interval"])
             if "lock" in command_dict:
-                self._logger.debug("   locked the loop")
-                self.lock.acquire()
+                self._logger.debug("   locking the loop now")
+                if not self.lock.acquire(blocking=False):
+                    self._logger.warning(
+                        "tried to lock this loop, but it is locked already! "
+                    )
             elif "unlock" in command_dict:
-                self._logger.debug("un-locked the loop")
-                self.lock.release()
+                self._logger.debug("un-locking the loop now")
+                try:
+                    self.lock.release()
+                except RuntimeError:
+                    self._logger.warning(
+                        "tried to unlock this loop, but it is not locked!"
+                    )
 
         except AttributeError as e:
             self._logger.exception(e)
@@ -297,7 +300,11 @@ class zmqClient(zmqBare):
                         try:
                             command_dict = dictload(dec(msg)[1:])
                             answer = deepcopy(self.data)
-                            answer["uuid"] = command_dict["uuid"]
+                            for keycopy in ("uuid", "deliverto"):
+                                try:
+                                    answer[keycopy] = command_dict[keycopy]
+                                except KeyError:
+                                    pass
                         except IndexError:
                             answer = self.data
                         answer = enc(dictdump(answer))
@@ -309,14 +316,17 @@ class zmqClient(zmqBare):
                         self.act_on_general(command_dict)
                         answer = self.query_on_command(command_dict)
                         try:
-                            answer["uuid"] = command_dict["uuid"]
-                        except KeyError:
-                            pass
+                            for keycopy in ("uuid", "deliverto"):
+                                try:
+                                    answer[keycopy] = command_dict[keycopy]
+                                except KeyError:
+                                    pass
                         except TypeError:
                             answer = dict(
                                 ERROR=True,
                                 Errors="internal error, check device driver logs",
                                 uuid=command_dict["uuid"],
+                                deliverto=command_dict["deliverto"],
                             )
                         self.comms_tcp.send(enc(dictdump(answer)))
                         # self._logger.debug("zmq: answered tcp")
@@ -353,11 +363,11 @@ class zmqClient(zmqBare):
         raise NotImplementedError
 
     def send_data_upstream(self):
+        self.data["noblock"] = False
         self.data["realtime"] = dt.now()
         self.comms_upstream.send_multipart(
             [self.comms_name.encode("ascii"), enc(dictdump(self.data))]
         )
-
 
 class zmqMainControl(zmqBare):
     """docstring for zmqDev"""
@@ -366,12 +376,12 @@ class zmqMainControl(zmqBare):
         self,
         context=None,
         _ident="mainControl",
-        ip_maincontrol="*",
+        ip_maincontrol="127.0.0.1",
         ip_data="localhost",
-        port_reqp=5556,
-        port_downstream=5557,
+        port_reqp_c=5564,
+        port_downstream=5562,
         # port_upstream=5558,
-        port_data=5559,
+        port_data=5563,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -380,19 +390,19 @@ class zmqMainControl(zmqBare):
         )
         self.comms_name = _ident
         self._zctx = context or zmq.Context()
-        self.comms_tcp = self._zctx.socket(zmq.ROUTER)
-        self.comms_tcp.identity = b"mainControl"  # id
-        self.comms_tcp.bind(f"tcp://{ip_maincontrol}:{port_reqp}")
+        self.comms_tcp = self._zctx.socket(zmq.DEALER)
+        self.comms_tcp.identity = enc(_ident)  # id
+        self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp_c}")
 
         self.comms_data = self._zctx.socket(zmq.DEALER)
-        self.comms_data.identity = b"mainControl"  # id
+        self.comms_data.identity = enc(_ident)  # id
         self.comms_data.connect(f"tcp://{ip_data}:{port_data}")
 
         self.comms_downstream = self._zctx.socket(zmq.PUB)
-        self.comms_downstream.bind(f"tcp://{ip_maincontrol}:{port_downstream}")
+        self.comms_downstream.connect(f"tcp://{ip_maincontrol}:{port_downstream}")
 
         self.comms_inproc = self._zctx.socket(zmq.ROUTER)
-        self.comms_inproc.identity = b"mainControl"  # id
+        self.comms_inproc.identity = enc(_ident)  # id
         self.comms_inproc.bind("inproc://main")
         # self.comms_upstream = self._zctx.socket(zmq.SUB)
         # self.comms_upstream.bind(f'tcp://{ip_maincontrol}:{port_upstream}')
@@ -447,45 +457,6 @@ class zmqMainControl(zmqBare):
         )
         self.comms_downstream.send_multipart([enc(ID), enc(message)])
 
-    def _bare_retrieveDataIndividual_old(
-        self, dataindicator1, dataindicator2, Live=True
-    ):
-        message = enc(
-            "?" + dictdump(dict(instr=dataindicator1, value=dataindicator2, live=Live))
-        )
-        try:
-            self.comms_data.send(message)
-            for _ in range(3):
-                for _ in range(5):
-                    try:
-                        message = dictload(self.comms_data.recv(flags=zmq.NOBLOCK))
-                        if "ERROR" in message:
-                            self._logger.warning(
-                                "received error from dataStorage: %s -- %s",
-                                message["ERROR_message"],
-                                message["info"],
-                            )
-                            raise problemAbort(
-                                "problem with data retrieval, possibly the requested data is missing"
-                            )
-                        raise successExit
-                    except zmq.Again:
-                        time.sleep(0.3)
-                self._logger.debug("no answer after 5 trials, sleeping for a while")
-                time.sleep(1)
-
-            self._logger.warning("got no answer from dataStorage within 6s")
-            # TODO: fallback to querying individual application parts for data
-            raise problemAbort("dataStorage unresponsive, abort")
-        except zmq.ZMQError as e:
-            self._logger.exception(e)
-            # raise problemAbort("")
-            return None, "zmq error, no data available, abort"
-        except successExit:
-            return message, None
-        except problemAbort as e:
-            return None, e
-
     def _bare_retrieveDataIndividual(self, dataindicator1, dataindicator2, Live=True):
         uuid_now = uuid.uuid4().hex
         message = enc(
@@ -497,7 +468,7 @@ class zmqMainControl(zmqBare):
             )
         )
         try:
-            message, _ = self._bare_requestData_retries(
+            message = self._bare_requestData_retries(
                 message,
                 fun_send=self.comms_data.send,
                 fun_recv=self.comms_data.recv,
@@ -509,10 +480,41 @@ class zmqMainControl(zmqBare):
             self._logger.exception(e)
             # raise problemAbort("")
             return None  # , "zmq error, no data available, abort"
-        # except successExit:
-        #     return message, None
-        # except problemAbort as e:
-        #     return None, e
+
+    def retrieveDataMultiple(self, dataindicators: dict, Live=True):
+        """dataindicators:
+        dict of dicts:
+            {
+                val1: {"instr": instr1, "value": value1},
+                val2: {"instr": instr2, "value": value2},
+            }
+            TODO: include this in a method which checks whether the data
+            is actually up to date (as is done here in _bare_readDataFromList)
+        """
+        uuid_now = uuid.uuid4().hex
+        message = enc(
+            "?"
+            + dictdump(
+                dict(
+                    multiple=dataindicators,
+                    live=Live,
+                    uuid=uuid_now,
+                )
+            )
+        )
+        try:
+            message = self._bare_requestData_retries(
+                message,
+                fun_send=self.comms_data.send,
+                fun_recv=self.comms_data.recv,
+                id_send=None,
+                uuid=uuid_now,
+            )
+            return message
+        except zmq.ZMQError as e:
+            self._logger.exception(e)
+            # raise problemAbort("")
+            return None  # , "zmq error, no data available, abort"
 
     def _bare_requestData_retries(
         self,
@@ -524,11 +526,12 @@ class zmqMainControl(zmqBare):
         retries_n2=5,
         uuid=None,
     ):
-        address_retour = None
         if id_send:
             fun_send([enc(id_send), enc(message)])
+            self._logger.debug("sending message: %s", [enc(id_send), enc(message)])
         else:
             fun_send(message)
+            self._logger.debug("sending message: %s", message)
 
         time_start = dt.now()
         uuid_back = ""
@@ -538,11 +541,10 @@ class zmqMainControl(zmqBare):
                 for _ in range(retries_n2):
                     for _ in range(retries_n1):
                         try:
-                            if id_send:
-                                address_retour, msg = fun_recv(flags=zmq.NOBLOCK)
-                                answer = dictload(dec(msg))
-                            else:
-                                answer = dictload(dec(fun_recv(flags=zmq.NOBLOCK)))
+                            # if id_send:
+                            msg = fun_recv(flags=zmq.NOBLOCK)
+                            self._logger.debug("received message: %s", msg)
+                            answer = dictload(dec(msg))
                             uuid_back = answer["uuid"]
                             self._logger.debug(
                                 "received answer, comparing uuids: forward: %s, back: %s",
@@ -557,13 +559,10 @@ class zmqMainControl(zmqBare):
                                 )
                                 try:
                                     if answer["retry"] is True:
-                                        self._logger.info(
+                                        self._logger.debug(
                                             "retry in error is True, requesting again"
                                         )
-                                        (
-                                            answer,
-                                            address_retour,
-                                        ) = self._bare_requestData_retries(
+                                        answer = self._bare_requestData_retries(
                                             message,
                                             fun_send,
                                             fun_recv,
@@ -573,7 +572,7 @@ class zmqMainControl(zmqBare):
                                             uuid,
                                         )
                                     else:
-                                        self._logger.info(
+                                        self._logger.debug(
                                             "retry in error is False, aborting"
                                         )
                                         raise KeyError  # not really the KeyError, but less copying of vode
@@ -598,7 +597,7 @@ class zmqMainControl(zmqBare):
             except successExit:
                 # self._logger.debug("received answer, comparing uuids: forward: %s, back: %s", uuid, uuid_back)
                 pass
-        return answer, address_retour
+        return answer
 
     @ExceptionHandling
     def _bare_readDataFromList(
@@ -695,44 +694,25 @@ class zmqMainControl(zmqBare):
         # return self._query_device(device_id, data, noblock=noblock)
         return self._query_device_ensureResult(device_id, data, uuid_now, **kwargs)
 
-    # def _query_device(self, device_id, msg, noblock):
-    #     address_retour = None
-    #     address = device_id
-
-    #     while address_retour != address:
-    #         self._logger.debug("querying %s: %s", address, msg)
-    #         self.comms_tcp.send_multipart([address, enc(msg)])
-    #         if noblock:
-    #             time.sleep(0.5)
-    #             address_retour, message = self.comms_tcp.recv_multipart(zmq.NOBLOCK)
-    #         else:
-    #             address_retour, message = self.comms_tcp.recv_multipart()
-    #         self._logger.debug("received data from %s", address_retour)
-    #     return dictload(dec(message))
-
     def _query_device_ensureResult(self, device_id, msg, uuid_now, **kwargs):
-        address_retour = None
         address = device_id
         message = {"uuid": ""}
-        while address_retour != address and uuid_now != message["uuid"]:
+        while uuid_now != message["uuid"]:
             self._logger.debug(
                 "querying (ensureResult) %s, uuid: %s: %s",
                 address,
                 uuid_now,
                 msg.replace("\n", " ").replace("\r", ""),
             )
-            # self.comms_tcp.send_multipart([address, enc(msg)])
-            message, address_retour = self._bare_requestData_retries(
+            message = self._bare_requestData_retries(
                 message=msg,
                 fun_send=self.comms_tcp.send_multipart,
-                fun_recv=self.comms_tcp.recv_multipart,
+                fun_recv=self.comms_tcp.recv,
                 id_send=address,
                 uuid=uuid_now,
                 **kwargs,
             )
-            self._logger.debug(
-                "received data from %s, uuid: %s", address_retour, message["uuid"]
-            )
+            self._logger.debug("received data uuid: %s", message["uuid"])
         return message  # dictload(dec(msg)) already done
 
 
@@ -744,11 +724,11 @@ class zmqDataStore(zmqBare):
         context=None,
         _ident="dataStore",
         ip_maincontrol="localhost",
-        ip_data="*",
-        port_reqp=5556,
+        ip_data="127.0.0.1",
+        port_reqp_c=5556,
         port_downstream=5557,
-        port_upstream=5558,
-        port_data=5559,
+        port_upstream=5559,
+        port_data=5563,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -759,14 +739,14 @@ class zmqDataStore(zmqBare):
         self._zctx = context or zmq.Context()
         self.comms_tcp = self._zctx.socket(zmq.DEALER)
         self.comms_tcp.identity = b"dataStore"  # id
-        self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp}")
+        self.comms_tcp.connect(f"tcp://{ip_maincontrol}:{port_reqp_c}")
 
         self.comms_data = self._zctx.socket(zmq.ROUTER)
         self.comms_data.identity = b"dataStore"  # id
         self.comms_data.bind(f"tcp://{ip_data}:{port_data}")
 
         self.comms_upstream = self._zctx.socket(zmq.SUB)
-        self.comms_upstream.bind(f"tcp://{ip_data}:{port_upstream}")
+        self.comms_upstream.connect(f"tcp://{ip_data}:{port_upstream}")
         self.comms_upstream.setsockopt(zmq.SUBSCRIBE, b"")
 
         self.comms_downstream = self._zctx.socket(zmq.SUB)
@@ -824,9 +804,11 @@ class zmqDataStore(zmqBare):
             except zmq.Again:
                 pass
         if self.comms_data in evts:
+            self._logger.debug("handling data evt")
             try:
                 while True:
                     address, msg = self.comms_data.recv_multipart(zmq.NOBLOCK)
+                    self._logger.debug("message received: %s, %s", address, msg)
                     answer = self.question_to_self(msg)
                     self.comms_data.send_multipart([address, enc(answer)])
                     self._logger.debug("sent answer to %s", address)

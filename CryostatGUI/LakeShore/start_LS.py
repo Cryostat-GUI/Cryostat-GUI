@@ -8,26 +8,26 @@ from pid import PidFileError
 from LakeShore350_ControlClient import LakeShoreGUI
 
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger("pyvisa")
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger("PyQt5")
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
     try:
-        with PidFile("LakeShore350"):
-            logger = logging.getLogger()
-            logger.setLevel(logging.DEBUG)
-
-            logger_2 = logging.getLogger("pyvisa")
-            logger_2.setLevel(logging.INFO)
-            logger_3 = logging.getLogger("PyQt5")
-            logger_3.setLevel(logging.INFO)
-
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-            )
-            handler.setFormatter(formatter)
-
-            logger.addHandler(handler)
-            logger_2.addHandler(handler)
-            logger_3.addHandler(handler)
+        with PidFile("CryoGUI/LakeShore350"):
 
             LakeShore_InstrumentAddress = "TCPIP::192.168.1.105::7777::SOCKET"
             app = QtWidgets.QApplication(sys.argv)
@@ -43,5 +43,5 @@ if __name__ == "__main__":
             #       '\nstartup time: ', time.time() - a)
             sys.exit(app.exec_())
     except PidFileError:
-        print("Program already running! \nShutting down now!\n")
+        logger.error("Program already running! \nShutting down now!\n")
         sys.exit()

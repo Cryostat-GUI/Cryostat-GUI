@@ -156,6 +156,15 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
             self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        if "Display_1" in command:
+            self.ToggleDisplay(command["Display_1"])
+        if "Autozero_1" in command:
+            self.ToggleAutozero(command["Autozero_1"])
+        if "frontAutozero_1" in command:
+            self.ToggleAutozero(command["frontAutozero_1"])
+        if "Autorange_1" in command:
+            self.ToggleAutorange(command["Autorange_1"])
+
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling

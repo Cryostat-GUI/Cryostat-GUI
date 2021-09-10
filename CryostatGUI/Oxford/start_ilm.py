@@ -8,27 +8,26 @@ from pid import PidFileError
 from ILM_ControlClient import DeviceGUI
 
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
+    logger_2 = logging.getLogger("pyvisa")
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger("PyQt5")
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
     try:
-        with PidFile("ilm211"):
-            logger = logging.getLogger()
-            logger.setLevel(logging.DEBUG)
-
-            logger_2 = logging.getLogger("pyvisa")
-            logger_2.setLevel(logging.INFO)
-            logger_3 = logging.getLogger("PyQt5")
-            logger_3.setLevel(logging.INFO)
-
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setLevel(logging.DEBUG)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-            )
-            handler.setFormatter(formatter)
-
-            logger.addHandler(handler)
-            logger_2.addHandler(handler)
-            logger_3.addHandler(handler)
+        with PidFile("CryoGUI/ilm211"):
 
             app = QtWidgets.QApplication(sys.argv)
             form = DeviceGUI(
@@ -48,5 +47,5 @@ if __name__ == "__main__":
                 # sys.exit(-500)
             # sys.exit(exit)
     except PidFileError:
-        print("Program already running! \nShutting down now!\n")
+        logger.error("Program already running! \nShutting down now!\n")
         sys.exit()

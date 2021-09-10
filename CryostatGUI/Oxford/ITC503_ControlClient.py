@@ -265,6 +265,56 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.setTemperature(command["setTemp_K"])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
+        if "setDerivative" in command:
+            self.gettoset_Derivative(command["setDerivative"])
+            self.setDerivative()
+        if "setIntegral" in command:
+            self.gettoset_Integral(command["setIntegral"])
+            self.setIntegral()
+        if "setProportional" in command:
+            self.gettoset_Proportional(command["setProportional"])
+            self.setProportional()
+        if "setHeaterOutput" in command:
+            self.gettoset_HeaterOutput(command["setHeaterOutput"])
+            self.setHeaterOutput()
+        if "setGasOutput" in command:
+            self.gettoset_GasOutput(command["setGasOutput"])
+            self.setGasOutput()
+        if "gothroughzero" in command:
+            self._logger.warning("go through zero not implemented, command %s has been ignored" % command['gothroughzero'])
+            """Has to be implemented"""
+        if "setAutoControl" in command:
+            self.setAutoControl(command["setAutoControl"])
+        if "setHeaterSensor" in command:
+            self.setHeaterSensor(command["commsetHeaterSensor"])
+        if "ConfloaD" in command:
+            self.setPIDFile(command["PIDFile"])
+            self.setCheckAutoPID(command["useAuto"])
+            if command["useAuto"]==1:
+                self.set_PID(temperature=self.data["Sensor_1_K"])
+
+
+
+
+
+
+        # -------------------------------------------------------------------------------------------------------------------------
+    
+
+    @ExceptionHandling
+    def query_on_command(self, command):
+        """execute commands sent via tcp"""
+        answer_dict = {}
+        # -------------------------------------------------------------------------------------------------------------------------
+        # commands, like for adjusting a set temperature on the device
+        # commands are received via zmq tcp, and executed here
+        if "measure_Sensor_K" in command:  # value could be the sensor number
+            answer_dict["Temperature_K"] = self.ITC.getValue(self.sensors["Sensor_1_K"])
+        self.act_on_command(command)
+        answer_dict["OK"] = True
+        return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling

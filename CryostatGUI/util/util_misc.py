@@ -28,10 +28,14 @@ import matplotlib.gridspec as gridspec
 
 
 import functools
+from functools import singledispatch
+
 import numpy as np
+import pandas as pd
 import json
 import os
 import logging
+from datetime import datetime
 
 # from prometheus_client import start_http_server
 # from prometheus_client import Gauge
@@ -102,6 +106,58 @@ def convert_time_searchable_reverse(tstr):
     """convert the time string into datetime object"""
     return dt.strptime(tstr, "%Y%m%d%H%M%S")
 
+
+@singledispatch
+def calculate_timediff(dt, allowed_delay_s=3):
+    """function 'overloading' for python
+    https://docs.python.org/3/library/functools.html#functools.singledispatch
+    the following functions named _ are all registered to this name,
+    however with different input types.
+    """
+    pass
+
+
+@calculate_timediff.register(list)
+def _(dt, allowed_delay_s=3):
+    return calculate_timediff(dt[-1], allowed_delay_s)
+
+
+@calculate_timediff.register(str)
+def _(dt, allowed_delay_s=3):
+    try:
+        timediff = (
+            datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f") - datetime.now()
+        ).total_seconds()
+    except ValueError as err:
+        if "does not match format" in err.args[0]:
+            timediff = (
+                datetime.strptime(dt, "%Y-%m-%d %H:%M:%S") - datetime.now()
+            ).total_seconds()
+        else:
+            raise err
+    uptodate = abs(timediff) < allowed_delay_s
+    return uptodate, timediff
+
+
+@calculate_timediff.register(datetime)
+def _(dt, allowed_delay_s=3):
+    timediff = (dt - datetime.now()).total_seconds()
+    uptodate = abs(timediff) < allowed_delay_s
+    return uptodate, timediff
+
+
+def slope_from_timestampX(tmp_):
+    """casting datetime into seconds:
+    dt = pandas series of datetime objects
+    seconds = dt.astype('int64') // 1e9
+
+    """
+    slope = pd.Series(
+        np.gradient(tmp_.values, tmp_.index.astype("int64") // 1e9),
+        tmp_.index,
+        name="slope",
+    )
+    return slope
 
 # def convert_time_realtime_reverse(tstr):
 #     """convert the realtime entry in the database back to a datetime object
@@ -378,7 +434,7 @@ class Window_ui(QtWidgets.QWidget):
     sig_closing = pyqtSignal()
     sig_error = pyqtSignal(str)
 
-    def __init__(self, ui_file=None, **kwargs):
+    def __init__(self, ui_file=None, parent=None, **kwargs):
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
@@ -390,11 +446,17 @@ class Window_ui(QtWidgets.QWidget):
             loadUi(ui_file, self)
         self.setWindowIcon(QtGui.QIcon("TU-Signet.png"))
 
+        if parent is not None:
+            parent.sig_closing.connect(self.__del__)
+
     def closeEvent(self, event):
         """emit signal that the window is going to be closed and hand event to parent class method"""
         self.sig_closing.emit()
         # event.accept()  # let the window close
         super().closeEvent(event)
+
+    def __del__(self):
+        self.close()
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):

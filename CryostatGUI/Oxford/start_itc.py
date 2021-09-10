@@ -15,27 +15,46 @@ from ITC503_ControlClient_pythreading import ITC503_ControlClient_pythreading
 
 if __name__ == "__main__":
 
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger_2 = logging.getLogger("pyvisa")
+    logger_2.setLevel(logging.INFO)
+    logger_3 = logging.getLogger("PyQt5")
+    logger_3.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger_2.addHandler(handler)
+    logger_3.addHandler(handler)
+
     try:
         if len(sys.argv) > 1:
-            with PidFile("itc503"):
-                logger = logging.getLogger()
-                logger.setLevel(logging.DEBUG)
+            with PidFile("CryoGUI/itc503"):
+                # logger = logging.getLogger()
+                # logger.setLevel(logging.DEBUG)
 
-                logger_2 = logging.getLogger("pyvisa")
-                logger_2.setLevel(logging.INFO)
-                logger_3 = logging.getLogger("PyQt5")
-                logger_3.setLevel(logging.INFO)
+                # logger_2 = logging.getLogger("pyvisa")
+                # logger_2.setLevel(logging.INFO)
+                # logger_3 = logging.getLogger("PyQt5")
+                # logger_3.setLevel(logging.INFO)
 
-                handler = logging.StreamHandler(sys.stdout)
-                handler.setLevel(logging.DEBUG)
-                formatter = logging.Formatter(
-                    "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-                )
-                handler.setFormatter(formatter)
+                # handler = logging.StreamHandler(sys.stdout)
+                # handler.setLevel(logging.DEBUG)
+                # formatter = logging.Formatter(
+                #     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+                # )
+                # handler.setFormatter(formatter)
 
-                logger.addHandler(handler)
-                logger_2.addHandler(handler)
-                logger_3.addHandler(handler)
+                # logger.addHandler(handler)
+                # logger_2.addHandler(handler)
+                # logger_3.addHandler(handler)
 
                 ITC_Instrumentadress = "ASRL6::INSTR"
                 stopEvent = Event()
@@ -63,25 +82,25 @@ if __name__ == "__main__":
                 sys.exit(-1)
 
         else:
-            with PidFile("itc503"):
-                logger = logging.getLogger()
-                logger.setLevel(logging.DEBUG)
+            with PidFile("CryoGUI/itc503"):
+                # logger = logging.getLogger()
+                # logger.setLevel(logging.DEBUG)
 
-                logger_2 = logging.getLogger("pyvisa")
-                logger_2.setLevel(logging.INFO)
-                logger_3 = logging.getLogger("PyQt5")
-                logger_3.setLevel(logging.INFO)
+                # logger_2 = logging.getLogger("pyvisa")
+                # logger_2.setLevel(logging.INFO)
+                # logger_3 = logging.getLogger("PyQt5")
+                # logger_3.setLevel(logging.INFO)
 
-                handler = logging.StreamHandler(sys.stdout)
-                handler.setLevel(logging.DEBUG)
-                formatter = logging.Formatter(
-                    "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
-                )
-                handler.setFormatter(formatter)
+                # handler = logging.StreamHandler(sys.stdout)
+                # handler.setLevel(logging.DEBUG)
+                # formatter = logging.Formatter(
+                #     "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+                # )
+                # handler.setFormatter(formatter)
 
-                logger.addHandler(handler)
-                logger_2.addHandler(handler)
-                logger_3.addHandler(handler)
+                # logger.addHandler(handler)
+                # logger_2.addHandler(handler)
+                # logger_3.addHandler(handler)
 
                 app = QtWidgets.QApplication(sys.argv)
                 ITC_Instrumentadress = "ASRL6::INSTR"
@@ -104,5 +123,5 @@ if __name__ == "__main__":
                 #     sys.exit()
 
     except PidFileError:
-        print("Program already running! \nShutting down now!\n")
-        sys.exit()
+        logger.error("Program already running! \nShutting down now!\n")
+        sys.exit(0)
