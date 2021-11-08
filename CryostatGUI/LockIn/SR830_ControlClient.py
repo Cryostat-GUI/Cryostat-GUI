@@ -209,13 +209,13 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             self.set_Frequency_Hz = f_Hz
         with self._comLock:
             self.lockin.frequency = self.set_Frequency_Hz
-    
+
     @pyqtSlot()
     @ExceptionHandling
     def setAuxout(self, Voltage_V=None):
         """set Aux3 out"""
         self.lockin.aux_out_3 = Voltage_V
-    
+
     @pyqtSlot()
     @ExceptionHandling
     def setVoltage(self, Voltage_V=None):
