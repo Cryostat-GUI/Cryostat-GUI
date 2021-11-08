@@ -4,8 +4,10 @@ __pycache__
 *.iml
 *archiv*
 *.DS_Store*
+*png
 *.db*
 *.pickle
+*.pkl
 *.idea
 *.bat
 *.json
@@ -13,3 +15,8 @@ __pycache__
 *.error
 *.conf
 *.seq
+*.exe
+*.dat
+*.log
+*service*
+measure_script_*

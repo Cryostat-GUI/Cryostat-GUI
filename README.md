@@ -38,4 +38,4 @@ It can read PPMS (resistivity option) sequence files - and abstract class to run
 
 ## Contributing
 Additional Drivers for instruments, as well as control features and GUI enhancements are welcome.
-We refrained from using the InstrumentKit python package from the start, however a switch from the custom instrument classes to this framework could be envisioned.
+We refrained from using a few existing python packages for instrument control at the start, and wrote custom instrument drivers for some instruments, however including more instruments by virtue of different python packages will occur. 

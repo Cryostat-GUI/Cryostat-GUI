@@ -2,5 +2,7 @@ numpy
 PyQt5
 pyvisa
 matplotlib
-functools
 pymeasure
+pyzmq
+measureSequences
+prometheus-client
