@@ -276,7 +276,7 @@ class LakeShore350_Updater(AbstractLoopThread):
         """set Heater Range for Output 1"""
         if range_value is None:
             self.LakeShore350.HeaterRangeCommand(1, self.Heater_Range_value)
-        elif range_value is not None:
+        else:
             self.LakeShore350.HeaterRangeCommand(1, range_value)
 
     @pyqtSlot()
