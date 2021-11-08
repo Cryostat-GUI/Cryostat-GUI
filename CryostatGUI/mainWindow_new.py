@@ -169,10 +169,12 @@ class get_data(AbstractLoopThreadDataStore):
     def check_crash(self, ID):
         uptodate, timediff = calculate_timediff(self.data_all["realtime"], 60 * 5)
         if not uptodate:
+            # this is unlikely to ever be happening, might not need to be here
             self.crash_all["state"] = "crashed"
             self.crash_all["ID"] = ID
             self.sig_all.emit(self.crash_all)
         else:
+            # good indicator of having received data from the ControlClient
             self.crash_all["state"] = "running"
             self.crash_all["ID"] = ID
             self.sig_state_all.emit(self.crash_all)
