@@ -240,7 +240,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ITC": {},
             "ips120_1": {},
             "ILM": {},
-            "sr830_1": {},
+            "SR830_1": {},
             "SR860_1": {},
         }
         # dict for updating Client GUIS
@@ -254,7 +254,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "ITC": {},
             "ips120_1": {},
             "ILM": {},
-            "sr830_1": {},
+            "SR830_1": {},
             "SR860_1": {},
         }
         self.lockin_data_list = [
@@ -323,7 +323,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "status_switchheater",
         ]
         for key in self.lockin_data_list:
-            self.data_instruments["sr830_1"][key] = None
+            self.data_instruments["SR830_1"][key] = None
             self.data_instruments["SR860_1"][key] = None
         for key in self.keithley2182_data_list:
             self.data_instruments["Keithley2182_1"][key] = None
@@ -401,7 +401,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 "multipl": 0,
                 "method_update_gui": self.ilm211_Updater,
             },
-            "sr830_1": {
+            "SR830_1": {
                 "shouldthread": 0,
                 "lock": 0,
                 "multipl": 0,
@@ -540,7 +540,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             self.load_settings_itc503(self.instrument_dict["%s" % instrument])
         if "ILM" in instrument:
             self.initialize_ilm211(instrument)
-        if "sr830" in instrument:
+        if "SR830" in instrument:
             self.initialize_sr830(instrument)
         if "SR860" in instrument:
             self.initialize_sr860(instrument)
@@ -2212,7 +2212,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
     @pyqtSlot(dict)
     def SR830_Updater(self, data):
         """Store PS data in self.data['ILM'], update PS_window"""
-        self.data[data["ID"]].update(data)
+        self.data_instruments[data["ID"]].update(data)
         # data['date'] = convert_time(time.time())
         # self.data['SR830'].update(data)
         # this needs to draw from the self.data['INSTRUMENT'] so that in case one of the keys did not show up,
