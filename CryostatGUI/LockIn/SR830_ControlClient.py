@@ -150,6 +150,8 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             self.getShuntResistance(command["setShuntResistance"])
         if "setContactResistance" in command:
             self.getContactResistance(command["setContactResistance"])
+        if "setAuxout" in command:
+            self.setAuxout(command["setAuxout"])
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling
@@ -182,6 +184,18 @@ class SR830_ControlClient(AbstractLoopThreadClient):
                 answer_dict["SampleResistance_Ohm"] = np.NaN
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
+        if "measure_raw" in command:
+            data = {}
+            with self._comLock:
+                data["Frequency_Hz"] = self.lockin.frequency
+                data["Voltage_V"] = self.lockin.sine_voltage
+                data["X_V"] = self.lockin.x
+                data["Y_V"] = self.lockin.y
+                data["R_V"] = self.lockin.magnitude
+                data["Theta_Deg"] = self.lockin.theta
+                data["read_voltage"] = self.lockin.aux_in_3
+            answer_dict["data_raw"] = data
+
         if not answer_dict["OK"]:
             answer_dict["ERROR"] = True
             answer_dict["ERROR_message"] = str(answer_dict["Errors"])
@@ -195,7 +209,13 @@ class SR830_ControlClient(AbstractLoopThreadClient):
             self.set_Frequency_Hz = f_Hz
         with self._comLock:
             self.lockin.frequency = self.set_Frequency_Hz
-
+    
+    @pyqtSlot()
+    @ExceptionHandling
+    def setAuxout(self, Voltage_V=None):
+        """set Aux3 out"""
+        self.lockin.aux_out_3 = Voltage_V
+    
     @pyqtSlot()
     @ExceptionHandling
     def setVoltage(self, Voltage_V=None):
