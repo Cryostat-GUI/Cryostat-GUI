@@ -352,7 +352,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self._logger.debug(f"tempcommand: {tempdict}")
         if "end" not in tempdict:
             self.Temp_K_value = tempdict["setTemp"]
-        elif "setTemp" not in tempdict:
+        if "setTemp" not in tempdict:
             self._logger.warning(
                 "received command to change temperature without final temperature setpoint"
             )
