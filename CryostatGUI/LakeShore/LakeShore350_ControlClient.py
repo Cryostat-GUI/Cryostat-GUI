@@ -286,13 +286,17 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         # examples:
         answer_dict["OK"] = True
         answer_dict["Errors"] = []
+        data = {}
         if "measure_Sensor_K" in command:  # value must be the sensor number (1-4)
+            self._logger.debug("got message to measure the temperature")
             s = int(command["measure_Sensor_K"][7])  # take number from 'Sensor_X_K'
             if s > 4 or s < 1:
                 answer_dict["OK"] = False
                 answer_dict["Errors"].append("invalid sensor number: {}".format(s))
             temperature = self.LakeShore350.KelvinReadingQuery(s)[0]
-            answer_dict[f"Temperature_K"] = temperature
+            
+            data["Temperature_K"] = temperature
+            # answer_dict[f"Temperature_K"] = temperature
 
         if "measure_Sensor_Ohm" in command:  # value must be the sensor number (1-4)
             s = int(command["measure_Sensor_Ohm"][7])  # take number from 'Sensor_X_Ohm'
@@ -300,10 +304,13 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
                 answer_dict["OK"] = False
                 answer_dict["Errors"].append("invalid sensor number: {}".format(s))
             temperature = self.LakeShore350.SensorUnitsInputReadingQuery(s)[0]
-            answer_dict[f"Temperature_Ohm"] = temperature
+            data["Temperature_Ohm"] = temperature
+            # answer_dict[f"Temperature_Ohm"] = temperature
         if not answer_dict["OK"]:
             answer_dict["ERROR"] = True
             answer_dict["ERROR_message"] = str(answer_dict["Errors"])
+
+        answer_dict["data_raw"] = data
         return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 

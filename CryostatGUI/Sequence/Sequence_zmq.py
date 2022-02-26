@@ -561,7 +561,7 @@ class Sequence_functionsPersonal:
             device_id=device,
             command=dict(measure_Sensor_K=self.tempdefinition[sensortype][1]),
         )
-        return answer_dict["Temperature_K"]
+        return answer_dict["data_raw"]["Temperature_K"]
 
     def checkField(
         self, Field: float, direction: int = 0, ApproachMode: str = "Sweep"
