@@ -75,6 +75,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # Example:
         self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
         self._startingtime = dt.now()
+        self.save_InstrumentAddress = InstrumentAddress
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -117,7 +118,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # to be stored in self.data
 
         self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
-        if (dt.now() - self._startingtime).seconds > 60:
+        if (dt.now() - self._startingtime).seconds > 60:  # 60
             self._startingtime = dt.now()
             self.data[
                 "TemperatureInternal_K"
@@ -126,18 +127,19 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
                 "TemperaturePresent_K"
             ] = self.Keithley2182.measurePresentTemperature()
 
-            for error in self.Keithley2182.error_gen():
-                if error[0] != "0":
-                    self._logger.error(
-                        "code:%s, message:%s", error[0], error[1].strip('"')
-                    )
-                    if error[0] == "-213":
-                        self.Keithley2182 = Keithley2182(
-                            InstrumentAddress=self.save_InstrumentAddress,
-                        )
-                        self._logger.warning(
-                            "found error -213, re-establishing connection"
-                        )
+        for error in self.Keithley2182.error_gen():
+            if error[0] != "0":
+                self._logger.error(
+                    "code:%s, message:%s", error[0], error[1].strip('"')
+                )
+                # if error[0] == "-213":
+                #     self._logger.warning(
+                #         "found error -213, re-establishing connection"
+                #     )
+                #     self.Keithley2182 = Keithley2182(
+                #         InstrumentAddress=self.save_InstrumentAddress,
+                #     )
+
         self.data["realtime"] = dt.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))

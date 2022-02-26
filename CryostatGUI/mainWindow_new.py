@@ -718,7 +718,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             "window"
         ].checkRamp_Status.toggled["bool"].connect(
             lambda value: self.fun_checkSweep_toggled_lakeshore350(
-                instr=self.instrument_dict[instrument_Lakeshore350],
+                value, instr=self.instrument_dict[instrument_Lakeshore350],
             )
         )
         self.instrument_dict[instrument_Lakeshore350][
@@ -745,6 +745,15 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 message=dictdump({"setHeaterOut": 0}),
             )
         )
+
+        self.instrument_dict[instrument_Lakeshore350][
+            "window"
+        ].combo_HeaterRange.activated["int"].connect(
+            lambda value: self.commanding(
+                ID=self.instrument_dict[instrument_Lakeshore350]["ID"],
+                message=dictdump({"setHeaterOut": value}),
+            )
+        )        
 
         self.instrument_dict[instrument_Lakeshore350][
             "window"
@@ -1060,11 +1069,13 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def set_spinSetCurrent_keithley6221(self, instr):
         """Send command to controleClient to set spinCurrent in mA"""
-
-        self.commanding(
-            ID=instr["ID"],
-            message=dictdump({"set_Current_A": instr["values"]["spinsetCurrent"]}),
-        )
+        try:
+            self.commanding(
+                ID=instr["ID"],
+                message=dictdump({"set_Current_A": instr["values"]["spinsetCurrent"]}),
+            )
+        except KeyError:
+            self._logger.warning("tried to set a current, but no current has been specified!")
 
     def gettoset_spinSetCurrent_keithley6221(self, value, instr):
         """receive and store the value to set the spinCurrent"""
@@ -2073,6 +2084,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             ui_file=".\\LockIn\\LockIn_control.ui",
             parent=self,
         )
+        self.instrument_dict[instrument_sr830]["window"].setWindowTitle("SR 830 Lock-In Amplifier")
+        self.instrument_dict[instrument_sr830]["window"].textBrowser.setText("SR 830 Lock-In Amplifier")
         self.instrument_dict[instrument_sr830]["window"].sig_closing.connect(
             lambda: self.action_show_SR830.setChecked(False)
         )
@@ -2269,6 +2282,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             ui_file=".\\LockIn\\LockIn_control.ui",
             parent=self,
         )
+        self.instrument_dict[instrument_sr860]["window"].setWindowTitle("SR 860 Lock-In Amplifier")
         # self.LockIn_window_sr860.sig_closing.connect(
         #    lambda: self.action_show_SR860.setChecked(False)
         # )
