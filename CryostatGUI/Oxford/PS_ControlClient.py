@@ -279,11 +279,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         """
         self.data.update(data)
         self.ct += 2
-        self.lcdOutputField.display(
-                    self.ct)
-
-
-
+        self.lcdOutputField.display(self.ct)
 
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
