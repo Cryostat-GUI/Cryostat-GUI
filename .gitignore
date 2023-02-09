@@ -20,3 +20,4 @@ __pycache__
 *.log
 *service*
 measure_script_*
+Logs
