@@ -157,13 +157,13 @@ class get_data(AbstractLoopThreadDataStore):
         )
         self.data_all = {}
         self.crash_all = {}
-        self.interval = 1
+        self.interval = 0.3
 
     def running(self):
         self.run_finished = False
         # print(self.data_main)
         # self.sig_Infodata.emit(deepcopy(self.data_main))
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.run_finished = True
 
     def check_crash(self, ID):
@@ -175,11 +175,12 @@ class get_data(AbstractLoopThreadDataStore):
             self.sig_all.emit(self.crash_all)
         else:
             # good indicator of having received data from the ControlClient
-            self.crash_all["state"] = "running"
+            self.crash_all["state"] = "running & connected"
             self.crash_all["ID"] = ID
             self.sig_state_all.emit(self.crash_all)
 
     def store_data(self, ID, data):
+        # self._logger.debug("got data, going to show it now in the GUI")
         self.data_all.update(data)
         self.data_all["ID"] = ID
         self.sig_all.emit(deepcopy(self.data_all))
@@ -552,7 +553,10 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
 
     def update_data(self, data):
         """gets data from thread and update all the individual GUIS"""
+        # try:
         self.instrument_dict[data["ID"]]["method_update_gui"](data)
+        # except KeyError as e:
+            # self._logger.exception(e)
 
     def start_instrument(self, instrument=None):
         """function that starts and stop ControlClient windows services"""
@@ -751,7 +755,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         ].combo_HeaterRange.activated["int"].connect(
             lambda value: self.commanding(
                 ID=self.instrument_dict[instrument_Lakeshore350]["ID"],
-                message=dictdump({"setHeaterOut": value}),
+                message=dictdump({"setHeaterRange": value}),
             )
         )        
 
@@ -939,6 +943,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         Calculate the rate of change of Temperature on the sensors [K/min]
         Store LakeShore350 data in self.data['LakeShore350'], update LakeShore350_window
         """
+        # self._logger.debug("got data from LS350, going to show it now in the GUI")
+
         self.data_instruments[data["ID"]].update(data)
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
@@ -1392,7 +1398,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
                 self.instrument_dict[data["ID"]][
                     "window"
                 ].lcdMeasuredMagnetCurrent.display(
-                    self.data_instruments[data["ID"]]["magnet_current"]
+                    self.data_instruments[data["ID"]]["measured_magnet_current"]
                 )
                 self.instrument_dict[data["ID"]]["window"].lcdOutputCurrent.display(
                     self.data_instruments[data["ID"]]["output_current"]
@@ -1770,7 +1776,7 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
             ID=instr["ID"],
             message=dictdump(
                 {
-                    "ConfLoaD": "dummy",
+                    "pid_confload": "dummy",
                     "PIDFile": instr["_PIDFile"],
                     "useAuto": instr["_useAutoPID"],
                 }
@@ -1882,6 +1888,8 @@ class mainWindow(AbstractMainApp, Window_ui, zmqMainControl):
         Calculate the rate of change of Temperature on the sensors [K/min]
         Store ITC data in self.data['ITC'], update ITC_window
         """
+        # self._logger.debug("got data from ITC 503, going to show it now in the GUI")
+
         # with self.dataLock:
         # print('storing: ', self.time_itc[-1]-time.time(), data['Sensor_1_K'])
         # self.time_itc.append(time.time())

@@ -43,8 +43,8 @@ def main():
 
     # define ports
     logger.debug("defining ports ")
-    frontend.bind(f"tcp://127.0.0.1:{port_frontend}")
-    backend.bind(f"tcp://127.0.0.1:{port_backend}")
+    frontend.bind(f"tcp://192.168.1.101:{port_frontend}")
+    backend.bind(f"tcp://192.168.1.101:{port_backend}")
 
     # register polling events
     logger.debug("register polling events")

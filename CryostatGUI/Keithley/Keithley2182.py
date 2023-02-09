@@ -44,7 +44,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         )
 
         self.setRate(num=0.1)
-        self.go(":INIT:CONT OFF")
+        self.go(":INIT:CONT ON")
 
     def measureInternalTemperature(self):
         """measure internal temperature
@@ -77,7 +77,7 @@ class Keithley2182(AbstractGPIBDeviceDriver):
         # return self.query("SENS:DATA:FRES?")[0]
         # self.go(':TRIGger:COUNt 1')
 
-        answer = self.query(":READ?")[0]
+        answer = self.query(":FETC?")[0]
         if answer[0:2] == "--":
             answer = answer[1:]
         return float(answer)

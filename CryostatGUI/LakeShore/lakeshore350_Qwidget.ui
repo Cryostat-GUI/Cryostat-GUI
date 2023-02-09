@@ -82,7 +82,7 @@ p, li { white-space: pre-wrap; }
           <number>3</number>
          </property>
          <property name="maximum">
-          <double>320.000000000000000</double>
+          <double>330.000000000000000</double>
          </property>
          <property name="value">
           <double>4.000000000000000</double>

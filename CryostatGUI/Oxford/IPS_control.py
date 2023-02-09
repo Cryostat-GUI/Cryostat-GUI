@@ -17,13 +17,13 @@ from pyvisa.errors import VisaIOError
 from Oxford import ips120
 import logging
 
-from util import AbstractLoopThread
+from util import AbstractLoopThreadClient
 from util import ExceptionHandling
 
 from datetime import datetime
 
 
-class IPS_Updater(AbstractLoopThread):
+class IPS_Updater(AbstractLoopThreadClient):
     """Updater class for the Intelligent Power Supply (IPS) 120-10
 
     For each IPS function (except collecting data), there is a wrapping method,
@@ -134,6 +134,8 @@ class IPS_Updater(AbstractLoopThread):
         },
     )
 
+    data = {}
+
     def __init__(self, InstrumentAddress, **kwargs):
         super().__init__(**kwargs)
         self._logger = logging.getLogger(
@@ -153,18 +155,24 @@ class IPS_Updater(AbstractLoopThread):
         if self.first:
             time.sleep(1)
             self.first = False
+
         try:
-            data = {}
+            self.run_finished = False
+            # -------------------------------------------------------------------------------------------------------------------------
+
+            # data = {}
             # get key-value pairs of the sensors dict,
             # so I can then transmit one single dict
             for key, idx_sensor in self.sensors.items():
                 # key_f_timeout = key
-                data[key] = self.PS.getValue(idx_sensor)
-            data.update(self.getStatus())
+                self.data[key] = self.PS.getValue(idx_sensor)
+            self.data.update(self.getStatus())
 
-            data["realtime"] = datetime.now()
+            self.data["realtime"] = datetime.now()
 
-            self.sig_Infodata.emit(deepcopy(data))
+            # -------------------------------------------------------------------------------------------------------------------------
+            self.sig_Infodata.emit(deepcopy(self.data))
+            self.run_finished = True
         except AssertionError as e_ass:
             self.sig_assertion.emit(e_ass.args[0])
         except VisaIOError as e_visa:

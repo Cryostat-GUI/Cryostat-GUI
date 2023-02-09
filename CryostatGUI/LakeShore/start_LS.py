@@ -18,14 +18,31 @@ if __name__ == "__main__":
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
+
+    # try to use a logging.handlers
+
+    # D:\Cryostat_service_logs\LakeShore350.txt service output file
+
+    # handler2 = logging.handlers.RotatingFileHandler("logtest.txt", mode="a", maxBytes=2000, backupCount=5)  # "D:/Cryostat_service_logs/LakeShore350.log"
+    # handler2.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
     )
     handler.setFormatter(formatter)
+    # handler2.setFormatter(formatter)
+
+    # for lo in (logger, logger_2, logger_3):
+    #     for hand in (handler, handler2):
+    #         lo.addHandler(hand)
 
     logger.addHandler(handler)
     logger_2.addHandler(handler)
     logger_3.addHandler(handler)
+
+    # logger.addHandler(handler2)
+    # logger_2.addHandler(handler2)
+    # logger_3.addHandler(handler2)
+
     try:
         with PidFile("CryoGUI/LakeShore350"):
 

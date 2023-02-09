@@ -7,6 +7,7 @@ import logging
 
 from threading import Lock
 from json import loads
+from json.decoder import JSONDecodeError
 
 from pid import PidFile
 from pid import PidFileError
@@ -33,7 +34,7 @@ from util import problemAbort
 from Sequence_abstract_measurements import AbstractMeasureResistance
 
 # from Sequence import AbstractMeasureResistanceMultichannel
-
+import json
 
 logger = logging.getLogger("CryostatGUI.Sequences_zmq")
 
@@ -41,6 +42,7 @@ logger = logging.getLogger("CryostatGUI.Sequences_zmq")
 class Sequence_comms_zmq(zmqMainControl):
     """docstring for Sequence_comms_zmq"""
 
+    _ident="main_sequence"
     device_ids = dict(
         chan1=dict(V="Keithley2182_1", A="Keithley6221_1"),
         chan2=dict(V="Keithley2182_2", A="Keithley6221_2"),
@@ -57,6 +59,7 @@ class Sequence_comms_zmq(zmqMainControl):
         return super()._bare_retrieveDataIndividual(
             dataindicator1, dataindicator2, Live=True
         )
+
 
 
 class Sequence_functionsConvenience:
@@ -88,7 +91,7 @@ class Sequence_functionsConvenience:
         direction: int = 0,
         ApproachMode: str = "Sweep",
         weak: bool = False,
-        sensortype="control",
+        sensortype="control_secondary",
         timeout: float = 0,
     ) -> bool:
         if sensortype == "both":
@@ -311,10 +314,16 @@ class Sequence_functionsConvenience:
                     for v_missing in all_values
                     if v_missing not in stable_values
                 ]
+
+                missing_values_vals = [
+                    "{0:.3f}".format(all_data["data"][v_missing])
+                    for v_missing in all_values
+                    if v_missing not in stable_values
+                ]
                 self._logger.info(
                     f"waiting for {value_name}: {val:.4f}, current: {value_now:.4f}{value_unit}, "
                     + f"indicators ({len(stable_values):d}/5): {stable_values}, "
-                    + f"missing ({len(stable_values):d}/5): {missing_values}"
+                    + f"missing ({5-len(stable_values):d}/5): {missing_values}={missing_values_vals}"
                 )
 
                 if len(stable_values) >= 5:
@@ -388,8 +397,29 @@ class Sequence_functionsPersonal:
             )
         """
         self._setpoint_temp = temperature
+        # self._logger.debug("setting setpoint %f", temperature)
+
+        # setpoint for VTI = setpoint for sample minus deltaT
+        setpoint_VTI = temperature - self.tempdefinition["deltaT"]
+        self._logger.debug("defining setpoint as 'setpoint (%f) - deltaT (%f) = %f'", temperature, self.tempdefinition["deltaT"], setpoint_VTI)
+        if setpoint_VTI < 2:
+            setpoint_VTI = 2
+            self._logger.info("setpoint for VTI would have exceeded its minimum, setting it to 1.5")
         self.commanding(
             ID=self.tempdefinition["control"][0],
+            message=dictdump(
+                {
+                    "setAutoControl": 3,  # set all to automatic
+                    "setTemp_K": dict(
+                        isSweep=False,
+                        isSweepStartCurrent=False,
+                        setTemp=setpoint_VTI,
+                    )
+                }
+            ),
+        )
+        self.commanding(
+            ID=self.tempdefinition["control_secondary"][0],
             message=dictdump(
                 {
                     "setTemp_K": dict(
@@ -430,7 +460,7 @@ class Sequence_functionsPersonal:
     def scan_T_programSweep(
         self,
         start: float = None,
-        isSweepStartCurrent: bool = False,
+        isSweepStartCurrent: bool = True,
         end: float = None,
         Nsteps: float = None,
         temperatures: list = None,
@@ -445,13 +475,40 @@ class Sequence_functionsPersonal:
         if not isSweepStartCurrent:
             self.setTemperature(temperature=start)
             self.checkStable_Temp(temp=start, direction=0, ApproachMode="Fast")
+
+        # VTI setpoint is shifted to setpoint - deltaT
+        if start - self.tempdefinition["deltaT"] < 2:
+            start_VTI = 2
+        else:
+            start_VTI = start - self.tempdefinition["deltaT"]
+
+        if end - self.tempdefinition["deltaT"] < 2:
+            end_VTI = 2
+        else:
+            end_VTI = end - self.tempdefinition["deltaT"]
+        self._logger.debug("shifting VTI setpoints for %f K to [%f, %f]", self.tempdefinition["deltaT"], start_VTI, end_VTI)
         self.commanding(
             ID=self.tempdefinition["control"][0],
             message=dictdump(
                 {
+                    "setAutoControl": 3,  # set all to automatic
                     "setTemp_K": dict(
                         isSweep=True,
-                        isSweepStartCurrent=True,
+                        isSweepStartCurrent=False,
+                        start=start_VTI,
+                        end=end_VTI,
+                        SweepRate=SweepRate,
+                    )
+                }
+            ),
+        )
+        self.commanding(
+            ID=self.tempdefinition["control_secondary"][0],
+            message=dictdump(
+                {
+                    "setTemp_K": dict(
+                        isSweep=True,
+                        isSweepStartCurrent=False,
                         start=start,
                         end=end,
                         SweepRate=SweepRate,
@@ -538,7 +595,7 @@ class Sequence_functionsPersonal:
         # self._logger.debug(f"getField :: returning random value: {val}")
         # return val
 
-    def getTemperature(self) -> float:
+    def getTemperature(self, sensortype="control_secondary") -> float:
         """Read the temperature
 
         Method to be overriden by child class
@@ -546,8 +603,8 @@ class Sequence_functionsPersonal:
         returns: temperature as a float
         """
         answer = self.readDataFromList(
-            dataindicator1=self.tempdefinition["control"][0],
-            dataindicator2=self.tempdefinition["control"][1],
+            dataindicator1=self.tempdefinition[sensortype][0],
+            dataindicator2=self.tempdefinition[sensortype][1],
             Live=False,
         )
         # self._logger.debug("received temperature: %s", answer)
@@ -623,10 +680,31 @@ class Sequence_functionsPersonal:
 
     def Shutdown(self):
         """Shut down instruments to a safe standby-configuration"""
-        self._logger.debug("going into safe shutdown mode")
-        self._logger.warning(
-            "no commands specified for shutdown mode, leaving everything 'as is'"
-        )
+        self._logger.info("going into safe shutdown mode")
+        # self._logger.warning(
+        #     "no commands specified for shutdown mode, leaving everything 'as is'"
+        # )
+        # should shut off heaters on the LS350, close needle valve to about 2%
+        # turn of the heater of the VTI (i.e. ITC503)
+
+        # VTI shutdown:
+        self._logger.info("Shutdown, setting VTI to manual, with heater and gas output =0%")
+        for cdict in ({"setAutoControl": 0}, {"setHeaterOutput": 0}, {"setGasOutput": 0}):
+            self.commanding(
+                ID=self.tempdefinition["control"][0],  # ITC
+                message=dictdump(cdict),
+            )
+            self._logger.debug("Shutdown, just sent %s", cdict)
+            time.sleep(0.1)
+        self._logger.info("Shutdown, setting probe heater to 0%")
+        self.commanding(
+            ID=self.tempdefinition["sample"][0],  # LakeShore
+            message=dictdump(
+                {
+                    "setHeaterOut": None,
+                }
+            ),
+        )        
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity
@@ -661,7 +739,7 @@ class Sequence_functionsPersonal:
         self._logger.debug(f" write a comment: {comment} in the datafile: {datafile}.")
         raise NotImplementedError
 
-    def res_change_datafile(self, datafile: str, mode: str) -> None:
+    def res_change_datafile(self, datafile: str, mode: str = "a") -> None:
         """change the datafile (location)
         Must be overridden!
         mode ('a' or 'w') determines whether data should be
@@ -670,9 +748,9 @@ class Sequence_functionsPersonal:
         (to) the new datafile
         """
         self.datafile = datafile
-        if mode == "w":
-            with open(datafile, "w") as f:
-                f.write("")
+        # if mode == "w":
+        #     with open(datafile, "w") as f:
+        #         f.write("")
         self._logger.debug(f" change the datafile to: {datafile}, with mode {mode}.")
 
 
@@ -890,28 +968,41 @@ if __name__ == "__main__":
     # filename = "seqfiles/measure.json"
     # filename = "seqfiles/measuring_SR860_test2.json"
     # filename = "seqfiles/measuring_SR860_test3.json"
-    filename = "seqfiles/measuring_DC_test1.json"
+    # filename = "seqfiles/measuring_DC_test1.json"
+    # filename = "seqfiles/RvT_use__measure_res_DC.seq"
+    # filename = "seqfiles/calibrate_PT.seq"
+    # filename = "seqfiles/calibrate_PT_below150K.seq"
+    # filename = "seqfiles/calibrate_cernox.seq"
+    # filename = "seqfiles/calibrate_cernox_2to8K.seq"
+    # filename = "seqfiles/RvTime_use__measure_res_DC.seq"
+    filename = "seqfiles/RvTest_use__measure_res_DC.seq"
     thresholdsconf = dict(
         temperature=dict(
-            value=0.3,  # 0.1, # 0.05,  T_K
-            mean=10,  # 0.2,  # 0.05,   Tmean_K
-            stderr_rel=1e-1,  # 1e-5,
-            relslope_Xpmin=1e-0,  # 1e-3,  # _Kpmin
-            slope_residuals=30e4,  # 30,
+            value=  0.005,  # 0.1, # 0.05,  T_K
+            mean=  0.005,  # 0.2,  # 0.05,   Tmean_K
+            stderr_rel= 1e-4,  # 1e-5,
+            relslope_Xpmin= 1e-4,  # 1e-3,  # _Kpmin
+            slope_residuals=  5e-4,  # 30,
         ),
     )
     tempdefinition = dict(
         control=["ITC", "Sensor_1_calerr_K"],
-        sample=["ITC", "Sensor_1_calerr_K"],
-        # sample=["LakeShore350", "Sensor_4_K"],
+        control_secondary=["LakeShore350", "Sensor_4_K"],
+        # sample=["ITC", "Sensor_1_calerr_K"],
+        sample=["LakeShore350", "Sensor_1_K"],
+
+        deltaT=0,
     )
-    parsed = True
+    parsed = False
     if not parsed:
         parser = mS.Sequence_parser(sequence_file=filename)
         sequence = parser.data
     else:
-        with open(filename, "r") as f:
-            sequence = loads(f.read())
+        try:
+            with open(filename, "r") as f:
+                sequence = loads(f.read())
+        except JSONDecodeError:
+            logger.warning("use the correct sequence file, and say whether it was parsed or not!")
     print(sequence)
     runner = Sequence_Thread_zmq(
         sequence=sequence,

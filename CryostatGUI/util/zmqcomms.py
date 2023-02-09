@@ -211,8 +211,8 @@ class zmqClient(zmqBare):
         self,
         context=None,
         identity=None,
-        ip_maincontrol="127.0.0.1",
-        ip_data="127.0.0.1",
+        ip_maincontrol="192.168.1.101",
+        ip_data="192.168.1.101",
         port_reqp=5556,
         port_downstream=5561,
         port_upstream=5560,
@@ -289,7 +289,7 @@ class zmqClient(zmqBare):
     # @ExceptionHandling
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
-        self._logger.debug("zmq: handling events")
+        # self._logger.debug("zmq: handling events")
         if self.comms_tcp in evts:
             try:
                 while True:
@@ -309,10 +309,16 @@ class zmqClient(zmqBare):
                             answer = self.data
                         answer = enc(dictdump(answer))
                         self.comms_tcp.send(answer)
-                        # self._logger.debug("zmq: answered tcp")
+                        self._logger.debug("zmq: answered tcp data query")
 
                     elif dec(msg)[0] == "!":
+                        self._logger.debug(
+                            "received command on tcp"
+                        )                        
                         command_dict = dictload(dec(msg)[1:])
+                        self._logger.info(
+                            "received command on tcp: %s", command_dict
+                        )
                         self.act_on_general(command_dict)
                         answer = self.query_on_command(command_dict)
                         try:
@@ -329,14 +335,14 @@ class zmqClient(zmqBare):
                                 deliverto=command_dict["deliverto"],
                             )
                         self.comms_tcp.send(enc(dictdump(answer)))
-                        # self._logger.debug("zmq: answered tcp")
+                        self._logger.debug("zmq: answered tcp command")
 
                     else:
                         self._logger.error(
                             "received unintelligable message: '%s' ", dec(msg)
                         )
                         self.comms_tcp.send(enc(dictdump({"ERROR": True}) + dec(msg)))
-                        # self._logger.debug("zmq: answered tcp: ERROR")
+                        self._logger.debug("zmq: answered tcp: ERROR")
 
             except zmq.Again:
                 pass
@@ -377,8 +383,8 @@ class zmqMainControl(zmqBare):
         self,
         context=None,
         _ident="mainControl",
-        ip_maincontrol="127.0.0.1",
-        ip_data="localhost",
+        ip_maincontrol="192.168.1.101",
+        ip_data="192.168.1.101",
         port_reqp_c=5564,
         port_downstream=5562,
         # port_upstream=5558,
@@ -793,7 +799,9 @@ class zmqDataStore(zmqBare):
 
     def zmq_handle(self):
         evts = dict(self.poller.poll(zmq.DONTWAIT))
+        # self._logger.debug("handling zmq")
         if self.comms_tcp in evts:
+            self._logger.debug("handling tcp evt")
             try:
                 while True:
                     msg = self.comms_tcp.recv(zmq.NOBLOCK)
@@ -818,16 +826,19 @@ class zmqDataStore(zmqBare):
             except zmq.Again:
                 pass
         if self.comms_upstream in evts:
+            # self._logger.debug("handling incoming data")
             try:
                 while True:
                     msg = self.comms_upstream.recv_multipart(zmq.NOBLOCK)
                     # print(msg)
                     self.store_data(dec(msg[0]), dictload(dec(msg[1])))
                     # store data!
+                    # self._logger.debug("stored incoming data")
             except zmq.Again:
                 pass
         if self.comms_downstream in evts:
             try:
+                self._logger.debug("handling downstream")
                 while True:
                     msg = self.comms_downstream.recv_multipart(zmq.NOBLOCK)
                     command_dict = dictload(dec(msg[1]))

@@ -26,6 +26,7 @@ from util import Window_trayService_ui
 from util import AbstractMainApp
 
 from datetime import datetime
+from Oxford import ips120
 from pyvisa.errors import VisaIOError
 import logging
 
@@ -58,8 +59,8 @@ class Template_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         # Example:
-        # self.LakeShore350 = LakeShore350(
-        #     InstrumentAddress=InstrumentAddress, comLock=comLock)
+        # self.ips120_1 = ips120_1(
+        #    InstrumentAddress=InstrumentAddress, comLock=comLock)
 
         # -------------------------------------------------------------------------------------------------------------------------
 
@@ -246,6 +247,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
+        self.ct = 0
 
     @pyqtSlot()
     def run_Hardware(self):
@@ -276,6 +278,13 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
+        self.ct += 1
+        self.lcdOutputField.display(
+                    self.ct)
+
+
+
+
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
 
@@ -342,7 +351,7 @@ if __name__ == "__main__":
 
             app = QtWidgets.QApplication(sys.argv)
             form = DeviceGUI(
-                ui_file="Template_main.ui",
+                ui_file="IPS_control.ui",
                 Name="Template",
                 identity="templ",
                 InstrumentAddress="",

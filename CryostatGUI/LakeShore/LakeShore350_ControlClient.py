@@ -272,7 +272,9 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         if "setInput_Sensor" in command:
             self.setInput(command["setInput_Sensor"])
         if "setHeaterOut" in command:
-            self.setHeater_Range(command["setHeaterOut"])
+            self.setHeater_Range(0)
+        if "setHeaterRange" in command:
+            self.setHeater_Range(command["setHeaterRange"])            
 
         # TODO: implement more commands
 
@@ -306,6 +308,12 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             temperature = self.LakeShore350.SensorUnitsInputReadingQuery(s)[0]
             data["Temperature_Ohm"] = temperature
             # answer_dict[f"Temperature_Ohm"] = temperature
+
+        if "measure_calibration" in command:
+            kelvins = self.LakeShore350.KelvinReadingQuery(0)
+            ohms = self.LakeShore350.SensorUnitsInputReadingQuery(0)
+            data = {"kelvins": kelvins, "ohms": ohms}
+
         if not answer_dict["OK"]:
             answer_dict["ERROR"] = True
             answer_dict["ERROR_message"] = str(answer_dict["Errors"])
@@ -357,15 +365,20 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
 
         """
         self._logger.debug(f"tempcommand: {tempdict}")
+
         if "end" not in tempdict:
             self.Temp_K_value = tempdict["setTemp"]
         if "setTemp" not in tempdict:
-            self._logger.warning(
-                "received command to change temperature without final temperature setpoint"
-            )
-            return
+            if "end" in tempdict:
+                tempdict["setTemp"] = tempdict["end"]
+            else:
+                self._logger.warning(
+                    "received command to change temperature without final temperature setpoint"
+                )
+                return
         else:
             self.Temp_K_value = tempdict["end"]
+
         self.Ramp_status_internal = int(tempdict["isSweep"])
         self.Ramp_Rate_value = tempdict["SweepRate"]
 
@@ -373,6 +386,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             self._logger.debug("starting sweep")
             setpoint_now = self.LakeShore350.ControlSetpointQuery(1)
             self._logger.debug("setpoint now: %f", setpoint_now)
+            # finding the correct setpoint to start
             if "start" in tempdict:
                 if tempdict["start"]:
                     starting = tempdict["start"]
@@ -381,7 +395,9 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
             else:
                 starting = setpoint_now
             start = setpoint_now if tempdict["isSweepStartCurrent"] else starting
-            self._logger.debug("start now: %f", start)
+
+            self.Temp_K_value = tempdict["end"]
+            self._logger.debug("setting setpoint to start (%f) now.", start)
             self.LakeShore350.ControlSetpointCommand(1, start)
             self._logger.debug(
                 "sweep control: status: %f, rate: %f",

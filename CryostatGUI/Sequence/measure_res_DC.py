@@ -1,6 +1,7 @@
 """Documentation for usable functions in measuring scripts, to be injected by a user"""
 from Sequence_abstract_measurements import AbstractMeasureResistance
 from util.zmqcomms import loops_off_zmq
+from datetime import datetime as dt
 
 self._logger.info(
     "DC MEAS - -------------   START  ---------------------------------------"
@@ -76,7 +77,7 @@ k6221_1 = Keithley_Source_Channel(control=self, device_id="Keithley6221_1")
 k2182_1 = Keithley_Voltage_Channel(control=self, device_id="Keithley2182_1")
 
 loop_stop_devices = [
-    "Keithley6221_2",
+    "Keithley6221_1",
     "Keithley2182_1",
     "LakeShore350",
 ]
@@ -87,8 +88,16 @@ loop_stop_devices = [
         -5, -2.5, 2.5, 5
     excitation currents are in Ampere
 """
-exc_curr = 5e-3
-iv_characteristic = [1, 0.5]
+exc_curr = 0.1 * 1e-3
+# iv_characteristic = [1, 0.75, 0.5]
+iv_characteristic = [
+                        # 2,
+                        1,
+                        # 0.75,
+                        0.5,
+                        0.25,
+                        0.1,
+                    ]
 # ----------------------------------------------------------------------------------------
 stop_loops = loops_off_zmq(control=self, devices=loop_stop_devices)
 
@@ -108,6 +117,7 @@ with stop_loops:
         channel_voltage=k2182_1,
         exc_curr=exc_curr,
         iv_characteristic=iv_characteristic,
+        current_reversal_time=0.02,
     )
 
     # second temperature measurement, after measuring
@@ -122,6 +132,7 @@ t_std = np.std([t1, t2])
 
 # building the dictionary which contains all measurement data
 d = dict(
+    timestamp=dt.now().isoformat(),
     temperature=t_mean,
     temperature_std=t_std,
     rho=rho["coeff"],
