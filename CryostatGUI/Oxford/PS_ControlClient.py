@@ -278,7 +278,7 @@ class DeviceGUI(AbstractMainApp, Window_trayService_ui):
         Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
-        self.ct += 1
+        self.ct += 2
         self.lcdOutputField.display(
                     self.ct)
 
