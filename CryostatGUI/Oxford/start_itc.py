@@ -11,7 +11,8 @@ from pid import PidFile
 from pid import PidFileError
 
 from ITC503_ControlClient import ITCGUI
-from ITC503_ControlClient_pythreading import ITC503_ControlClient_pythreading
+
+# from ITC503_ControlClient_pythreading import ITC503_ControlClient_pythreading
 
 if __name__ == "__main__":
 

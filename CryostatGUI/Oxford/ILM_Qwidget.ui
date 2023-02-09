@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>ILM cryogen level meter</string>
   </property>
   <widget class="QGroupBox" name="groupReadings">
    <property name="geometry">

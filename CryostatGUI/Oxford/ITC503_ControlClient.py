@@ -111,7 +111,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
 
         self.setControl()
 
-        self.setPIDFile(".\\..\\configurations\\PID_conf\\P1C1.conf")
+        self.setPIDFile(".\\..\\configurations\\PID_conf\\P1C4_oxford_hint.conf")
         self.useAutoPID = True
         if mainthread is not None:
             mainthread.sig_useAutocheck.connect(self.setCheckAutoPID)
@@ -204,6 +204,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
 
+        # self._logger.debug("starting to collect data")
         # self.data['status'] = self.read_status()
         self.data["temperature_error"] = self.ITC.getValue(
             self.sensors["temperature_error"]
@@ -212,6 +213,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.sensors["set_temperature"]
         )
 
+        # self._logger.debug("looping through sensors")
         for key in self.sensors:
             try:
 
@@ -238,6 +240,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # print('retrieving', time.time()-starttime, self.data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
 
+        # self._logger.debug("gathering addditional data")
+
         self.data["Sensor_1_calerr_K"] = (
             self.data["set_temperature"] - self.data["temperature_error"]
         )
@@ -249,6 +253,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             self.set_PID(temperature=self.data["Sensor_1_K"])
         self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
+        # self._logger.debug("data collected, sending data")
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
 
@@ -259,23 +264,8 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
-        # examples:
-        if "setTemp_K" in command:
-            # value in this dictionary must the the required dictionary!
-            self.setTemperature(command["setTemp_K"])
-        # if 'configTempLimit' in command:
-        #     self.configTempLimit(command['configTempLimit'])
-        if "setInterval" in command:
-            self.setInterval(command["setInterval"])
-        if "setDerivative" in command:
-            self.gettoset_Derivative(command["setDerivative"])
-            self.setDerivative()
-        if "setIntegral" in command:
-            self.gettoset_Integral(command["setIntegral"])
-            self.setIntegral()
-        if "setProportional" in command:
-            self.gettoset_Proportional(command["setProportional"])
-            self.setProportional()
+        if "setAutoControl" in command:
+            self.setAutoControl(command["setAutoControl"])
         if "setHeaterOutput" in command:
             self.gettoset_HeaterOutput(command["setHeaterOutput"])
             self.setHeaterOutput()
@@ -288,14 +278,30 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 % command["gothroughzero"]
             )
             """Has to be implemented"""
-        if "setAutoControl" in command:
-            self.setAutoControl(command["setAutoControl"])
+
+        if "setTemp_K" in command:
+            # value in this dictionary must the the required dictionary!
+            self.setTemperature(command["setTemp_K"])
+        # if 'configTempLimit' in command:
+        #     self.configTempLimit(command['configTempLimit'])
+        if "setInterval" in command:
+            self.setInterval(command["setInterval"])
+
+        if "setDerivative" in command:
+            self.gettoset_Derivative(command["setDerivative"])
+            self.setDerivative()
+        if "setIntegral" in command:
+            self.gettoset_Integral(command["setIntegral"])
+            self.setIntegral()
+        if "setProportional" in command:
+            self.gettoset_Proportional(command["setProportional"])
+            self.setProportional()
         if "setHeaterSensor" in command:
             self.setHeaterSensor(command["commsetHeaterSensor"])
-        if "ConfloaD" in command:
+        if "pid_confload" in command:
             self.setPIDFile(command["PIDFile"])
             self.setCheckAutoPID(command["useAuto"])
-            if command["useAuto"] == 1:
+            if command["useAuto"]:
                 self.set_PID(temperature=self.data["Sensor_1_K"])
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -308,7 +314,9 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq tcp, and executed here
         if "measure_Sensor_K" in command:  # value could be the sensor number
-            answer_dict["Temperature_K"] = self.ITC.getValue(self.sensors["Sensor_1_K"])
+            temperature = self.ITC.getValue(self.sensors["Sensor_1_K"])
+
+        answer_dict["data_raw"] = {"Temperature_K": temperature}
         self.act_on_command(command)
         answer_dict["OK"] = True
         return answer_dict
@@ -519,14 +527,34 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             # stop sweep if it runs
             if "start" in values:
                 starting = values["start"]
+                instance._logger.debug(
+                    "'start' in the temperature definition, starting with %f", starting
+                )
             else:
                 starting = instance.ITC.getValue(0)
+                instance._logger.debug(
+                    "'start' not in the temperature definition, starting with current setpoint %f",
+                    starting,
+                )
             start = (
                 instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
             )
+            instance._logger.debug(
+                "'isSweepStartCurrent' is %s, starting with  %f",
+                values["isSweepStartCurrent"],
+                start,
+            )
+            instance._logger.debug("stopping a possibly running sweep")
             instance.checksweep(stop=True)
-            autocontrol = instance.data_last["status"]["auto_int"]
+            autocontrol = instance.read_status()["auto_int"]
+            instance._logger.debug(
+                "storing last setting of autocontrol: %s", autocontrol
+            )
             instance.ITC.setAutoControl(0)
+            instance._logger.debug(
+                "setting autocontrol to 0 so the temperature is not affected by a changing sweep behavior"
+            )
+            instance._logger.debug("waiting for a possibly running sweep to end")
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
             time.sleep(0.1)
@@ -535,21 +563,37 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             with instance.lock:
                 if values["isSweep"]:
                     # set up sweep
+                    instance._logger.debug(
+                        "sweep requested, setting the sweep with the device: start: %s, end: %s, rate: %s",
+                        start,
+                        values["end"],
+                        values["SweepRate"],
+                    )
 
                     instance.setSweep(
                         setpoint_temp=values["end"],
                         rate=values["SweepRate"],
                         start=start,
                     )
+                    instance._logger.debug("starting the sweep")
                     instance.ITC.SweepStart()
                     # whatever this is needed for, does not work without
+                    instance._logger.debug(
+                        "read the setpoint without listening, seemed necessary at some point"
+                    )
                     instance.ITC.getValue(0)
                 else:
+                    instance._logger.debug(
+                        "direct change of setpoint, setting it to %s", values["setTemp"]
+                    )
                     instance.ITC.setTemperature(values["setTemp"])
+                instance._logger.debug("changing autocontrol back to %s", autocontrol)
                 instance.ITC.setAutoControl(autocontrol)
 
         with self.lock_newthread:
+            self._logger.debug("setting up a thread to change the temeprature")
             t1 = Thread(target=settingtheTemp, args=(values,))
+            self._logger.debug("starting the thread")
             t1.start()
         # with self.lock:
         #     self.checksweep()
@@ -630,6 +674,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                     heater output in units of 0.1%.
                     Min: 0. Max: 999.
         """
+        self._logger.debug("setting the heater output to %f%", self.set_heater_output)
         self.ITC.setHeaterOutput(self.set_heater_output)
 
     @pyqtSlot()
@@ -641,6 +686,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                 output in units of 1%.
                 Min: 0. Max: 99.
         """
+        self._logger.debug("setting the gas output to %f%", self.set_gas_output)
         self.ITC.setGasOutput(self.set_gas_output)
 
     @pyqtSlot(int)
@@ -655,6 +701,7 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             3: heater auto  , gas auto
 
         """
+        self._logger.debug("setting autocontrol to %s", value)
         self.set_auto_manual = value
         self.ITC.setAutoControl(self.set_auto_manual)
 

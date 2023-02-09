@@ -1,8 +1,8 @@
-"""Module containing a class to run a LakeShore 350 Cryogenic Temperature Controller in a pyqt5 application
+"""Template module containing a class to run a hardware device in a pyqt5 application
 
 Classes:
-    LakeShore350_ControlClient: a class for interfacing with a LakeShore350 temperature controller
-            inherits from AbstractLoopClient
+    Template_ControlClient: a class for interfacing with a hardware device
+            inherits from AbstractLoopThreadClient
 """
 import sys
 import os
@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QTimer
+
 from PyQt5 import QtWidgets
 from copy import deepcopy
 
@@ -21,23 +22,19 @@ from drivers import ApplicationExit
 
 from util import ExceptionHandling
 from util import AbstractLoopThreadClient
-
-# from util import Timerthread_Clients
 from util import Window_trayService_ui
 from util import AbstractMainApp
 
-from datetime import datetime as dt
+from datetime import datetime
+from Oxford import ips120
 from pyvisa.errors import VisaIOError
 import logging
 
 
-from Keithley.Keithley2182 import Keithley2182
+class Template_ControlClient(AbstractLoopThreadClient):
+    """Updater class for a hardware device
 
-
-class Keithley2182_ControlClient(AbstractLoopThreadClient):
-    """Updater class for the LakeShore350 Temperature controller
-
-    For each Device function there is a wrapping method,
+    For each device function there is a wrapping method,
     which we can call by a signal/by zmq comms. This wrapper sends
     the corresponding value to the device.
 
@@ -50,32 +47,21 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     """
 
     # exposable data dictionary
-    data = dict(
-        Voltage_V=None,
-        TemperatureInternal_K=None,
-        TemperaturePresent_K=None,
-        realtime=None,
-    )
+    data = {}
 
-    def __init__(self, mainthread=None, InstrumentAddress="", **kwargs):
+    def __init__(self, mainthread=None, comLock=None, InstrumentAddress="", **kwargs):
         super().__init__(**kwargs)
-        # self.logger = log if log else logging.getLogger(__name__)
-
-        # here the class instance of the LakeShore should be handed
-        self.__name__ = "Keithley2182_control " + InstrumentAddress
+        self.__name__ = "DeviceName_control " + InstrumentAddress
         self._logger = logging.getLogger(
             "CryoGUI." + __name__ + "." + self.__class__.__name__
         )
-        self.interval = 0.1
-        # try:
-        # print(self.logger, self.logger.name)
 
         # -------------------------------------------------------------------------------------------------------------------------
         # Interface with hardware device
         # Example:
-        self.Keithley2182 = Keithley2182(InstrumentAddress=InstrumentAddress)
-        self._startingtime = dt.now()
-        self.save_InstrumentAddress = InstrumentAddress
+        # self.ips120_1 = ips120_1(
+        #    InstrumentAddress=InstrumentAddress, comLock=comLock)
+
         # -------------------------------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------------------------------
@@ -87,21 +73,23 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # -------------------------------------------------------------------------------------------------------------------------
         # GUI: passing GUI interactions to the corresponding slots
         # Examples:
-        if mainthread is not None:
-            pass
-            # mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
-            # mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
+        # if mainthread is not None:
+        #     pass
 
-            # mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
-            # mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
+        #     mainthread.spinSetLoopP_Param.valueChanged.connect(lambda value: self.gettoset_LoopP_Param(value))
+        #     mainthread.spinSetLoopP_Param.editingFinished.connect(self.setLoopP_Param)
 
-            # mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
-            # mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+        #     mainthread.spinSetLoopI_Param.valueChanged.connect(lambda value: self.gettoset_LoopI_Param(value))
+        #     mainthread.spinSetLoopI_Param.editingFinished.connect(self.setLoopI_Param)
 
-            # mainthread.spin_threadinterval.valueChanged.connect(
-            #     lambda value: self.setInterval(value)
-            # )
-            # -------------------------------------------------------------------------------------------------------------------------
+        #     mainthread.spinSetLoopD_Param.valueChanged.connect(lambda value: self.gettoset_LoopD_Param(value))
+        #     mainthread.spinSetLoopD_Param.editingFinished.connect(self.setLoopD_Param)
+
+        #     -------------------------------------------------------------------------------------------------------------------------
+
+        #     mainthread.spin_threadinterval.valueChanged.connect(
+        #         lambda value: self.setInterval(value)
+        #     )
 
     # @control_checks
     @ExceptionHandling
@@ -116,29 +104,9 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
 
         # data collection for to be exposed on the data upstream
         # to be stored in self.data
-
-        self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
-        if (dt.now() - self._startingtime).seconds > 60:  # 60
-            self._startingtime = dt.now()
-            self.data[
-                "TemperatureInternal_K"
-            ] = self.Keithley2182.measureInternalTemperature()
-            self.data[
-                "TemperaturePresent_K"
-            ] = self.Keithley2182.measurePresentTemperature()
-
-        for error in self.Keithley2182.error_gen():
-            if error[0] != "0":
-                self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
-                # if error[0] == "-213":
-                #     self._logger.warning(
-                #         "found error -213, re-establishing connection"
-                #     )
-                #     self.Keithley2182 = Keithley2182(
-                #         InstrumentAddress=self.save_InstrumentAddress,
-                #     )
-
-        self.data["realtime"] = dt.now()
+        # example:
+        # self.data['Temp_K'] = self.LakeShore350.ControlSetpointQuery(1)
+        self.data["realtime"] = datetime.now()
         # -------------------------------------------------------------------------------------------------------------------------
         self.sig_Infodata.emit(deepcopy(self.data))
         self.run_finished = True
@@ -147,24 +115,15 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     @ExceptionHandling
     def act_on_command(self, command):
         """execute commands sent on downstream"""
+        pass
         # -------------------------------------------------------------------------------------------------------------------------
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq downstream, and executed here
         # examples:
-        if "measure_Voltage" in command:
-            # self.setTemp_K(command['setTemp_K'])
-            self.data["Voltage_V"] = self.Keithley2182.measureVoltage()
+        # if 'setTemp_K' in command:
+        #     self.setTemp_K(command['setTemp_K'])
         # if 'configTempLimit' in command:
         #     self.configTempLimit(command['configTempLimit'])
-        if "Display_1" in command:
-            self.ToggleDisplay(command["Display_1"])
-        if "Autozero_1" in command:
-            self.ToggleAutozero(command["Autozero_1"])
-        if "frontAutozero_1" in command:
-            self.ToggleAutozero(command["frontAutozero_1"])
-        if "Autorange_1" in command:
-            self.ToggleAutorange(command["Autorange_1"])
-
         # -------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandling
@@ -175,15 +134,12 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
         # commands, like for adjusting a set temperature on the device
         # commands are received via zmq tcp, and executed here
         # examples:
-        try:
-            if "measure_Voltage" in command:
-                # self.setTemp_K(command['setTemp_K'])
-                answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
-            # if 'configTempLimit' in command:
-            #     self.configTempLimit(command['configTempLimit'])
-            answer_dict["OK"] = True
-        finally:
-            return answer_dict
+        # if "measure_Voltage" in command:
+        #     answer_dict["Voltage_V"] = self.Keithley2182.measureVoltage()
+        # if 'configTempLimit' in command:
+        #     self.configTempLimit(command['configTempLimit'])
+        answer_dict["OK"] = True
+        return answer_dict
         # -------------------------------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------------------------------
@@ -191,49 +147,62 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     #  hardware communication functions
     # Examples:
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def read_Voltage(self):
-        """read a Voltage from instrument. return value should be float"""
-        return self.Keithley2182.measureVoltage()
+    # @ExceptionHandling
+    # def initiating_PID(self):
+    #     temp_list0 = self.LakeShore350.ControlLoopPIDValuesQuery(1)
+    #     self.LoopP_value = temp_list0[0]
+    #     self.LoopI_value = temp_list0[1]
+    #     self.LoopD_value = temp_list0[2]
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def speed_up(self):
-        """increase measurement speed"""
-        self.Keithley2182.setRate("FAS")
+    # @ExceptionHandling
+    # def configTempLimit(self, confdict=None):
+    #     """sets temperature limit
+    #     """
+    #     if confdict is None:
+    #         confdict = {key: 400 for key in ['A', 'B', 'C', 'D']}
+    #     for i in ['A', 'B', 'C', 'D']:
+    #         self.LakeShore350.TemperatureLimitCommand(i, 400.)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def ToggleDisplay(self, bools):
-        if bools:
-            self.Keithley2182.DisplayOn()
-        else:
-            self.Keithley2182.DisplayOff()
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setTemp_K(self, temp=None):
+    #     """takes value Temp_K and uses it on function ControlSetpointCommand to set desired temperature.
+    #     """
+    #     if temp is not None:
+    #         self.Temp_K_value = temp
+    #     self.LakeShore350.ControlSetpointCommand(1, self.Temp_K_value)
+    #     self.LakeShore350.ControlSetpointRampParameterCommand(
+    #         1, self.Ramp_status_internal, self.Ramp_Rate_value)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def ToggleFrontAutozero(self, bools):
-        if bools:
-            self.Keithley2182.FrontAutozeroOn()
-        else:
-            self.Keithley2182.FrontAutozeroOff()
+    # @ExceptionHandling
+    # def read_Temperatures(self):
+    #     sensors = dict()
+    #     sensor_names = ['Sensor_1_K', 'Sensor_2_K', 'Sensor_3_K', 'Sensor_4_K']
+    #     temp_list = self.LakeShore350.KelvinReadingQuery(0)
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def ToggleAutozero(self, bools):
-        if bools:
-            self.Keithley2182.AutozeroOn()
-        else:
-            self.Keithley2182.AutozeroOff()
+    #     for idx, sens in enumerate(sensor_names):
+    #         sensors[sens] = temp_list[idx]
+    #     return sensors
 
-    @pyqtSlot()
-    @ExceptionHandling
-    def ToggleAutorange(self, bools):
-        if bools:
-            self.Keithley2182.AutorangeOn()
-        else:
-            self.Keithley2182.AutorangeOff()
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setLoopP_Param(self):
+    #     self.LakeShore350.ControlLoopPIDValuesCommand(1, self.LoopP_value, self.data[
+    #                                                   'Loop_I_Param'], self.data['Loop_D_Param'])
+
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setLoopI_Param(self):
+    #     self.LakeShore350.ControlLoopPIDValuesCommand(
+    # 1, self.data['Loop_P_Param'], self.LoopI_value,
+    # self.data['Loop_D_Param'])
+
+    # @pyqtSlot()
+    # @ExceptionHandling
+    # def setLoopD_Param(self):
+    #     self.LakeShore350.ControlLoopPIDValuesCommand(
+    # 1, self.data['Loop_P_Param'], self.data['Loop_I_Param'],
+    # self.LoopD_value)
 
     # -------------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------------------------------
@@ -257,7 +226,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
     #     self.LoopD_value = value
 
 
-class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
+class DeviceGUI(AbstractMainApp, Window_trayService_ui):
     """This is the LakeShore GUI Window"""
 
     sig_arbitrary = pyqtSignal()
@@ -270,14 +239,15 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
         self._InstrumentAddress = InstrumentAddress
         self._prometheus_port = prometheus_port
         super().__init__(**kwargs)
-        self._logger = logging.getLogger(
-            "CryoGUI." + __name__ + "." + self.__class__.__name__
-        )
+        # print('GUI post')
+        # loadUi('.\\configurations\\Cryostat GUI.ui', self)
+        # self.setupUi(self)
 
-        self.__name__ = "Keithley2182_Window"
+        self.__name__ = "Template_Window"
         self.controls = [self.groupSettings]
 
         QTimer.singleShot(0, self.run_Hardware)
+        self.ct = 0
 
     @pyqtSlot()
     def run_Hardware(self):
@@ -285,7 +255,7 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
 
         try:
             getInfodata = self.running_thread_control(
-                Keithley2182_ControlClient(
+                Template_ControlClient(
                     InstrumentAddress=self._InstrumentAddress,
                     mainthread=self,
                     identity=self._identity,
@@ -299,7 +269,7 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
 
         except (VisaIOError, NameError) as e:
             # self.show_error_general('running: {}'.format(e))
-            self._logger.exception(e)
+            self.logger_personal.exception(e)
             raise ApplicationExit("Could not connect to Hardware!")
 
     @pyqtSlot(dict)
@@ -308,6 +278,9 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
         Store Device data in self.data, update values in GUI
         """
         self.data.update(data)
+        self.ct += 1
+        self.lcdOutputField.display(self.ct)
+
         # data['date'] = convert_time(time.time())
         # self.store_data(data=data, device='LakeShore350')
 
@@ -318,30 +291,72 @@ class Keithley2182GUI(AbstractMainApp, Window_trayService_ui):
 
         # -----------------------------------------------------------------------------------------------------------
         # update the GUI
-        gui_elements = [
-            self.textVoltage_V,
-            self.textTempInternal_K,
-            self.textTempPresent_K,
-        ]
-        formats = ["{num:=+13.12f}"] + ["{num:=06.3f}"] * 2
-        keys = ("Voltage_V", "TemperatureInternal_K", "TemperaturePresent_K")
-        for g, f, k in zip(gui_elements, formats, keys):
-            try:
-                g.setText(f.format(num=self.data[k]))
-            except KeyError:
-                pass
+        # Examples:
 
-        # self.textVoltage_V.setText("{num:=+13.12f}".format(num=self.data["Voltage_V"]))
-        # self.textTempInternal_K.setText(
-        #     "{num:=06.3f}".format(num=self.data["TemperatureInternal_K"])
-        # )
-        # self.textTempPresent_K.setText(
-        #     "{num:=06.3f}".format(num=self.data["TemperaturePresent_K"])
-        # )
+        # self.progressHeaterOutput_percentage.setValue(
+        #     self.data['Heater_Output_percentage'])
+        # self.lcdHeaterOutput_mW.display(
+        #     self.data['Heater_Output_mW'])
+        # self.lcdSetTemp_K.display(
+        #     self.data['Temp_K'])
+        # # self.lcdRampeRate_Status.display(self.data['RampRate_Status'])
+        # self.lcdSetRampRate_Kpmin.display(
+        #     self.data['Ramp_Rate'])
+
+        # self.comboSetInput_Sensor.setCurrentIndex(
+        #     int(self.data['Input_Sensor']) - 1)
+        # self.lcdSensor1_K.display(
+        #     self.data['Sensor_1_K'])
+        # self.lcdSensor2_K.display(
+        #     self.data['Sensor_2_K'])
+        # self.lcdSensor3_K.display(
+        #     self.data['Sensor_3_K'])
+        # self.lcdSensor4_K.display(
+        #     self.data['Sensor_4_K'])
         # -----------------------------------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":
     print(
-        "please use the program 'start_Keithley2182.py' to start communicating with this device!"
+        "please use the program 'start_XXX.py' to start communicating with this device!"
     )
+
+    from pid import PidFile
+    from pid import PidFileError
+
+    try:
+        with PidFile("Template"):
+            logger = logging.getLogger()
+            logger.setLevel(logging.DEBUG)
+
+            logger_2 = logging.getLogger("pyvisa")
+            logger_2.setLevel(logging.INFO)
+            logger_3 = logging.getLogger("PyQt5")
+            logger_3.setLevel(logging.INFO)
+
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+
+            logger.addHandler(handler)
+            logger_2.addHandler(handler)
+            logger_3.addHandler(handler)
+
+            app = QtWidgets.QApplication(sys.argv)
+            form = DeviceGUI(
+                ui_file="IPS_control.ui",
+                Name="Template",
+                identity="templ",
+                InstrumentAddress="",
+                prometheus_port=None,
+            )
+            form.show()
+            # print('date: ', dt.datetime.now(),
+            #       '\nstartup time: ', time.time() - a)
+            sys.exit(app.exec_())
+    except PidFileError:
+        print("Program already running! \nShutting down now!\n")
+        sys.exit()
