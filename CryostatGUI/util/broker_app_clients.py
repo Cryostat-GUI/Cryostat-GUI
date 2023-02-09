@@ -28,6 +28,7 @@ def main():
 
 if __name__ == "__main__":
     import logging
+
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -41,5 +42,4 @@ if __name__ == "__main__":
     # logger.addHandler(handler_debug)
     logger.addHandler(handler_info)
 
-    
     main()

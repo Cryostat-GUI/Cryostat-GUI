@@ -129,9 +129,7 @@ class Keithley2182_ControlClient(AbstractLoopThreadClient):
 
         for error in self.Keithley2182.error_gen():
             if error[0] != "0":
-                self._logger.error(
-                    "code:%s, message:%s", error[0], error[1].strip('"')
-                )
+                self._logger.error("code:%s, message:%s", error[0], error[1].strip('"'))
                 # if error[0] == "-213":
                 #     self._logger.warning(
                 #         "found error -213, re-establishing connection"

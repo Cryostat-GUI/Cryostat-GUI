@@ -91,5 +91,3 @@ if __name__ == "__main__":
     while True:
         d.execute_python_single(file="measure_temperature_calibration.py")
         time.sleep(10)
-
-

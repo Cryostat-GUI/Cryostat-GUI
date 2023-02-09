@@ -1381,4 +1381,6 @@ if __name__ == "__main__":
     #     print("Program already running! \nShutting down now!\n")
     #     sys.exit()
 
-    print("moved to 'start_dataStore.py', please use this script to start the logger and dataStore!")
+    print(
+        "moved to 'start_dataStore.py', please use this script to start the logger and dataStore!"
+    )

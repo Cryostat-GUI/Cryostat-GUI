@@ -312,13 +312,9 @@ class zmqClient(zmqBare):
                         self._logger.debug("zmq: answered tcp data query")
 
                     elif dec(msg)[0] == "!":
-                        self._logger.debug(
-                            "received command on tcp"
-                        )                        
+                        self._logger.debug("received command on tcp")
                         command_dict = dictload(dec(msg)[1:])
-                        self._logger.info(
-                            "received command on tcp: %s", command_dict
-                        )
+                        self._logger.info("received command on tcp: %s", command_dict)
                         self.act_on_general(command_dict)
                         answer = self.query_on_command(command_dict)
                         try:

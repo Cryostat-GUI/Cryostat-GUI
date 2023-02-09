@@ -33,7 +33,7 @@ logger_3.addHandler(handler)
 
 c = zmqMainControl(_ident="main_manual")
 
-datafile = './CERNOX-June2022/calibrate_cernox_001.csv'
+datafile = "./CERNOX-June2022/calibrate_cernox_001.csv"
 
 shunt_Resistance = 1 * 1e3
 contact_Resistance = 150

@@ -274,7 +274,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         if "setHeaterOut" in command:
             self.setHeater_Range(0)
         if "setHeaterRange" in command:
-            self.setHeater_Range(command["setHeaterRange"])            
+            self.setHeater_Range(command["setHeaterRange"])
 
         # TODO: implement more commands
 
@@ -296,7 +296,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
                 answer_dict["OK"] = False
                 answer_dict["Errors"].append("invalid sensor number: {}".format(s))
             temperature = self.LakeShore350.KelvinReadingQuery(s)[0]
-            
+
             data["Temperature_K"] = temperature
             # answer_dict[f"Temperature_K"] = temperature
 
@@ -340,7 +340,7 @@ class LakeShore350_ControlClient(AbstractLoopThreadClient):
         self.LakeShore350.HeaterSetupCommand(1, 2, 2, 1, 2)
         self._max_current = 1  # [A]
         self._heater_resistance = 50  # [Ohm]
-        self._max_power = self._heater_resistance * self._max_current ** 2  # [W]
+        self._max_power = self._heater_resistance * self._max_current**2  # [W]
 
     @ExceptionHandling
     def configTempLimit(self, confdict=None):

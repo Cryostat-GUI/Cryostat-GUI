@@ -42,7 +42,7 @@ logger = logging.getLogger("CryostatGUI.Sequences_zmq")
 class Sequence_comms_zmq(zmqMainControl):
     """docstring for Sequence_comms_zmq"""
 
-    _ident="main_sequence"
+    _ident = "main_sequence"
     device_ids = dict(
         chan1=dict(V="Keithley2182_1", A="Keithley6221_1"),
         chan2=dict(V="Keithley2182_2", A="Keithley6221_2"),
@@ -59,7 +59,6 @@ class Sequence_comms_zmq(zmqMainControl):
         return super()._bare_retrieveDataIndividual(
             dataindicator1, dataindicator2, Live=True
         )
-
 
 
 class Sequence_functionsConvenience:
@@ -401,10 +400,17 @@ class Sequence_functionsPersonal:
 
         # setpoint for VTI = setpoint for sample minus deltaT
         setpoint_VTI = temperature - self.tempdefinition["deltaT"]
-        self._logger.debug("defining setpoint as 'setpoint (%f) - deltaT (%f) = %f'", temperature, self.tempdefinition["deltaT"], setpoint_VTI)
+        self._logger.debug(
+            "defining setpoint as 'setpoint (%f) - deltaT (%f) = %f'",
+            temperature,
+            self.tempdefinition["deltaT"],
+            setpoint_VTI,
+        )
         if setpoint_VTI < 2:
             setpoint_VTI = 2
-            self._logger.info("setpoint for VTI would have exceeded its minimum, setting it to 1.5")
+            self._logger.info(
+                "setpoint for VTI would have exceeded its minimum, setting it to 1.5"
+            )
         self.commanding(
             ID=self.tempdefinition["control"][0],
             message=dictdump(
@@ -414,7 +420,7 @@ class Sequence_functionsPersonal:
                         isSweep=False,
                         isSweepStartCurrent=False,
                         setTemp=setpoint_VTI,
-                    )
+                    ),
                 }
             ),
         )
@@ -486,7 +492,12 @@ class Sequence_functionsPersonal:
             end_VTI = 2
         else:
             end_VTI = end - self.tempdefinition["deltaT"]
-        self._logger.debug("shifting VTI setpoints for %f K to [%f, %f]", self.tempdefinition["deltaT"], start_VTI, end_VTI)
+        self._logger.debug(
+            "shifting VTI setpoints for %f K to [%f, %f]",
+            self.tempdefinition["deltaT"],
+            start_VTI,
+            end_VTI,
+        )
         self.commanding(
             ID=self.tempdefinition["control"][0],
             message=dictdump(
@@ -498,7 +509,7 @@ class Sequence_functionsPersonal:
                         start=start_VTI,
                         end=end_VTI,
                         SweepRate=SweepRate,
-                    )
+                    ),
                 }
             ),
         )
@@ -688,8 +699,14 @@ class Sequence_functionsPersonal:
         # turn of the heater of the VTI (i.e. ITC503)
 
         # VTI shutdown:
-        self._logger.info("Shutdown, setting VTI to manual, with heater and gas output =0%")
-        for cdict in ({"setAutoControl": 0}, {"setHeaterOutput": 0}, {"setGasOutput": 0}):
+        self._logger.info(
+            "Shutdown, setting VTI to manual, with heater and gas output =0%"
+        )
+        for cdict in (
+            {"setAutoControl": 0},
+            {"setHeaterOutput": 0},
+            {"setGasOutput": 0},
+        ):
             self.commanding(
                 ID=self.tempdefinition["control"][0],  # ITC
                 message=dictdump(cdict),
@@ -704,7 +721,7 @@ class Sequence_functionsPersonal:
                     "setHeaterOut": None,
                 }
             ),
-        )        
+        )
 
     def res_measure(self, dataflags: dict, bridge_conf: dict) -> dict:
         """Measure resistivity
@@ -978,11 +995,11 @@ if __name__ == "__main__":
     filename = "seqfiles/RvTest_use__measure_res_DC.seq"
     thresholdsconf = dict(
         temperature=dict(
-            value=  0.005,  # 0.1, # 0.05,  T_K
-            mean=  0.005,  # 0.2,  # 0.05,   Tmean_K
-            stderr_rel= 1e-4,  # 1e-5,
-            relslope_Xpmin= 1e-4,  # 1e-3,  # _Kpmin
-            slope_residuals=  5e-4,  # 30,
+            value=0.005,  # 0.1, # 0.05,  T_K
+            mean=0.005,  # 0.2,  # 0.05,   Tmean_K
+            stderr_rel=1e-4,  # 1e-5,
+            relslope_Xpmin=1e-4,  # 1e-3,  # _Kpmin
+            slope_residuals=5e-4,  # 30,
         ),
     )
     tempdefinition = dict(
@@ -990,7 +1007,6 @@ if __name__ == "__main__":
         control_secondary=["LakeShore350", "Sensor_4_K"],
         # sample=["ITC", "Sensor_1_calerr_K"],
         sample=["LakeShore350", "Sensor_1_K"],
-
         deltaT=0,
     )
     parsed = False
@@ -1002,7 +1018,9 @@ if __name__ == "__main__":
             with open(filename, "r") as f:
                 sequence = loads(f.read())
         except JSONDecodeError:
-            logger.warning("use the correct sequence file, and say whether it was parsed or not!")
+            logger.warning(
+                "use the correct sequence file, and say whether it was parsed or not!"
+            )
     print(sequence)
     runner = Sequence_Thread_zmq(
         sequence=sequence,

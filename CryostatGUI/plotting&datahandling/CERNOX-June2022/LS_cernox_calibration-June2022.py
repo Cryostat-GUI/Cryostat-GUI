@@ -4,25 +4,25 @@ from pymeasure.instruments.srs import SR860
 rm = visa.ResourceManager()
 print(rm)
 info = str(rm.list_resources())
-info = info.replace('(', '')
-info = info.replace(')', '')
-info = info.split(', ')
+info = info.replace("(", "")
+info = info.replace(")", "")
+info = info.split(", ")
 print("Devices that are connected:")
 numerator = 1
 for inst in info:
-    print(str(numerator) + '. ' + inst)
+    print(str(numerator) + ". " + inst)
     numerator += 1
 print()
 
-SR860 = SR860('GPIB::24::INSTR')
+SR860 = SR860("GPIB::24::INSTR")
 # SR860 = rm.open_resource('GPIB::24::INSTR')
-print(SR860.query('*IDN?'))
+print(SR860.query("*IDN?"))
 
 # LS here is 5 or 6
 
-print('Hello there')
+print("Hello there")
 
-'''
+"""
 from pymeasure.instruments.srs import SR830
 from Keithley2182 import Keithley2182
 from datetime import datetime as dt
@@ -78,4 +78,4 @@ while True:
         fn.write(line_to_save)
 
     indx += 1
-    sleep(2)'''
+    sleep(2)"""

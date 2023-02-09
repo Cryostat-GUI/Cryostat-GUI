@@ -91,13 +91,13 @@ loop_stop_devices = [
 exc_curr = 0.1 * 1e-3
 # iv_characteristic = [1, 0.75, 0.5]
 iv_characteristic = [
-                        # 2,
-                        1,
-                        # 0.75,
-                        0.5,
-                        0.25,
-                        0.1,
-                    ]
+    # 2,
+    1,
+    # 0.75,
+    0.5,
+    0.25,
+    0.1,
+]
 # ----------------------------------------------------------------------------------------
 stop_loops = loops_off_zmq(control=self, devices=loop_stop_devices)
 

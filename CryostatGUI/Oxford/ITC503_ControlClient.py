@@ -240,7 +240,6 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
         # print('retrieving', time.time()-starttime, self.data['Sensor_1_K'])
         # with "calc" in name it would not enter calculations!
 
-
         # self._logger.debug("gathering addditional data")
 
         self.data["Sensor_1_calerr_K"] = (
@@ -528,20 +527,33 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             # stop sweep if it runs
             if "start" in values:
                 starting = values["start"]
-                instance._logger.debug("'start' in the temperature definition, starting with %f", starting)
+                instance._logger.debug(
+                    "'start' in the temperature definition, starting with %f", starting
+                )
             else:
                 starting = instance.ITC.getValue(0)
-                instance._logger.debug("'start' not in the temperature definition, starting with current setpoint %f", starting)
+                instance._logger.debug(
+                    "'start' not in the temperature definition, starting with current setpoint %f",
+                    starting,
+                )
             start = (
                 instance.ITC.getValue(0) if values["isSweepStartCurrent"] else starting
             )
-            instance._logger.debug("'isSweepStartCurrent' is %s, starting with  %f",values["isSweepStartCurrent"], start)
+            instance._logger.debug(
+                "'isSweepStartCurrent' is %s, starting with  %f",
+                values["isSweepStartCurrent"],
+                start,
+            )
             instance._logger.debug("stopping a possibly running sweep")
             instance.checksweep(stop=True)
             autocontrol = instance.read_status()["auto_int"]
-            instance._logger.debug("storing last setting of autocontrol: %s", autocontrol)
+            instance._logger.debug(
+                "storing last setting of autocontrol: %s", autocontrol
+            )
             instance.ITC.setAutoControl(0)
-            instance._logger.debug("setting autocontrol to 0 so the temperature is not affected by a changing sweep behavior")
+            instance._logger.debug(
+                "setting autocontrol to 0 so the temperature is not affected by a changing sweep behavior"
+            )
             instance._logger.debug("waiting for a possibly running sweep to end")
             while instance.data_last["sweep"]:
                 time.sleep(0.01)
@@ -551,7 +563,12 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
             with instance.lock:
                 if values["isSweep"]:
                     # set up sweep
-                    instance._logger.debug("sweep requested, setting the sweep with the device: start: %s, end: %s, rate: %s", start, values["end"], values["SweepRate"])
+                    instance._logger.debug(
+                        "sweep requested, setting the sweep with the device: start: %s, end: %s, rate: %s",
+                        start,
+                        values["end"],
+                        values["SweepRate"],
+                    )
 
                     instance.setSweep(
                         setpoint_temp=values["end"],
@@ -561,10 +578,14 @@ class ITC503_ControlClient(AbstractLoopThreadClient):
                     instance._logger.debug("starting the sweep")
                     instance.ITC.SweepStart()
                     # whatever this is needed for, does not work without
-                    instance._logger.debug("read the setpoint without listening, seemed necessary at some point")
+                    instance._logger.debug(
+                        "read the setpoint without listening, seemed necessary at some point"
+                    )
                     instance.ITC.getValue(0)
                 else:
-                    instance._logger.debug("direct change of setpoint, setting it to %s", values["setTemp"])
+                    instance._logger.debug(
+                        "direct change of setpoint, setting it to %s", values["setTemp"]
+                    )
                     instance.ITC.setTemperature(values["setTemp"])
                 instance._logger.debug("changing autocontrol back to %s", autocontrol)
                 instance.ITC.setAutoControl(autocontrol)
